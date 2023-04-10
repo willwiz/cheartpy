@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from pyheartdataclasses import *
+from ..src.cheartpy.dataclass.cheart_dataclass import *
 
 def get_PFile():
   p=PFile(h=

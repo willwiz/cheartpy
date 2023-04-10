@@ -329,7 +329,7 @@ class PFile(object):
   problems   : Dict[str, Type[Problem]] = field(default_factory=dict)
   exprs      : Dict[str, Variable]      = field(default_factory=dict)
   output_path : Optional[str] = None
-  exportfrequencies: Dict[List,str] = field(default_factory=dict)
+  exportfrequencies: Dict[List, str] = field(default_factory=dict)
   def SetOutputPath(self, path):
     self.output_path = path
   # Add Time Scheme
