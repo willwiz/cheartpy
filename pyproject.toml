@@ -1,0 +1,23 @@
+[project]
+name = "hermite_interpolation"
+version = "0.0.1"
+authors = [
+  { name="Will Zhang", email="willwz@gmail.com" },
+]
+description = "Hermite interpoation of C1-C0 array"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 0 - Alpha",
+]
+dependencies = [
+  "Cython",
+  "matplotlib",
+  "numpy",
+  "openpyxl",
+  "pandas",
+  "scipy",
+]

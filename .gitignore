@@ -1,0 +1,15 @@
+.vscode
+
+**/__pycache__
+**~$*
+**.mp4
+**.png
+**.tif
+**.pyd
+**.so
+**/__init__.pyc
+
+**/build/*
+
+wenv
+venv
