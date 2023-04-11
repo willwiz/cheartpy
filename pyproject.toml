@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "cheartpy"
 version = "0.0.1"
@@ -10,11 +14,12 @@ requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Operating System :: Linux",
     "Development Status :: 0 - Alpha",
 ]
 dependencies = [
-  "Cython",
   "numpy",
-  "scipy",
 ]
+
+[project.scripts]
+cpyexec = "cheartpy.cpyexecute:main_cli"

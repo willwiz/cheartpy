@@ -2,7 +2,6 @@
 from typing import Final
 
 
-
 # Solver Algorithms
 seq_fp_linesearch : Final = "seq_fp_linesearch"
 SOLVER_SEQUENTIAL : Final = "SOLVER_SEQUENTIAL"

@@ -361,7 +361,7 @@ class PFile(object):
     for v in var:
       self.dataPs[v.name] = v
   # Set Export Frequency
-  def SetExportFrequency(self, *vars :Union[Variable,str], freq:int = 1):
+  def SetExportFrequency(self, *vars:Union[Variable,str], freq:int = 1):
     if str(freq) in self.exportfrequencies:
       self.exportfrequencies[str(freq)].extend([VoS(v) for v in vars])
     else:

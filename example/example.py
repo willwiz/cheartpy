@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-from ..src.cheartpy.dataclass.cheart_dataclass import *
+
+from cheartpy.dataclass.cheart_dataclass import *
 
 def get_PFile():
   p=PFile(h=

@@ -11,5 +11,8 @@
 
 **/build/*
 
+**/*.egg-info
+example/**/*.P
+
 wenv
 venv
