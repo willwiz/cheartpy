@@ -83,9 +83,9 @@ def cheart_help(args=None, rest=None):
   sp.run(['cheartsolver.out', f'--help={args.string}'])
 
 
-def self_help(args=None, rest=None):
+def self_default(args=None, rest=None):
   print("Printing Usage information for cheartsolver.out\n")
-  sp.run(['cheartsolver.out'])
+  sp.run(['cheartsolver.out', * rest])
 
 
 
@@ -94,7 +94,7 @@ parser = argparse.ArgumentParser(
   prog='cpyexec',
   description='''Python Cheart Pfile Interface''')
 
-parser.set_defaults(main=self_help)
+parser.set_defaults(main=self_default)
 
 subparsers = parser.add_subparsers()
 parser_help = subparsers.add_parser('help', help='call cheart --help=var', description='call cheart --help=var')
