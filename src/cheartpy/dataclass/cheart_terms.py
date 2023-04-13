@@ -3,34 +3,32 @@ from typing import Final
 
 
 # Solver Algorithms
-seq_fp_linesearch : Final = "seq_fp_linesearch"
+SEQ_FP_LINESEARCH : Final = "seq_fp_linesearch"
 SOLVER_SEQUENTIAL : Final = "SOLVER_SEQUENTIAL"
 # Solver Group Options
 
 
 # Variable Settings
-
+TEMPORAL_UPDATE_EXPR : Final = "TEMPORAL_UPDATE_EXPR"
 # Solvers
 SOLVER_MUMPS : Final = "SOLVER_MUMPS"
 
 # Solid Problems
-transient_elasticity : Final = "transient_elasticity"
-quasi_static_elasticity : Final = "quasi_static_elasticity"
+TRANSIENT_ELASTICITY : Final = "transient_elasticity"
+QUASI_STATIC_ELASTICITY : Final = "quasi_static_elasticity"
 
+L2SOLIDPROJECTION_PROBLEM : Final = 'l2solidprojection_problem'
 
-l2solidprojection_problem : Final = 'l2solidprojection_problem'
-
-norm_calculation : Final = 'norm_calculation'
+NORM_CALCULATION : Final = 'norm_calculation'
 
 
 # Element types
 HEXAHEDRAL_ELEMENT : Final = "HEXAHEDRAL_ELEMENT"
 
 # Topology Settings
-
-EmbeddedInTopology : Final = "EmbeddedInTopology"
+EMBEDDEDINTOPOLOGY : Final = "EmbeddedInTopology"
 
 # Boundary Conditions
-Dirichlet : Final = "Dirichlet"
+DIRICHLET : Final = "Dirichlet"
 
 

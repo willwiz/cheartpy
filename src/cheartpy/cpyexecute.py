@@ -82,12 +82,30 @@ def which(program):
 def cheart_help(args=None, rest=None):
   sp.run(['cheartsolver.out', f'--help={args.string}'])
 
+def run_prep(args=None, rest=None):
+  import importlib
+  import subprocess as sp
+  path, name = split(args.pyfile)
+  sys.path.append(path)
+  pkg = importlib.import_module(name)
+  p = pkg.get_PFile()
+  fout = name + '.P'
+  with open(fout,'w') as f:
+    p.write(f)
+  cmd = ['cheartsolver.out', fout, '--prep', *rest]
+  print(" ".join(cmd))
+  if args.log == 'Null':
+    sp.run(cmd, stdout=sp.DEVNULL)
+  elif args.log is not None:
+    with open(args.log, 'w') as f:
+      sp.run(cmd, stdout=f, stderr=sp.STDOUT)
+  else:
+    sp.run(cmd)
+  if not(args.keep):
+    os.remove(fout)
 
 def self_default(args=None, rest=None):
-  print("Printing Usage information for cheartsolver.out\n")
   sp.run(['cheartsolver.out', * rest])
-
-
 
 
 parser = argparse.ArgumentParser(
@@ -109,6 +127,11 @@ parser_run.add_argument('--keep', action='store_true', help='OPTIONAL: keep pfil
 parser_run.add_argument('--log', type=str, help='OPTIONAL: store output in a log file with given name')
 parser_run.add_argument('--cores', '-n',  type=int, default=1, help='OPTIONAL: number of cores to compute with')
 parser_run.set_defaults(main=run_script)
+parser_prep = subparsers.add_parser('prep', help='run cheart prep but with a py script', description='run cheart prep but with a py script')
+parser_prep.add_argument('pyfile', type=str)
+parser_prep.add_argument('--keep', action='store_true', help='OPTIONAL: keep pfile after')
+parser_prep.add_argument('--log', type=str, help='OPTIONAL: store output in a log file with given name')
+parser_prep.set_defaults(main=run_prep)
 parser_pf = subparsers.add_parser('pfile', help='run cheart with a Pfile', description='run cheart with a Pfile')
 parser_pf.add_argument('pfile', type=str)
 parser_pf.add_argument('--log', type=str, help='OPTIONAL: store output in a log file with given name')
