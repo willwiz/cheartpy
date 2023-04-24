@@ -18,8 +18,9 @@ classifiers = [
     "Development Status :: 0 - Alpha",
 ]
 dependencies = [
-  "numpy",
+  "numpy", "meshio"
 ]
 
 [project.scripts]
 cpyexec = "cheartpy.cpyexecute:main_cli"
+cheart2vtu = "cheartpy.cheart2vtu:main_cli"
