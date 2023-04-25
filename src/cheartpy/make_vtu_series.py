@@ -139,7 +139,7 @@ def print_cmd_header(inp:InputArgs):
   print("    script for putting together a collection with the time serie added")
   print("################################################################################################")
   print("")
-  print("<<< Output folder:                                   {}".format(inp.folder))
+  print("<<< Output folder:                                   {}".format(inp.outfolder))
   print("<<< Input file name prefix:                          {}".format(inp.prefix))
   print("<<< Data series:                                     From {} to {} with increment of {}".format(inp.i0, inp.it, inp.di))
   print("<<< Output file name:                                {}".format(inp.prefix+".pvd"))

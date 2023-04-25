@@ -65,7 +65,7 @@ parser_find.add_argument('--mesh', dest='mesh', action='store', default='',
                          type=str, help='OPTIONAL: supply a directory which contains the mesh files')
 parser_find.add_argument('--step', dest='mesh', action='store', default=1,
                          type=str, help='OPTIONAL: supply a directory which contains the mesh files')
-
+parser_find.set_defaults(find=True)
 
 parser.add_argument('variablenames', nargs='*', action='store', default=list(),
                     type=str, metavar=('var'), help='Optional: specify the variables to add to the vtu files. Multiple variable can be listed consecutively.')
@@ -220,6 +220,7 @@ class InputArgs:
   i0 : int = 0
   it : int = 1
   di : int = 1
+  index : npt.NDArray[np.int32] = dataclasses.field(default_factory=lambda: np.zeros(1, dtype=int))
   prefix : str = 'paraview'
   outputfile : str = 'paraview'
   topologyname : str = "Mesh_FE.T"
@@ -238,13 +239,23 @@ class InputArgs:
   varstemp : tp.List[tp.Callable[[int], str]] = dataclasses.field(default_factory=list)
 
 def get_inputs(args) -> InputArgs:
-  print(args)
+
   inp = InputArgs(args.variablenames)
+  if args.find:
+    for var in args.variablenames:
+      files = glob.glob(os.path.join(args.infolder, f"{var}-*.D"))
+      index = [int(re.search(r'\d+', s).group()) for s in files]
+    index = np.array(index)
+    inp.i0 = index[0]
+    inp.it = index[-1]
+    inp.di = None
+  else:
+    index = np.arange(args.irange[0], args.irange[1] + 1, args.irange[2])
+    inp.i0 = args.irange[0]
+    inp.it = args.irange[1]
+    inp.di = args.irange[2]
 
-  inp.i0        = args.irange[0]
-  inp.it        = args.irange[1] + 1
-  inp.di        = args.irange[2]
-
+  inp.index = index
   inp.infolder  = args.infolder
   if args.outfolder != '':
     if not os.path.isdir(args.outfolder):
@@ -301,32 +312,31 @@ def check_variables(inp : InputArgs) -> None:
   if os.path.isfile(inp.spacename):
     inp.spacetype = CheartDataFormat.mesh
     inp.spacetemp = lambda i: inp.spacename
-  elif os.path.isfile(os.path.join(inp.infolder, f"{inp.spacename}-{inp.i0}{cheartsuffix}")):
+  elif os.path.isfile(os.path.join(inp.infolder, f"{inp.spacename}-{inp.index[0]}{cheartsuffix}")):
     inp.spacetype = CheartDataFormat.var
     inp.spacetemp = lambda i: os.path.join(inp.infolder, f"{inp.spacename}-{i}{cheartsuffix}")
-  elif os.path.isfile(os.path.join(inp.infolder, f"{inp.spacename}-{inp.i0}{cheartsuffix}.gz")):
+  elif os.path.isfile(os.path.join(inp.infolder, f"{inp.spacename}-{inp.index[0]}{cheartsuffix}.gz")):
     inp.spacetype = CheartDataFormat.zip
     inp.spacetemp = lambda i: os.path.join(inp.infolder, f"{inp.spacename}-{i}{cheartsuffix}.gz")
   else:
     print(f">>>ERROR: No file matching the template {inp.spacename} can be found.")
     filecheckerr = True
   ################################################################################################
-  # check what the space name is
+  # check what the var name is
   for var in inp.vars:
-    if os.path.isfile(os.path.join(inp.infolder, f"{var}-{inp.i0}{cheartsuffix}")):
+    if os.path.isfile(os.path.join(inp.infolder, f"{var}-{inp.index[0]}{cheartsuffix}")):
       inp.varstype.append(CheartDataFormat.var)
       inp.varstemp.append(lambda v, i: os.path.join(inp.infolder, f"{v}-{i}{cheartsuffix}"))
-    elif os.path.isfile(os.path.join(inp.infolder, f"{var}-{inp.i0}{cheartsuffix}.gz")):
+    elif os.path.isfile(os.path.join(inp.infolder, f"{var}-{inp.index[0]}{cheartsuffix}.gz")):
       inp.varstype.append(CheartDataFormat.zip)
       inp.varstemp.append(lambda v, i: os.path.join(inp.infolder, f"{v}-{i}{cheartsuffix}.gz"))
     else:
-      print(f">>>ERROR: No file matching the template for {var} at time step {inp.i0} can be found.")
+      print(f">>>ERROR: No file matching the template for {var} at time step {inp.index[0]} can be found.")
       filecheckerr = True
   ################################################################################################
   # loop over all requested times
-  lastvariable = [None for _ in inp.vars]
   warnvariable = [True for _ in inp.vars]
-  for time in range(inp.i0, inp.it, inp.di):
+  for time in inp.index:
     for i, var in enumerate(inp.vars):
       if not(os.path.isfile(inp.varstemp(var, time))):
         print(f">>>WARNING: File {var} at step {time} not found. Using file from previous step.")
@@ -406,7 +416,7 @@ def export_boundary(tp : LoadTopology, inp : InputArgs) -> None:
   else:
     print("<<< Working on exporting the boundary patch IDs from", inp.boundaryname)
     # for boundary coordinates, let's default to first time step
-    time = inp.i0
+    time = inp.index[0]
     # read boundary and get number of elements, number of nodes per elements
     fb      = np.loadtxt(inp.boundaryname, skiprows=1, dtype=int)
     fb = fb[:,1:]
@@ -478,7 +488,11 @@ def export_boundary(tp : LoadTopology, inp : InputArgs) -> None:
       compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
 
 
-def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, lastspace, lastdeform) -> None:
+def XMLWrite_DataArray():
+  return
+
+
+def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, lastspace, lastdeform, bart:progress_bar=None) -> None:
   # print(f'bart is {bart}')
   ############################################################################################
   # convert space variable
@@ -591,7 +605,6 @@ def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, las
       fout.write("          "+str(tp.vtkelementtype)+"\n")
     fout.write("        </DataArray>\n")
     fout.write("      </Cells>\n")
-
     # end
     fout.write("    </Piece>\n")
     fout.write("  </UnstructuredGrid>\n")
@@ -625,43 +638,43 @@ def main_cli(args=None) -> None:
   bart         = None
   if inp.cores is None:
     if args.subauto:
-      if inp.progress: bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di)
-      for time in range(inp.i0, inp.it, inp.di):
+      if inp.progress: bart = progress_bar('Processing', max=len(inp.index))
+      for time in inp.index:
         jlist = glob.glob('145592*.jpg')
         for j in jlist:
           result = re.search('-(.*).D', j)
           export_data_iter(tp, inp, result.group(1), lastvariable, lastspace, lastdeform, bart)
     elif args.subiter is not None:
-      if inp.progress: bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di * (args.subiter[1] - args.subiter[0] + 1)//args.subiter[2])
-      for time in range(inp.i0, inp.it, inp.di):
+      if inp.progress: bart = progress_bar('Processing', max=len(inp.index) * (args.subiter[1] - args.subiter[0] + 1)//args.subiter[2])
+      for time in inp.index:
         export_data_iter(tp, inp, time, lastvariable, lastspace, lastdeform,  bart)
         for j in range(args.subiter[0], args.subiter[1] + 1, args.subiter[2]):
           export_data_iter(tp, inp, str(time)+'.'+str(j), lastvariable, lastspace, lastdeform)
     else:
       if inp.progress:
-        bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di)
-      for time in range(inp.i0, inp.it, inp.di):
+        bart = progress_bar('Processing', max=len(inp.index))
+      for time in inp.index:
         export_data_iter(tp, inp, time, lastvariable, lastspace, lastdeform,  bart)
   else:
     with futures.ProcessPoolExecutor(inp.cores) as exec:
       future_jobs=[]
       if args.subauto:
-        if inp.progress: bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di)
-        for time in range(inp.i0, inp.it, inp.di):
+        if inp.progress: bart = progress_bar('Processing', max=len(inp.index))
+        for time in inp.index:
           future_jobs.append(exec.submit(export_data_iter, tp, inp, time, lastvariable, lastspace, lastdeform))
           jlist = glob.glob(f'*-{time}.*.D')
           for j in jlist:
             result = re.search('-(.*).D', j)
             future_jobs.append(exec.submit(export_data_iter, tp, inp, str(j), lastvariable, lastspace, lastdeform))
       elif args.subiter is not None:
-        if inp.progress: bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di * (args.subiter[1] - args.subiter[0] + 1)//args.subiter[2])
-        for time in range(inp.i0, inp.it, inp.di):
+        if inp.progress: bart = progress_bar('Processing', max=len(inp.index0) * (args.subiter[1] - args.subiter[0] + 1)//args.subiter[2])
+        for time in inp.index:
           future_jobs.append(exec.submit(export_data_iter, tp, inp, time, lastvariable, lastspace, lastdeform))
           for j in range(args.subiter[0], args.subiter[1] + 1, args.subiter[2]):
             future_jobs.append(exec.submit(export_data_iter, tp, inp, str(time)+'.'+str(j), lastvariable, lastspace, lastdeform))
       else:
-        if inp.progress: bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di)
-        for time in range(inp.i0, inp.it, inp.di):
+        if inp.progress: bart = progress_bar('Processing', max=len(inp.index))
+        for time in inp.index:
           future_jobs.append(exec.submit(export_data_iter, tp, inp, time, lastvariable, lastspace, lastdeform))
       for _ in futures.as_completed(future_jobs):
         bart.next()
@@ -671,14 +684,14 @@ def main_cli(args=None) -> None:
     # if progress: bart.finish()
   print("################################################################################################")
   if args.time_series is not None:
-    from .make_vtu_series import check_args, print_cmd_header, xml_write_header, xml_write_content, xml_write_footer
-    inp = check_args(args)
+    from .make_vtu_series import import_time_data, print_cmd_header, xml_write_header, xml_write_content, xml_write_footer
+    _, time_series = import_time_data(args.time_series)
     print_cmd_header(inp)
     bar = progress_bar('Processing', max=inp.nt)
-    with open(os.path.join(inp.folder, inp.prefix+".pvd"), "w") as f:
+    with open(os.path.join(inp.outfolder, inp.prefix+".pvd"), "w") as f:
       xml_write_header(f)
-      for i in range(inp.i0, inp.it, inp.di):
-        xml_write_content(f, os.path.join(inp.folder, f"{inp.prefix}-{i}.vtu"), inp.time[i])
+      for i in inp.index:
+        xml_write_content(f, os.path.join(inp.outfolder, f"{inp.prefix}-{i}.vtu"), time_series[i])
         bar.next()
       xml_write_footer(f)
     bar.finish()
