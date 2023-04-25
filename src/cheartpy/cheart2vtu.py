@@ -19,6 +19,8 @@ import enum
 import dataclasses
 import typing as tp
 
+from .meshing.vtk_elements import *
+
 ################################################################################################
 # Compressed binary VTU file format?
 use_Compression = True
@@ -55,7 +57,8 @@ settinggroup.add_argument('--no-compression', '-n', dest='compress',action='stor
                           help='OPTIONAL: disable compression.')
 settinggroup.add_argument('--cores', '-c', dest='cores', action='store', default=None, type=int, metavar=('#'),
                           help='OPTIONAL: use multicores.')
-
+parser.add_argument('--make-time-series', dest='time_series', default=None,
+                         type=str, help='OPTIONAL: incorporate time data, supply a file for the time step.')
 subparsers = parser.add_subparsers(help='Collective of subprogram modules')
 parser_find= subparsers.add_parser('find', help='determine settings automatically')
 parser_find.add_argument('--mesh', dest='mesh', action='store', default='',
@@ -167,7 +170,8 @@ def print_input_info(args) -> None:
   print("The space file to use is ", args.xfile)
   print("The varibles to add are: ")
   print(args.variablenames)
-
+  print("<<< Output folder:               {}".format(args.outfolder))
+  print("<<< Output file name prefix:     {}".format(args.prefix))
 
 class CheartDataFormat(enum.Enum):
   mesh = 0
@@ -175,15 +179,39 @@ class CheartDataFormat(enum.Enum):
   zip  = 2
 
 
-class VTKElementType(enum.Enum):
-  bilinear_triangle = 1
-  biquadratic_triangle = 2
-  bilinear_quadrilateral = 3
-  trilinear_tetrahedron = 4
-  biquadratic_quadrilateral = 5
-  triquadratic_tetrahedron = 6
-  trilinear_hexahedron = 7
-  triquadratic_hexahedron = 8
+def compress_vtu(name:str, method:str = 'meshio', verbose:bool=False) -> None:
+  if method=='pvpython':
+    # read ASCII vtu file and write raw vtu file
+    fin = XMLUnstructuredGridReader(FileName=name)
+    # CompressorType: 0 - None, 1 - ZLib, 2 - LZ4, 3 - LZMA
+    # DataMode: 0 - Ascii, 1 - Binary, 2 - Appended
+    foutbin = XMLUnstructuredGridWriter(CompressorType=1, DataMode=2)
+    foutbin.FileName = name
+    foutbin.UpdatePipeline()
+  elif method=='vtk':
+    vtuReader=vtkXMLUnstructuredGridReader()
+    vtuReader.SetFileName(name)
+    vtuReader.Update()
+    vtuWriter=vtkXMLUnstructuredGridWriter()
+    vtuWriter.SetDataModeToAppended()
+    vtuWriter.SetCompressorTypeToZLib()
+    vtuWriter.SetFileName(name)
+    if VTK_MAJOR_VERSION <= 5:
+        vtuWriter.SetInput(vtuReader.GetOutput())
+    else:
+        vtuWriter.SetInputData(vtuReader.GetOutput())
+    vtuWriter.Write()
+  elif method=='meshio':
+    if verbose:
+      size = os.stat(name).st_size
+      print("File size before: {:.2f} MB".format(size / 1024 ** 2))
+    mesh = meshio._helpers.read(name, file_format='vtu')
+    meshio.vtu.write(name, mesh, binary=True, compression="zlib")
+    if verbose:
+      size = os.stat(name).st_size
+      print("File size after: {:.2f} MB".format(size / 1024 ** 2))
+  else:
+    raise ImportError("How did you get here! Should have found that none of the module for compression was found!")
 
 
 @dataclasses.dataclass
@@ -193,8 +221,7 @@ class InputArgs:
   it : int = 1
   di : int = 1
   prefix : str = 'paraview'
-  outfolder : str = ''
-
+  outputfile : str = 'paraview'
   topologyname : str = "Mesh_FE.T"
   boundaryname : tp.Optional[str] = None
   spacename : str = "Mesh_FE.X"
@@ -213,17 +240,18 @@ class InputArgs:
 def get_inputs(args) -> InputArgs:
   print(args)
   inp = InputArgs(args.variablenames)
-  inp.prefix    = args.prefix
+
   inp.i0        = args.irange[0]
   inp.it        = args.irange[1] + 1
   inp.di        = args.irange[2]
 
   inp.infolder  = args.infolder
-  inp.outfolder = args.outfolder
-  if inp.outfolder != '':
-    if not os.path.isdir(inp.outfolder):
+  if args.outfolder != '':
+    if not os.path.isdir(args.outfolder):
       print(">>>WARNING: output directory does not exist, it will be created!")
-    os.makedirs(inp.outfolder, exist_ok=True)
+    os.makedirs(args.outfolder, exist_ok=True)
+  inp.prefix    = args.prefix
+  inp.outputfile = os.path.join(args.outfolder, args.prefix)
 
   inp.spacename    = args.xfile
   inp.topologyname = args.tfile
@@ -260,8 +288,6 @@ def check_variables(inp : InputArgs) -> None:
   print("<<< Time series:                 From {} to {} with increment of {}".format(inp.i0, inp.it - 1, inp.di))
   print("<<< Compressed VTU format:       {}".format(compress_method if inp.useCompression else "None"))
   print("<<< Import data as binary:       {}".format(inp.binary))
-  print("<<< Output folder:               {}".format(inp.outfolder))
-  print("<<< Output file name prefix:     {}".format(inp.prefix))
   if inp.boundaryname is not None:
     print("<<< Output file name (boundary): {}_boundary{}".format(inp.prefix, vtksuffix))
   # pre-flight to check whether all files exist
@@ -309,7 +335,7 @@ def check_variables(inp : InputArgs) -> None:
     raise FileNotFoundError(">>>FILE ERROR!!!")
 
 
-class load_topology:
+class LoadTopology:
   def __init__(self, inp: InputArgs) -> None:
     ################################################################################################
     # read topology and get number of elements, number of nodes per elements
@@ -318,15 +344,15 @@ class load_topology:
       self._ft = np.array([self._ft])
     self.ne = self._ft.shape[0]
     self.nc = self._ft.shape[1]
-    # get VTK element type
+    # guess the VTK element type
     # bilinear triangle
     if (self.nc == 3):
-      self.vtkelementtype = 5
-      self.vtksurfacetype = 3
+      self.vtkelementtype = VtkBilinearTriangle
+      self.vtksurfacetype = VtkLinearLine
     # biquadratic triangle
     elif (self.nc == 6):
-      self.vtkelementtype = 22
-      self.vtksurfacetype = 21
+      self.vtkelementtype = VtkBiquadraticTriangle
+      self.vtksurfacetype = VtkQuadraticLine
     # bilinear quadrilateral / trilinear tetrahedron
     elif (self.nc == 4):
       if inp.boundaryname is None:
@@ -335,32 +361,35 @@ class load_topology:
         sys.exit()
       else:
         with open(inp.boundaryname, "r") as f:
-          first_line = f.readline().strip()
+          _ = f.readline().strip()
           second_line = [int(i) for i in f.readline().strip().split()]
-        # trilinear tetrahedron
-        if (len(list(second_line)) == 5):
-          self.vtkelementtype = 10
-          self.vtksurfacetype = 5
         # bilinear quadrilateral
-        elif (len(list(second_line)) == 4):
-          self.vtkelementtype = 9
-          self.vtksurfacetype = 3
+        if (len(list(second_line)) == 4):
+          self.vtkelementtype = VtkBilinearQuadrilateral
+          self.vtksurfacetype = VtkLinearLine
+        # trilinear tetrahedron
+        elif (len(list(second_line)) == 5):
+          self.vtkelementtype = VtkTrilinearTetrahedron
+          self.vtksurfacetype = VtkBilinearTriangle
+        else:
+          print(f">>>ERROR: boundary file {inp.boundaryname} is not consistent with the topology file {inp.topologyname}")
+          sys.exit()
     # biquadratic quadrilateral
     elif (self.nc == 9):
-      self.vtkelementtype = 28
-      self.vtksurfacetype = 21
+      self.vtkelementtype = VtkBiquadraticQuadrilateral
+      self.vtksurfacetype = VtkQuadraticLine
     # triquadratic tetrahedron
     elif (self.nc == 10):
-      self.vtkelementtype = 24
-      self.vtksurfacetype = 22
+      self.vtkelementtype = VtkTriquadraticTetrahedron
+      self.vtksurfacetype = VtkQuadraticLine
     # trilinear hexahedron
     elif (self.nc == 8):
-      self.vtkelementtype = 12
-      self.vtksurfacetype = 9
+      self.vtkelementtype = VtkTrilinearHexahedron
+      self.vtksurfacetype = VtkBilinearQuadrilateral
     # triquadratic hexahedron
     elif (self.nc == 27):
-      self.vtkelementtype = 29
-      self.vtksurfacetype = 28
+      self.vtkelementtype = VtkTriquadraticHexahedron
+      self.vtksurfacetype = VtkBiquadraticQuadrilateral
     else:
       sys.exit(">>>ERROR: Element type not implemented.")
   def __setitem__(self, index, data):
@@ -369,236 +398,99 @@ class load_topology:
       return self._ft[index]
 
 
-def export_boundary(tp : load_topology, inp : InputArgs) -> None:
+def export_boundary(tp : LoadTopology, inp : InputArgs) -> None:
   ################################################################################################
   # export patch IDs from B-file
   if inp.boundaryname is None:
-    print(">>>NOTICE: No boundary file is supplied, export of boundary patch is skipped")
+    print(">>> NOTICE: No boundary file is supplied, export of boundary patch is skipped")
   else:
     print("<<< Working on exporting the boundary patch IDs from", inp.boundaryname)
     # for boundary coordinates, let's default to first time step
     time = inp.i0
     # read boundary and get number of elements, number of nodes per elements
     fb      = np.loadtxt(inp.boundaryname, skiprows=1, dtype=int)
+    fb = fb[:,1:]
     fben    = fb.shape[0]
-    fbcn    = fb.shape[1]
+    fbcn    = fb.shape[1] - 1
     # write header
-    foutfile = inp.prefix+"_boundary"+vtksuffix
+    foutfile = inp.outputfile+"_boundary"+vtksuffix
     # print(foutfile)
-    fout = open(foutfile, "w")
-    fout.write("<VTKFile type=\"UnstructuredGrid\">\n")
-    fout.write("  <UnstructuredGrid>\n")
-    # convert space variable
-    _, ext = os.path.splitext(inp.spacename)
-    if ext != '':
-      xfile = inp.spacename
-    else:
-      xfile = inp.infolder + inp.spacename + "-" + str(time) + cheartsuffix
-    if not(os.path.isfile(xfile)):
-      xfile = xfile + ".gz"
-    fx  = np.loadtxt(xfile,  skiprows=1, dtype=float)
-    fnn = fx.shape[0]
-    fnd = fx.shape[1]
-    # if deformed space, then add displacement
-    if (len(inp.deformedSpace) == 2):
-      dfile   = inp.infolder + inp.deformedSpace[1] + "-" + str(time) + ".D"
-      if not(os.path.isfile(dfile)):
-        dfile = dfile + ".gz"
-      fd  = np.loadtxt(dfile, skiprows=1, dtype=float)
-      fx  = fx + fd
-    # VTU files are defined in 3D space, so we have to append a zero column for 2D data
-    if (fnd == 1):
-      print(">>>ERROR: Cannot convert data that lives on 1D domains.")
-      return
-    elif (fnd == 2):
-      z   = np.zeros((fnn,1), dtype=float)
-      fx  = np.append(fx, z, axis=1)
-    fout.write("    <Piece Name=\""+inp.prefix+"\" NumberOfPoints=\""+str(fnn)+"\" NumberOfCells=\""+str(fben)+"\">\n")
-    fout.write("      <Points>\n")
-    fout.write("        <DataArray type=\"Float64\" NumberOfComponents=\"3\" Format=\"ascii\">\n")
-    for points in range(fx.shape[0]):
-      fout.write("          % .16f % .16f % .16f\n" % (fx[points, 0], fx[points, 1], fx[points, 2]))
-    fout.write("        </DataArray>\n")
-    fout.write("      </Points>\n")
-    fout.write("      <CellData Scalars=\"scalars\">\n")
-    fout.write("        <DataArray type=\"Int8\" Name=\"PatchIDs\" Format=\"ascii\">\n")
-    for patchIdx in range(0, fben, 1):
-      stringFormat    = " %i"
-      stringFormat    = "         " + stringFormat + "\n"
-      fout.write(stringFormat % (fb[patchIdx, fbcn-1]))
-    fout.write("        </DataArray>\n")
-    fout.write("      </CellData>\n")
-    # boundary topology
-    fout.write("      <Cells>\n")
-    fout.write("        <DataArray type=\"Int64\" Name=\"connectivity\"  Format=\"ascii\">\n")
-    offset = 1
-    for elements in range(0, fben):
-      fout.write("         ")
-      # line element
-      if (tp.vtksurfacetype == 3):
-        for j in range(1, fbcn-1):
-          fout.write(" %i" % (fb[elements, j]-1))
-      # quadratic edge element
-      elif (tp.vtksurfacetype == 21):
-        for j in range(1, fbcn-1):
-          fout.write(" %i" % (fb[elements, j]-1))
-      # bilinear triangle
-      elif (tp.vtksurfacetype == 5):
-        for j in range(1, fbcn-1):
-          fout.write(" %i" % (fb[elements, j]-1))
-      # biquadratic triangle
-      elif (tp.vtksurfacetype == 22):
-        fout.write(" %i" % (fb[elements, offset+0]-1))
-        fout.write(" %i" % (fb[elements, offset+1]-1))
-        fout.write(" %i" % (fb[elements, offset+2]-1))
-        fout.write(" %i" % (fb[elements, offset+3]-1))
-        fout.write(" %i" % (fb[elements, offset+5]-1))
-        fout.write(" %i" % (fb[elements, offset+4]-1))
-      # bilinear quadrilateral
-      elif (tp.vtksurfacetype == 9):
-        fout.write(" %i" % (fb[elements, offset+0]-1))
-        fout.write(" %i" % (fb[elements, offset+1]-1))
-        fout.write(" %i" % (fb[elements, offset+3]-1))
-        fout.write(" %i" % (fb[elements, offset+2]-1))
-      # biquadratic quadrilateral
-      elif (tp.vtksurfacetype == 28):
-        fout.write(" %i" % (fb[elements, offset+0]-1))
-        fout.write(" %i" % (fb[elements, offset+1]-1))
-        fout.write(" %i" % (fb[elements, offset+3]-1))
-        fout.write(" %i" % (fb[elements, offset+2]-1))
-        fout.write(" %i" % (fb[elements, offset+4]-1))
-        fout.write(" %i" % (fb[elements, offset+7]-1))
-        fout.write(" %i" % (fb[elements, offset+8]-1))
-        fout.write(" %i" % (fb[elements, offset+5]-1))
-        fout.write(" %i" % (fb[elements, offset+6]-1))
-      # trilinear tetrahedron
-      elif (tp.vtksurfacetype == 10):
-        for j in range(1, fbcn-1):
-          fout.write(" %i" % (fb[elements, j]-1))
-      # triquadratic tetrahedron
-      elif (tp.vtksurfacetype == 24):
-        for j in range(1, fbcn-1):
-          if j == 6:
-            fout.write(" %i" % (fb[elements, 5]-1))
-          elif j == 5:
-            fout.write(" %i" % (fb[elements, 6]-1))
-          else:
-            fout.write(" %i" % (fb[elements, j]-1))
-      # trilinear hexahedron
-      elif (tp.vtksurfacetype == 12):
-        fout.write(" %i" % (fb[elements, offset+0]-1))
-        fout.write(" %i" % (fb[elements, offset+1]-1))
-        fout.write(" %i" % (fb[elements, offset+5]-1))
-        fout.write(" %i" % (fb[elements, offset+4]-1))
-        fout.write(" %i" % (fb[elements, offset+2]-1))
-        fout.write(" %i" % (fb[elements, offset+3]-1))
-        fout.write(" %i" % (fb[elements, offset+7]-1))
-        fout.write(" %i" % (fb[elements, offset+6]-1))
-      # triquadratic hexahedron
-      elif (tp.vtksurfacetype == 29):
-        fout.write(" %i" % (fb[elements, offset+0]-1))
-        fout.write(" %i" % (fb[elements, offset+1]-1))
-        fout.write(" %i" % (fb[elements, offset+5]-1))
-        fout.write(" %i" % (fb[elements, offset+4]-1))
-        fout.write(" %i" % (fb[elements, offset+2]-1))
-        fout.write(" %i" % (fb[elements, offset+3]-1))
-        fout.write(" %i" % (fb[elements, offset+7]-1))
-        fout.write(" %i" % (fb[elements, offset+6]-1))
-        fout.write(" %i" % (fb[elements, offset+8]-1))
-        fout.write(" %i" % (fb[elements, offset+15]-1))
-        fout.write(" %i" % (fb[elements, offset+22]-1))
-        fout.write(" %i" % (fb[elements, offset+13]-1))
-        fout.write(" %i" % (fb[elements, offset+12]-1))
-        fout.write(" %i" % (fb[elements, offset+21]-1))
-        fout.write(" %i" % (fb[elements, offset+26]-1))
-        fout.write(" %i" % (fb[elements, offset+19]-1))
-        fout.write(" %i" % (fb[elements, offset+9]-1))
-        fout.write(" %i" % (fb[elements, offset+11]-1))
-        fout.write(" %i" % (fb[elements, offset+25]-1))
-        fout.write(" %i" % (fb[elements, offset+23]-1))
-        fout.write(" %i" % (fb[elements, offset+16]-1))
-        fout.write(" %i" % (fb[elements, offset+18]-1))
-        fout.write(" %i" % (fb[elements, offset+10]-1))
-        fout.write(" %i" % (fb[elements, offset+24]-1))
-        fout.write(" %i" % (fb[elements, offset+14]-1))
-        fout.write(" %i" % (fb[elements, offset+20]-1))
-        fout.write(" %i" % (fb[elements, offset+17]-1))
-      fout.write("\n")
-    fout.write("        </DataArray>\n")
-    # cell locations
-    fout.write("        <DataArray type=\"Int64\" Name=\"offsets\"  Format=\"ascii\">\n")
-    for points in range(fbcn-2, (fbcn-2)*(fben+1), fbcn-2):
-      fout.write("          %i" % (points))
-    fout.write("\n        </DataArray>\n")
-    # cell types
-    fout.write("        <DataArray type=\"Int8\" Name=\"types\"  Format=\"ascii\">\n")
-    for points in range(fben):
-      fout.write("          "+str(tp.vtksurfacetype)+"\n")
-    fout.write("        </DataArray>\n")
-    fout.write("      </Cells>\n")
-    fout.write("    </Piece>\n")
-    fout.write("  </UnstructuredGrid>\n")
-    fout.write("</VTKFile>\n")
-    fout.close()
+    with open(foutfile, "w") as fout:
+      # convert space variable
+      fx  = np.loadtxt(inp.spacetemp(0),  skiprows=1, dtype=float)
+      fnn = fx.shape[0]
+      fnd = fx.shape[1]
+      # if deformed space, then add displacement
+      if (len(inp.deformedSpace) == 2):
+        dfile   = inp.infolder + inp.deformedSpace[1] + "-" + str(time) + ".D"
+        if not(os.path.isfile(dfile)):
+          dfile = dfile + ".gz"
+        fd  = np.loadtxt(dfile, skiprows=1, dtype=float)
+        fx  = fx + fd
+      # VTU files are defined in 3D space, so we have to append a zero column for 2D data
+      if (fnd == 1):
+        print(">>>ERROR: Cannot convert data that lives on 1D domains.")
+        return
+      elif (fnd == 2):
+        z   = np.zeros((fnn,1), dtype=float)
+        fx  = np.append(fx, z, axis=1)
+      # start
+      fout.write(f'<VTKFile type="UnstructuredGrid">\n')
+      fout.write(f'{" "*2}<UnstructuredGrid>\n')
+      fout.write(f'{" "*4}<Piece Name="{inp.prefix}" NumberOfPoints="{fnn}" NumberOfCells="{fben}">\n')
+      # boundary points
+      fout.write(f'{" "*6}<Points>\n')
+      fout.write(f'{" "*8}<DataArray type="Float64" NumberOfComponents="3" Format="ascii">\n')
+      for points in range(fx.shape[0]):
+        fout.write(f'{" "*10}{fx[points, 0]:.16f} {fx[points, 1]:.16f} {fx[points, 2]:.16f}\n')
+      fout.write(f'{" "*8}</DataArray>\n')
+      fout.write(f'{" "*6}</Points>\n')
+      # boundary patch ids
+      fout.write(f'{" "*6}<CellData Scalars="scalars">\n')
+      fout.write(f'{" "*8}<DataArray type="Int8" Name="PatchIDs" Format="ascii">\n')
+      for patchIdx in range(0, fben):
+        fout.write(f'{" "*10}{fb[patchIdx, - 1]:i}\n')
+      fout.write(f'{" "*8}</DataArray>\n')
+      fout.write(f'{" "*6}</CellData>\n')
+      # boundary topology
+      fout.write(f'{" "*6}<Cells>\n')
+      fout.write(f'{" "*8}<DataArray type="Int64" Name="connectivity"  Format="ascii">\n')
+      for elem in range(0, fben):
+        tp.vtksurfacetype.write(fout=fout, elem=fb[elem])
+      fout.write(f'{" "*8}</DataArray>\n')
+      # boundary locations
+      fout.write(f'{" "*8}<DataArray type="Int64" Name="offsets"  Format="ascii">\n')
+      for points in range(fbcn, (fbcn)*(fben+1), fbcn):
+        fout.write(f'{" "*10}{points:i}')
+      fout.write(f'\n')
+      fout.write(f'{" "*8}</DataArray>\n')
+      # boundary types
+      fout.write(f'{" "*8}<DataArray type="Int8" Name="types"  Format="ascii">\n')
+      for points in range(fben):
+        fout.write(f'{" "*10}{tp.vtkelementtype.vtksurfaceid}\n')
+      fout.write(f'{" "*8}</DataArray>\n')
+      fout.write(f'{" "*6}</Cells>\n')
+      # end
+      fout.write(f'{" "*4}</Piece>\n')
+      fout.write(f'{" "*2}</UnstructuredGrid>\n')
+      fout.write(f'</VTKFile>\n')
     if inp.useCompression:
-      if compress_method=='pvpython':
-        # read ASCII vtu file and write raw vtu file
-        fin = XMLUnstructuredGridReader(FileName=foutfile)
-        # CompressorType: 0 - None, 1 - ZLib, 2 - LZ4, 3 - LZMA
-        # DataMode: 0 - Ascii, 1 - Binary, 2 - Appended
-        foutbin = XMLUnstructuredGridWriter(CompressorType=1, DataMode=2)
-        foutbin.FileName = foutfile
-        foutbin.UpdatePipeline()
-      elif compress_method=='vtk':
-        vtuReader=vtkXMLUnstructuredGridReader()
-        vtuReader.SetFileName(foutfile)
-        vtuReader.Update()
-        vtuWriter=vtkXMLUnstructuredGridWriter()
-        vtuWriter.SetDataModeToAppended()
-        vtuWriter.SetCompressorTypeToZLib()
-        vtuWriter.SetFileName(foutfile)
-        if VTK_MAJOR_VERSION <= 5:
-            vtuWriter.SetInput(vtuReader.GetOutput())
-        else:
-            vtuWriter.SetInputData(vtuReader.GetOutput())
-        vtuWriter.Write()
-      elif compress_method=='meshio':
-        if inp.verbose:
-          size = os.stat(foutfile).st_size
-          print("File at time={} size before: {:.2f} MB".format(time,size / 1024 ** 2))
-        mesh = meshio._helpers.read(foutfile, file_format='vtu')
-        meshio.vtu.write(foutfile, mesh, binary=True, compression="zlib")
-        if inp.verbose:
-          size = os.stat(foutfile).st_size
-          print("File at time={} size after: {:.2f} MB".format(time,size / 1024 ** 2))
-      else:
-        raise ImportError("How did you get here! Should have found that none of the module for compression was found!")
+      compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
 
-def export_data_iter(tp : load_topology, inp : InputArgs, time, lastvariable, lastspace, lastdeform, bart=None) -> None:
+
+def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, lastspace, lastdeform) -> None:
   # print(f'bart is {bart}')
-  foutfile = inp.prefix+"-"+str(time)+vtksuffix
-  fout = open(foutfile, "w")
-  fout.write("<VTKFile type=\"UnstructuredGrid\">\n")
-  fout.write("  <UnstructuredGrid>\n")
   ############################################################################################
   # convert space variable
-  _, ext = os.path.splitext(inp.spacename)
-  if ext != '':
-    xfile = inp.spacename
-  else:
-    xfile = inp.infolder + inp.spacename + "-" + str(time) + cheartsuffix
-  if not(os.path.isfile(xfile)):
-    xfile = xfile + ".gz"
-    if not(os.path.isfile(xfile)):
-      if lastspace is None:
-        sys.exit(">>>ERROR: Even though the space file was found during check, it is not found during import")
-      else:
-        xfile = lastspace
-    else:
-      lastspace = xfile
-  else:
+  xfile = inp.spacetemp(time)
+  if os.path.isfile(xfile):
     lastspace = xfile
-  fx  = np.loadtxt(xfile,  skiprows=1, dtype=float)
+  elif lastspace is None:
+    sys.exit(">>>ERROR: Even though the space file was found during check, it is not found during import")
+  else:
+    xfile = lastspace
+
+  fx  = np.loadtxt(inp.spacetemp(time),  skiprows=1, dtype=float)
   fnn = fx.shape[0]
   fnd = fx.shape[1]
   # if deformed space, then add displacement
@@ -624,20 +516,25 @@ def export_data_iter(tp : load_topology, inp : InputArgs, time, lastvariable, la
   elif (fnd == 2):
     z   = np.zeros((fnn,1), dtype=float)
     fx  = np.append(fx, z, axis=1)
-  fout.write("    <Piece Name=\""+inp.prefix+"\" NumberOfPoints=\""+str(fnn)+"\" NumberOfCells=\""+str(tp.ne)+"\">\n")
-  fout.write("      <Points>\n")
-  fout.write("        <DataArray type=\"Float64\" NumberOfComponents=\"3\" Format=\"ascii\">\n")
-  for points in range(fx.shape[0]):
-    fout.write("          % .16f % .16f % .16f\n" % (fx[points, 0], fx[points, 1], fx[points, 2]))
-  fout.write("        </DataArray>\n")
-  fout.write("      </Points>\n")
-  ############################################################################################
-  # convert other variables
-  fout.write("      <PointData Scalars=\"scalars\">\n")
-  for varIdx in range(0, len(inp.vars), 1):
-    vfile = inp.infolder + str(inp.vars[varIdx]) + "-" + str(time) + ".D"
-    if not(os.path.isfile(vfile)):
-      vfile = vfile + ".gz"
+
+  foutfile = inp.outputfile+"-"+str(time)+vtksuffix
+
+  with open(foutfile, "w") as fout:
+    fout.write("<VTKFile type=\"UnstructuredGrid\">\n")
+    fout.write("  <UnstructuredGrid>\n")
+    fout.write("    <Piece Name=\""+inp.prefix+"\" NumberOfPoints=\""+str(fnn)+"\" NumberOfCells=\""+str(tp.ne)+"\">\n")
+    # space
+    fout.write("      <Points>\n")
+    fout.write("        <DataArray type=\"Float64\" NumberOfComponents=\"3\" Format=\"ascii\">\n")
+    for points in range(fx.shape[0]):
+      fout.write("          % .16f % .16f % .16f\n" % (fx[points, 0], fx[points, 1], fx[points, 2]))
+    fout.write("        </DataArray>\n")
+    fout.write("      </Points>\n")
+    ############################################################################################
+    # convert other variables
+    fout.write("      <PointData Scalars=\"scalars\">\n")
+    for varIdx in range(0, len(inp.vars), 1):
+      vfile = inp.varstemp[varIdx](time)
       if not(os.path.isfile(vfile)):
         if lastvariable[varIdx] is not None:
           vfile = lastvariable[varIdx]
@@ -645,187 +542,62 @@ def export_data_iter(tp : load_topology, inp : InputArgs, time, lastvariable, la
           sys.exit(">>>ERROR: Unexpect problem, file was found during check but not when being imported: {}".format(lastvariable[varIdx]))
       else:
         lastvariable[varIdx] = vfile
-    else:
-      lastvariable[varIdx] = vfile
-    # print(f'file type is {inp.binary}')
-    if inp.binary:
-      fv = read_D_binary(vfile)
-      # print(fv.shape)
-    else:
-      fv = np.loadtxt(vfile,  skiprows=1, dtype=float)
-    fvnn = fv.shape[0]
-    if (fv.ndim == 1):
-      fvnd = 1
-    else:
-      fvnd = fv.shape[1]
-    # check whether number of scalars matches number of spatial nodes
-    if (fnn != fvnn):
-      raise AssertionError(">>>ERROR: Invalid number of nodes for "+str(inp.vars)+".")
-    # append zero column if need be
-    if (fvnd == 2):
-      z       = np.zeros((fvnn,1), dtype=float)
-      fv      = np.append(fv, z, axis=1)
-      fvnd    = 3
-    fout.write("        <DataArray type=\"Float64\" Name=\""+str(inp.vars[varIdx])+"\" NumberOfComponents=\""+str(fvnd)+"\" Format=\"ascii\">\n")
-    stringFormat    = " % .16f"*fvnd
-    stringFormat    = "         " + stringFormat + "\n"
-    if(fvnd == 1):
-      for points in range(fnn):
-        fout.write(stringFormat % (fv[points]))
-    else:
-      for points in range(fnn):
-        fout.write(stringFormat % tuple(fv[points, 0:fvnd:1]))
-    fout.write("        </DataArray>\n")
-  fout.write("      </PointData>\n")
-  ############################################################################################
-  # topology
-  fout.write("      <Cells>\n")
-  fout.write("        <DataArray type=\"Int64\" Name=\"connectivity\"  Format=\"ascii\">\n")
-  for elements in range(0, tp.ne):
-    fout.write("         ")
-    # NOTE: it's not possible to thave vtkelementtype == 3 at the moment, this is commented just in case
-    # # line element
-    # if (vtkelementtype == 3):
-    #   for j in range(0, fcn):
-    #     fout.write(" %i" % (fb[elements, j]-1))
-    # # quadratic edge element
-    # elif (vtkelementtype == 21):
-    #   for j in range(0, fcn):
-    #     fout.write(" %i" % (fb[elements, j]-1))
-    # bilinear triangle
-    # elif (vtkelementtype == 5):
-
-    # bilinear triangle
-    if (tp.vtkelementtype == 5):
-      for j in range(0, tp.nc):
-        fout.write(" %i" % (tp[elements, j]-1))
-    # biquadratic triangle
-    elif (tp.vtkelementtype == 22):
-      fout.write(" %i" % (tp[elements, 0]-1))
-      fout.write(" %i" % (tp[elements, 1]-1))
-      fout.write(" %i" % (tp[elements, 2]-1))
-      fout.write(" %i" % (tp[elements, 3]-1))
-      fout.write(" %i" % (tp[elements, 5]-1))
-      fout.write(" %i" % (tp[elements, 4]-1))
-    # bilinear quadrilateral
-    elif (tp.vtkelementtype == 9):
-      fout.write(" %i" % (tp[elements, 0]-1))
-      fout.write(" %i" % (tp[elements, 1]-1))
-      fout.write(" %i" % (tp[elements, 3]-1))
-      fout.write(" %i" % (tp[elements, 2]-1))
-    # biquadratic quadrilateral
-    elif (tp.vtkelementtype == 28):
-      fout.write(" %i" % (tp[elements, 0]-1))
-      fout.write(" %i" % (tp[elements, 1]-1))
-      fout.write(" %i" % (tp[elements, 3]-1))
-      fout.write(" %i" % (tp[elements, 2]-1))
-      fout.write(" %i" % (tp[elements, 4]-1))
-      fout.write(" %i" % (tp[elements, 7]-1))
-      fout.write(" %i" % (tp[elements, 8]-1))
-      fout.write(" %i" % (tp[elements, 5]-1))
-      fout.write(" %i" % (tp[elements, 6]-1))
-    # trilinear tetrahedron
-    elif (tp.vtkelementtype == 10):
-      for j in range(0, tp.nc):
-        fout.write(" %i" % (tp[elements, j]-1))
-    # triquadratic tetrahedron
-    elif (tp.vtkelementtype == 24):
-      for j in range(0, tp.nc):
-        if j == 6:
-          fout.write(" %i" % (tp[elements, 5]-1))
-        elif j == 5:
-          fout.write(" %i" % (tp[elements, 6]-1))
-        else:
-          fout.write(" %i" % (tp[elements, j]-1))
-    # trilinear hexahedron
-    elif (tp.vtkelementtype == 12):
-      fout.write(" %i" % (tp[elements, 0]-1))
-      fout.write(" %i" % (tp[elements, 1]-1))
-      fout.write(" %i" % (tp[elements, 5]-1))
-      fout.write(" %i" % (tp[elements, 4]-1))
-      fout.write(" %i" % (tp[elements, 2]-1))
-      fout.write(" %i" % (tp[elements, 3]-1))
-      fout.write(" %i" % (tp[elements, 7]-1))
-      fout.write(" %i" % (tp[elements, 6]-1))
-    # triquadratic hexahedron
-    elif (tp.vtkelementtype == 29):
-      fout.write(" %i" % (tp[elements, 0]-1))
-      fout.write(" %i" % (tp[elements, 1]-1))
-      fout.write(" %i" % (tp[elements, 5]-1))
-      fout.write(" %i" % (tp[elements, 4]-1))
-      fout.write(" %i" % (tp[elements, 2]-1))
-      fout.write(" %i" % (tp[elements, 3]-1))
-      fout.write(" %i" % (tp[elements, 7]-1))
-      fout.write(" %i" % (tp[elements, 6]-1))
-      fout.write(" %i" % (tp[elements, 8]-1))
-      fout.write(" %i" % (tp[elements, 15]-1))
-      fout.write(" %i" % (tp[elements, 22]-1))
-      fout.write(" %i" % (tp[elements, 13]-1))
-      fout.write(" %i" % (tp[elements, 12]-1))
-      fout.write(" %i" % (tp[elements, 21]-1))
-      fout.write(" %i" % (tp[elements, 26]-1))
-      fout.write(" %i" % (tp[elements, 19]-1))
-      fout.write(" %i" % (tp[elements, 9]-1))
-      fout.write(" %i" % (tp[elements, 11]-1))
-      fout.write(" %i" % (tp[elements, 25]-1))
-      fout.write(" %i" % (tp[elements, 23]-1))
-      fout.write(" %i" % (tp[elements, 16]-1))
-      fout.write(" %i" % (tp[elements, 18]-1))
-      fout.write(" %i" % (tp[elements, 10]-1))
-      fout.write(" %i" % (tp[elements, 24]-1))
-      fout.write(" %i" % (tp[elements, 14]-1))
-      fout.write(" %i" % (tp[elements, 20]-1))
-      fout.write(" %i" % (tp[elements, 17]-1))
-    fout.write("\n")
-  fout.write("        </DataArray>\n")
-  # cell locations
-  fout.write("        <DataArray type=\"Int64\" Name=\"offsets\"  Format=\"ascii\">\n")
-  for points in range(tp.nc, tp.nc*(tp.ne+1), tp.nc):
-    fout.write("          %i" % (points))
-  fout.write("\n        </DataArray>\n")
-  # cell types
-  fout.write("        <DataArray type=\"Int8\" Name=\"types\"  Format=\"ascii\">\n")
-  for points in range(tp.ne):
-    fout.write("          "+str(tp.vtkelementtype)+"\n")
-  fout.write("        </DataArray>\n")
-  fout.write("      </Cells>\n")
-  fout.write("    </Piece>\n")
-  fout.write("  </UnstructuredGrid>\n")
-  fout.write("</VTKFile>\n")
-  fout.close()
-  if inp.useCompression:
-    if compress_method=='pvpython':
-      # read ASCII vtu file and write raw vtu file
-      fin = XMLUnstructuredGridReader(FileName=foutfile)
-      # CompressorType: 0 - None, 1 - ZLib, 2 - LZ4, 3 - LZMA
-      # DataMode: 0 - Ascii, 1 - Binary, 2 - Appended
-      foutbin = XMLUnstructuredGridWriter(CompressorType=1, DataMode=2)
-      foutbin.FileName = foutfile
-      foutbin.UpdatePipeline()
-    elif compress_method=='vtk':
-      vtuReader=vtkXMLUnstructuredGridReader()
-      vtuReader.SetFileName(foutfile)
-      vtuReader.Update()
-      vtuWriter=vtkXMLUnstructuredGridWriter()
-      vtuWriter.SetDataModeToAppended()
-      vtuWriter.SetCompressorTypeToZLib()
-      vtuWriter.SetFileName(foutfile)
-      if VTK_MAJOR_VERSION <= 5:
-          vtuWriter.SetInput(vtuReader.GetOutput())
+      # print(f'file type is {inp.binary}')
+      if inp.binary:
+        fv = read_D_binary(vfile)
+        # print(fv.shape)
       else:
-          vtuWriter.SetInputData(vtuReader.GetOutput())
-      vtuWriter.Write()
-    elif compress_method=='meshio':
-      if inp.verbose:
-        size = os.stat(foutfile).st_size
-        print("File at time={} size before: {:.2f} MB".format(time,size / 1024 ** 2))
-      mesh = meshio._helpers.read(foutfile, file_format='vtu')
-      meshio.vtu.write(foutfile, mesh, binary=True, compression="zlib")
-      if inp.verbose:
-        size = os.stat(foutfile).st_size
-        print("File at time={} size after: {:.2f} MB".format(time,size / 1024 ** 2))
-    else:
-      raise ImportError("How did you get here! Should have found that none of the module for compression was found!")
+        fv = np.loadtxt(vfile,  skiprows=1, dtype=float)
+      fvnn = fv.shape[0]
+      if (fv.ndim == 1):
+        fvnd = 1
+      else:
+        fvnd = fv.shape[1]
+      # check whether number of scalars matches number of spatial nodes
+      if (fnn != fvnn):
+        raise AssertionError(">>>ERROR: Invalid number of nodes for "+str(inp.vars)+".")
+      # append zero column if need be
+      if (fvnd == 2):
+        z       = np.zeros((fvnn,1), dtype=float)
+        fv      = np.append(fv, z, axis=1)
+        fvnd    = 3
+      fout.write("        <DataArray type=\"Float64\" Name=\""+str(inp.vars[varIdx])+"\" NumberOfComponents=\""+str(fvnd)+"\" Format=\"ascii\">\n")
+      stringFormat    = " % .16f"*fvnd
+      stringFormat    = "         " + stringFormat + "\n"
+      if(fvnd == 1):
+        for points in range(fnn):
+          fout.write(stringFormat % (fv[points]))
+      else:
+        for points in range(fnn):
+          fout.write(stringFormat % tuple(fv[points, 0:fvnd:1]))
+      fout.write("        </DataArray>\n")
+    fout.write("      </PointData>\n")
+    ############################################################################################
+    # topology
+    fout.write("      <Cells>\n")
+    fout.write("        <DataArray type=\"Int64\" Name=\"connectivity\"  Format=\"ascii\">\n")
+    for elements in range(0, tp.ne):
+      tp.vtkelementtype.write(fout, elem=tp[elements])
+    fout.write("        </DataArray>\n")
+    # cell locations
+    fout.write("        <DataArray type=\"Int64\" Name=\"offsets\"  Format=\"ascii\">\n")
+    for points in range(tp.nc, tp.nc*(tp.ne+1), tp.nc):
+      fout.write("          %i" % (points))
+    fout.write('\n')
+    fout.write("        </DataArray>\n")
+    # cell types
+    fout.write("        <DataArray type=\"Int8\" Name=\"types\"  Format=\"ascii\">\n")
+    for points in range(tp.ne):
+      fout.write("          "+str(tp.vtkelementtype)+"\n")
+    fout.write("        </DataArray>\n")
+    fout.write("      </Cells>\n")
+
+    # end
+    fout.write("    </Piece>\n")
+    fout.write("  </UnstructuredGrid>\n")
+    fout.write("</VTKFile>\n")
+  if inp.useCompression:
+    compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
   if inp.progress:
     if bart is not None:
       bart.next()
@@ -843,7 +615,7 @@ def main_cli(args=None) -> None:
   check_variables(inp)
   ################################################################################################
   # read topology and get number of elements, number of nodes per elements
-  tp  = load_topology(inp)
+  tp  = LoadTopology(inp)
   export_boundary(tp, inp)
   ################################################################################################
   # now convert all requested files, looping over all requested times
@@ -866,13 +638,8 @@ def main_cli(args=None) -> None:
         for j in range(args.subiter[0], args.subiter[1] + 1, args.subiter[2]):
           export_data_iter(tp, inp, str(time)+'.'+str(j), lastvariable, lastspace, lastdeform)
     else:
-      # print(f'working here')
-      # print(bart)
-      # print(inp.progress)
       if inp.progress:
-        # print(f'how in the world?')
         bart = progress_bar('Processing', max=(inp.it - inp.i0)//inp.di)
-      # print(bart)
       for time in range(inp.i0, inp.it, inp.di):
         export_data_iter(tp, inp, time, lastvariable, lastspace, lastdeform,  bart)
   else:
@@ -903,6 +670,20 @@ def main_cli(args=None) -> None:
     # write header
     # if progress: bart.finish()
   print("################################################################################################")
+  if args.time_series is not None:
+    from .make_vtu_series import check_args, print_cmd_header, xml_write_header, xml_write_content, xml_write_footer
+    inp = check_args(args)
+    print_cmd_header(inp)
+    bar = progress_bar('Processing', max=inp.nt)
+    with open(os.path.join(inp.folder, inp.prefix+".pvd"), "w") as f:
+      xml_write_header(f)
+      for i in range(inp.i0, inp.it, inp.di):
+        xml_write_content(f, os.path.join(inp.folder, f"{inp.prefix}-{i}.vtu"), inp.time[i])
+        bar.next()
+      xml_write_footer(f)
+    bar.finish()
+    print("    The process is complete!")
+    print("################################################################################################")
 
 if __name__ == "__main__":
   main_cli()

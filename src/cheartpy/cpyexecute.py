@@ -19,6 +19,26 @@ def gen_script(args, rest):
   with open(fout,'w') as f:
     p.write(f)
 
+
+def run_cheartpy(p, fout, *rest, cores:int = 1, log=None, keep = False) -> None:
+  with open(fout,'w') as f:
+    p.write(f)
+  if cores > 1:
+    cmd = ['mpiexec', '-n', f'{cores!s}', 'cheartsolver.out', fout, *rest]
+  else:
+    cmd = ['cheartsolver.out', fout, *rest]
+  print(" ".join(cmd))
+  if log == 'Null':
+    sp.run(cmd, stdout=sp.DEVNULL)
+  elif log is not None:
+    with open(log, 'w') as f:
+      sp.run(cmd, stdout=f, stderr=sp.STDOUT)
+  else:
+    sp.run(cmd)
+  if not(keep):
+    os.remove(fout)
+
+
 def run_script(args, rest):
   import importlib
   import subprocess as sp
@@ -27,22 +47,7 @@ def run_script(args, rest):
   pkg = importlib.import_module(name)
   p = pkg.get_PFile()
   fout = name + '.P'
-  with open(fout,'w') as f:
-    p.write(f)
-  if args.cores > 1:
-    cmd = ['mpiexec', '-n', f'{args.cores!s}', 'cheartsolver.out', fout, *rest]
-  else:
-    cmd = ['cheartsolver.out', fout, *rest]
-  print(" ".join(cmd))
-  if args.log == 'Null':
-    sp.run(cmd, stdout=sp.DEVNULL)
-  elif args.log is not None:
-    with open(args.log, 'w') as f:
-      sp.run(cmd, stdout=f, stderr=sp.STDOUT)
-  else:
-    sp.run(cmd)
-  if not(args.keep):
-    os.remove(fout)
+  run_cheartpy(p, fout, *rest, cores=args.cores, log=args.log, keep=args.keep)
 
 
 def run_pfile(args, rest):
