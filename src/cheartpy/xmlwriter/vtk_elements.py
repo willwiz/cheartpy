@@ -6,8 +6,9 @@ from numpy.typing import NDArray
 class VtkLinearLine:
   vtkelementid = 3
   vtksurfaceid = None
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     for j in range(2):
       fout.write(" %i" % (elem[j]-1))
     fout.write("\n")
@@ -15,8 +16,9 @@ class VtkLinearLine:
 class VtkQuadraticLine:
   vtkelementid = 21
   vtksurfaceid = None
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     for j in range(3):
       fout.write(" %i" % (elem[j]-1))
     fout.write("\n")
@@ -24,8 +26,9 @@ class VtkQuadraticLine:
 class VtkBilinearTriangle:
   vtkelementid = 5
   vtksurfaceid = 3
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     for j in range(3):
       fout.write(" %i" % (elem[j]-1))
     fout.write("\n")
@@ -33,8 +36,9 @@ class VtkBilinearTriangle:
 class VtkBiquadraticTriangle:
   vtkelementid = 22
   vtksurfaceid = 21
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     fout.write(" %i" % (elem[0]-1))
     fout.write(" %i" % (elem[1]-1))
     fout.write(" %i" % (elem[2]-1))
@@ -46,8 +50,9 @@ class VtkBiquadraticTriangle:
 class VtkBilinearQuadrilateral:
   vtkelementid = 9
   vtksurfaceid = 3
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     fout.write(" %i" % (elem[0]-1))
     fout.write(" %i" % (elem[1]-1))
     fout.write(" %i" % (elem[3]-1))
@@ -57,8 +62,9 @@ class VtkBilinearQuadrilateral:
 class VtkTrilinearTetrahedron:
   vtkelementid = 10
   vtksurfaceid = 5
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     for j in range(4):
       fout.write(" %i" % (elem[j]-1))
     fout.write("\n")
@@ -66,8 +72,9 @@ class VtkTrilinearTetrahedron:
 class VtkBiquadraticQuadrilateral:
   vtkelementid = 28
   vtksurfaceid = 21
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     fout.write(" %i" % (elem[0]-1))
     fout.write(" %i" % (elem[1]-1))
     fout.write(" %i" % (elem[3]-1))
@@ -82,8 +89,9 @@ class VtkBiquadraticQuadrilateral:
 class VtkTriquadraticTetrahedron:
   vtkelementid = 24
   vtksurfaceid = 22
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     for j in range(10):
       if j == 6:
         fout.write(" %i" % (elem[5]-1))
@@ -96,8 +104,9 @@ class VtkTriquadraticTetrahedron:
 class VtkTrilinearHexahedron:
   vtkelementid = 12
   vtksurfaceid = 9
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     fout.write(" %i" % (elem[0]-1))
     fout.write(" %i" % (elem[1]-1))
     fout.write(" %i" % (elem[5]-1))
@@ -111,8 +120,9 @@ class VtkTrilinearHexahedron:
 class VtkTriquadraticHexahedron:
   vtkelementid = 29
   vtksurfaceid = 28
-  def write(fout:TextIO, elem:NDArray[int32]) -> None:
-    fout.write("         ")
+  @staticmethod
+  def write(fout:TextIO, elem:NDArray[int32], level:int=0) -> None:
+    fout.write(" "*(level - 1))
     fout.write(" %i" % (elem[0]-1))
     fout.write(" %i" % (elem[1]-1))
     fout.write(" %i" % (elem[5]-1))

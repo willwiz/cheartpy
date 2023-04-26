@@ -5,14 +5,19 @@ import numpy.typing as npt
 
 
 class XMLWriters:
+  @staticmethod
   def PointWriter(fout:tp.TextIO, point:npt.NDArray[np.float64], level:int=0) -> None:
-    fout.write(f'{" "*level}{point[0]:<24.16f} {point[1]:<24.16f} {point[2]:<24.16f}\n')
+    fout.write(f'{" "*level}{point[0]: .16f} {point[1]: .16f} {point[2]: .16f}\n')
+
+  @staticmethod
   def IntegerWriter(fout:tp.TextIO, id:int, level:int=0) -> None:
     fout.write(f'{" "*level}{id:d}\n')
+
+  @staticmethod
   def FloatArrWriter(fout:tp.TextIO, arr:npt.NDArray[np.float64], level:int=0) -> None:
-    fout.write(" "*level)
+    fout.write(" "*(level - 1))
     for p in arr:
-      fout.write(f'{p:<24.16e} ')
+      fout.write(f' {p:< .16f}')
     fout.write('\n')
 
 
@@ -23,7 +28,7 @@ class XMLElement:
     self.tag = tag
     string = ""
     for k, v in attribs.items():
-      string = string + f' "{k}"="{v}"'
+      string = string + f' {k}="{v}"'
     self.attribs = string
     self.subelems = list()
   def add_elem(self, elem:XMLElement):
@@ -40,5 +45,5 @@ class XMLElement:
     if self.data is not None:
       for d in self.data:
         self.datawriter(fout, d, level + 2)
-    fout.write(f'{" "*level}<{self.tag}>\n')
+    fout.write(f'{" "*level}</{self.tag}>\n')
 
