@@ -19,7 +19,8 @@ import enum
 import dataclasses
 import typing as tp
 
-from .meshing.vtk_elements import *
+from .xmlwriter.vtk_elements import *
+from .xmlwriter.xmlclasses import *
 
 ################################################################################################
 # Compressed binary VTU file format?
@@ -61,7 +62,7 @@ parser.add_argument('--make-time-series', dest='time_series', default=None,
                          type=str, help='OPTIONAL: incorporate time data, supply a file for the time step.')
 subparsers = parser.add_subparsers(help='Collective of subprogram modules')
 parser_find= subparsers.add_parser('find', help='determine settings automatically')
-parser_find.add_argument('--mesh', dest='mesh', action='store', default='',
+parser_find.add_argument('--mesh', dest='mesh', action='store', default='mesh',
                          type=str, help='OPTIONAL: supply a directory which contains the mesh files')
 parser_find.add_argument('--step', dest='mesh', action='store', default=1,
                          type=str, help='OPTIONAL: supply a directory which contains the mesh files')
@@ -226,17 +227,43 @@ class InputArgs:
   topologyname : str = "Mesh_FE.T"
   boundaryname : tp.Optional[str] = None
   spacename : str = "Mesh_FE.X"
-  deformedSpace : tp.Optional[str] = None
+  displace : tp.Optional[str] = None
   progress : bool = False
   useCompression : bool = False
   binary : bool = False
   verbose : bool = False
   cores : int = 1
-
   spacetype : CheartDataFormat = CheartDataFormat.mesh
   spacetemp : tp.Callable[[int], str] = lambda x : str(x)
+  space : npt.NDArray[np.float64] = dataclasses.field(default_factory=lambda:np.zeros(1, np.float64))
+  n_space : int = 0
+  disptype : CheartDataFormat = CheartDataFormat.var
+  disptemp : tp.Callable[[int], str] = lambda x : str(x)
   varstype : tp.List[CheartDataFormat] = dataclasses.field(default_factory=list)
   varstemp : tp.List[tp.Callable[[int], str]] = dataclasses.field(default_factory=list)
+
+
+def get_space_data(inp:InputArgs, time:int) -> tp.Tuple[int, int, npt.NDArray[np.float64]]:
+  if inp.spacetype is CheartDataFormat.mesh:
+    fx = inp.space
+    fnd = 3
+    fnn = inp.n_space
+  else:
+    fx  = np.loadtxt(inp.spacetemp(time),  skiprows=1, dtype=float)
+    fnn = fx.shape[0]
+    fnd = fx.shape[1]
+  # if deformed space, then add displacement
+  if inp.displace is not None:
+    fd  = np.loadtxt(inp.disptemp(time), skiprows=1, dtype=float)
+    fx  = fx + fd
+  # VTU files are defined in 3D space, so we have to append a zero column for 2D data
+  if (fnd == 1):
+    print(">>>ERROR: Cannot convert data that lives on 1D domains.")
+    return
+  elif (fnd == 2):
+    z   = np.zeros((fnn,1), dtype=float)
+    fx  = np.append(fx, z, axis=1)
+  return fnn, fx
 
 def get_inputs(args) -> InputArgs:
 
@@ -249,13 +276,32 @@ def get_inputs(args) -> InputArgs:
     inp.i0 = index[0]
     inp.it = index[-1]
     inp.di = None
+    inp.topologyname = args.mesh+"_FE.T"
+    inp.boundaryname = args.mesh+"_FE.B"
+    if not os.path.isfile(inp.boundaryname):
+      print(">>>NOTICE: No boundary file found ")
+      inp.boundaryname = None
+    inp.spacename    = args.mesh+"_FE.X"
   else:
     index = np.arange(args.irange[0], args.irange[1] + 1, args.irange[2])
     inp.i0 = args.irange[0]
     inp.it = args.irange[1]
     inp.di = args.irange[2]
+    inp.topologyname = args.tfile
+    inp.boundaryname = args.bfile
+    if args.bfile is None:
+      print(">>>NOTICE: No boundary file is supplied ")
+    space = args.xfile.split("+")
+    if (len(space) == 2):
+      inp.spacename     = space[0]
+      inp.deformedSpace = space[1]
+
+  if inp.spacetype is CheartDataFormat.mesh:
+    inp.space = np.loadtxt(inp.spacetemp(0),  skiprows=1, dtype=float)
+    inp.n_space = inp.space.shape[0]
 
   inp.index = index
+
   inp.infolder  = args.infolder
   if args.outfolder != '':
     if not os.path.isdir(args.outfolder):
@@ -264,16 +310,7 @@ def get_inputs(args) -> InputArgs:
   inp.prefix    = args.prefix
   inp.outputfile = os.path.join(args.outfolder, args.prefix)
 
-  inp.spacename    = args.xfile
-  inp.topologyname = args.tfile
-  inp.boundaryname = args.bfile
-  if args.bfile is None:
-    print(">>>NOTICE: No boundary file is supplied ")
 
-  inp.deformedSpace       = inp.spacename.split("+")
-  if (len(inp.deformedSpace) == 2):
-    inp.spacename         = inp.deformedSpace[0]
-  inp.deformedSpace       = os.path.join(inp.infolder, inp.spacename).split("+")
   ################################################################################################
   # get run path and add trailing slash if it's not already there
   # !!! NOTE(WILL): check how the spacename works
@@ -320,6 +357,20 @@ def check_variables(inp : InputArgs) -> None:
     inp.spacetemp = lambda i: os.path.join(inp.infolder, f"{inp.spacename}-{i}{cheartsuffix}.gz")
   else:
     print(f">>>ERROR: No file matching the template {inp.spacename} can be found.")
+    filecheckerr = True
+  if inp.displace is None:
+    pass
+  elif os.path.isfile(inp.displace):
+    inp.disptype = CheartDataFormat.mesh
+    inp.disptemp = lambda i: inp.displace
+  elif os.path.isfile(os.path.join(inp.infolder, f"{inp.displace}-{inp.index[0]}{cheartsuffix}")):
+    inp.disptype = CheartDataFormat.var
+    inp.disptemp = lambda i: os.path.join(inp.infolder, f"{inp.displace}-{i}{cheartsuffix}")
+  elif os.path.isfile(os.path.join(inp.infolder, f"{inp.displace}-{inp.index[0]}{cheartsuffix}.gz")):
+    inp.disptype = CheartDataFormat.zip
+    inp.disptemp = lambda i: os.path.join(inp.infolder, f"{inp.displace}-{i}{cheartsuffix}.gz")
+  else:
+    print(f">>>ERROR: No file matching the template {inp.displace} can be found.")
     filecheckerr = True
   ################################################################################################
   # check what the var name is
@@ -424,72 +475,67 @@ def export_boundary(tp : LoadTopology, inp : InputArgs) -> None:
     fbcn    = fb.shape[1] - 1
     # write header
     foutfile = inp.outputfile+"_boundary"+vtksuffix
+    fnn, fx = get_space_data(inp, 0)
+    vtkfile = XMLElement('VTKFile', type="UnstructuredGrid")
+    grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
+    piece = grid.add_elem(XMLElement('Piece', Name=f'{inp.prefix}', NumberOfPoints=f'{fnn}', NumberOfCells=f'{fben}'))
+    dataarr = piece.add_elem(XMLElement('Points')).add_elem(XMLElement('DataArray', type="Float64", NumberOfComponents="3", Format="ascii"))
+    dataarr.add_data(fx, XMLWriters.PointWriter)
+    cell = piece.add_elem(XMLElement('CellData', Scalars="scalars"))
+    dataarr = cell.add_elem(XMLElement('DataArray', type="Int8", Name="PatchIDs", Format="ascii"))
+    dataarr.add_data(fb[:, - 1], XMLWriters.IntegerWriter)
+    cell = piece.add_elem(XMLElement('Cells', Scalars="scalars"))
+    dataarr = cell.add_elem(XMLElement('DataArray', type="Int64", Name="connectivity", Format="ascii"))
+    dataarr.add_data(fb[:, :-1], tp.vtksurfacetype.write)
+    dataarr = cell.add_elem(XMLElement('DataArray', type="Int64", Name="offsets", Format="ascii"))
+    dataarr.add_data(np.arange(fbcn, (fbcn)*(fben+1), fbcn), XMLWriters.IntegerWriter)
+    dataarr = cell.add_elem(XMLElement('DataArray', type="Int8", Name="types", Format="ascii"))
+    dataarr.add_data(np.full((fben,), tp.vtkelementtype.vtksurfaceid), XMLWriters.IntegerWriter)
     # print(foutfile)
     with open(foutfile, "w") as fout:
-      # convert space variable
-      fx  = np.loadtxt(inp.spacetemp(0),  skiprows=1, dtype=float)
-      fnn = fx.shape[0]
-      fnd = fx.shape[1]
-      # if deformed space, then add displacement
-      if (len(inp.deformedSpace) == 2):
-        dfile   = inp.infolder + inp.deformedSpace[1] + "-" + str(time) + ".D"
-        if not(os.path.isfile(dfile)):
-          dfile = dfile + ".gz"
-        fd  = np.loadtxt(dfile, skiprows=1, dtype=float)
-        fx  = fx + fd
-      # VTU files are defined in 3D space, so we have to append a zero column for 2D data
-      if (fnd == 1):
-        print(">>>ERROR: Cannot convert data that lives on 1D domains.")
-        return
-      elif (fnd == 2):
-        z   = np.zeros((fnn,1), dtype=float)
-        fx  = np.append(fx, z, axis=1)
+      vtkfile.write(fout)
       # start
-      fout.write(f'<VTKFile type="UnstructuredGrid">\n')
-      fout.write(f'{" "*2}<UnstructuredGrid>\n')
-      fout.write(f'{" "*4}<Piece Name="{inp.prefix}" NumberOfPoints="{fnn}" NumberOfCells="{fben}">\n')
-      # boundary points
-      fout.write(f'{" "*6}<Points>\n')
-      fout.write(f'{" "*8}<DataArray type="Float64" NumberOfComponents="3" Format="ascii">\n')
-      for points in range(fx.shape[0]):
-        fout.write(f'{" "*10}{fx[points, 0]:.16f} {fx[points, 1]:.16f} {fx[points, 2]:.16f}\n')
-      fout.write(f'{" "*8}</DataArray>\n')
-      fout.write(f'{" "*6}</Points>\n')
-      # boundary patch ids
-      fout.write(f'{" "*6}<CellData Scalars="scalars">\n')
-      fout.write(f'{" "*8}<DataArray type="Int8" Name="PatchIDs" Format="ascii">\n')
-      for patchIdx in range(0, fben):
-        fout.write(f'{" "*10}{fb[patchIdx, - 1]:i}\n')
-      fout.write(f'{" "*8}</DataArray>\n')
-      fout.write(f'{" "*6}</CellData>\n')
-      # boundary topology
-      fout.write(f'{" "*6}<Cells>\n')
-      fout.write(f'{" "*8}<DataArray type="Int64" Name="connectivity"  Format="ascii">\n')
-      for elem in range(0, fben):
-        tp.vtksurfacetype.write(fout=fout, elem=fb[elem])
-      fout.write(f'{" "*8}</DataArray>\n')
-      # boundary locations
-      fout.write(f'{" "*8}<DataArray type="Int64" Name="offsets"  Format="ascii">\n')
-      for points in range(fbcn, (fbcn)*(fben+1), fbcn):
-        fout.write(f'{" "*10}{points:i}')
-      fout.write(f'\n')
-      fout.write(f'{" "*8}</DataArray>\n')
-      # boundary types
-      fout.write(f'{" "*8}<DataArray type="Int8" Name="types"  Format="ascii">\n')
-      for points in range(fben):
-        fout.write(f'{" "*10}{tp.vtkelementtype.vtksurfaceid}\n')
-      fout.write(f'{" "*8}</DataArray>\n')
-      fout.write(f'{" "*6}</Cells>\n')
-      # end
-      fout.write(f'{" "*4}</Piece>\n')
-      fout.write(f'{" "*2}</UnstructuredGrid>\n')
-      fout.write(f'</VTKFile>\n')
+      # fout.write(f'<VTKFile type="UnstructuredGrid">\n')
+      # fout.write(f'{" "*2}<UnstructuredGrid>\n')
+      # fout.write(f'{" "*4}<Piece Name="{inp.prefix}" NumberOfPoints="{fnn}" NumberOfCells="{fben}">\n')
+      # # boundary points
+      # fout.write(f'{" "*6}<Points>\n')
+      # fout.write(f'{" "*8}<DataArray type="Float64" NumberOfComponents="3" Format="ascii">\n')
+      # for points in range(fx.shape[0]):
+      #   fout.write(f'{" "*10}{fx[points, 0]:.16f} {fx[points, 1]:.16f} {fx[points, 2]:.16f}\n')
+      # fout.write(f'{" "*8}</DataArray>\n')
+      # fout.write(f'{" "*6}</Points>\n')
+      # # boundary patch ids
+      # fout.write(f'{" "*6}<CellData Scalars="scalars">\n')
+      # fout.write(f'{" "*8}<DataArray type="Int8" Name="PatchIDs" Format="ascii">\n')
+      # for patchIdx in range(0, fben):
+      #   fout.write(f'{" "*10}{fb[patchIdx, - 1]:i}\n')
+      # fout.write(f'{" "*8}</DataArray>\n')
+      # fout.write(f'{" "*6}</CellData>\n')
+      # # boundary topology
+      # fout.write(f'{" "*6}<Cells>\n')
+      # fout.write(f'{" "*8}<DataArray type="Int64" Name="connectivity"  Format="ascii">\n')
+      # for elem in range(0, fben):
+      #   tp.vtksurfacetype.write(fout=fout, elem=fb[elem])
+      # fout.write(f'{" "*8}</DataArray>\n')
+      # # boundary locations
+      # fout.write(f'{" "*8}<DataArray type="Int64" Name="offsets"  Format="ascii">\n')
+      # for points in range(fbcn, (fbcn)*(fben+1), fbcn):
+      #   fout.write(f'{" "*10}{points:i}')
+      # fout.write(f'\n')
+      # fout.write(f'{" "*8}</DataArray>\n')
+      # # boundary types
+      # fout.write(f'{" "*8}<DataArray type="Int8" Name="types"  Format="ascii">\n')
+      # for points in range(fben):
+      #   fout.write(f'{" "*10}{tp.vtkelementtype.vtksurfaceid}\n')
+      # fout.write(f'{" "*8}</DataArray>\n')
+      # fout.write(f'{" "*6}</Cells>\n')
+      # # end
+      # fout.write(f'{" "*4}</Piece>\n')
+      # fout.write(f'{" "*2}</UnstructuredGrid>\n')
+      # fout.write(f'</VTKFile>\n')
     if inp.useCompression:
       compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
-
-
-def XMLWrite_DataArray():
-  return
 
 
 def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, lastspace, lastdeform, bart:progress_bar=None) -> None:
@@ -503,112 +549,133 @@ def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, las
     sys.exit(">>>ERROR: Even though the space file was found during check, it is not found during import")
   else:
     xfile = lastspace
-
-  fx  = np.loadtxt(inp.spacetemp(time),  skiprows=1, dtype=float)
-  fnn = fx.shape[0]
-  fnd = fx.shape[1]
-  # if deformed space, then add displacement
-  if (len(inp.deformedSpace) == 2):
-    dfile   = inp.infolder + inp.deformedSpace[1] + "-" + str(time) + ".D"
-    if not(os.path.isfile(dfile)):
-      dfile = dfile + ".gz"
-      if not(os.path.isfile(dfile)):
-        if lastdeform is None:
-          sys.exit(">>>ERROR: Even though the deformed space file was found during check, it is not found during import")
-        else:
-          dfile = lastdeform
-      else:
-        lastdeform = dfile
-    else:
-      lastdeform = dfile
-    fd  = np.loadtxt(dfile, skiprows=1, dtype=float)
-    fx  = fx + fd
+  fnn, fx = get_space_data(inp, time)
   # VTU files are defined in 3D space, so we have to append a zero column for 2D data
-  if (fnd == 1):
-    print(">>>ERROR: Cannot convert data that lives on 1D domains.")
-    return
-  elif (fnd == 2):
-    z   = np.zeros((fnn,1), dtype=float)
-    fx  = np.append(fx, z, axis=1)
-
   foutfile = inp.outputfile+"-"+str(time)+vtksuffix
 
+  vtkfile = XMLElement('VTKFile', type="UnstructuredGrid")
+  grid    = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
+  piece   = grid.add_elem(XMLElement('Piece', Name=f'{inp.prefix}', NumberOfPoints=f'{fnn}', NumberOfCells=f'{tp.ne}'))
+  points    = piece.add_elem(XMLElement('Points'))
+  dataarr     = points.add_elem(XMLElement('DataArray', type="Float64", NumberOfComponents="3", Format="ascii"))
+  dataarr.add_data(fx, XMLWriters.PointWriter)
+  cell      = piece.add_elem(XMLElement('Cells',     Scalars="scalars"))
+  dataarr     = cell.add_elem(XMLElement('DataArray', type="Int64", Name="connectivity", Format="ascii"))
+  dataarr.add_data(tp, tp.vtkelementtype.write)
+  dataarr     = cell.add_elem(XMLElement('DataArray', type="Int64", Name="offsets", Format="ascii"))
+  dataarr.add_data(np.arange(tp.nc, tp.nc*(tp.ne+1), tp.nc), XMLWriters.IntegerWriter)
+  dataarr     = cell.add_elem(XMLElement('DataArray', type="Int8",  Name="types", Format="ascii"))
+  dataarr.add_data(np.full((tp.ne,), tp.vtkelementtype.vtkelementid), XMLWriters.IntegerWriter)
+  points    = piece.add_elem(XMLElement('PointData', Scalars="scalars"))
+
+  for varIdx in range(len(inp.vars)):
+    vfile = inp.varstemp[varIdx](time)
+    if not(os.path.isfile(vfile)):
+      if lastvariable[varIdx] is not None:
+        vfile = lastvariable[varIdx]
+      else:
+        sys.exit(">>>ERROR: Unexpect problem, file was found during check but not when being imported: {}".format(lastvariable[varIdx]))
+    else:
+      lastvariable[varIdx] = vfile
+    if inp.binary:
+      fv = read_D_binary(vfile)
+      # print(fv.shape)
+    else:
+      fv = np.loadtxt(vfile,  skiprows=1, dtype=float)
+    fvnn = fv.shape[0]
+    if (fv.ndim == 1):
+      fv = fv[:, np.newaxis]
+    fvnd = fv.shape[1]
+    if (fnn != fvnn):
+      raise AssertionError(">>>ERROR: Invalid number of nodes for "+str(inp.vars)+".")
+    # append zero column if need be
+    if (fvnd == 2):
+      z       = np.zeros((fvnn,1), dtype=float)
+      fv      = np.append(fv, z, axis=1)
+      fvnd    = 3
+    dataarr     = points.add_elem(XMLElement('DataArray', type="Float64", Name=f"{inp.vars[varIdx]}", NumberOfComponents=f"{fvnd}", Format="ascii"))
+    dataarr.add_data(fv, XMLWriters.FloatArrWriter)
   with open(foutfile, "w") as fout:
-    fout.write("<VTKFile type=\"UnstructuredGrid\">\n")
-    fout.write("  <UnstructuredGrid>\n")
-    fout.write("    <Piece Name=\""+inp.prefix+"\" NumberOfPoints=\""+str(fnn)+"\" NumberOfCells=\""+str(tp.ne)+"\">\n")
-    # space
-    fout.write("      <Points>\n")
-    fout.write("        <DataArray type=\"Float64\" NumberOfComponents=\"3\" Format=\"ascii\">\n")
-    for points in range(fx.shape[0]):
-      fout.write("          % .16f % .16f % .16f\n" % (fx[points, 0], fx[points, 1], fx[points, 2]))
-    fout.write("        </DataArray>\n")
-    fout.write("      </Points>\n")
-    ############################################################################################
-    # convert other variables
-    fout.write("      <PointData Scalars=\"scalars\">\n")
-    for varIdx in range(0, len(inp.vars), 1):
-      vfile = inp.varstemp[varIdx](time)
-      if not(os.path.isfile(vfile)):
-        if lastvariable[varIdx] is not None:
-          vfile = lastvariable[varIdx]
-        else:
-          sys.exit(">>>ERROR: Unexpect problem, file was found during check but not when being imported: {}".format(lastvariable[varIdx]))
-      else:
-        lastvariable[varIdx] = vfile
-      # print(f'file type is {inp.binary}')
-      if inp.binary:
-        fv = read_D_binary(vfile)
-        # print(fv.shape)
-      else:
-        fv = np.loadtxt(vfile,  skiprows=1, dtype=float)
-      fvnn = fv.shape[0]
-      if (fv.ndim == 1):
-        fvnd = 1
-      else:
-        fvnd = fv.shape[1]
-      # check whether number of scalars matches number of spatial nodes
-      if (fnn != fvnn):
-        raise AssertionError(">>>ERROR: Invalid number of nodes for "+str(inp.vars)+".")
-      # append zero column if need be
-      if (fvnd == 2):
-        z       = np.zeros((fvnn,1), dtype=float)
-        fv      = np.append(fv, z, axis=1)
-        fvnd    = 3
-      fout.write("        <DataArray type=\"Float64\" Name=\""+str(inp.vars[varIdx])+"\" NumberOfComponents=\""+str(fvnd)+"\" Format=\"ascii\">\n")
-      stringFormat    = " % .16f"*fvnd
-      stringFormat    = "         " + stringFormat + "\n"
-      if(fvnd == 1):
-        for points in range(fnn):
-          fout.write(stringFormat % (fv[points]))
-      else:
-        for points in range(fnn):
-          fout.write(stringFormat % tuple(fv[points, 0:fvnd:1]))
-      fout.write("        </DataArray>\n")
-    fout.write("      </PointData>\n")
-    ############################################################################################
-    # topology
-    fout.write("      <Cells>\n")
-    fout.write("        <DataArray type=\"Int64\" Name=\"connectivity\"  Format=\"ascii\">\n")
-    for elements in range(0, tp.ne):
-      tp.vtkelementtype.write(fout, elem=tp[elements])
-    fout.write("        </DataArray>\n")
-    # cell locations
-    fout.write("        <DataArray type=\"Int64\" Name=\"offsets\"  Format=\"ascii\">\n")
-    for points in range(tp.nc, tp.nc*(tp.ne+1), tp.nc):
-      fout.write("          %i" % (points))
-    fout.write('\n')
-    fout.write("        </DataArray>\n")
-    # cell types
-    fout.write("        <DataArray type=\"Int8\" Name=\"types\"  Format=\"ascii\">\n")
-    for points in range(tp.ne):
-      fout.write("          "+str(tp.vtkelementtype)+"\n")
-    fout.write("        </DataArray>\n")
-    fout.write("      </Cells>\n")
-    # end
-    fout.write("    </Piece>\n")
-    fout.write("  </UnstructuredGrid>\n")
-    fout.write("</VTKFile>\n")
+    vtkfile.write(fout)
+
+  # with open(foutfile, "w") as fout:
+  #   fout.write("<VTKFile type=\"UnstructuredGrid\">\n")
+  #   fout.write("  <UnstructuredGrid>\n")
+  #   fout.write("    <Piece Name=\""+inp.prefix+"\" NumberOfPoints=\""+str(fnn)+"\" NumberOfCells=\""+str(tp.ne)+"\">\n")
+  #   # space
+  #   fout.write("      <Points>\n")
+  #   fout.write("        <DataArray type=\"Float64\" NumberOfComponents=\"3\" Format=\"ascii\">\n")
+  #   for points in range(fx.shape[0]):
+  #     fout.write("          % .16f % .16f % .16f\n" % (fx[points, 0], fx[points, 1], fx[points, 2]))
+  #   fout.write("        </DataArray>\n")
+  #   fout.write("      </Points>\n")
+  #   ############################################################################################
+  #   # convert other variables
+  #   fout.write("      <PointData Scalars=\"scalars\">\n")
+  #   for varIdx in range(0, len(inp.vars), 1):
+  #     vfile = inp.varstemp[varIdx](time)
+  #     if not(os.path.isfile(vfile)):
+  #       if lastvariable[varIdx] is not None:
+  #         vfile = lastvariable[varIdx]
+  #       else:
+  #         sys.exit(">>>ERROR: Unexpect problem, file was found during check but not when being imported: {}".format(lastvariable[varIdx]))
+  #     else:
+  #       lastvariable[varIdx] = vfile
+  #     # print(f'file type is {inp.binary}')
+  #     if inp.binary:
+  #       fv = read_D_binary(vfile)
+  #       # print(fv.shape)
+  #     else:
+  #       fv = np.loadtxt(vfile,  skiprows=1, dtype=float)
+  #     fvnn = fv.shape[0]
+  #     if (fv.ndim == 1):
+  #       fvnd = 1
+  #     else:
+  #       fvnd = fv.shape[1]
+  #     # check whether number of scalars matches number of spatial nodes
+  #     if (fnn != fvnn):
+  #       raise AssertionError(">>>ERROR: Invalid number of nodes for "+str(inp.vars)+".")
+  #     # append zero column if need be
+  #     if (fvnd == 2):
+  #       z       = np.zeros((fvnn,1), dtype=float)
+  #       fv      = np.append(fv, z, axis=1)
+  #       fvnd    = 3
+
+  #     fout.write("        <DataArray type=\"Float64\" Name=\""+str(inp.vars[varIdx])+"\" NumberOfComponents=\""+str(fvnd)+"\" Format=\"ascii\">\n")
+  #     stringFormat    = " % .16f"*fvnd
+  #     stringFormat    = "         " + stringFormat + "\n"
+  #     if(fvnd == 1):
+  #       for points in range(fnn):
+  #         fout.write(stringFormat % (fv[points]))
+  #     else:
+  #       for points in range(fnn):
+  #         fout.write(stringFormat % tuple(fv[points, 0:fvnd:1]))
+  #     fout.write("        </DataArray>\n")
+  #   fout.write("      </PointData>\n")
+  #   ############################################################################################
+  #   # topology
+  #   fout.write("      <Cells>\n")
+  #   fout.write("        <DataArray type=\"Int64\" Name=\"connectivity\"  Format=\"ascii\">\n")
+  #   for elements in range(0, tp.ne):
+  #     tp.vtkelementtype.write(fout, elem=tp[elements])
+  #   fout.write("        </DataArray>\n")
+  #   # cell locations
+  #   fout.write("        <DataArray type=\"Int64\" Name=\"offsets\"  Format=\"ascii\">\n")
+  #   for points in range(tp.nc, tp.nc*(tp.ne+1), tp.nc):
+  #     fout.write("          %i" % (points))
+  #   fout.write('\n')
+  #   fout.write("        </DataArray>\n")
+  #   # cell types
+  #   fout.write("        <DataArray type=\"Int8\" Name=\"types\"  Format=\"ascii\">\n")
+  #   for points in range(tp.ne):
+  #     fout.write("          "+str(tp.vtkelementtype)+"\n")
+  #   fout.write("        </DataArray>\n")
+  #   fout.write("      </Cells>\n")
+  #   # end
+  #   fout.write("    </Piece>\n")
+  #   fout.write("  </UnstructuredGrid>\n")
+  #   fout.write("</VTKFile>\n")
+
   if inp.useCompression:
     compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
   if inp.progress:
