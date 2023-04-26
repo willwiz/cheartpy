@@ -178,7 +178,7 @@ class InputArgs:
   i0 : int = 0
   it : int = 1
   di : int = 1
-  index : npt.NDArray[np.int32] = dataclasses.field(default_factory=lambda: np.zeros(1, dtype=int))
+  index : npt.NDArray[np.int32] = None
   prefix : str = 'paraview'
   outputfile : str = 'paraview'
   infolder : str = ''
@@ -271,10 +271,18 @@ def get_inputs(args) -> InputArgs:
 
   inp = InputArgs(args.variablenames)
   if args.find:
-    for var in args.variablenames:
+    if not inp.vars:
+      index = np.zeros(1,dtype=int)
+      inp.index = index
+    for var in inp.vars:
       files = glob.glob(os.path.join(args.infolder, f"{var}-*.D"))
-      index = [int(re.search(rf'{var}-(\d+).D', s).group()) for nam in files for _, s in os.path.split(nam)]
-    index = np.array(sorted(index))
+      index = [int(re.search(rf'{var}-(\d+).D', os.path.basename(s)).group(1)) for s in files]
+    if inp.index is None:
+      index = np.array(sorted(index))
+      inp.index = index
+    else:
+      if (inp.index != np.array(sorted(index))).all():
+        raise ValueError(f"Not all variables have the same index, find method cannot be used")
     inp.i0 = index[0]
     inp.it = index[-1]
     inp.di = None
