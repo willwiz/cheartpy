@@ -273,7 +273,7 @@ def get_inputs(args) -> InputArgs:
   if args.find:
     for var in args.variablenames:
       files = glob.glob(os.path.join(args.infolder, f"{var}-*.D"))
-      index = [int(re.search(r'\d+', s).group()) for s in files]
+      index = [int(re.search(rf'{var}-(\d+).D', s).group()) for _, s in os.path.split(files)]
     index = np.array(sorted(index))
     inp.i0 = index[0]
     inp.it = index[-1]
