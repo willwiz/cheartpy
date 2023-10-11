@@ -36,13 +36,23 @@ except ModuleNotFoundError:
 
 
 
-parser = argparse.ArgumentParser(description='converts cheart output Dfiles into vtu files for paraview',add_help=False)
-parser.add_argument('--prefix',        '-p', dest='prefix',      action='store', default='paraview',
-                    type=str, help='OPTIONAL: supply a prefix name to be used for the exported vtu files. If -p is not supplied, then "paraview" will be used. that is the outputs will be named paraview-#.D')
+parser = argparse.ArgumentParser(
+    description='converts cheart output Dfiles into vtu files for paraview',
+    add_help=False)
+parser.add_argument(
+    '--prefix',        '-p',
+    type=str, default='paraview',
+    help='OPTIONAL: supply a prefix name to be used for the exported vtu files. If -p is not supplied, then "paraview" will be used. that is the outputs will be named paraview-#.D')
 parser.add_argument('--folder',        '-f', dest='infolder',     action='store', default='',
-                    type=str, help='OPTIONAL: supply the path to the folder where the .D files are stored. If -f is not supplied, then the path is assumed to be the current folder.')
+                    type=str,
+                    help='OPTIONAL: supply the path to the folder where the .D files are stored. If -f is not supplied, then the path is assumed to be the current folder.')
 parser.add_argument('--out-folder',    '-o', dest='outfolder',    action='store', default='',
-                    type=str, help='OPTIONAL: supply the path to the folder where the vtu outputs should be saved to. If -f is not supplied, then the path is assumed to be the current folder.')
+                    type=str,
+                    help='OPTIONAL: supply the path to the folder where the vtu outputs should be saved to. If -f is not supplied, then the path is assumed to be the current folder.')
+parser.add_argument('variablenames', nargs='*', action='store', default=list(),
+                    type=str, metavar=('var'),
+                    help='Optional: specify the variables to add to the vtu files. Multiple variable can be listed consecutively.')
+
 
 settinggroup = parser.add_argument_group(title='Settings')
 settinggroup.add_argument('--no-progressbar',   action='store_false', dest='progress',
@@ -55,11 +65,10 @@ settinggroup.add_argument('--no-compression', dest='compress',action='store_fals
                           help='OPTIONAL: disable compression.')
 settinggroup.add_argument('--cores', '-c', dest='cores', action='store', default=None, type=int, metavar=('#'),
                           help='OPTIONAL: use multicores.')
+
 extrasgroup = parser.add_argument_group(title='Extras')
 extrasgroup.add_argument('--make-time-series', dest='time_series', default=None,
                          type=str, help='OPTIONAL: incorporate time data, supply a file for the time step.')
-parser.add_argument('variablenames', nargs='*', action='store', default=list(),
-                    type=str, metavar=('var'), help='Optional: specify the variables to add to the vtu files. Multiple variable can be listed consecutively.')
 
 main_parser = argparse.ArgumentParser(parents=[parser])
 
@@ -82,8 +91,8 @@ subparsers = main_parser.add_subparsers(help='Collective of subprogram')
 parser_find= subparsers.add_parser('find', help='determine settings automatically', parents=[parser])
 parser_find.add_argument('--mesh', dest='mesh', action='store', default='mesh',
                          type=str, help='OPTIONAL: supply a directory which contains the mesh files')
-parser_find.add_argument('--step', dest='mesh', action='store', default=1,
-                         type=str, help='OPTIONAL: supply a directory which contains the mesh files')
+parser_find.add_argument('--step', dest='step', action='store', default=1,
+                         type=str, help='OPTIONAL: enforce step size rather than use all data found. NOT IMPLEMENTED.')
 parser_find.set_defaults(find=True)
 
 
@@ -340,7 +349,7 @@ def check_variables(inp : InputArgs) -> None:
   ################################################################################################
   # Check all requested items on whether they exists
   print("")
-  print("<<< Time series:                 From {} to {} with increment of {}".format(inp.i0, inp.it - 1, inp.di))
+  print("<<< Time series:                 From {} to {} with increment of {}".format(inp.i0, inp.it, inp.di))
   print("<<< Compressed VTU format:       {}".format(compress_method if inp.useCompression else "None"))
   print("<<< Import data as binary:       {}".format(inp.binary))
   if inp.boundaryname is not None:
