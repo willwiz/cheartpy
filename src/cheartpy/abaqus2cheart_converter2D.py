@@ -294,7 +294,8 @@ def CHWrite_d_utf(file: str, data: Arr[tuple[int, int], f64]) -> None:
 
 def CHWrite_Str_utf(file: str, data: Arr[tuple[int, int], chars]) -> None:
     with open(file, "w") as f:
-        f.write("{:>12}\n".format(len(data)))
+        f.write("{:>12}".format(data.shape[0]))
+        f.write("{:>12}\n".format(data.shape[1]))
         for i in data:
             for j in i:
                 f.write("{:>12}".format(j))
