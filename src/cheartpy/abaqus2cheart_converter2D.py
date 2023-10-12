@@ -5,7 +5,7 @@ import os, sys
 from collections import defaultdict
 import argparse
 from argparse import RawTextHelpFormatter
-from typing import Any, Callable, Optional, TextIO, Tuple, TypeVar, Union, Self
+from typing import Any, Callable, TextIO, Self
 import numpy as np
 from numpy import zeros, ndarray as Arr, array
 import dataclasses as dc
@@ -13,7 +13,7 @@ from concurrent import futures
 
 i32 = np.dtype[np.int32]
 f64 = np.dtype[np.float64]
-
+chars = np.dtype[np.str_]
 ################################################################################################
 # Check if multiprocessing is available
 
@@ -86,6 +86,13 @@ parser.add_argument(
     """,
 )
 parser.add_argument(
+    "--add-mask",
+    action="append",
+    nargs="+",
+    default=None,
+    help="""Add a mask with an given element""",
+)
+parser.add_argument(
     "-c",
     "--cores",
     default=1,
@@ -96,12 +103,20 @@ parser.add_argument(
 
 
 @dc.dataclass(slots=True)
+class Mask:
+    name: str
+    value: str
+    elems: list[str]
+
+
+@dc.dataclass(slots=True)
 class InputArgs:
     inputs: list[str]
     prefix: str
     dim: int
     topology: list[str] | None
     boundary: dict[str, list[str]] | None
+    masks: dict[str, Mask] | None
     cores: int
 
 
@@ -277,6 +292,16 @@ def CHWrite_d_utf(file: str, data: Arr[tuple[int, int], f64]) -> None:
     return
 
 
+def CHWrite_Str_utf(file: str, data: Arr[tuple[int, int], chars]) -> None:
+    with open(file, "w") as f:
+        f.write("{:>12}\n".format(len(data)))
+        for i in data:
+            for j in i:
+                f.write("{:>12}".format(j))
+            f.write("\n")
+    return
+
+
 def CHWrite_t_utf(file: str, data: Arr[tuple[int, int], i32], ne: int, nn: int) -> None:
     with open(file, "w") as f:
         f.write(f"{ne:12d}")
@@ -410,11 +435,11 @@ def import_space(
 
 
 def import_topology(
-    elmap: dict[int, int], elem: dict[str, AbaqusMeshElement], tops: list[str]
+    elmap: dict[int, int], elems: dict[str, AbaqusMeshElement], tops: list[str]
 ) -> MeshTypeTopology:
     n = 0
     data = list()
-    for top in (elem[t] for t in tops):
+    for top in (elems[t] for t in tops):
         arraydim = len(next(iter(top.data.values())))
         el = get_abaqus_element(top.kind, arraydim)
         for i in top.data.values():
@@ -559,15 +584,39 @@ def check_element_names(
 ) -> None:
     if topologies:
         for name in topologies:
-            if not name in elems:
-                check_element_names_i(elems, name, "Topology")
+            check_element_names_i(elems, name, "Topology")
     if boundaries:
         if not topologies:
             raise ValueError("Boundaries cannot be defined without topology")
         for bnd in boundaries.values():
             for name in bnd:
-                if not name in elems:
-                    check_element_names_i(elems, name, "Boundary")
+                check_element_names_i(elems, name, "Boundary")
+
+
+def gather_masks(
+    cmd_arg_masks: list[list[str]] | None,
+) -> dict[str, Mask] | None:
+    if cmd_arg_masks is None:
+        return None
+    masks: dict[str, Mask] = dict()
+    for m in cmd_arg_masks:
+        if len(m) < 3:
+            raise ValueError(
+                "A Mask at least 3 args, e.g., name1, name2, ..., value, output"
+            )
+        masks[m[-1]] = Mask(m[-1], m[-2], m[:-2])
+    return masks
+
+
+def create_mask(
+    elmap: dict[int, int], elems: dict[str, AbaqusMeshElement], mask: Mask
+) -> None:
+    data = np.full((len(elmap), 1), "0", dtype="<U12")
+    for elem in (elems[s] for s in mask.elems):
+        for vals in elem.data.values():
+            for v in vals:
+                data[elmap[v] - 1] = mask.value
+    CHWrite_Str_utf(mask.name, data)
 
 
 def check_args(args: argparse.Namespace) -> InputArgs:
@@ -576,7 +625,10 @@ def check_args(args: argparse.Namespace) -> InputArgs:
     else:
         name: str = args.prefix
     boundary = split_argslist_to_nameddict(args.boundary)
-    return InputArgs(args.input, name, args.dim, args.topology, boundary, args.cores)
+    masks = gather_masks(args.add_mask)
+    return InputArgs(
+        args.input, name, args.dim, args.topology, boundary, masks, args.cores
+    )
 
 
 def main(args=None) -> None:
@@ -595,6 +647,9 @@ def main(args=None) -> None:
             g.boundary = import_boundaries(
                 elmap, top_hashmap, elems, inp.boundary, inp.cores
             )
+    if inp.masks:
+        for _, m in inp.masks.items():
+            create_mask(elmap, elems, m)
     export_cheart_mesh(inp, g, nodes, elems)
 
 
