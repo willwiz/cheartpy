@@ -503,6 +503,7 @@ def checked_make_boundary(
     try:
         bnd = make_boundary(elmap, topmap, elem, tag)
     except Exception as e:
+        print(elem.name)
         print(e)
         raise
     return bnd
@@ -635,7 +636,6 @@ def check_args(args: argparse.Namespace) -> InputArgs:
 def main(args=None) -> None:
     args = parser.parse_args(args=args)
     inp = check_args(args)
-    print(inp)
     nodes, elems = read_abaqus_mesh_to_raw_elems(inp.inputs)
     check_element_names(elems, inp.topology, inp.boundary)
     elmap = build_elmap(nodes, elems, inp.topology)

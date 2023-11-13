@@ -7,8 +7,9 @@
 # modified by: Will Zhang (willwz@gmail.com)
 # data: 3/31/2022
 from __future__ import print_function
-import os.path
+import os
 import numpy as np
+from numpy import ndarray as Arr
 import numpy.typing as npt
 import sys
 import argparse
@@ -16,24 +17,29 @@ import glob
 import re
 import struct
 import enum
-import dataclasses
+import dataclasses as dc
 import typing as tp
+from typing import Final
 
 from .xmlwriter.vtk_elements import *
 from .xmlwriter.xmlclasses import *
 
+i32 = np.dtype[np.int32]
+f64 = np.dtype[np.float64]
 ################################################################################################
 # Compressed binary VTU file format?
-try:
-    import meshio
+import meshio
 
-    compress_method = "meshio"
-    use_Compression = True
-except ModuleNotFoundError:
-    use_Compression = False
-    print(
-        ">>>WARNING: You need either python-paraview or python-vtk or meshio for compression. Compression option disabled."
-    )
+# try:
+#     import meshio
+
+#     compress_method = "meshio"
+#     use_Compression = True
+# except ModuleNotFoundError:
+#     use_Compression = False
+#     print(
+#         ">>>WARNING: You need either python-paraview or python-vtk or meshio for compression. Compression option disabled."
+#     )
 ################################################################################################
 # The argument parse
 
@@ -104,7 +110,7 @@ settinggroup.add_argument(
     "-c",
     dest="cores",
     action="store",
-    default=None,
+    default=1,
     type=int,
     metavar=("#"),
     help="OPTIONAL: use multicores.",
@@ -221,12 +227,12 @@ parser_find.set_defaults(find=True)
 #       print(">>>WARNING: You need either python-paraview or python-vtk or meshio for compression. Compression option disabled.")
 ################################################################################################
 # Check if multiprocessing is available
-try:
-    from concurrent import futures
+from concurrent import futures
 
-    futures_avail = True
-except:
-    futures_avail = False
+# try:
+#     futures_avail = True
+# except:
+#     futures_avail = False
 ################################################################################################
 
 
@@ -293,7 +299,7 @@ cheartsuffix = ".D"
 gzsuffix = ".gz"
 
 
-def read_D_binary(file) -> np.ndarray:
+def read_D_binary(file: str) -> Arr[tuple[int, int], f64]:
     with open(file, mode="rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
@@ -315,21 +321,21 @@ class CheartDataFormat(enum.Enum):
     zip = 2
 
 
-@dataclasses.dataclass
-class InputArgs:
-    vars: tp.List[str]
+@dc.dataclass(slots=True)
+class InputSettings:
+    var: list[str]
+    index: Arr[int, i32]
     i0: int = 0
     it: int = 1
-    di: int = 1
-    index: npt.NDArray[np.int32] = None
+    di: int | None = 1
     prefix: str = "paraview"
     outputfile: str = "paraview"
     infolder: str = ""
     outfolder: str = ""
     topologyname: str = "Mesh_FE.T"
-    boundaryname: tp.Optional[str] = None
+    boundaryname: str | None = None
     spacename: str = "Mesh_FE.X"
-    displace: tp.Optional[str] = None
+    displace: tp.Final[str] | None = None
     progress: bool = False
     useCompression: bool = False
     binary: bool = False
@@ -337,14 +343,14 @@ class InputArgs:
     cores: int = 1
     spacetype: CheartDataFormat = CheartDataFormat.mesh
     spacetemp: tp.Callable[[int], str] = lambda x: str(x)
-    space: npt.NDArray[np.float64] = dataclasses.field(
+    space: npt.NDArray[np.float64] = dc.field(
         default_factory=lambda: np.zeros(1, np.float64)
     )
     n_space: int = 0
     disptype: CheartDataFormat = CheartDataFormat.var
     disptemp: tp.Callable[[int], str] = lambda x: str(x)
-    varstype: tp.List[CheartDataFormat] = dataclasses.field(default_factory=list)
-    varstemp: tp.List[tp.Callable[[int], str]] = dataclasses.field(default_factory=list)
+    varstype: tp.List[CheartDataFormat] = dc.field(default_factory=list)
+    varstemp: tp.List[tp.Callable[[int], str]] = dc.field(default_factory=list)
 
 
 def print_header() -> None:
@@ -365,7 +371,7 @@ def print_header() -> None:
     )
 
 
-def print_input_info(inp: InputArgs) -> None:
+def print_input_info(inp: InputSettings) -> None:
     print("The output will be saved to ", inp.outputfile)
     print("The file name of the output will start with", inp.prefix)
     print(
@@ -377,34 +383,31 @@ def print_input_info(inp: InputArgs) -> None:
     print("The boundary file to use is ", inp.boundaryname)
     print("The space file to use is ", inp.spacename)
     print("The varibles to add are: ")
-    print(inp.vars)
+    print(inp.var)
     print("<<< Output folder:               {}".format(inp.outfolder))
     print("<<< Output file name prefix:     {}".format(inp.prefix))
 
 
-def compress_vtu(name: str, method: str = "meshio", verbose: bool = False) -> None:
-    # if method=='pvpython':
-    #   # read ASCII vtu file and write raw vtu file
-    #   fin = XMLUnstructuredGridReader(FileName=name)
-    #   # CompressorType: 0 - None, 1 - ZLib, 2 - LZ4, 3 - LZMA
-    #   # DataMode: 0 - Ascii, 1 - Binary, 2 - Appended
-    #   foutbin = XMLUnstructuredGridWriter(CompressorType=1, DataMode=2)
-    #   foutbin.FileName = name
-    #   foutbin.UpdatePipeline()
-    # elif method=='vtk':
-    #   vtuReader=vtkXMLUnstructuredGridReader()
-    #   vtuReader.SetFileName(name)
-    #   vtuReader.Update()
-    #   vtuWriter=vtkXMLUnstructuredGridWriter()
-    #   vtuWriter.SetDataModeToAppended()
-    #   vtuWriter.SetCompressorTypeToZLib()
-    #   vtuWriter.SetFileName(name)
-    #   if VTK_MAJOR_VERSION <= 5:
-    #       vtuWriter.SetInput(vtuReader.GetOutput())
-    #   else:
-    #       vtuWriter.SetInputData(vtuReader.GetOutput())
-    #   vtuWriter.Write()
-    # elif method=='meshio':
+def print_setting_info(inp: InputSettings) -> bool:
+    ################################################################################################
+    # Check all requested items on whether they exists
+    print("")
+    print(f"<<< Time series: From {inp.i0} to {inp.it} with increment of {inp.di}")
+    print("<<< Compressed VTU format: {}".format(inp.useCompression))
+    print("<<< Import data as binary: {}".format(inp.binary))
+    if inp.boundaryname is not None:
+        print(f"<<< Output file name (boundary): {inp.prefix}_boundary.vtu")
+    if not (os.path.isfile(inp.topologyname)):
+        print(f">>>ERROR: File {inp.topologyname} does not exist.")
+        filecheckerr = True
+    else:
+        filecheckerr = False
+    if inp.boundaryname is not None and not (os.path.isfile(inp.boundaryname)):
+        print(f">>>WARNING: File {inp.boundaryname} does not exist.")
+    return filecheckerr
+
+
+def compress_vtu(name: str, verbose: bool = False) -> None:
     if verbose:
         size = os.stat(name).st_size
         print("File size before: {:.2f} MB".format(size / 1024**2))
@@ -415,60 +418,70 @@ def compress_vtu(name: str, method: str = "meshio", verbose: bool = False) -> No
         print("File size after: {:.2f} MB".format(size / 1024**2))
 
 
-# else:
-#   raise ImportError("How did you get here! Should have found that none of the module for compression was found!")
+def get_int_from_string_template(s: str) -> int:
+    matched = re.search(s, os.path.basename(s))
+    if matched is None:
+        raise ValueError("Unknown Error, regex cannot find int in variable file name")
+    return int(matched.group(1))
 
 
-def get_inputs(args) -> InputArgs:
-    inp = InputArgs(args.variablenames)
+def get_index_from_filenames(folder: str, var: str) -> Arr[int, i32]:
+    files = glob.glob(os.path.join(folder, f"{var}-*.D"))
+    return np.array(
+        sorted([get_int_from_string_template(rf"{var}-(\d+).D") for s in files])
+    )
+
+
+def check_arrays_for_equality(array_list: list[Arr[int, i32]]) -> Arr[int, i32]:
+    if len(array_list) == 1:
+        return array_list[0]
+    for i in range(1, len(array_list)):
+        if not np.array_equal(array_list[0], array_list[i]):
+            raise ValueError(
+                "Not all variables have the same index, find method cannot be used"
+            )
+    return array_list[0]
+
+
+def find_index_from_filenames(folder: str, vars: list[str]) -> Arr[int, i32]:
+    if vars:
+        index_from_vars = [get_index_from_filenames(folder, v) for v in vars]
+        index = check_arrays_for_equality(index_from_vars)
+    else:
+        index = np.zeros(1, dtype=np.int32)
+    return index
+
+
+def get_inputs(args) -> InputSettings:
     if args.find:
-        if not inp.vars:
-            index = np.zeros(1, dtype=int)
-            inp.index = index
-        for var in inp.vars:
-            files = glob.glob(os.path.join(args.infolder, f"{var}-*.D"))
-            index = [
-                int(re.search(rf"{var}-(\d+).D", os.path.basename(s)).group(1))
-                for s in files
-            ]
-        if inp.index is None:
-            index = np.array(sorted(index))
-            inp.index = index
-        else:
-            if (inp.index != np.array(sorted(index))).all():
-                raise ValueError(
-                    f"Not all variables have the same index, find method cannot be used"
-                )
-        inp.i0 = index[0]
-        inp.it = index[-1]
-        inp.di = None
+        index = find_index_from_filenames(args.infolder, args.variablenames)
+        inp = InputSettings(args.variablenames, index, index[0], index[-1], None)
+        inp.spacename = args.mesh + "_FE.X"
         inp.topologyname = args.mesh + "_FE.T"
         inp.boundaryname = args.mesh + "_FE.B"
         if not os.path.isfile(inp.boundaryname):
             print(">>>NOTICE: No boundary file found ")
             inp.boundaryname = None
-        inp.spacename = args.mesh + "_FE.X"
     else:
         index = np.arange(args.irange[0], args.irange[1] + 1, args.irange[2])
-        inp.i0 = args.irange[0]
-        inp.it = args.irange[1]
-        inp.di = args.irange[2]
+        inp = InputSettings(
+            args.variablenames, index, args.irange[0], args.irange[1], args.irange[2]
+        )
+        space: list[str] = args.xfile.split("+")
+        if len(space) == 2:
+            inp.spacename = space[0]
+            inp.displace = space[1]
         inp.topologyname = args.tfile
         inp.boundaryname = args.bfile
         if args.bfile is None:
             print(">>>NOTICE: No boundary file is supplied ")
-        space = args.xfile.split("+")
-        if len(space) == 2:
-            inp.spacename = space[0]
-            inp.deformedSpace = space[1]
-
-    inp.index = index
 
     inp.infolder = args.infolder
     if args.outfolder != "":
         if not os.path.isdir(args.outfolder):
             print(">>>WARNING: output directory does not exist, it will be created!")
         os.makedirs(args.outfolder, exist_ok=True)
+        inp.outfolder = args.outfolder
     inp.prefix = args.prefix
     inp.outputfile = os.path.join(args.outfolder, args.prefix)
 
@@ -476,49 +489,15 @@ def get_inputs(args) -> InputArgs:
     # get run path and add trailing slash if it's not already there
     # !!! NOTE(WILL): check how the spacename works
     inp.progress = False if args.verbose else args.progress
-    inp.useCompression = args.compress if use_Compression else use_Compression
+    inp.useCompression = args.compress
     inp.binary = args.binary
     inp.verbose = args.verbose
-    if args.cores is not None:
-        if futures_avail:
-            inp.cores = args.cores
-        else:
-            raise ModuleNotFoundError(
-                "Concurrent.futures is not available for parallel processing please turn off"
-            )
-    else:
-        inp.cores = None
+    inp.cores = args.cores
     return inp
 
 
-def check_variables(inp: InputArgs) -> None:
-    filecheckerr = False
-    ################################################################################################
-    # Check all requested items on whether they exists
-    print("")
-    print(
-        "<<< Time series:                 From {} to {} with increment of {}".format(
-            inp.i0, inp.it, inp.di
-        )
-    )
-    print(
-        "<<< Compressed VTU format:       {}".format(
-            compress_method if inp.useCompression else "None"
-        )
-    )
-    print("<<< Import data as binary:       {}".format(inp.binary))
-    if inp.boundaryname is not None:
-        print(
-            "<<< Output file name (boundary): {}_boundary{}".format(
-                inp.prefix, vtksuffix
-            )
-        )
-    # pre-flight to check whether all files exist
-    if not (os.path.isfile(inp.topologyname)):
-        print(">>>ERROR: File " + inp.topologyname + " does not exist.")
-        filecheckerr = True
-    if inp.boundaryname is not None and not (os.path.isfile(inp.boundaryname)):
-        print(">>>WARNING: File " + inp.boundaryname + " does not exist.")
+def check_variables(inp: InputSettings) -> None:
+    filecheckerr = print_setting_info(inp)
     ################################################################################################
     # check what the space name is
     if os.path.isfile(inp.spacename):
@@ -546,7 +525,7 @@ def check_variables(inp: InputArgs) -> None:
 
     if inp.displace is None:
         pass
-    elif os.path.isfile(inp.displace):
+    elif (inp.displace is not None) and os.path.isfile(inp.displace):
         inp.disptype = CheartDataFormat.mesh
         inp.disptemp = lambda i: inp.displace
     elif os.path.isfile(
@@ -568,7 +547,7 @@ def check_variables(inp: InputArgs) -> None:
         filecheckerr = True
     ################################################################################################
     # check what the var name is
-    for var in inp.vars:
+    for var in inp.var:
         if os.path.isfile(
             os.path.join(inp.infolder, f"{var}-{inp.index[0]}{cheartsuffix}")
         ):
@@ -590,9 +569,9 @@ def check_variables(inp: InputArgs) -> None:
             filecheckerr = True
     ################################################################################################
     # loop over all requested times
-    warnvariable = [True for _ in inp.vars]
+    warnvariable = [True for _ in inp.var]
     for time in inp.index:
-        for i, var in enumerate(inp.vars):
+        for i, var in enumerate(inp.var):
             if not (os.path.isfile(inp.varstemp[i](time))):
                 print(
                     f">>>WARNING: File {var} at step {time} not found. Using file from previous step."
@@ -603,14 +582,16 @@ def check_variables(inp: InputArgs) -> None:
 
 
 def get_space_data(
-    inp: InputArgs, time: int
-) -> tp.Tuple[int, int, npt.NDArray[np.float64]]:
+    inp: InputSettings, time: int
+) -> tp.Tuple[int, npt.NDArray[np.float64]]:
     if inp.spacetype is CheartDataFormat.mesh:
         fx = inp.space
         fnd = 3
         fnn = inp.n_space
     else:
-        fx = np.loadtxt(inp.spacetemp(time), skiprows=1, dtype=float)
+        fx: Arr[tuple[int, int], f64] = np.loadtxt(
+            inp.spacetemp(time), skiprows=1, dtype=float
+        )
         fnn = fx.shape[0]
         fnd = fx.shape[1]
     # if deformed space, then add displacement
@@ -619,8 +600,7 @@ def get_space_data(
         fx = fx + fd
     # VTU files are defined in 3D space, so we have to append a zero column for 2D data
     if fnd == 1:
-        print(">>>ERROR: Cannot convert data that lives on 1D domains.")
-        return
+        raise ValueError(">>>ERROR: Cannot convert data that lives on 1D domains.")
     elif fnd == 2:
         z = np.zeros((fnn, 1), dtype=float)
         fx = np.append(fx, z, axis=1)
@@ -628,7 +608,7 @@ def get_space_data(
 
 
 class LoadTopology:
-    def __init__(self, inp: InputArgs) -> None:
+    def __init__(self, inp: InputSettings) -> None:
         ################################################################################################
         # read topology and get number of elements, number of nodes per elements
         self._ft = np.loadtxt(inp.topologyname, skiprows=1, dtype=int)
@@ -681,7 +661,7 @@ class LoadTopology:
         # triquadratic tetrahedron
         elif self.nc == 10:
             self.vtkelementtype = VtkTriquadraticTetrahedron
-            self.vtksurfacetype = VtkQuadraticLine
+            self.vtksurfacetype = VtkBiquadraticTriangle
         # trilinear hexahedron
         elif self.nc == 8:
             self.vtkelementtype = VtkTrilinearHexahedron
@@ -700,78 +680,76 @@ class LoadTopology:
         return self._ft[index]
 
 
-def export_boundary(tp: LoadTopology, inp: InputArgs) -> None:
+def export_boundary(tp: LoadTopology, inp: InputSettings) -> None:
     ################################################################################################
     # export patch IDs from B-file
     if inp.boundaryname is None:
         print(
             ">>> NOTICE: No boundary file is supplied, export of boundary patch is skipped"
         )
-    else:
-        print("<<< Working on exporting the boundary patch IDs from", inp.boundaryname)
-        # for boundary coordinates, let's default to first time step
-        time = inp.index[0]
-        # read boundary and get number of elements, number of nodes per elements
-        fb = np.loadtxt(inp.boundaryname, skiprows=1, dtype=int)
-        fb = fb[:, 1:]
-        fben = fb.shape[0]
-        fbcn = fb.shape[1] - 1
-        # write header
-        foutfile = inp.outputfile + "_boundary" + vtksuffix
-        fnn, fx = get_space_data(inp, 0)
-        vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
-        grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
-        piece = grid.add_elem(
-            XMLElement(
-                "Piece",
-                Name=f"{inp.prefix}",
-                NumberOfPoints=f"{fnn}",
-                NumberOfCells=f"{fben}",
-            )
+        return
+    print("<<< Working on exporting the boundary patch IDs from", inp.boundaryname)
+    # for boundary coordinates, let's default to first time step
+    time = inp.index[0]
+    # read boundary and get number of elements, number of nodes per elements
+    fb = np.loadtxt(inp.boundaryname, skiprows=1, dtype=int)
+    fb = fb[:, 1:]
+    fben = fb.shape[0]
+    fbcn = fb.shape[1] - 1
+    # write header
+    foutfile = inp.outputfile + "_boundary" + vtksuffix
+    fnn, fx = get_space_data(inp, 0)
+    vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
+    grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
+    piece = grid.add_elem(
+        XMLElement(
+            "Piece",
+            Name=f"{inp.prefix}",
+            NumberOfPoints=f"{fnn}",
+            NumberOfCells=f"{fben}",
         )
-        dataarr = piece.add_elem(XMLElement("Points")).add_elem(
-            XMLElement(
-                "DataArray", type="Float64", NumberOfComponents="3", Format="ascii"
-            )
-        )
-        dataarr.add_data(fx, XMLWriters.PointWriter)
-        cell = piece.add_elem(XMLElement("CellData", Scalars="scalars"))
-        dataarr = cell.add_elem(
-            XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii")
-        )
-        dataarr.add_data(fb[:, -1], XMLWriters.IntegerWriter)
-        cell = piece.add_elem(XMLElement("Cells", Scalars="scalars"))
-        dataarr = cell.add_elem(
-            XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii")
-        )
-        dataarr.add_data(fb[:, :-1], tp.vtksurfacetype.write)
-        dataarr = cell.add_elem(
-            XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii")
-        )
-        dataarr.add_data(
-            np.arange(fbcn, (fbcn) * (fben + 1), fbcn), XMLWriters.IntegerWriter
-        )
-        dataarr = cell.add_elem(
-            XMLElement("DataArray", type="Int8", Name="types", Format="ascii")
-        )
-        dataarr.add_data(
-            np.full((fben,), tp.vtkelementtype.vtksurfaceid), XMLWriters.IntegerWriter
-        )
-        # print(foutfile)
-        with open(foutfile, "w") as fout:
-            vtkfile.write(fout)
-        if inp.useCompression:
-            compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
+    )
+    dataarr = piece.add_elem(XMLElement("Points")).add_elem(
+        XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii")
+    )
+    dataarr.add_data(fx, XMLWriters.PointWriter)
+    cell = piece.add_elem(XMLElement("CellData", Scalars="scalars"))
+    dataarr = cell.add_elem(
+        XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii")
+    )
+    dataarr.add_data(fb[:, -1], XMLWriters.IntegerWriter)
+    cell = piece.add_elem(XMLElement("Cells", Scalars="scalars"))
+    dataarr = cell.add_elem(
+        XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii")
+    )
+    dataarr.add_data(fb[:, :-1], tp.vtksurfacetype.write)
+    dataarr = cell.add_elem(
+        XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii")
+    )
+    dataarr.add_data(
+        np.arange(fbcn, (fbcn) * (fben + 1), fbcn), XMLWriters.IntegerWriter
+    )
+    dataarr = cell.add_elem(
+        XMLElement("DataArray", type="Int8", Name="types", Format="ascii")
+    )
+    dataarr.add_data(
+        np.full((fben,), tp.vtkelementtype.vtksurfaceid), XMLWriters.IntegerWriter
+    )
+    # print(foutfile)
+    with open(foutfile, "w") as fout:
+        vtkfile.write(fout)
+    if inp.useCompression:
+        compress_vtu(foutfile, verbose=inp.verbose)
 
 
 def export_data_iter(
     tp: LoadTopology,
-    inp: InputArgs,
+    inp: InputSettings,
     time,
     lastvariable,
     lastspace,
     lastdeform,
-    bart: progress_bar = None,
+    bart: progress_bar | None = None,
 ) -> None:
     # print(f'bart is {bart}')
     ############################################################################################
@@ -809,7 +787,7 @@ def export_data_iter(
     dataarr = cell.add_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii")
     )
-    dataarr.add_data(tp, tp.vtkelementtype.write)
+    dataarr.add_data(tp._ft, tp.vtkelementtype.write)
     dataarr = cell.add_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii")
     )
@@ -824,7 +802,7 @@ def export_data_iter(
     )
 
     points = piece.add_elem(XMLElement("PointData", Scalars="scalars"))
-    for varIdx in range(len(inp.vars)):
+    for varIdx in range(len(inp.var)):
         vfile = inp.varstemp[varIdx](time)
         if not (os.path.isfile(vfile)):
             if lastvariable[varIdx] is not None:
@@ -848,7 +826,7 @@ def export_data_iter(
         fvnd = fv.shape[1]
         if fnn != fvnn:
             raise AssertionError(
-                ">>>ERROR: Invalid number of nodes for " + str(inp.vars) + "."
+                ">>>ERROR: Invalid number of nodes for " + str(inp.var) + "."
             )
         # append zero column if need be
         if fvnd == 2:
@@ -859,7 +837,7 @@ def export_data_iter(
             XMLElement(
                 "DataArray",
                 type="Float64",
-                Name=f"{inp.vars[varIdx]}",
+                Name=f"{inp.var[varIdx]}",
                 NumberOfComponents=f"{fvnd}",
                 Format="ascii",
             )
@@ -870,7 +848,7 @@ def export_data_iter(
         vtkfile.write(fout)
 
     if inp.useCompression:
-        compress_vtu(foutfile, method=compress_method, verbose=inp.verbose)
+        compress_vtu(foutfile, verbose=inp.verbose)
     if inp.progress:
         if bart is not None:
             bart.next()
@@ -893,11 +871,11 @@ def main_cli(args=None) -> None:
     export_boundary(tp, inp)
     ################################################################################################
     # now convert all requested files, looping over all requested times
-    lastvariable = [None for _ in inp.vars]
+    lastvariable = [None for _ in inp.var]
     lastspace = None
     lastdeform = None
     bart = None
-    if inp.cores is None:
+    if inp.cores < 2:
         if args.subauto:
             if inp.progress:
                 bart = progress_bar("Processing", max=len(inp.index))
@@ -905,6 +883,8 @@ def main_cli(args=None) -> None:
                 jlist = glob.glob(f"*-{time}.*.D")
                 for j in jlist:
                     result = re.search("-(.*).D", j)
+                    if result is None:
+                        raise ValueError("No file found.")
                     export_data_iter(
                         tp,
                         inp,
@@ -978,7 +958,7 @@ def main_cli(args=None) -> None:
                 if inp.progress:
                     bart = progress_bar(
                         "Processing",
-                        max=len(inp.index0)
+                        max=len(inp.index)
                         * (args.subiter[1] - args.subiter[0] + 1)
                         // args.subiter[2],
                     )
@@ -1024,7 +1004,7 @@ def main_cli(args=None) -> None:
                         )
                     )
             for _ in futures.as_completed(future_jobs):
-                if inp.progress:
+                if bart is not None:
                     bart.next()
     print(
         "################################################################################################"
@@ -1040,7 +1020,7 @@ def main_cli(args=None) -> None:
 
         _, time_series = import_time_data(args.time_series)
         print_cmd_header(inp)
-        bar = progress_bar("Processing", max=inp.nt)
+        bar = progress_bar("Processing", max=len(inp.index))
         with open(os.path.join(inp.outfolder, inp.prefix + ".pvd"), "w") as f:
             xml_write_header(f)
             for i in inp.index:
