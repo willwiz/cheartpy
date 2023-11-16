@@ -9,7 +9,8 @@
 from __future__ import print_function
 import os.path
 import numpy as np
-import numpy.typing as npt
+from numpy import float64 as f64, int32 as i32
+from numpy.typing import NDArray as Arr
 import sys
 import argparse
 import glob
@@ -145,6 +146,22 @@ class progress_bar:
   def finish(self):
     printProgressBar(self.n, self.n, prefix = self.message, suffix = 'Complete', length = 50)
 
+
+def read_D_utf(file:str) -> Arr[f64]:
+  return np.loadtxt(file,  skiprows=1, dtype=float)
+
+def read_D_binary(file:str) -> Arr[f64]:
+  with open(file, mode='rb') as f:
+    nnodes = struct.unpack("i", f.read(4))[0]
+    dim    = struct.unpack("i", f.read(4))[0]
+    data   = np.zeros((nnodes, dim))
+    for i in range(nnodes):
+      for j in range(dim):
+        bite     = f.read(8)
+        if (not bite): raise BufferError('Binary buffer being read ran out before indicated range')
+        data[i,j] = struct.unpack("d", bite)[0]
+  return data
+
 ################################################################################################
 # Codes
 ################################################################################################
@@ -152,18 +169,6 @@ class progress_bar:
 vtksuffix           = ".vtu"
 cheartsuffix        = ".D"
 gzsuffix            = ".gz"
-
-def read_D_binary(file) -> np.ndarray:
-  with open(file, mode='rb') as f:
-    nnodes = struct.unpack("i", f.read(4))[0]
-    dim    = struct.unpack("i", f.read(4))[0]
-    arr    = np.zeros((nnodes, dim))
-    for i in range(nnodes):
-      for j in range(dim):
-        bite     = f.read(8)
-        if (not bite): raise BufferError('Binary buffer being read ran out before indicated range')
-        arr[i,j] = struct.unpack("d", bite)[0]
-  return arr
 
 
 class CheartDataFormat(enum.Enum):
@@ -178,7 +183,7 @@ class InputArgs:
   i0 : int = 0
   it : int = 1
   di : int = 1
-  index : npt.NDArray[np.int32] = None
+  index : Arr[i32] = None
   prefix : str = 'paraview'
   outputfile : str = 'paraview'
   infolder : str = ''
@@ -194,12 +199,13 @@ class InputArgs:
   cores : int = 1
   spacetype : CheartDataFormat = CheartDataFormat.mesh
   spacetemp : tp.Callable[[int], str] = lambda x : str(x)
-  space : npt.NDArray[np.float64] = dataclasses.field(default_factory=lambda:np.zeros(1, np.float64))
+  space : Arr[f64] = dataclasses.field(default_factory=lambda:np.zeros(1, f64))
   n_space : int = 0
   disptype : CheartDataFormat = CheartDataFormat.var
   disptemp : tp.Callable[[int], str] = lambda x : str(x)
   varstype : tp.List[CheartDataFormat] = dataclasses.field(default_factory=list)
   varstemp : tp.List[tp.Callable[[int], str]] = dataclasses.field(default_factory=list)
+  time_series:bool = False
 
 
 def print_header() ->None:
@@ -406,7 +412,7 @@ def check_variables(inp : InputArgs) -> None:
     raise FileNotFoundError(">>>FILE ERROR!!!")
 
 
-def get_space_data(inp:InputArgs, time:int) -> tp.Tuple[int, int, npt.NDArray[np.float64]]:
+def get_space_data(inp:InputArgs, time:int) -> tp.Tuple[int, int, Arr[f64]]:
   if inp.spacetype is CheartDataFormat.mesh:
     fx = inp.space
     fnd = 3
@@ -430,6 +436,7 @@ def get_space_data(inp:InputArgs, time:int) -> tp.Tuple[int, int, npt.NDArray[np
 
 
 class LoadTopology:
+  _ft:Arr[int32]
   def __init__(self, inp: InputArgs) -> None:
     ################################################################################################
     # read topology and get number of elements, number of nodes per elements
@@ -599,7 +606,7 @@ def export_data_iter(tp : LoadTopology, inp : InputArgs, time, lastvariable, las
     if bart is not None:
       bart.next()
 
-def main_cli(args=None) -> None:
+def main_cli(args:tp.List[str]|None=None) -> None:
   ################################################################################################
   # Get the commandline arguments
   args = main_parser.parse_args(args=args)

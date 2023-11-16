@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 def VoS(x):
-  return x if isinstance(x,(str,int,float)) else x.name
+  return str(x) if isinstance(x,(str,int,float)) else x.name
 
 def hline(s:str):
   s = s + "  "

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Final
+from typing import Final, Literal, Union
 
 
 # Solver Algorithms
@@ -32,3 +32,6 @@ EMBEDDEDINTOPOLOGY : Final = "EmbeddedInTopology"
 DIRICHLET : Final = "Dirichlet"
 
 
+SOLVER_GROUP_SETTINGS=Literal["L2TOL", "L2PERCENT", "INFRES", "INFUPDATE", "INFDEL",
+                    "ITERATION", "SUBITERATION", "LINESEARCHITER", "SUBITERFRACTION",
+                    "INFRELUPDATE", "L2RESRELPERCENT"]

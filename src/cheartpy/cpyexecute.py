@@ -3,24 +3,27 @@
 import os, sys
 import subprocess as sp
 import argparse
+from .dataclass.cheart_dataclass import PFile
 
 def split(f:str):
   name, _ = os.path.splitext(f)
+  pack = '.'.join(name.split(os.sep))
   path, name = os.path.split(name)
-  return path, name
+  return path, name, pack
 
 def gen_script(args, rest):
   import importlib
-  path, name = split(args.pfile)
-  sys.path.append(path)
-  pkg = importlib.import_module(name)
+  path, name, pack = split(args.pfile)
+  sys.path.append(os.getcwd())
+  pkg = importlib.import_module(pack)
   p = pkg.get_PFile()
   fout = name + '.P'
   with open(fout,'w') as f:
     p.write(f)
 
 
-def run_cheartpy(p, fout, *rest, cores:int = 1, log=None, keep = False) -> None:
+def run_cheartpy(p:PFile, fout:str, *rest, cores:int = 1, log=None, keep = False) -> None:
+  '''Must give a unique strain token via the `fout` parameter'''
   with open(fout,'w') as f:
     p.write(f)
   if cores > 1:
@@ -42,9 +45,9 @@ def run_cheartpy(p, fout, *rest, cores:int = 1, log=None, keep = False) -> None:
 def run_script(args, rest):
   import importlib
   import subprocess as sp
-  path, name = split(args.pfile)
-  sys.path.append(path)
-  pkg = importlib.import_module(name)
+  path, name, pack = split(args.pfile)
+  sys.path.append(os.getcwd())
+  pkg = importlib.import_module(pack)
   p = pkg.get_PFile()
   fout = name + '.P'
   run_cheartpy(p, fout, *rest, cores=args.cores, log=args.log, keep=args.keep)
@@ -90,9 +93,9 @@ def cheart_help(args=None, rest=None):
 def run_prep(args=None, rest=None):
   import importlib
   import subprocess as sp
-  path, name = split(args.pyfile)
-  sys.path.append(path)
-  pkg = importlib.import_module(name)
+  path, name, pack = split(args.pyfile)
+  sys.path.append(os.getcwd())
+  pkg = importlib.import_module(pack)
   p = pkg.get_PFile()
   fout = name + '.P'
   with open(fout,'w') as f:
@@ -126,7 +129,7 @@ parser_help.set_defaults(main=cheart_help)
 parser_gen = subparsers.add_parser('gen', help='generate a Pfile from py script', description='generate a Pfile from py script')
 parser_gen.add_argument('pfile', type=str)
 parser_gen.set_defaults(main=gen_script)
-parser_run = subparsers.add_parser('run', help='run cheart with a py script instead of a Pfile', description='run cheart from py script')
+parser_run = subparsers.add_parser('py', help='run cheart with a py script instead of a Pfile', description='run cheart from py script')
 parser_run.add_argument('pfile', type=str)
 parser_run.add_argument('--keep', action='store_true', help='OPTIONAL: keep pfile after')
 parser_run.add_argument('--log', type=str, help='OPTIONAL: store output in a log file with given name')
@@ -137,7 +140,7 @@ parser_prep.add_argument('pyfile', type=str)
 parser_prep.add_argument('--keep', action='store_true', help='OPTIONAL: keep pfile after')
 parser_prep.add_argument('--log', type=str, help='OPTIONAL: store output in a log file with given name')
 parser_prep.set_defaults(main=run_prep)
-parser_pf = subparsers.add_parser('pfile', help='run cheart with a Pfile', description='run cheart with a Pfile')
+parser_pf = subparsers.add_parser('run', help='run cheart with a Pfile', description='run cheart with a Pfile')
 parser_pf.add_argument('pfile', type=str)
 parser_pf.add_argument('--log', type=str, help='OPTIONAL: store output in a log file with given name')
 parser_pf.add_argument('--cores', '-n',  type=int, default=1, help='OPTIONAL: number of cores to compute with')
