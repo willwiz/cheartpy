@@ -88,6 +88,10 @@ class MeshSpace(Mesh):
 
 
 class MeshTopology(Mesh):
+    n: int
+    i: Arr[spi]
+    v: Arr[spi]
+
     def __init__(self, xn: int, yn: int, zn: int) -> None:
         self.n = xn * yn * zn
         self.i = np.zeros((xn, yn, zn), dtype=int)
@@ -102,27 +106,27 @@ class MeshTopology(Mesh):
 
 class MeshSurface(Mesh):
     key: Arr[spi]
-    tag: Arr[spi]
+    tag: int
+    v: Arr[spi]
 
-    def __init__(self, npatch: int) -> None:
+    def __init__(self, npatch: int, tag: int) -> None:
         self.n = npatch
-        self.i = np.arange(npatch, dtype=int)
         self.v = np.zeros((npatch, 4), dtype=int)
         self.key = np.zeros((npatch,), dtype=int)
-        self.tag = np.zeros((npatch,), dtype=int)
+        self.tag = tag
 
     def write(self, f: tp.TextIO):
-        for k, v, t in zip(self.key, self.v, self.tag):
+        for k, v in zip(self.key, self.v):
             f.write(f"{k + 1:>12d}")
             for x in v:
                 f.write(f"{x + 1:>12d}")
-            f.write(f"{t + 1:>12d}\n")
+            f.write(f"{self.tag:>12d}\n")
 
 
 class MeshCheart:
     space: MeshSpace
     top: MeshTopology
-    surfs: tp.List[MeshSurface]
+    surfs: dict[str, MeshSurface]
 
     def __init__(self, xn: int, yn: int, zn: int) -> None:
         self.xn = xn
@@ -130,21 +134,24 @@ class MeshCheart:
         self.zn = zn
         self.space = MeshSpace(xn, yn, zn)
         self.top = MeshTopology(xn, yn, zn)
-        self.surfs = list()
+        self.surfs = dict()
 
     def write(self, prefix: str):
         with open(prefix + "_FE.X", "w") as f:
+            print(f"Writing space to {f.name}")
             f.write(f"{self.space.n:>12d}{3:>12d}\n")
             self.space.write(f=f)
 
         with open(prefix + "_FE.T", "w") as f:
+            print(f"Writing topology to {f.name}")
             f.write(f"{self.top.n:>12d}{self.space.n:>12d}\n")
             self.top.write(f=f)
 
         with open(prefix + "_FE.B", "w") as f:
-            npatch = sum(v.n for v in self.surfs)
+            print(f"Writing boundary to {f.name}")
+            npatch = sum([v.n for v in self.surfs.values()])
             f.write(f"{npatch:>12d}\n")
-            for surf in self.surfs:
+            for _, surf in self.surfs.items():
                 surf.write(f=f)
 
 
@@ -177,7 +184,7 @@ def compute_topology(g: MeshCheart) -> None:
 
 def compute_surface(g: MeshCheart) -> None:
     # for the -x surface
-    s = MeshSurface(g.yn * g.zn)
+    s = MeshSurface(g.yn * g.zn, 1)
     for i in range(g.zn):
         for j in range(g.yn):
             k = i * g.yn + j
@@ -186,10 +193,9 @@ def compute_surface(g: MeshCheart) -> None:
             s.v[k, 1] = g.space.i[0, j + 1, i]
             s.v[k, 2] = g.space.i[0, j, i + 1]
             s.v[k, 3] = g.space.i[0, j + 1, i + 1]
-            s.tag[k] = 0
-    g.surfs.append(s)
+    g.surfs["-x"] = s
     # for the +x surface
-    s = MeshSurface(g.yn * g.zn)
+    s = MeshSurface(g.yn * g.zn, 2)
     for i in range(g.zn):
         for j in range(g.yn):
             k = i * g.yn + j
@@ -198,10 +204,9 @@ def compute_surface(g: MeshCheart) -> None:
             s.v[k, 1] = g.space.i[g.xn, j + 1, i]
             s.v[k, 2] = g.space.i[g.xn, j, i + 1]
             s.v[k, 3] = g.space.i[g.xn, j + 1, i + 1]
-            s.tag[k] = 1
-    g.surfs.append(s)
+    g.surfs["+x"] = s
     # for the -y surface
-    s = MeshSurface(g.xn * g.zn)
+    s = MeshSurface(g.xn * g.zn, 3)
     for i in range(g.zn):
         for k in range(g.xn):
             j = i * g.xn + k
@@ -210,10 +215,9 @@ def compute_surface(g: MeshCheart) -> None:
             s.v[j, 1] = g.space.i[k + 1, 0, i]
             s.v[j, 2] = g.space.i[k, 0, i + 1]
             s.v[j, 3] = g.space.i[k + 1, 0, i + 1]
-            s.tag[j] = 2
-    g.surfs.append(s)
+    g.surfs["-y"] = s
     # for the +y surface
-    s = MeshSurface(g.xn * g.zn)
+    s = MeshSurface(g.xn * g.zn, 4)
     for i in range(g.zn):
         for k in range(g.xn):
             j = i * g.xn + k
@@ -222,10 +226,9 @@ def compute_surface(g: MeshCheart) -> None:
             s.v[j, 1] = g.space.i[k + 1, g.yn, i]
             s.v[j, 2] = g.space.i[k, g.yn, i + 1]
             s.v[j, 3] = g.space.i[k + 1, g.yn, i + 1]
-            s.tag[j] = 3
-    g.surfs.append(s)
+    g.surfs["+y"] = s
     # for the -z surface
-    s = MeshSurface(g.xn * g.yn)
+    s = MeshSurface(g.xn * g.yn, 5)
     for j in range(g.yn):
         for k in range(g.xn):
             i = j * g.xn + k
@@ -234,10 +237,9 @@ def compute_surface(g: MeshCheart) -> None:
             s.v[i, 1] = g.space.i[k + 1, j, 0]
             s.v[i, 2] = g.space.i[k, j + 1, 0]
             s.v[i, 3] = g.space.i[k + 1, j + 1, 0]
-            s.tag[i] = 4
-    g.surfs.append(s)
+    g.surfs["-z"] = s
     # for the +z surface
-    s = MeshSurface(g.xn * g.yn)
+    s = MeshSurface(g.xn * g.yn, 6)
     for j in range(g.yn):
         for k in range(g.xn):
             i = j * g.xn + k
@@ -246,19 +248,32 @@ def compute_surface(g: MeshCheart) -> None:
             s.v[i, 1] = g.space.i[k + 1, j, g.zn]
             s.v[i, 2] = g.space.i[k, j + 1, g.zn]
             s.v[i, 3] = g.space.i[k + 1, j + 1, g.zn]
-            s.tag[i] = 5
-    g.surfs.append(s)
+    g.surfs["+z"] = s
+
+
+def create_meshgrid_3D(
+    xn: int,
+    yn: int,
+    zn: int,
+    xsize: float,
+    xoff: float,
+    ysize: float,
+    yoff: float,
+    zsize: float,
+    zoff: float,
+) -> MeshCheart:
+    g = MeshCheart(xn, yn, zn)
+    compute_space(g, xsize, xoff, ysize, yoff, zsize, zoff)
+    compute_topology(g)
+    compute_surface(g)
+    return g
 
 
 def create_cheart_mesh(
     xn, yn, zn, xsize, xoff, ysize, yoff, zsize, zoff, prefix: str
 ) -> None:
-    g = MeshCheart(xn, yn, zn)
-    compute_space(g, xsize, xoff, ysize, yoff, zsize, zoff)
-    compute_topology(g)
-    compute_surface(g)
+    g = create_meshgrid_3D(xn, yn, zn, xsize, xoff, ysize, yoff, zsize, zoff)
     g.write(prefix)
-    print(f"Mesh written to {prefix}_FE.X")
     print(f"!!!JOB COMPLETE!!!")
 
 
