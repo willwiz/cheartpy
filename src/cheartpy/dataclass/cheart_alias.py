@@ -20,8 +20,8 @@ class IterationSettings(enum.StrEnum):
 
 
 class InterfaceTypes(enum.StrEnum):
-    OneToOne: enum.auto()
-    ManyToOne: "ManyToOne"
+    OneToOne = "OneToOne"
+    ManyToOne = "ManyToOne"
 
 
 class VariableExportFormat(enum.StrEnum):
