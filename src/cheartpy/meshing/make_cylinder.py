@@ -24,6 +24,8 @@
 #        .
 #
 
+import enum
+from typing import Literal
 from cheartpy.meshing.make_grid import create_meshgrid_3D, MeshCheart
 import numpy as np
 import argparse
@@ -31,6 +33,14 @@ import argparse
 parser = argparse.ArgumentParser("mesh", description="Make a cube")
 parser.add_argument(
     "--prefix", "-p", type=str, default="cube", help="Prefix for saved file."
+)
+parser.add_argument(
+    "--axis",
+    "-a",
+    type=str,
+    default="z",
+    choices={"x", "y", "z"},
+    help="Which cartesian axis should the central axis be in.",
 )
 parser.add_argument("rin", type=float, help="inner radius")
 parser.add_argument("rout", type=float, help="outer radius")
@@ -109,17 +119,38 @@ def renormalized_mesh(g: MeshCheart) -> MeshCheart:
     return g
 
 
-def rotate_axis(g: MeshCheart, orientation: str) -> MeshCheart:
-    ...
+class RotationOption(enum.Enum):
+    x = 1
+    y = 2
+    z = 3
 
 
-def create_cylinder_geometry(g: MeshCheart, r_in: float, r_out: float) -> MeshCheart:
+def rotate_axis(g: MeshCheart, orientation: RotationOption) -> MeshCheart:
+    if orientation is RotationOption.z:
+        return g
+    elif orientation is RotationOption.x:
+        mat = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]]) @ np.array(
+            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]
+        )
+    elif orientation is RotationOption.y:
+        mat = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]) @ np.array(
+            [[1, 0, 0], [0, 0, 1], [0, -1, 0]]
+        )
+    g.space.v = g.space.v @ mat.T
+    return g
+
+
+def create_cylinder_geometry(
+    g: MeshCheart, r_in: float, r_out: float, axis: str = "z"
+) -> MeshCheart:
     g = wrap_around_y(g, r_in, r_out)
     g = renormalized_mesh(g)
+    g = rotate_axis(g, RotationOption[axis])
     return g
 
 
 def create_cheart_mesh(
+    prefix: str,
     r_in: float,
     r_out: float,
     length: float,
@@ -127,10 +158,10 @@ def create_cheart_mesh(
     rn: int,
     qn: int,
     zn: int,
-    prefix: str,
+    axis: Literal["x", "y", "z"] = "z",
 ) -> None:
     g = create_meshgrid_3D(rn, qn, zn, 1.0, 0, 1.0, 0, length, base)
-    g = create_cylinder_geometry(g, r_in, r_out)
+    g = create_cylinder_geometry(g, r_in, r_out, axis)
     g.write(prefix)
     print(f"!!!JOB COMPLETE!!!")
 
@@ -139,6 +170,7 @@ def main(args: argparse.Namespace):
     if args.qn < 3:
         raise ValueError(f"Number of circumferential elements must be greater than 2")
     create_cheart_mesh(
+        args.prefix,
         args.rin,
         args.rout,
         args.length,
@@ -146,7 +178,7 @@ def main(args: argparse.Namespace):
         args.rn,
         args.qn,
         args.zn,
-        args.prefix,
+        args.axis,
     )
 
 
