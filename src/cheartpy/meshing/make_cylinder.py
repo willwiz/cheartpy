@@ -59,7 +59,7 @@ parser.add_argument("length", type=float, help="longitudinal length")
 parser.add_argument("base", type=float, help="base position")
 parser.add_argument("rn", type=int, help="number of elements in thickness")
 parser.add_argument("qn", type=int, help="number of elements in theta")
-parser.add_argument("zn", type=int, help="number of elements in z")
+parser.add_argument("zn", type=int, help="number of elements along the central axis")
 
 
 def gen_end_node_mapping(g: MeshCheart) -> dict[int, int]:
@@ -305,7 +305,6 @@ def create_cheart_mesh(
 # ----  Here beging the main program  ---------------------------------------
 # Get the command line arguments
 def main(args: argparse.Namespace):
-    print(args)
     if args.qn < 3:
         raise ValueError(f"Number of circumferential elements must be greater than 2")
     create_cheart_mesh(
@@ -322,6 +321,10 @@ def main(args: argparse.Namespace):
     )
 
 
-if __name__ == "__main__":
+def main_cli():
     args = parser.parse_args()
     main(args)
+
+
+if __name__ == "__main__":
+    main_cli()
