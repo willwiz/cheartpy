@@ -74,11 +74,16 @@ class Mesh:
         return self.v[self.i[key]]
 
 
-class MeshSpace(Mesh):
-    def __init__(self, xn: int, yn: int, zn: int) -> None:
+class MeshSpace:
+    __slots__ = ["n", "i", "v"]
+    n: int
+    i: Arr[spi]
+    v: Arr[dbl]
+
+    def __init__(self, xn: int, yn: int, zn: int, dim: int = 3) -> None:
         self.n = (xn + 1) * (yn + 1) * (zn + 1)
         self.i = np.zeros((xn + 1, yn + 1, zn + 1), dtype=int)
-        self.v = np.zeros((self.n, 3))
+        self.v = np.zeros((self.n, dim))
 
     def write(self, f: tp.TextIO) -> None:
         for v in self.v:
@@ -87,15 +92,16 @@ class MeshSpace(Mesh):
             f.write("\n")
 
 
-class MeshTopology(Mesh):
+class MeshTopology:
+    __slots__ = ["n", "i", "v"]
     n: int
     i: Arr[spi]
     v: Arr[spi]
 
-    def __init__(self, xn: int, yn: int, zn: int) -> None:
+    def __init__(self, xn: int, yn: int, zn: int, dim: int = 3, order: int = 1) -> None:
         self.n = xn * yn * zn
         self.i = np.zeros((xn, yn, zn), dtype=int)
-        self.v = np.zeros((self.n, 8), dtype=int)
+        self.v = np.zeros((self.n, (order + 1) ** dim), dtype=int)
 
     def write(self, f: tp.TextIO) -> None:
         for elem in self.v:
@@ -104,14 +110,16 @@ class MeshTopology(Mesh):
             f.write("\n")
 
 
-class MeshSurface(Mesh):
-    key: Arr[spi]
+class MeshSurface:
+    __slots__ = ["n", "tag", "key", "v"]
+    n: int
     tag: int
+    key: Arr[spi]
     v: Arr[spi]
 
-    def __init__(self, npatch: int, tag: int) -> None:
+    def __init__(self, npatch: int, tag: int, dim: int = 3, order: int = 1) -> None:
         self.n = npatch
-        self.v = np.zeros((npatch, 4), dtype=int)
+        self.v = np.zeros((npatch, (order + 1) ** (dim - 1)), dtype=int)
         self.key = np.zeros((npatch,), dtype=int)
         self.tag = tag
 
@@ -128,12 +136,12 @@ class MeshCheart:
     top: MeshTopology
     surfs: dict[str, MeshSurface]
 
-    def __init__(self, xn: int, yn: int, zn: int) -> None:
+    def __init__(self, xn: int, yn: int, zn: int, dim: int = 3, order: int = 1) -> None:
         self.xn = xn
         self.yn = yn
         self.zn = zn
-        self.space = MeshSpace(xn, yn, zn)
-        self.top = MeshTopology(xn, yn, zn)
+        self.space = MeshSpace(xn, yn, zn, dim=dim)
+        self.top = MeshTopology(xn, yn, zn, dim=dim, order=order)
         self.surfs = dict()
 
     def write(self, prefix: str):
