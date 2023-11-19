@@ -24,9 +24,7 @@
 #        .
 #
 
-from asyncio import new_event_loop
 import enum
-from math import radians
 from typing import Literal
 from cheartpy.meshing.make_grid import (
     MeshSpace,
