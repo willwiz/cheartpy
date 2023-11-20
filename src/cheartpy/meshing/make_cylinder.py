@@ -193,16 +193,24 @@ def get_mid_point(
     nodes: Arr[tuple[int, int], f64], node_pts: frozenset[int]
 ) -> Arr[int, f64]:
     node_pos = nodes[list(node_pts)]
+    theta = np.remainder(node_pos[:, 1] - np.min(node_pos[:, 1]), 2 * np.pi) + np.min(
+        node_pos[:, 1]
+    )
     r = np.mean(node_pos[:, 0])
-    q = np.mean(node_pos[:, 1])
+    q = np.remainder(
+        np.arctan2(np.mean(np.sin(theta)), np.mean(np.cos(theta))), 2 * np.pi
+    )
     z = np.mean(node_pos[:, 2])
-    theta = node_pos[:, 1]
+    # print(f"{np.isclose(q, np.mean(theta))}, {np.mean(theta)}, {q=}")
     upper_side = theta > q
     if sum(upper_side) == len(node_pts) or sum(upper_side) == 0:
         return np.array([r, q, z], dtype=float)
     dq = np.mean(theta[upper_side]) - np.mean(theta[upper_side == False])
+    wrapping = dq < np.pi
+    dq = wrapping * dq + (not wrapping) * (2 * np.pi - dq)
+    # print(f"{dq=}")
     return np.array(
-        [r * (3.0 + np.cos(0.5 * dq)) / (4.0 * np.cos(0.5 * dq)), q, z], dtype=float
+        [r * (3.0 + np.cos(dq)) / (4.0 * np.cos(0.5 * dq)), q, z], dtype=float
     )
 
 

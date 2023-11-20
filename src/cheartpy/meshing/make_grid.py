@@ -88,7 +88,7 @@ class MeshSpace:
     def write(self, f: tp.TextIO) -> None:
         for v in self.v:
             for x in v:
-                f.write(f"{x:>22.16}")
+                f.write(f"{x:>24.16}")
             f.write("\n")
 
 
