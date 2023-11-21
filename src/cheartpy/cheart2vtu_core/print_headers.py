@@ -7,29 +7,25 @@ from cheartpy.cheart2vtu_core.file_index_generation import (
 
 
 def print_guard() -> None:
-    print()
     print(
-        "################################################################################################\n"
+        "\n################################################################################################\n"
     )
 
 
 def print_header() -> None:
     print(
-        "################################################################################################\n"
+        "################################################################################################"
     )
-    print(
-        "    Python script to convert CHeart data to vtk unstructured grid format (vtu)\n"
-    )
+    print("    Program for converting CHeart data to vtk unstructured grid format")
     print("    author: Andreas Hessenthaler")
     print("    modified by: Will Zhang")
     print("    data: 10/17/2023")
     print(
-        "\n################################################################################################"
+        "################################################################################################\n"
     )
 
 
 def print_input_info(inp: CmdLineArgs) -> None:
-    print()
     print(f"<<< Running Program with Mode: {inp.cmd}")
     print(f"The retrieving data from ", inp.input_folder)
     print(f"The space file to use is ", inp.xfile)
@@ -49,7 +45,7 @@ def print_input_info(inp: CmdLineArgs) -> None:
         print(
             f"<<< Sub iterations: From {inp.sub_index[0]} to {inp.sub_index[1]} with steps of {inp.sub_index[2]}"
         )
-    if inp.sub_auto is not None:
+    if inp.sub_auto:
         print(f"<<< Automatically finding subiterations")
     print(f"<<< Output file name prefix: {inp.prefix}")
     print(f"<<< Output folder:           {inp.output_folder}")

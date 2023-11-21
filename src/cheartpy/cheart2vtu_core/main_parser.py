@@ -216,7 +216,6 @@ def get_cmdline_args(
     cmd_args: list[str] | None = None,
 ) -> CmdLineArgs:
     nsp = main_parser.parse_args(args=cmd_args)
-    print(nsp)
     match nsp.cmd:
         case "find":
             space, top, bnd, disp = parse_findmode_args(nsp)
@@ -241,7 +240,6 @@ def get_cmdline_args(
         bnd,
         disp,
     )
-    print(args)
     if nsp.cmd == "find":
         args.step = nsp.step
     args.index = (

@@ -208,10 +208,11 @@ def create_XML_for_boundary(
 
 
 def export_boundary(inp: ProgramArgs, cache: VariableCache) -> None:
+    if inp.verbose:
+        print("<<< Working on", inp.bfile)
     if inp.bfile is None:
         print(">>> NOTICE: No boundary file given, export is skipped")
         return
-    print("<<< Exporting the boundary from", inp.bfile)
     fx, fd = find_space_filenames(inp, cache.i0, cache)
     dx = get_space_data(fx, fd)
     raw = read_T_utf(inp.bfile)
@@ -223,6 +224,7 @@ def export_boundary(inp: ProgramArgs, cache: VariableCache) -> None:
         vtkXML.write(fout)
     if inp.compression:
         compress_vtu(foutfile, verbose=inp.verbose)
+    print("<<< Exported the boundary to", foutfile)
 
 
 def import_mesh_data(args: InputArguments, binary: bool = False):
@@ -310,6 +312,8 @@ def export_mesh_iter(
     inp: ProgramArgs,
     tp: CheartTopology,
 ) -> None:
+    if inp.verbose:
+        print("<<< Working on", args.prefix)
     fx, var = import_mesh_data(args, inp.binary)
     vtkXML = create_XML_for_mesh(inp.prefix, tp, fx, var)
     with open(args.prefix, "w") as fout:
@@ -343,6 +347,8 @@ def run_exports_in_series(
         export_mesh_iter(args, inp, cache.top)
         if bart:
             bart.next()
+        else:
+            print(f"<<< Completed {args.prefix}")
 
 
 def run_exports_in_parallel(
@@ -354,11 +360,13 @@ def run_exports_in_parallel(
     with futures.ProcessPoolExecutor(inp.cores) as exec:
         for t in time_steps:
             args = find_args_iter(inp, t, cache)
-            jobs[exec.submit(export_mesh_iter, args, inp, cache.top)] = t
+            jobs[exec.submit(export_mesh_iter, args, inp, cache.top)] = args.prefix
         for future in futures.as_completed(jobs):
             try:
                 future.result()
                 if bart:
                     bart.next()
+                else:
+                    print(f"<<< Completed {jobs[future]}")
             except Exception as e:
                 raise e

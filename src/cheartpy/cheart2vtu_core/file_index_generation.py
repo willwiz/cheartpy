@@ -262,6 +262,7 @@ def get_file_name_indexer(
     DFileNoVariable | DFileAutoFinder | DFileIndex | DFileSubIndex | DFileAutoSubIndex,
 ]:
     if not args.var:
+        print("<<< Variables not given. Exporting mesh only.")
         return (ProgramMode.none, DFileNoVariable())
     match [args.index, args.sub_auto, args.sub_index]:
         case [None, _, None] if args.cmd == "find":
