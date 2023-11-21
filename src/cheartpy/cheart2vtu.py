@@ -319,22 +319,6 @@ cheartsuffix = ".D"
 gzsuffix = ".gz"
 
 
-def read_D_binary(file: str) -> Arr[tuple[int, int], f64]:
-    with open(file, mode="rb") as f:
-        nnodes = struct.unpack("i", f.read(4))[0]
-        dim = struct.unpack("i", f.read(4))[0]
-        arr = np.zeros((nnodes, dim))
-        for i in range(nnodes):
-            for j in range(dim):
-                bite = f.read(8)
-                if not bite:
-                    raise BufferError(
-                        "Binary buffer being read ran out before indicated range"
-                    )
-                arr[i, j] = struct.unpack("d", bite)[0]
-    return arr
-
-
 class CheartDataFormat(enum.Enum):
     mesh = 0
     var = 1
