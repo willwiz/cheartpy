@@ -1,4 +1,4 @@
-from typing import Final, TextIO
+from typing import TextIO
 from numpy import int32
 from numpy.typing import NDArray
 
@@ -56,8 +56,8 @@ class VtkBiquadraticTriangle:
 
 
 class VtkBilinearQuadrilateral:
-    vtkelementid: Final[int] = 9
-    vtksurfaceid: Final[int] = 3
+    vtkelementid = 9
+    vtksurfaceid = 3
 
     @staticmethod
     def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
@@ -170,3 +170,63 @@ class VtkTriquadraticHexahedron:
         fout.write(" %i" % (elem[20] - 1))
         fout.write(" %i" % (elem[17] - 1))
         fout.write("\n")
+
+
+VtkTopologyElement = (
+    type[VtkBilinearTriangle]
+    | type[VtkBiquadraticTriangle]
+    | type[VtkBilinearQuadrilateral]
+    | type[VtkBiquadraticQuadrilateral]
+    | type[VtkTrilinearTetrahedron]
+    | type[VtkTriquadraticTetrahedron]
+    | type[VtkTrilinearHexahedron]
+    | type[VtkTriquadraticHexahedron]
+)
+VtkBoundaryElement = (
+    type[VtkLinearLine]
+    | type[VtkQuadraticLine]
+    | type[VtkBilinearTriangle]
+    | type[VtkBiquadraticTriangle]
+    | type[VtkBilinearQuadrilateral]
+    | type[VtkBiquadraticQuadrilateral]
+)
+
+
+def get_element_type(
+    nnodes: int, boundary: str | None
+) -> tuple[VtkTopologyElement, VtkBoundaryElement]:
+    if boundary is None:
+        nbnd = None
+    else:
+        with open(boundary, "r") as f:
+            _ = f.readline()
+            nbnd = len(f.readline().strip().split())
+    match [nnodes, nbnd]:
+        case [3, _]:
+            return VtkBilinearTriangle, VtkLinearLine
+        case [6, _]:
+            return VtkBiquadraticTriangle, VtkQuadraticLine
+        case [4, 4]:
+            return VtkBilinearQuadrilateral, VtkLinearLine
+        case [9, _]:
+            return VtkBiquadraticQuadrilateral, VtkQuadraticLine
+        case [4, 6]:
+            return VtkTrilinearTetrahedron, VtkBilinearTriangle
+        case [10, _]:
+            return VtkTriquadraticTetrahedron, VtkBiquadraticTriangle
+        case [8, _]:
+            return VtkTrilinearHexahedron, VtkBilinearQuadrilateral
+        case [27, _]:
+            return VtkTriquadraticHexahedron, VtkBiquadraticQuadrilateral
+        case [4, None]:
+            raise ValueError(
+                "Bilinear quadrilateral / Trilinear tetrahedron detected, need boundary file"
+            )
+        case [4, _]:
+            raise ValueError(
+                "Bilinear quadrilateral / Trilinear tetrahedron detected, boundary file is incompatible"
+            )
+        case _:
+            raise ValueError(
+                f"Cannot determine element type from {nnodes} and {boundary}, perhaps not implemented."
+            )

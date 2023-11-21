@@ -23,5 +23,6 @@ dependencies = [
 
 [project.scripts]
 cpyexec = "cheartpy.cpyexecute:main_cli"
+cheart2vtu = "cheartpy.cheart2vtu:main_cli"
 makemesh = "cheartpy.makemesh:main_cli"
 abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"
