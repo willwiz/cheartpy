@@ -3,7 +3,10 @@
 
 
 from typing import Literal
-from cheartpy.meshing.core.hexcore3D import renormalized_mesh, i32, f64, Arr
+from cheartpy.meshing.core.hexcore3D import (
+    renormalized_mesh,
+    mid_squish_transform,
+)
 from cheartpy.meshing.core.cylindrical import (
     RotationOption,
     rotate_axis,
@@ -40,14 +43,6 @@ parser.add_argument("base", type=float, help="base position")
 parser.add_argument("rn", type=int, help="number of elements in thickness")
 parser.add_argument("qn", type=int, help="number of elements in theta")
 parser.add_argument("zn", type=int, help="number of elements along the central axis")
-
-
-def mid_squish_transform(x: Arr[int, f64]):
-    return x * (2.0 + x * (2.0 * x - 3.0))
-
-
-def linear_transform(x: Arr[int, f64]):
-    return x * (2.0 + x * (2.0 * x - 3.0))
 
 
 def gen_cylindrical_positions(

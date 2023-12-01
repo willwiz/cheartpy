@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from typing import Literal
-from cheartpy.meshing.core.hexcore3D import renormalized_mesh
+from cheartpy.meshing.core.hexcore3D import renormalized_mesh, mid_squish_transform
 from cheartpy.meshing.core.cylindrical import (
     RotationOption,
     rotate_axis,
@@ -47,13 +47,18 @@ def gen_end_node_mapping(g: MeshCheart) -> dict[int, int]:
     return map
 
 
-def gen_cylindrical_positions(g: MeshCheart, r_in: float, r_out: float) -> MeshCheart:
+def gen_cylindrical_positions(
+    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
+) -> MeshCheart:
     g.space.v[:, 0] = (r_out - r_in) * (g.space.v[:, 0] ** 0.707) + r_in
     g.space.v[:, 1] = 2.0 * np.pi * g.space.v[:, 1]
+    g.space.v[:, 2] = length * mid_squish_transform(g.space.v[:, 2]) + base
     return g
 
 
-def wrap_around_y(g: MeshCheart, r_in: float, r_out: float) -> MeshCheart:
+def wrap_around_y(
+    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
+) -> MeshCheart:
     map = gen_end_node_mapping(g)
     for i, row in enumerate(g.top.v):
         for j, v in enumerate(row):
@@ -74,12 +79,14 @@ def wrap_around_y(g: MeshCheart, r_in: float, r_out: float) -> MeshCheart:
                     b.v[i, j] = map[v]
                 else:
                     b.v[i, j] = v
-    g = gen_cylindrical_positions(g, r_in, r_out)
+    g = gen_cylindrical_positions(g, r_in, r_out, length, base)
     return g
 
 
-def create_cylinder_geometry(g: MeshCheart, r_in: float, r_out: float) -> MeshCheart:
-    g = wrap_around_y(g, r_in, r_out)
+def create_cylinder_geometry(
+    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
+) -> MeshCheart:
+    g = wrap_around_y(g, r_in, r_out, length, base)
     g = renormalized_mesh(g)
     return g
 
@@ -96,8 +103,8 @@ def create_cheart_mesh(
     axis: Literal["x", "y", "z"] = "z",
     make_quad: bool = False,
 ) -> None:
-    g = create_meshgrid_3D(rn, qn, zn, 1.0, 0, 1.0, 0, length, base)
-    g = create_cylinder_geometry(g, r_in, r_out)
+    g = create_meshgrid_3D(rn, qn, zn, 1.0, 0, 1.0, 0, 1.0, 0.0)
+    g = create_cylinder_geometry(g, r_in, r_out, length, base)
     if make_quad:
         g_quad = create_quad_mesh_from_linear(g)
         g_quad = cylindrical_to_cartesian(g_quad)
