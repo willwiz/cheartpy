@@ -198,10 +198,18 @@ parser_find.add_argument(
 )
 
 
+def fix_suffix(prefix: str, suffix: str = "_FE.") -> str:
+    for i in range(len(suffix), 0, -1):
+        if prefix.endswith(suffix[:i]):
+            return prefix + suffix[i:]
+    return prefix + suffix
+
+
 def parse_findmode_args(nsp: argparse.Namespace):
-    space = nsp.mesh + "_FE.X"
-    topology = nsp.mesh + "_FE.T"
-    boundary = nsp.mesh + "_FE.B"
+    subs: str = fix_suffix(nsp.mesh)
+    space = subs + "X"
+    topology = subs + "T"
+    boundary = subs + "B"
     return space, topology, boundary, None
 
 

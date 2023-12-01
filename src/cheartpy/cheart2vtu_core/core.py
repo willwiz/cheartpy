@@ -34,7 +34,9 @@ def parse_cmdline_args(
     err: bool = False
     args = get_cmdline_args(cmd_args)
     print_input_info(args)
-    if not os.path.isdir(args.input_folder):
+    if not args.input_folder:
+        pass
+    elif not os.path.isdir(args.input_folder):
         print(f">>>ERROR: Input folder = {args.input_folder} does not exist")
         err = True
     if (args.output_folder != "") and (not os.path.isdir(args.output_folder)):
