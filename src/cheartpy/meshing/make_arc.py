@@ -46,6 +46,10 @@ def mid_squish_transform(x: Arr[int, f64]):
     return x * (2.0 + x * (2.0 * x - 3.0))
 
 
+def linear_transform(x: Arr[int, f64]):
+    return x * (2.0 + x * (2.0 * x - 3.0))
+
+
 def gen_cylindrical_positions(
     g: MeshCheart,
     r_in: float,
