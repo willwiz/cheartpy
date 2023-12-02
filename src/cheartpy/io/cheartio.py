@@ -7,19 +7,11 @@ CHeart Read Array functions
 """
 
 
-def CHRead_d_utf(file: str) -> tuple[tuple[int, int], Arr[tuple[int, int], f64]]:
-    with open(file, "r") as f:
-        line = f.readline().strip()
-        items = line.split()
-        nnodes = int(items[0])
-        dim = int(items[1])
-        x_arr: list[list[float]] = list()
-        for i in range(nnodes):
-            x_arr.append([float(m) for m in f.readline().strip().split()])
-    return (nnodes, dim), np.ascontiguousarray(x_arr, dtype=float)
+def CHRead_d_utf(file: str) -> Arr[tuple[int, int], f64]:
+    return np.loadtxt(file, skiprows=1, dtype=float)
 
 
-def CHRead_d_binary(file: str) -> tuple[tuple[int, int], Arr[tuple[int, int], f64]]:
+def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
     with open(file, mode="rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
@@ -32,18 +24,23 @@ def CHRead_d_binary(file: str) -> tuple[tuple[int, int], Arr[tuple[int, int], f6
                         "Binary buffer being read ran out before indicated range"
                     )
                 arr[i, j] = struct.unpack("d", bite)[0]
-    return (nnodes, dim), arr
+    return arr
 
 
-def CHRead_t_utf(file: str) -> tuple[int, int, Arr[tuple[int, int], i32]]:
+def CHRead_t_utf(file: str) -> Arr[tuple[int, int], i32]:
+    return np.loadtxt(file, skiprows=1, dtype=int)
+
+
+def CHRead_header_utf(file: str) -> tuple[int, int]:
     with open(file, "r") as f:
         items = f.readline().strip().split()
         nelem = int(items[0])
         nnode = int(items[1])
-        x_arr: list[list[int]] = list()
-        for i in range(nelem):
-            x_arr.append([int(m) for m in f.readline().strip().split()])
-    return nelem, nnode, np.ascontiguousarray(x_arr, dtype=int)
+    return nelem, nnode
+
+
+def CHRead_b_utf(file: str) -> Arr[tuple[int, int], i32]:
+    return np.loadtxt(file, skiprows=1, dtype=int)
 
 
 """

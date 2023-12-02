@@ -8,7 +8,7 @@
 import os
 from typing import Callable
 import argparse
-from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_binary
+from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin
 from cheartpy.tools.progress_bar import progress_bar
 
 ################################################################################################
@@ -94,9 +94,10 @@ def main(args=None):
         root, _ = os.path.splitext(args.mesh)
         name = root + ".nodes"
     if args.binary:
-        (n, dim), mesh = CHRead_d_binary(args.mesh)
+        mesh = CHRead_d_bin(args.mesh)
     else:
-        (n, dim), mesh = CHRead_d_utf(args.mesh)
+        mesh = CHRead_d_utf(args.mesh)
+    n, dim = mesh.shape
     nodes = list(range(n))
     for s in args.cons:
         if args.progress:

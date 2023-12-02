@@ -3,7 +3,7 @@
 import os
 import argparse
 from argparse import RawTextHelpFormatter
-from cheartpy.io.cheartio import CHRead_d_utf, CHRead_t_utf
+from cheartpy.io.cheartio import CHRead_d_utf, CHRead_header_utf, CHRead_t_utf
 import numpy as np
 from numpy import zeros, array, full
 from math import floor
@@ -182,14 +182,15 @@ def lin_to_quad_arr(map: np.ndarray, arr: np.ndarray) -> np.ndarray:
 
 
 def make_map(args):
-    _, _, lin_top = CHRead_t_utf(args.make_map[0])
-    _, nquad, quad_top = CHRead_t_utf(args.make_map[1])
+    lin_top = CHRead_t_utf(args.make_map[0])
+    quad_top = CHRead_t_utf(args.make_map[1])
+    _, nnode = CHRead_header_utf(args.make_map[1])
     # Convert to python index
     lin_top = lin_top - 1
     quad_top = quad_top - 1
     print(f"Generating Map from {args.make_map[0]} to {args.make_map[1]}:")
     bar = progress_bar(">>Progress:", max=len(quad_top))
-    top_map = gen_map(lin_top, quad_top, nquad, bar.next)
+    top_map = gen_map(lin_top, quad_top, nnode, bar.next)
     write_array_int(args.name[0], top_map)
 
 
@@ -207,7 +208,7 @@ def map_vals(args):
         fout = args.prefix
 
     if args.index == None:
-        _, lindata = CHRead_d_utf(args.name[1])
+        lindata = CHRead_d_utf(args.name[1])
         quadata = lin_to_quad_arr(l2q_map, lindata)
         print(fout)
         write_Darr(fout, quadata)
@@ -219,7 +220,7 @@ def map_vals(args):
         for i in range(args.index[0], args.index[1] + args.index[2], args.index[2]):
             fin = args.name[1] + f"-{i}.D"
             name = fout + f"-{i}.D"
-            _, lindata = CHRead_d_utf(fin)
+            lindata = CHRead_d_utf(fin)
             quadata = lin_to_quad_arr(l2q_map, lindata)
             write_Darr(name, quadata)
             bar.next()

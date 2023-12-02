@@ -12,7 +12,8 @@ from cheartpy.types import Arr, i32, f64
 from cheartpy.tools.progress_bar import progress_bar
 from cheartpy.io.cheartio import (
     CHRead_d_utf,
-    CHRead_d_binary,
+    CHRead_d_bin,
+    CHRead_header_utf,
     CHRead_t_utf,
     CHWrite_d_utf,
     CHWrite_d_binary,
@@ -172,8 +173,9 @@ def lin_to_quad_arr(map: np.ndarray, arr: np.ndarray) -> np.ndarray:
 
 
 def make_map(args):
-    _, _, lin_top = CHRead_t_utf(args.make_map[0])
-    _, nquad, quad_top = CHRead_t_utf(args.make_map[1])
+    lin_top = CHRead_t_utf(args.make_map[0])
+    quad_top = CHRead_t_utf(args.make_map[1])
+    nelem, nnode = CHRead_header_utf(args.make_map[1])
     # Convert to python index
     lin_top = lin_top - 1
     quad_top = quad_top - 1
@@ -181,7 +183,7 @@ def make_map(args):
         f"Generating Map from {args.make_map[0]} to {args.make_map[1]}",
         max=len(quad_top),
     )
-    top_map = gen_map(lin_top, quad_top, nquad, bar.next)
+    top_map = gen_map(lin_top, quad_top, nnode, bar.next)
     write_array_int(args.name[-1], top_map)
 
 
@@ -194,9 +196,9 @@ def map_vals_i(args, l2q_map, name):
     # print(tag)
     if args.index == None:
         if args.binary:
-            _, lindata = CHRead_d_binary(name)
+            lindata = CHRead_d_bin(name)
         else:
-            _, lindata = CHRead_d_utf(name)
+            lindata = CHRead_d_utf(name)
         quadata = lin_to_quad_arr(l2q_map, lindata)
         # print(tag)
         if args.binary:
@@ -212,9 +214,9 @@ def map_vals_i(args, l2q_map, name):
             fin = name + f"-{i}.D"
             fout = tag + f"-{i}.D"
             if args.binary:
-                _, lindata = CHRead_d_binary(fin)
+                lindata = CHRead_d_bin(fin)
             else:
-                _, lindata = CHRead_d_utf(name)
+                lindata = CHRead_d_utf(name)
             quadata = lin_to_quad_arr(l2q_map, lindata)
             if args.binary:
                 CHWrite_d_binary(fout, quadata)

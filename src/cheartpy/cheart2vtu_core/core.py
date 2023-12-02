@@ -1,8 +1,10 @@
 import os
-from cheartpy.cheart2vtu_core.print_headers import print_input_info
-from cheartpy.tools.progress_bar import progress_bar
+import meshio
 import numpy as np
 from concurrent import futures
+from cheartpy.cheart2vtu_core.print_headers import print_input_info
+from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.types import i32, f64, Arr
 from cheartpy.cheart2vtu_core.main_parser import get_cmdline_args
 from cheartpy.cheart2vtu_core.file_index_generation import (
     IndexerList,
@@ -14,18 +16,22 @@ from cheartpy.cheart2vtu_core.data_types import (
     CheartZipFormat,
     InputArguments,
     ProgramArgs,
-    Arr,
     VariableCache,
-    f64,
     CheartTopology,
 )
 from cheartpy.xmlwriter.xmlclasses import XMLElement, XMLWriters
-from cheartpy.cheart2vtu_core.io import (
-    compress_vtu,
-    read_D_utf,
-    read_D_binary,
-    read_T_utf,
-)
+from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin, CHRead_b_utf
+
+
+def compress_vtu(name: str, verbose: bool = False) -> None:
+    if verbose:
+        size = os.stat(name).st_size
+        print("File size before: {:.2f} MB".format(size / 1024**2))
+    mesh = meshio._helpers.read(name, file_format="vtu")
+    meshio.vtu.write(name, mesh, binary=True, compression="zlib")
+    if verbose:
+        size = os.stat(name).st_size
+        print("File size after: {:.2f} MB".format(size / 1024**2))
 
 
 def parse_cmdline_args(
@@ -109,11 +115,11 @@ def get_space_data(
     space_file: str | Arr[tuple[int, int], f64], disp_file: str | None
 ) -> Arr[tuple[int, int], f64]:
     if isinstance(space_file, str):
-        fx = read_D_utf(space_file)
+        fx = CHRead_d_utf(space_file)
     else:
         fx = space_file
     if disp_file is not None:
-        fx = fx + read_D_utf(disp_file)
+        fx = fx + CHRead_d_utf(disp_file)
     # VTU files are defined in 3D space, so we have to append a zero column for 2D data
     if fx.shape[1] == 1:
         raise ValueError(">>>ERROR: Cannot convert data that lives on 1D domains.")
@@ -166,8 +172,8 @@ def create_XML_for_boundary(
     prefix: str,
     fx: Arr[tuple[int, int], f64],
     tp: CheartTopology,
-    fb: Arr[tuple[int, int], f64],
-    fbid: Arr[int, f64],
+    fb: Arr[tuple[int, int], i32],
+    fbid: Arr[int, i32],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
@@ -217,7 +223,7 @@ def export_boundary(inp: ProgramArgs, cache: VariableCache) -> None:
         return
     fx, fd = find_space_filenames(inp, cache.i0, cache)
     dx = get_space_data(fx, fd)
-    raw = read_T_utf(inp.bfile)
+    raw = CHRead_b_utf(inp.bfile)
     db = raw[:, 1:-1]
     dbid = raw[:, -1]
     vtkXML = create_XML_for_boundary(inp.prefix, dx, cache.top, db, dbid)
@@ -234,9 +240,9 @@ def import_mesh_data(args: InputArguments, binary: bool = False):
     variables: dict[str, Arr[tuple[int, int], f64]] = dict()
     for s, v in args.var.items():
         if binary:
-            fv = read_D_binary(v)
+            fv = CHRead_d_bin(v)
         else:
-            fv = read_D_utf(v)
+            fv = CHRead_d_utf(v)
         if fv.ndim == 1:
             fv = fv[:, np.newaxis]
         if fx.shape[0] != fv.shape[0]:

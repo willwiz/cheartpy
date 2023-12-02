@@ -3,7 +3,8 @@ from glob import glob
 from collections import defaultdict
 from typing import Final, Generator
 import numpy as np
-from cheartpy.cheart2vtu_core.data_types import CmdLineArgs, Arr, ProgramMode, i32, char
+from cheartpy.types import i32, char
+from cheartpy.cheart2vtu_core.data_types import CmdLineArgs, Arr, ProgramMode
 
 
 class DFileNoVariable:

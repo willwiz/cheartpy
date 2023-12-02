@@ -2,12 +2,12 @@ import numpy as np
 from cheartpy.types import Arr, f64, i32, Any
 
 
-def read_array_int(name: str) -> Arr[Any, i32]:
-    return np.loadtxt(name, dtype=int)
+def read_array_int(name: str, skip: int = 0) -> Arr[Any, i32]:
+    return np.loadtxt(name, skiprows=skip, dtype=int)
 
 
-def read_array_float(name: str) -> Arr[Any, f64]:
-    return np.loadtxt(name, dtype=float)
+def read_array_float(name: str, skip: int = 0) -> Arr[Any, f64]:
+    return np.loadtxt(name, skiprows=skip, dtype=float)
 
 
 def write_array_int(name: str, arr: Arr[Any, i32]) -> None:
