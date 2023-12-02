@@ -7,13 +7,16 @@ import argparse
 from argparse import RawTextHelpFormatter
 from typing import Any, Callable, TextIO, Self
 import numpy as np
-from numpy import zeros, ndarray as Arr, array
 import dataclasses as dc
 from concurrent import futures
+from cheartpy.types import Arr, i32, f64
+from cheartpy.io.cheartio import (
+    CHWrite_d_utf,
+    CHWrite_t_utf,
+    CHWrite_iarr_utf,
+    CHWrite_Str_utf,
+)
 
-i32 = np.dtype[np.int32]
-f64 = np.dtype[np.float64]
-chars = np.dtype[np.str_]
 ################################################################################################
 # Check if multiprocessing is available
 
@@ -166,7 +169,7 @@ class AbaqusMeshElement:
         self.data[row[0]] = row[1:]
 
     def to_numpy(self):
-        return array([*self.data.values()], dtype=int)
+        return np.ascontiguousarray([*self.data.values()], dtype=int)
 
 
 @dc.dataclass(slots=True, order=True)
@@ -263,7 +266,7 @@ class BoundaryPatch:
             )
 
     def to_numpy(self):
-        return array(
+        return np.ascontiguousarray(
             sorted(
                 [v.values() for v in self.data], key=lambda x: (x[-1], x[0], x[1:-1])
             ),
@@ -278,51 +281,6 @@ class CheartMesh(object):
     space: MeshTypeSpace | None = None
     topology: MeshTypeTopology | None = None
     boundary: MeshTypeBoundary | None = None
-
-
-def CHWrite_d_utf(file: str, data: Arr[tuple[int, int], f64]) -> None:
-    dim = data.shape
-    with open(file, "w") as f:
-        f.write("{:12d}".format(dim[0]))
-        f.write("{:12d}\n".format(dim[1]))
-        for i in data:
-            for j in i:
-                f.write("{:>22.12E}".format(j))
-            f.write("\n")
-    return
-
-
-def CHWrite_Str_utf(file: str, data: Arr[tuple[int, int], chars]) -> None:
-    with open(file, "w") as f:
-        f.write("{:>12}".format(data.shape[0]))
-        f.write("{:>12}\n".format(data.shape[1]))
-        for i in data:
-            for j in i:
-                f.write("{:>12}".format(j))
-            f.write("\n")
-    return
-
-
-def CHWrite_t_utf(file: str, data: Arr[tuple[int, int], i32], ne: int, nn: int) -> None:
-    with open(file, "w") as f:
-        f.write(f"{ne:12d}")
-        f.write(f"{nn:12d}\n")
-        for i in data:
-            for j in i:
-                f.write(f"{j:>12d}")
-            f.write("\n")
-    return
-
-
-def CHWrite_iarr_utf(file: str, data: Arr[tuple[int, int], i32]) -> None:
-    dim = data.shape
-    with open(file, "w") as f:
-        f.write(f"{dim[0]:12d}\n")
-        for i in data:
-            for j in i:
-                f.write(f"{j:>12d}")
-            f.write("\n")
-    return
 
 
 def get_results_from_futures(func: Callable, args: list[Any], cores: int = 2):
@@ -427,7 +385,7 @@ def import_space(
         raise ValueError(
             f">>>The dimensions of the data, {arraydim}, does not match {nodes.n}."
         )
-    space = MeshTypeSpace(0, zeros((len(elmap), dim), dtype=float))
+    space = MeshTypeSpace(0, np.zeros((len(elmap), dim), dtype=float))
     for k, v in elmap.items():
         space.n = space.n + 1
         for j in range(dim):

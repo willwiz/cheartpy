@@ -2,18 +2,13 @@ import dataclasses as dc
 import enum
 import os
 import numpy as np
-from numpy import ndarray
 from typing import Final, Literal
+from cheartpy.types import i32, f64, Arr
 from cheartpy.xmlwriter.vtk_elements import (
     VtkBoundaryElement,
     VtkTopologyElement,
     get_element_type,
 )
-
-i32 = np.dtype[np.int32]
-f64 = np.dtype[np.float64]
-char = np.dtype[np.str_]
-Arr = ndarray
 
 
 class ProgramMode(enum.StrEnum):

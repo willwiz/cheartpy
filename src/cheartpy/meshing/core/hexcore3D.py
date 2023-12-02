@@ -1,9 +1,8 @@
 from typing import TextIO, Final
 import numpy as np
 from numpy import ndarray as Arr
+from cheartpy.types import i32, f64
 
-f64 = np.dtype[np.float64]
-i32 = np.dtype[np.int32]
 
 # This is gives the order of the nodes in an elent given a starting indice
 vorder: Final[list[list[int]]] = [

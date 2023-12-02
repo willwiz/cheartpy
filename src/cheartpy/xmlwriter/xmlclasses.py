@@ -1,11 +1,6 @@
 from __future__ import annotations
 import typing as tp
-import numpy as np
-from numpy import ndarray as Arr
-import numpy.typing as npt
-
-f64 = np.dtype[np.float64]
-i32 = np.dtype[np.int32]
+from cheartpy.types import i32, f64, Arr, Any
 
 WriterSigs = (
     tp.Callable[[tp.TextIO, int, int], None]
@@ -33,7 +28,7 @@ class XMLWriters:
 
 
 class XMLElement:
-    data: tp.Optional[npt.NDArray] = None
+    data: Arr[Any, Any] | None = None
     datawriter: WriterSigs = XMLWriters.PointWriter
 
     def __init__(self, tag: str, **attribs: str) -> None:
@@ -50,7 +45,7 @@ class XMLElement:
 
     def add_data(
         self,
-        arr: npt.NDArray,
+        arr: Arr[Any, Any],
         writer: WriterSigs = XMLWriters.PointWriter,
     ) -> None:
         self.data = arr

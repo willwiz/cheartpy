@@ -6,10 +6,10 @@
 #     filein cons1 cons2 ... consn fileout
 
 import os
-from typing import Callable, Tuple
-from numpy import ndarray, zeros
+from typing import Callable
 import argparse
-from struct import unpack
+from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_binary
+from cheartpy.tools.progress_bar import progress_bar
 
 ################################################################################################
 # The argument parse
@@ -70,90 +70,7 @@ parser.add_argument(
 ################################################################################################
 
 
-def printProgressBar(
-    iteration,
-    total,
-    prefix="",
-    suffix="",
-    decimals=1,
-    length=100,
-    fill="*",
-    printEnd="\r",
-):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(
-        100 if (total == 0) else 100 * (iteration / float(total))
-    )
-    filledLength = int(length if (total == 0) else length * iteration // total)
-    bar = fill * filledLength + "-" * (length - filledLength)
-    print("\r%s |%s| %s%% %s" % (prefix, bar, percent, suffix), end=printEnd)
-    # Print New Line on Complete
-    if iteration == total:
-        print()
-
-
-class progress_bar:
-    def __init__(self, message, max=100):
-        self.n = max
-        self.i = 0
-        self.message = message
-        printProgressBar(
-            self.i, self.n, prefix=self.message, suffix="Complete", length=50
-        )
-
-    def next(self):
-        self.i = self.i + 1
-        printProgressBar(
-            self.i, self.n, prefix=self.message, suffix="Complete", length=50
-        )
-
-    def finish(self):
-        printProgressBar(
-            self.n, self.n, prefix=self.message, suffix="Complete", length=50
-        )
-
-
 ################################################################################################
-
-
-def CHRead_d_utf(file: str) -> Tuple[int, int, ndarray]:
-    with open(file, "r") as f:
-        line = f.readline().strip()
-        items = line.split()
-        nnodes = int(items[0])
-        dim = int(items[1])
-        x_arr = zeros((nnodes, dim))
-        for i in range(nnodes):
-            items = f.readline().strip().split()
-            x_arr[i] = [float(m) for m in items]
-    return nnodes, dim, x_arr
-
-
-def CHRead_d_binary(file: str) -> Tuple[int, int, ndarray]:
-    with open(file, mode="rb") as f:
-        nnodes = unpack("i", f.read(4))[0]
-        dim = unpack("i", f.read(4))[0]
-        arr = zeros((nnodes, dim))
-        for i in range(nnodes):
-            for j in range(dim):
-                bite = f.read(8)
-                if not bite:
-                    raise BufferError(
-                        "Binary buffer being read ran out before indicated range"
-                    )
-                arr[i, j] = unpack("d", bite)[0]
-    return nnodes, dim, arr
 
 
 # These function compares two values and see if they are numerically equal
@@ -177,9 +94,9 @@ def main(args=None):
         root, _ = os.path.splitext(args.mesh)
         name = root + ".nodes"
     if args.binary:
-        n, dim, mesh = CHRead_d_binary(args.mesh)
+        (n, dim), mesh = CHRead_d_binary(args.mesh)
     else:
-        n, dim, mesh = CHRead_d_utf(args.mesh)
+        (n, dim), mesh = CHRead_d_utf(args.mesh)
     nodes = list(range(n))
     for s in args.cons:
         if args.progress:
