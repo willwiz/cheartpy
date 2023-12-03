@@ -4,8 +4,7 @@
 # Takes a .T file for a line and produce a list of nodes on the line so that boundary conditions can be applied.
 
 
-import os, sys, fileinput
-import numpy as np
+import sys
 from cheartpy.tools.progress_bar import progress_bar
 
 

@@ -8,14 +8,14 @@ class TolSettings(enum.StrEnum):
     INFUPDATE = enum.auto()
     INFDEL = enum.auto()
     INFRELUPDATE = enum.auto()
-    L2RESRELPERCENT = enum.auto()
+    L2RESRELPERCENT = "L2RESRELPERCENT"
 
 
 class IterationSettings(enum.StrEnum):
-    ITERATION = enum.auto()
-    SUBITERATION = enum.auto()
-    LINESEARCHITER = enum.auto()
-    SUBITERFRACTION = enum.auto()
+    ITERATION = "ITERATION"
+    SUBITERATION = "SUBITERATION"
+    LINESEARCHITER = "LINESEARCHITER"
+    SUBITERFRACTION = "SUBITERFRACTION"
     GroupIterations = "GroupIterations"
 
 
@@ -28,3 +28,20 @@ class VariableExportFormat(enum.StrEnum):
     TXT = "TXT"
     BINARY = "ReadBinary"
     MMAP = "ReadMMap"
+
+
+class SolverOptions(enum.StrEnum):
+    MUMPS = "SOLVER_MUMPS"
+
+
+class SolidProblems(enum.StrEnum):
+    TRANSIENT = "transient_elasticity"
+    QUASI_STATIC = "quasi_static_elasticity"
+
+
+class L2ProjectionProblems(enum.StrEnum):
+    SOLID_PROJECTION = "l2solidprojection_problem"
+
+
+class SolidProjectionProbOptions(enum.StrEnum):
+    MASTER_OVERRIDE = "Solid-Master-Override"

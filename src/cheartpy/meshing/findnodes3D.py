@@ -5,8 +5,7 @@
 # The inputs of this script are:
 #     filein cons1 cons2 ... consn fileout
 
-import os, sys, fileinput
-import numpy as np
+import sys
 from cheartpy.tools.progress_bar import progress_bar
 
 # Get the precision for double below

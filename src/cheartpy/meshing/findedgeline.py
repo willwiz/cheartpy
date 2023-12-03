@@ -4,7 +4,7 @@
 # find the segments in a file.B that satisfies the constraints given
 #     file.X file.T cons1 cons2 ... consn fileout
 
-import os, sys, fileinput
+import sys
 from math import pi
 import numpy as np
 

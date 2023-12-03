@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, TextIO, Union, Type, overload
 from .aliases import *
 from .keywords import *
 from .pytools import *
-from .basetypes import *
+from .base_types import *
 from .dictionary import *
 from .problems import *
 
@@ -53,9 +53,9 @@ PFile
 class SolverMatrix:
     name: str
     method: str
-    problem: List[Type[Problem]] = field(default_factory=list)
-    settings: Optional[Dict[str, Setting]] = field(default_factory=dict)
-    aux_vars: Dict[str, Variable] = field(default_factory=dict)
+    problem: list[Type[Problem]] = field(default_factory=list)
+    settings: dict[str, Setting] = field(default_factory=dict)
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
 
     def __post_init__(self):
         for p in self.problem:
