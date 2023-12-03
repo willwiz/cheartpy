@@ -1,6 +1,4 @@
-from typing import TextIO
-from numpy import int32
-from numpy.typing import NDArray
+from cheartpy.types import i32, Arr, TextIO
 
 
 class VtkLinearLine:
@@ -8,7 +6,7 @@ class VtkLinearLine:
     vtksurfaceid = None
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(2):
             fout.write(" %i" % (elem[j] - 1))
@@ -20,7 +18,7 @@ class VtkQuadraticLine:
     vtksurfaceid = None
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(3):
             fout.write(" %i" % (elem[j] - 1))
@@ -32,7 +30,7 @@ class VtkBilinearTriangle:
     vtksurfaceid = 3
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(3):
             fout.write(" %i" % (elem[j] - 1))
@@ -44,7 +42,7 @@ class VtkBiquadraticTriangle:
     vtksurfaceid = 21
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -60,7 +58,7 @@ class VtkBilinearQuadrilateral:
     vtksurfaceid = 3
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -74,7 +72,7 @@ class VtkTrilinearTetrahedron:
     vtksurfaceid = 5
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(4):
             fout.write(" %i" % (elem[j] - 1))
@@ -86,7 +84,7 @@ class VtkBiquadraticQuadrilateral:
     vtksurfaceid = 21
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -105,7 +103,7 @@ class VtkTriquadraticTetrahedron:
     vtksurfaceid = 22
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(10):
             if j == 6:
@@ -122,7 +120,7 @@ class VtkTrilinearHexahedron:
     vtksurfaceid = 9
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -140,7 +138,7 @@ class VtkTriquadraticHexahedron:
     vtksurfaceid = 28
 
     @staticmethod
-    def write(fout: TextIO, elem: NDArray[int32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))

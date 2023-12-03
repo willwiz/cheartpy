@@ -2,9 +2,9 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, TextIO, Union, Type, Literal
-from .cheart_alias import *
-from .cheart_pytools import *
-from .cheart_terms import *
+from .aliases import *
+from .pytools import *
+from .keywords import *
 
 
 @dataclass

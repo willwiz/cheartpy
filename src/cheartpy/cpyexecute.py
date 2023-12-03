@@ -3,7 +3,7 @@
 import os, sys
 import subprocess as sp
 import argparse
-from cheartpy.cheart_core.cheart_dataclass import PFile
+from cheartpy.cheart_core.data_types import PFile
 
 
 def split(f: str):

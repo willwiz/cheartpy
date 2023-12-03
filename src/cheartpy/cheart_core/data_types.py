@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, TextIO, Union, Type, overload
-from .cheart_alias import *
-from .cheart_terms import *
-from .cheart_pytools import *
-from .cheart_basetypes import *
-from .cheart_dictionary import *
-from .cheart_problems import *
+from .aliases import *
+from .keywords import *
+from .pytools import *
+from .basetypes import *
+from .dictionary import *
+from .problems import *
 
 """
 Cheart dataclasses

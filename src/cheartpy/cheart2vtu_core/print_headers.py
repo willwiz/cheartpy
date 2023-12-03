@@ -1,5 +1,5 @@
 from cheartpy.cheart2vtu_core.data_types import CmdLineArgs
-from cheartpy.cheart2vtu_core.file_index_generation import (
+from cheartpy.cheart2vtu_core.file_indexing import (
     DFileAutoFinder,
     DFileNoVariable,
     IndexerList,

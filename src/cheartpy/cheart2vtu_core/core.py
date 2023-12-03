@@ -2,11 +2,12 @@ import os
 import meshio
 import numpy as np
 from concurrent import futures
-from cheartpy.cheart2vtu_core.print_headers import print_input_info
-from cheartpy.tools.progress_bar import progress_bar
 from cheartpy.types import i32, f64, Arr
+from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin, CHRead_b_utf
+from cheartpy.xmlwriter.xmlclasses import XMLElement, XMLWriters
+from cheartpy.cheart2vtu_core.print_headers import print_input_info
 from cheartpy.cheart2vtu_core.main_parser import get_cmdline_args
-from cheartpy.cheart2vtu_core.file_index_generation import (
+from cheartpy.cheart2vtu_core.file_indexing import (
     IndexerList,
     get_file_name_indexer,
 )
@@ -19,8 +20,7 @@ from cheartpy.cheart2vtu_core.data_types import (
     VariableCache,
     CheartTopology,
 )
-from cheartpy.xmlwriter.xmlclasses import XMLElement, XMLWriters
-from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin, CHRead_b_utf
+from cheartpy.tools.progress_bar import progress_bar
 
 
 def compress_vtu(name: str, verbose: bool = False) -> None:

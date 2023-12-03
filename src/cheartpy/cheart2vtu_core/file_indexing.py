@@ -9,7 +9,6 @@ from cheartpy.cheart2vtu_core.data_types import CmdLineArgs, Arr, ProgramMode
 
 class DFileNoVariable:
     __slots__ = ["size"]
-
     size: Final[int]
 
     def __init__(self) -> None:

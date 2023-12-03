@@ -1,9 +1,9 @@
 import os
 import cheartpy.cheart_core as c
 from cheartpy.cheart_core import PFile, Basis, TimeScheme, HEXAHEDRAL_ELEMENT
-from cheartpy.cheart_core.cheart_basetypes import Basis, TimeScheme
-from cheartpy.cheart_core.cheart_terms import HEXAHEDRAL_ELEMENT
-from cheartpy.cheart_core.cheart_dataclass import PFile
+from cheartpy.cheart_core.basetypes import Basis, TimeScheme
+from cheartpy.cheart_core.keywords import HEXAHEDRAL_ELEMENT
+from cheartpy.cheart_core.data_types import PFile
 
 
 def get_PFile() -> PFile:
