@@ -45,6 +45,10 @@ def get_index_from_filenames(
         ),
         dtype=int,
     )
+    if res.size == 0:
+        msg = f"No file for {var} found!!"
+        print(f">>> ERROR: {msg}")
+        raise ValueError(msg)
     if not allow_subindex:
         res = res[res[:, 1] == -1]
     return res
