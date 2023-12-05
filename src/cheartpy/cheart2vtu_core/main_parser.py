@@ -11,7 +11,7 @@ parser.add_argument(
     "--prefix",
     "-p",
     type=str,
-    default="paraview",
+    default=None,
     help='OPTIONAL: supply a prefix name to be used for the exported vtu files. If -p is not supplied, then "paraview" will be used. that is the outputs will be named paraview-#.D',
 )
 parser.add_argument(
@@ -224,6 +224,7 @@ def get_cmdline_args(
     cmd_args: list[str] | None = None,
 ) -> CmdLineArgs:
     nsp = main_parser.parse_args(args=cmd_args)
+    nsp.outfolder: str
     match nsp.cmd:
         case "find":
             space, top, bnd, disp = parse_findmode_args(nsp)
@@ -231,10 +232,14 @@ def get_cmdline_args(
             space, top, bnd, disp = parse_indexmode_args(nsp)
         case _:
             raise ValueError(f"No subprogram called, cannot proceed.")
+    if nsp.prefix:
+        prefix = nsp.prefix
+    else:
+        prefix = nsp.outfolder.replace("_vtu", "") if nsp.outfolder else "paraview"
     args = CmdLineArgs(
         nsp.cmd,
         nsp.var,
-        nsp.prefix,
+        prefix,
         nsp.infolder,
         nsp.outfolder,
         nsp.time_series,
