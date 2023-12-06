@@ -21,7 +21,7 @@ import time
 
 # These function compares two values and see if they are numerically equal given some numerical error from summing n floats
 def same_dbl(A, B, n):
-    trial = abs(A - np.full(n, A / n).sum())
+    trial = 10.0 * abs(A - np.full(n, A / n).sum())
     diff = abs(A - B)
     test = max(abs(A), abs(B))
     if diff <= test * trial:
