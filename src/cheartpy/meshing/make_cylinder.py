@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from typing import Literal
-from cheartpy.meshing.core.hexcore3D import renormalized_mesh, mid_squish_transform
+from cheartpy.meshing.core.hexcore3D import (
+    renormalized_mesh,
+    mid_squish_transform_4,
+    mid_squish_transform,
+)
 from cheartpy.meshing.core.cylindrical import (
     RotationOption,
     rotate_axis,
@@ -52,7 +56,7 @@ def gen_cylindrical_positions(
 ) -> MeshCheart:
     g.space.v[:, 0] = (r_out - r_in) * (g.space.v[:, 0] ** 0.707) + r_in
     g.space.v[:, 1] = 2.0 * np.pi * g.space.v[:, 1]
-    g.space.v[:, 2] = length * mid_squish_transform(g.space.v[:, 2]) + base
+    g.space.v[:, 2] = length * g.space.v[:, 2] + base
     return g
 
 

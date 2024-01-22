@@ -208,7 +208,7 @@ def get_element_type(
             return VtkBilinearQuadrilateral, VtkLinearLine
         case [9, _]:
             return VtkBiquadraticQuadrilateral, VtkQuadraticLine
-        case [4, 6]:
+        case [4, 5]:
             return VtkTrilinearTetrahedron, VtkBilinearTriangle
         case [10, _]:
             return VtkTriquadraticTetrahedron, VtkBiquadraticTriangle
@@ -222,7 +222,7 @@ def get_element_type(
             )
         case [4, _]:
             raise ValueError(
-                "Bilinear quadrilateral / Trilinear tetrahedron detected, boundary file is incompatible"
+                f"Bilinear quadrilateral / {nbnd}, boundary file is incompatible"
             )
         case _:
             raise ValueError(

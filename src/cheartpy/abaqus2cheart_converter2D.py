@@ -124,6 +124,7 @@ class InputArgs:
 
 
 class AbaqusElementType(enum.Enum):
+    S3R = (0, 1, 2)
     T3D2 = (0, 1)
     T3D3 = (0, 1, 2)
     CPS3 = (0, 1, 2)
@@ -148,6 +149,8 @@ def get_abaqus_element(type: str, dim: int) -> AbaqusElementType:
             return AbaqusElementType.CPS4_3D
         case ["C3D4", 4]:
             return AbaqusElementType.C3D4
+        case ["S3R", 3]:
+            return AbaqusElementType.S3R
         case [_, 8]:
             return AbaqusElementType.TetQuad3D
         case [_, 4]:

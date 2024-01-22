@@ -88,7 +88,7 @@ def find_parameter2(inp: InputArgs) -> float:
         return log(z * z)
 
     optres = minimize(
-        obf, np.array([1.0]), bounds=Bounds(0.9, 1.001), method="TNC", tol=1e-14
+        obf, np.array([1.0]), bounds=Bounds(0.9, 1.01), method="TNC", tol=1e-14
     )
     return optres.x[0]
 

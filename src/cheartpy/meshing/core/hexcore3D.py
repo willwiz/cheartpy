@@ -147,5 +147,5 @@ def mid_squish_transform(x: Arr[int, f64]):
     return x * (2.0 + x * (2.0 * x - 3.0))
 
 
-def linear_transform(x: Arr[int, f64]):
-    return x * (2.0 + x * (2.0 * x - 3.0))
+def mid_squish_transform_4(x: Arr[int, f64]):
+    return 0.5 * x * (5.0 - 9.0 * x + 6.0 * x * x)
