@@ -3,7 +3,12 @@
 import os
 import argparse
 from argparse import RawTextHelpFormatter
-from cheartpy.io.cheartio import CHRead_d_utf, CHRead_header_utf, CHRead_t_utf
+from cheartpy.io.cheartio import (
+    CHRead_d,
+    CHRead_header_utf,
+    CHRead_t_utf,
+    CHWrite_d_utf,
+)
 import numpy as np
 from numpy import zeros, array, full
 from math import floor
@@ -78,29 +83,6 @@ def read_arr_int(file):
     return array(arr)
 
 
-def read_Darr(file):
-    with open(file, "r") as f:
-        line = f.readline().strip()
-        items = line.split()
-        nnodes = int(items[0])
-        dim = int(items[1])
-        x_arr = zeros((nnodes, dim))
-        for i in range(nnodes):
-            items = f.readline().strip().split()
-            x_arr[i] = [float(m) for m in items]
-    return array(x_arr)
-
-
-def write_Darr(fout, arr) -> None:
-    with open(fout, "w") as f:
-        nnodes, dim = arr.shape
-        f.write("{:12d}{:12d}\n".format(nnodes, dim))
-        for vec in arr:
-            for x in vec:
-                f.write("{:>26.16E}".format(x))
-            f.write("\n")
-
-
 def write_array_int(file, data):
     with open(file, "w") as outfile:
         for i in data:
@@ -124,13 +106,12 @@ def edit_val(arr: np.ndarray, ind: int, val: List[int]) -> None:
 
 
 def gen_map(
-    lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable = None
+    lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None
 ) -> np.ndarray:
+    i = j = -1
     rows_lin, _ = lin.shape
     rows_quad, _ = quad.shape
-    try:
-        rows_lin == rows_quad
-    except:
+    if rows_lin == rows_quad:
         ValueError("Topologies do not have the same number of elements")
     top_map = full((quad_n, 2), -2, dtype=int)
     try:
@@ -208,28 +189,32 @@ def map_vals(args):
         fout = args.prefix
 
     if args.index == None:
-        lindata = CHRead_d_utf(args.name[1])
+        lindata = CHRead_d(args.name[1])
         quadata = lin_to_quad_arr(l2q_map, lindata)
         print(fout)
-        write_Darr(fout, quadata)
+        CHWrite_d_utf(fout, quadata)
     else:
         bar = progress_bar(
-            f"Interpolating {args.name[1]}:",
+            f"{args.name[1]}:",
             max=floor((args.index[1] - args.index[0]) / args.index[2]) + 1,
         )
         for i in range(args.index[0], args.index[1] + args.index[2], args.index[2]):
             fin = args.name[1] + f"-{i}.D"
             name = fout + f"-{i}.D"
-            lindata = CHRead_d_utf(fin)
+            lindata = CHRead_d(fin)
             quadata = lin_to_quad_arr(l2q_map, lindata)
-            write_Darr(name, quadata)
+            CHWrite_d_utf(name, quadata)
             bar.next()
     print("<<<  Job Complete!")
 
 
-if __name__ == "__main__":
-    args = parser.parse_args()
+def main_cli(args: argparse.Namespace):
     if args.make_map is not None:
         make_map(args)
     else:
         map_vals(args)
+
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    main_cli(args)

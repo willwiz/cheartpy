@@ -7,8 +7,28 @@ CHeart Read Array functions
 """
 
 
+def is_binary(filename):
+    try:
+        # or codecs.open on Python <= 2.5
+        # or io.open on Python > 2.5 and <= 2.7
+        with open(filename) as f:
+            line = f.readline().strip().split()
+            _ = [int(i) for i in line]
+        return False
+    except:
+        try:
+            # or codecs.open on Python <= 2.5
+            # or io.open on Python > 2.5 and <= 2.7
+            with open(filename) as f:
+                line = f.readline().strip().split()
+                _ = [float(i) for i in line]
+            return False
+        except:
+            return True
+
+
 def CHRead_d_utf(file: str) -> Arr[tuple[int, int], f64]:
-    return np.loadtxt(file, skiprows=1, dtype=float)
+    return np.loadtxt(file, skiprows=1, dtype=float, ndmin=2)
 
 
 def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
@@ -27,8 +47,14 @@ def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
     return arr
 
 
+def CHRead_d(file: str) -> Arr[tuple[int, int], f64]:
+    if is_binary(file):
+        return CHRead_d_bin(file)
+    return CHRead_d_utf(file)
+
+
 def CHRead_t_utf(file: str) -> Arr[tuple[int, int], i32]:
-    return np.loadtxt(file, skiprows=1, dtype=int)
+    return np.loadtxt(file, skiprows=1, dtype=int, ndmin=2)
 
 
 def CHRead_header_utf(file: str) -> tuple[int, int]:
@@ -40,7 +66,7 @@ def CHRead_header_utf(file: str) -> tuple[int, int]:
 
 
 def CHRead_b_utf(file: str) -> Arr[tuple[int, int], i32]:
-    return np.loadtxt(file, skiprows=1, dtype=int)
+    return np.loadtxt(file, skiprows=1, dtype=int, ndmin=2)
 
 
 """

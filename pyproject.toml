@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -26,3 +26,4 @@ cpyexec = "cheartpy.cpyexecute:main_cli"
 cheart2vtu = "cheartpy.cheart2vtu:main_cli"
 makemesh = "cheartpy.makemesh:main_cli"
 abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"
+interpDfiles = "cheartpy.interpDfiles:main_cli"

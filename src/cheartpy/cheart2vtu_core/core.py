@@ -3,7 +3,7 @@ import meshio
 import numpy as np
 from concurrent import futures
 from cheartpy.types import i32, f64, Arr
-from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin, CHRead_b_utf
+from cheartpy.io.cheartio import CHRead_d, CHRead_d_utf, CHRead_d_bin, CHRead_b_utf
 from cheartpy.xmlwriter.xmlclasses import XMLElement, XMLWriters
 from cheartpy.cheart2vtu_core.print_headers import print_input_info
 from cheartpy.cheart2vtu_core.main_parser import get_cmdline_args
@@ -239,10 +239,11 @@ def import_mesh_data(args: InputArguments, binary: bool = False):
     fx = get_space_data(args.space, args.disp)
     variables: dict[str, Arr[tuple[int, int], f64]] = dict()
     for s, v in args.var.items():
-        if binary:
-            fv = CHRead_d_bin(v)
-        else:
-            fv = CHRead_d_utf(v)
+        # if binary:
+        #     fv = CHRead_d_bin(v)
+        # else:
+        #     fv = CHRead_d_utf(v)
+        fv = CHRead_d(v)
         if fv.ndim == 1:
             fv = fv[:, np.newaxis]
         if fx.shape[0] != fv.shape[0]:
