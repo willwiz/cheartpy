@@ -18,7 +18,7 @@ classifiers = [
     "Development Status :: 0 - Alpha",
 ]
 dependencies = [
-  "numpy", "meshio"
+  "numpy", "meshio", "scipy"
 ]
 
 [project.scripts]

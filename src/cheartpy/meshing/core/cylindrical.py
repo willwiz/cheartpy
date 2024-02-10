@@ -21,13 +21,9 @@ def rotate_axis(g: MeshCheart, orientation: RotationOption) -> MeshCheart:
     if orientation is RotationOption.z:
         return g
     elif orientation is RotationOption.x:
-        mat = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]]) @ np.array(
-            [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]
-        )
+        mat = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]]) @ np.array([[0, 0, 1], [0, 1, 0], [-1, 0, 0]])
     elif orientation is RotationOption.y:
-        mat = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]) @ np.array(
-            [[1, 0, 0], [0, 0, 1], [0, -1, 0]]
-        )
+        mat = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]) @ np.array([[1, 0, 0], [0, 0, 1], [0, -1, 0]])
     g.space.v = g.space.v @ mat.T
     return g
 
@@ -97,17 +93,11 @@ def generate_new_surface_nodes(surf: Arr[int, i32]) -> list[frozenset[int]]:
     ]
 
 
-def get_mid_point(
-    nodes: Arr[tuple[int, int], f64], node_pts: frozenset[int]
-) -> Arr[int, f64]:
+def get_mid_point(nodes: Arr[tuple[int, int], f64], node_pts: frozenset[int]) -> Arr[int, f64]:
     node_pos = nodes[list(node_pts)]
-    theta = np.remainder(node_pos[:, 1] - np.min(node_pos[:, 1]), 2 * np.pi) + np.min(
-        node_pos[:, 1]
-    )
+    theta = np.remainder(node_pos[:, 1] - np.min(node_pos[:, 1]), 2 * np.pi) + np.min(node_pos[:, 1])
     r = np.mean(node_pos[:, 0])
-    q = np.remainder(
-        np.arctan2(np.mean(np.sin(theta)), np.mean(np.cos(theta))), 2 * np.pi
-    )
+    q = np.remainder(np.arctan2(np.mean(np.sin(theta)), np.mean(np.cos(theta))), 2 * np.pi)
     z = np.mean(node_pos[:, 2])
     # print(f"{np.isclose(q, np.mean(theta))}, {np.mean(theta)}, {q=}")
     upper_side = theta > q
@@ -117,9 +107,7 @@ def get_mid_point(
     wrapping = dq < np.pi
     dq = wrapping * dq + (not wrapping) * (2 * np.pi - dq)
     # print(f"{dq=}")
-    return np.array(
-        [r * (3.0 + np.cos(dq)) / (4.0 * np.cos(0.5 * dq)), q, z], dtype=float
-    )
+    return np.array([r * (3.0 + np.cos(dq)) / (4.0 * np.cos(0.5 * dq)), q, z], dtype=float)
 
 
 def cylindrical_to_cartesian(g: MeshCheart) -> MeshCheart:

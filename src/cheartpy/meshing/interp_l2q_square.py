@@ -94,13 +94,11 @@ def edit_val(arr: np.ndarray, ind: int, val: List[int]) -> None:
     else:
         print(f"index {ind} has value {arr[ind]} which does not match {val}")
         raise LookupError(
-            ">>>ERROR: tried to insert index for map which does match input from prior elements"
+            ">>>ERROR: tried to insert index for map which does match input from prior elements. Is the element type correct?"
         )
 
 
-def gen_map(
-    lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None
-) -> np.ndarray:
+def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None) -> np.ndarray:
     rows_lin, _ = lin.shape
     rows_quad, _ = quad.shape
     if rows_lin != rows_quad:
@@ -152,13 +150,9 @@ def gen_map(
     return top_map
 
 
-def get_qual_val(
-    map: Arr[int, i32], arr: Arr[tuple[int, int], f64]
-) -> float | Arr[int, f64]:
+def get_qual_val(map: Arr[int, i32], arr: Arr[tuple[int, int], f64]) -> float | Arr[int, f64]:
     if map[0] < 1 or map[0] > 4:
-        raise AssertionError(
-            f"<<<ERROR: Nodal value must be the average of 1, 2, or 4 other nodes, not {map[0]}"
-        )
+        raise AssertionError(f"<<<ERROR: Nodal value must be the average of 1, 2, or 4 other nodes, not {map[0]}")
     kind: int = map[0] + 1
     return arr[map[1:kind]].sum() / map[0]
 

@@ -46,9 +46,7 @@ def check_args(nsp: argparse.Namespace) -> InputArgs:
 
 
 # These function compares two values and see if they are numerically equal given some numerical error from summing n floats
-def float_equals(
-    A: float, B: float, n: int, tol: float = 10.0
-) -> Literal[True] | tuple[Literal[False], float]:
+def float_equals(A: float, B: float, n: int, tol: float = 10.0) -> Literal[True] | tuple[Literal[False], float]:
     trial: float = max(abs(A - np.full(n, A / n).sum()), np.finfo(float).eps)
     diff = abs(A - B)
     test = max(abs(A), abs(B))
@@ -87,9 +85,7 @@ def find_parameter2(inp: InputArgs) -> float:
         z = y - inp.tend
         return log(z * z)
 
-    optres = minimize(
-        obf, np.array([1.0]), bounds=Bounds(0.9, 1.01), method="TNC", tol=1e-14
-    )
+    optres = minimize(obf, np.array([1.0]), bounds=Bounds(0.9, 1.1), method="TNC", tol=1e-14)
     return optres.x[0]
 
 
@@ -103,15 +99,9 @@ def create_dt(par: float, inp: InputArgs):
     dt0 = np.full(inp.n0, dt)
     dt1 = dt * mult_accumulate(inp.n1, par)
     dt2 = np.full(inp.n2, dt1[-1])
-    print(
-        f"The part 1 has {dt0.size} steps with size {dt0[0]} and {dt0.sum()} time elapsed"
-    )
-    print(
-        f"The part 2 has {dt1.size} steps with multiplier {par} and {dt1.sum()} time elapsed"
-    )
-    print(
-        f"The part 3 has {dt2.size} steps with size {dt2[0]} and {dt2.sum()} time elapsed"
-    )
+    print(f"The part 1 has {dt0.size} steps with size {dt0[0]} and {dt0.sum()} time elapsed")
+    print(f"The part 2 has {dt1.size} steps with multiplier {par} and {dt1.sum()} time elapsed")
+    print(f"The part 3 has {dt2.size} steps with size {dt2[0]} and {dt2.sum()} time elapsed")
     return np.concatenate((dt0, dt1, dt2))
 
 

@@ -22,9 +22,7 @@ import argparse
 
 
 parser = argparse.ArgumentParser("mesh", description="Make a cube")
-parser.add_argument(
-    "--prefix", "-p", type=str, default="cube", help="Prefix for saved file."
-)
+parser.add_argument("--prefix", "-p", type=str, default="cube", help="Prefix for saved file.")
 parser.add_argument(
     "--axis",
     "-a",
@@ -51,18 +49,14 @@ def gen_end_node_mapping(g: MeshCheart) -> dict[int, int]:
     return map
 
 
-def gen_cylindrical_positions(
-    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
-) -> MeshCheart:
+def gen_cylindrical_positions(g: MeshCheart, r_in: float, r_out: float, length: float, base: float) -> MeshCheart:
     g.space.v[:, 0] = (r_out - r_in) * (g.space.v[:, 0] ** 0.707) + r_in
     g.space.v[:, 1] = 2.0 * np.pi * g.space.v[:, 1]
     g.space.v[:, 2] = length * g.space.v[:, 2] + base
     return g
 
 
-def wrap_around_y(
-    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
-) -> MeshCheart:
+def wrap_around_y(g: MeshCheart, r_in: float, r_out: float, length: float, base: float) -> MeshCheart:
     map = gen_end_node_mapping(g)
     for i, row in enumerate(g.top.v):
         for j, v in enumerate(row):
@@ -87,9 +81,7 @@ def wrap_around_y(
     return g
 
 
-def create_cylinder_geometry(
-    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
-) -> MeshCheart:
+def create_cylinder_geometry(g: MeshCheart, r_in: float, r_out: float, length: float, base: float) -> MeshCheart:
     g = wrap_around_y(g, r_in, r_out, length, base)
     g = renormalized_mesh(g)
     return g

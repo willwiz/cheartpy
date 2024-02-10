@@ -28,21 +28,15 @@ def get_int_from_string_template(template: str, s: str) -> tuple[int, int]:
     elif len(res) == 2:
         return (int(res[0]), int(res[1]))
     else:
-        raise ValueError(
-            f"Applying template {template}, but index cannot be recognized as int or int.int"
-        )
+        raise ValueError(f"Applying template {template}, but index cannot be recognized as int or int.int")
 
 
-def get_index_from_filenames(
-    folder: str, var: str, allow_subindex: bool = False
-) -> Arr[tuple[int, int], i32]:
+def get_index_from_filenames(folder: str, var: str, allow_subindex: bool = False) -> Arr[tuple[int, int], i32]:
     files = glob(os.path.join(folder, f"{var}-*.D"))
     if not files:
         files = glob(os.path.join(folder, f"{var}-*.D.gz"))
     res = np.array(
-        sorted(
-            [get_int_from_string_template(rf"{var}-(.+?).(D|D.gz)", s) for s in files]
-        ),
+        sorted([get_int_from_string_template(rf"{var}-(.+?).(D|D.gz)", s) for s in files]),
         dtype=int,
     )
     if res.size == 0:
@@ -54,16 +48,12 @@ def get_index_from_filenames(
     return res
 
 
-def check_arrays_for_equality(
-    array_list: list[Arr[tuple[int, int], i32]]
-) -> Arr[tuple[int, int], i32]:
+def check_arrays_for_equality(array_list: list[Arr[tuple[int, int], i32]]) -> Arr[tuple[int, int], i32]:
     if len(array_list) == 1:
         return array_list[0]
     for i in range(1, len(array_list)):
         if not np.array_equal(array_list[0], array_list[i]):
-            print(
-                ">>>WARNING: Not all variables have the same index, find method cannot be used"
-            )
+            print(">>>WARNING: Not all variables have the same index, find method cannot be used")
     return max(array_list, key=len)
 
 
@@ -71,9 +61,7 @@ def find_index_from_filenames(
     folder: str, vars: list[str], step: int | None = None, allow_subindex: bool = False
 ) -> Arr[tuple[int, int], i32]:
     if vars:
-        index_from_vars = [
-            get_index_from_filenames(folder, v, allow_subindex) for v in vars
-        ]
+        index_from_vars = [get_index_from_filenames(folder, v, allow_subindex) for v in vars]
         index = check_arrays_for_equality(index_from_vars)
     else:
         index = np.zeros((0, 2), dtype=np.int32)
@@ -106,9 +94,7 @@ class DFileAutoFinder:
             yield i
 
 
-def check_variable_exist_by_index(
-    folder: str, var: list[str], i0: int, it: int, di: int
-):
+def check_variable_exist_by_index(folder: str, var: list[str], i0: int, it: int, di: int):
     for i in range(i0, it, di):
         for v in var:
             if not os.path.isfile(os.path.join(folder, f"{v}-{i}.D")):
@@ -122,9 +108,7 @@ class DFileIndex:
     di: Final[int]
     size: Final[int]
 
-    def __init__(
-        self, folder: str, var: list[str], index: tuple[int, int, int]
-    ) -> None:
+    def __init__(self, folder: str, var: list[str], index: tuple[int, int, int]) -> None:
         self.i0 = index[0]
         self.it = index[1]
         self.di = index[2]
@@ -146,9 +130,7 @@ def check_variable_exist_by_subindex(
         for j in range(s0, st, ds):
             for v in var:
                 if not os.path.isfile(os.path.join(folder, f"{v}-{i}.{j}.D")):
-                    print(
-                        f">>>WARNING: variable {v} cannot be found with index {i} and subindex {j}"
-                    )
+                    print(f">>>WARNING: variable {v} cannot be found with index {i} and subindex {j}")
 
 
 class DFileSubIndex:
@@ -184,9 +166,7 @@ class DFileSubIndex:
             self.st,
             self.ds,
         )
-        self.size = len(range(self.i0, self.it, self.di)) * len(
-            range(self.s0, self.st, self.ds)
-        )
+        self.size = len(range(self.i0, self.it, self.di)) * len(range(self.s0, self.st, self.ds))
 
     def get_generator(self) -> Generator[str, None, None]:
         for i in range(self.i0, self.it, self.di):
@@ -195,9 +175,7 @@ class DFileSubIndex:
                 yield f"{i}.{j}"
 
 
-def check_variable_exist_by_autosubindex(
-    folder: str, var: list[str], i0: int, it: int, di: int
-):
+def check_variable_exist_by_autosubindex(folder: str, var: list[str], i0: int, it: int, di: int):
     if not var:
         return
     variable_subindex_list = defaultdict(lambda: 0)
@@ -230,9 +208,7 @@ class DFileAutoSubIndex:
     folder: Final[str]
     var: Final[str | None]
 
-    def __init__(
-        self, folder: str, var: list[str], index: tuple[int, int, int]
-    ) -> None:
+    def __init__(self, folder: str, var: list[str], index: tuple[int, int, int]) -> None:
         self.i0 = index[0]
         self.it = index[1]
         self.di = index[2]
@@ -254,9 +230,7 @@ class DFileAutoSubIndex:
                     raise ValueError("Impossible Error, please report!")
 
 
-IndexerList = (
-    DFileNoVariable | DFileAutoFinder | DFileIndex | DFileSubIndex | DFileAutoSubIndex
-)
+IndexerList = DFileNoVariable | DFileAutoFinder | DFileIndex | DFileSubIndex | DFileAutoSubIndex
 
 
 def get_file_name_indexer(
@@ -268,34 +242,33 @@ def get_file_name_indexer(
     if not args.var:
         print("<<< Variables not given. Exporting mesh only.")
         return (ProgramMode.none, DFileNoVariable())
-    match [args.index, args.sub_auto, args.sub_index]:
-        case [None, _, None] if args.cmd == "find":
+    index = args.index
+    sub_auto = args.sub_auto
+    sub_index = args.sub_index
+    match index, sub_auto, sub_index:
+        case None, _, None if args.cmd == "find":
             print("<<< Acquring DFileAutoFinder")
             return (
                 ProgramMode.searchsubindex if args.sub_index else ProgramMode.search,
                 DFileAutoFinder(args.input_folder, args.var, args.step, args.sub_auto),
             )
-        case [(int(), int(), int()), False, None]:
+        case (int(), int(), int()), False, None:
             print("<<< Acquring DFileIndex")
             return (
                 ProgramMode.range,
-                DFileIndex(args.input_folder, args.var, args.index),  # type: ignore : match case type narrowing
+                DFileIndex(args.input_folder, args.var, index),
             )
-        case [(int(), int(), int()), True, None]:
+        case (int(), int(), int()), True, None:
             print("<<< Acquring DFileAutoSubIndex")
             return (
                 ProgramMode.subauto,
-                DFileAutoSubIndex(args.input_folder, args.var, args.index),  # type: ignore : match case type narrowing
+                DFileAutoSubIndex(args.input_folder, args.var, index),
             )
-        case [
-            (int(), int(), int()),
-            False,
-            (int(), int(), int()),
-        ]:
+        case (int(), int(), int()), False, (int(), int(), int()):
             print("<<< Acquring DFileSubIndex")
             return (
                 ProgramMode.subindex,
-                DFileSubIndex(args.input_folder, args.var, args.index, args.sub_index),  # type: ignore : match case type narrowing
+                DFileSubIndex(args.input_folder, args.var, index, sub_index),
             )
         case _:
             raise ValueError(

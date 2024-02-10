@@ -100,14 +100,10 @@ def edit_val(arr: np.ndarray, ind: int, val: List[int]) -> None:
         pass
     else:
         print(f"index {ind} has value {arr[ind]} which does not match {val}")
-        raise LookupError(
-            ">>>ERROR: tried to insert index for map which does match input from prior elements"
-        )
+        raise LookupError(">>>ERROR: tried to insert index for map which does match input from prior elements")
 
 
-def gen_map(
-    lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None
-) -> np.ndarray:
+def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None) -> np.ndarray:
     i = j = -1
     rows_lin, _ = lin.shape
     rows_quad, _ = quad.shape
@@ -118,24 +114,12 @@ def gen_map(
         for i in range(rows_quad):
             for j in range(4):
                 edit_val(top_map, quad[i, j], [-1, lin[i, j]])
-            edit_val(
-                top_map, quad[i, 4], [top_map[quad[i, 0], 1], top_map[quad[i, 1], 1]]
-            )
-            edit_val(
-                top_map, quad[i, 5], [top_map[quad[i, 0], 1], top_map[quad[i, 2], 1]]
-            )
-            edit_val(
-                top_map, quad[i, 6], [top_map[quad[i, 1], 1], top_map[quad[i, 2], 1]]
-            )
-            edit_val(
-                top_map, quad[i, 7], [top_map[quad[i, 0], 1], top_map[quad[i, 3], 1]]
-            )
-            edit_val(
-                top_map, quad[i, 8], [top_map[quad[i, 1], 1], top_map[quad[i, 3], 1]]
-            )
-            edit_val(
-                top_map, quad[i, 9], [top_map[quad[i, 2], 1], top_map[quad[i, 3], 1]]
-            )
+            edit_val(top_map, quad[i, 4], [top_map[quad[i, 0], 1], top_map[quad[i, 1], 1]])
+            edit_val(top_map, quad[i, 5], [top_map[quad[i, 0], 1], top_map[quad[i, 2], 1]])
+            edit_val(top_map, quad[i, 6], [top_map[quad[i, 1], 1], top_map[quad[i, 2], 1]])
+            edit_val(top_map, quad[i, 7], [top_map[quad[i, 0], 1], top_map[quad[i, 3], 1]])
+            edit_val(top_map, quad[i, 8], [top_map[quad[i, 1], 1], top_map[quad[i, 3], 1]])
+            edit_val(top_map, quad[i, 9], [top_map[quad[i, 2], 1], top_map[quad[i, 3], 1]])
             if update is not None:
                 update()
     except LookupError as e:

@@ -40,9 +40,7 @@ def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
             for j in range(dim):
                 bite = f.read(8)
                 if not bite:
-                    raise BufferError(
-                        "Binary buffer being read ran out before indicated range"
-                    )
+                    raise BufferError("Binary buffer being read ran out before indicated range")
                 arr[i, j] = struct.unpack("d", bite)[0]
     return arr
 
@@ -54,7 +52,7 @@ def CHRead_d(file: str) -> Arr[tuple[int, int], f64]:
 
 
 def CHRead_t_utf(file: str) -> Arr[tuple[int, int], i32]:
-    return np.loadtxt(file, skiprows=1, dtype=int, ndmin=2)
+    return np.loadtxt(file, skiprows=1, dtype=np.int32, ndmin=2)
 
 
 def CHRead_header_utf(file: str) -> tuple[int, int]:
