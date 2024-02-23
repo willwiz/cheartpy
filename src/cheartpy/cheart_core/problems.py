@@ -1,7 +1,9 @@
+import abc
 from dataclasses import dataclass, field
 from typing import Union, Literal
 from .pytools import VoS
-from .basetypes import *
+from cheartpy.cheart_core.pytools import VoS
+from cheartpy.cheart_core.base_types import *
 
 
 @dataclass
@@ -17,15 +19,15 @@ class BCPatch:
         "consistent",
     ]
     value: Union[Expression, str, int]
-    options: List[Union[str, int, float]] = field(default_factory=list)
+    options: list[Union[str, int, float]] = field(default_factory=list)
 
     def string(self):
-        return f'    {self.id}  {VoS(self.component)}  {self.type}  {VoS(self.value)}  {"  ".join(self.options)}\n'
+        return f'    {self.id}  {VoS(self.component)}  {self.type}  {VoS(self.value)}  {"  ".join([str(v) for v in self.options])}\n'
 
 
 @dataclass
 class BoundaryCondition:
-    patches: Optional[List[BCPatch]] = None
+    patches: list[BCPatch] | None = None
 
     def AddPatch(self, *patch: BCPatch):
         if self.patches is None:
@@ -34,8 +36,17 @@ class BoundaryCondition:
             self.patches.append(p)
 
     def DefPatch(
-        self, id: Union[int, str], component: str, type: str, val: Union[str, int]
+        self, id: Union[int, str], component: str, type: Literal[
+            "dirichlet",
+            "neumann",
+            "neumann_ref",
+            "neumann_nl",
+            "stabilized_neumann",
+            "consistent",
+        ], val: Union[str, int]
     ):
+        if self.patches is None:
+            self.patches = list()
         self.patches.append(BCPatch(id, component, type, val))
 
     def write(self, f: TextIO):
@@ -49,16 +60,24 @@ class BoundaryCondition:
 
 
 # Matlaws -----------------------------------------------------------------------------
-class Law:
-    name: str
-    aux_vars: Dict[str, Variable]
+class Law(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def name(self) -> str: ...
+
+    @property
+    @abc.abstractmethod
+    def aux_vars(self) -> dict[str, Variable]: ...
+
+    @abc.abstractmethod
+    def string(self) -> None: ...
 
 
 @dataclass
 class Matlaw(Law):
     name: str
-    parameters: List[float]
-    aux_vars: Dict[str, Variable] = field(default_factory=dict)
+    parameters: list[float]
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
 
     def string(self):
         return (
@@ -72,20 +91,20 @@ class FractionalVE(Law):
     alpha: float
     np: int
     Tf: float
-    store: Union[Variable, str]
-    Tscale: Optional[float] = 10.0
+    store: Variable
+    Tscale: float | None = 10.0
     name: str = "fractional-ve"
     InitPK2: Union[bool, int] = True
     ZeroPK2: bool = True
     Order: Literal[1, 2] = 2
-    laws: List[Matlaw] = field(default_factory=list)
-    aux_vars: Dict[str, Variable] = field(default_factory=dict)
+    laws: list[Matlaw] = field(default_factory=list)
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
 
     def __post_init__(self):
         self.aux_vars[self.store.name] = self.store
 
-    def AddLaw(self, *law: Type[Law]):
-        for v in law:
+    def AddLaw(self, *laws: Matlaw):
+        for v in laws:
             self.laws.append(v)
             for k, x in v.aux_vars.items():
                 self.aux_vars[k] = x
@@ -94,7 +113,8 @@ class FractionalVE(Law):
         l = (
             f"  !ConstitutiveLaw={{{self.name}}}\n"
             f"    {VoS(self.store)}\n"
-            f'    {self.alpha}  {self.np}  {self.Tf}  {"" if self.Tscale is None else self.Tscale}\n'
+            f'    {self.alpha}  {self.np}  {self.Tf}  {
+                "" if self.Tscale is None else self.Tscale}\n'
         )
         if self.InitPK2:
             l = (
@@ -106,7 +126,8 @@ class FractionalVE(Law):
         if self.Order != 2:
             l = l + f"    Order 1\n"
         for v in self.laws:
-            l = l + f'    {v.name}  [{" ".join([str(i) for i in v.parameters])}]\n'
+            l = l + \
+                f'    {v.name}  [{" ".join([str(i) for i in v.parameters])}]\n'
         return l
 
 
@@ -116,19 +137,19 @@ class FractionalDiffEQ(Law):
     delta: float
     np: int
     Tf: float
-    store: Union[Variable, str]
-    Tscale: Optional[float] = 10.0
+    store: Variable
+    Tscale: float | None = 10.0
     name: str = "fractional-diffeq"
     InitPK2: Union[bool, int] = False
     ZeroPK2: bool = False
     Order: Literal[1, 2] = 2
-    laws: List[Matlaw] = field(default_factory=list)
-    aux_vars: Dict[str, Variable] = field(default_factory=dict)
+    laws: list[Matlaw | FractionalVE] = field(default_factory=list)
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
 
     def __post_init__(self):
         self.aux_vars[self.store.name] = self.store
 
-    def AddLaw(self, *law: Type[Law]):
+    def AddLaw(self, *law: Matlaw | FractionalVE):
         for v in law:
             self.laws.append(v)
             for k, x in v.aux_vars.items():
@@ -138,7 +159,8 @@ class FractionalDiffEQ(Law):
         l = (
             f"  !ConstitutiveLaw={{{self.name}}}\n"
             f"    {VoS(self.store)}\n"
-            f'    {self.alpha}  {self.np}  {self.Tf}  {self.delta}  {"" if self.Tscale is None else self.Tscale}\n'
+            f'    {self.alpha}  {self.np}  {self.Tf}  {self.delta}  {
+                "" if self.Tscale is None else self.Tscale}\n'
         )
         if self.InitPK2:
             l = (
@@ -178,10 +200,10 @@ class FractionalDiffEQ(Law):
 class Problem:
     name: str
     problem: str
-    vars: Dict[str, Variable] = field(default_factory=dict)
-    aux_vars: Dict[str, Variable] = field(default_factory=dict)
-    options: Dict[str, List[str]] = field(default_factory=dict)
-    flags: List[str] = field(default_factory=list)
+    vars: dict[str, Variable] = field(default_factory=dict)
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
+    options: dict[str, list[str]] = field(default_factory=dict)
+    flags: list[str] = field(default_factory=list)
     BC: BoundaryCondition = field(default_factory=BoundaryCondition)
 
     def UseVariable(self, req: str, var: Variable) -> None:
@@ -206,7 +228,7 @@ class Problem:
 @dataclass
 class SolidProblem(Problem):
     problem: str = "quasi_static_elasticity"
-    matlaws: List[Matlaw] = field(default_factory=list)
+    matlaws: list[Matlaw] = field(default_factory=list)
 
     def AddMatlaw(self, *law: Matlaw):
         for v in law:

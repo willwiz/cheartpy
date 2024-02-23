@@ -1,13 +1,21 @@
 #!/usr/bin/env python3
 
 
+from typing import Any, Type
+import enum
+
+
 def VoS(x):
     return str(x) if isinstance(x, (str, int, float)) else x.name
 
 
+def join_fields(*terms: Any, char: str = "|") -> str:
+    vals = [str(v) for v in terms if v is not None]
+    return f"{{{char.join(vals)}}}"
+
+
 def hline(s: str):
-    s = s + "  "
-    return f"% ----  {s:-<82}\n"
+    return f"% ----  {s + "  ":-<82}\n"
 
 
 def cline(s: str):
@@ -45,3 +53,9 @@ class MissingArgument(Exception):
     def __init__(self, message="Missing arguments"):
         self.message = message
         super().__init__(self.message)
+
+
+def get_enum[T:enum.Enum](v: str | T, e: Type[T]) -> T:
+    if not isinstance(v, e):
+        return e[v]
+    return v

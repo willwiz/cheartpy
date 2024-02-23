@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import enum
-import os, sys
+import os
+import sys
 from collections import defaultdict
 import argparse
 from argparse import RawTextHelpFormatter
@@ -265,7 +266,8 @@ class BoundaryPatch:
             )
         else:
             raise TypeError(
-                f"unsupported operand type(s) for +: {self.__class__} and {type(other)}"
+                f"unsupported operand type(s) for +: {self.__class__} and {
+                    type(other)}"
             )
 
     def to_numpy(self):
@@ -292,7 +294,8 @@ def get_results_from_futures(func: Callable, args: list[Any], cores: int = 2):
         for a in args:
             future_jobs.append(exec.submit(func, *a))
         try:
-            res = [future.result() for future in futures.as_completed(future_jobs)]
+            res = [future.result()
+                   for future in futures.as_completed(future_jobs)]
         except:
             raise
     return res
@@ -322,7 +325,8 @@ def abaqus_importer(f: TextIO) -> tuple[AbaqusMeshNode, dict[str, AbaqusMeshElem
                         settype = i2
                 if setname is None or settype is None:
                     raise ImportError(
-                        f">>>ERROR: Elset {setname} or Type {settype} is not define for element set"
+                        f">>>ERROR: Elset {setname} or Type {
+                            settype} is not define for element set"
                     )
                 print(f"Creating element {setname} with type {settype}")
                 reader = AbaqusMeshElement(name=setname, kind=settype)
@@ -362,7 +366,8 @@ def build_elmap(
         dim = len(space.data)
         if not (dim == space.n):
             raise ValueError(
-                f">>>The dimensions of the data, {dim}, does not match {space.n}."
+                f">>>The dimensions of the data, {
+                    dim}, does not match {space.n}."
             )
         uniques = set(space.data.keys())
     else:
@@ -386,7 +391,8 @@ def import_space(
     arraydim = len(nodes.data)
     if not (arraydim == nodes.n):
         raise ValueError(
-            f">>>The dimensions of the data, {arraydim}, does not match {nodes.n}."
+            f">>>The dimensions of the data, {
+                arraydim}, does not match {nodes.n}."
         )
     space = MeshTypeSpace(0, np.zeros((len(elmap), dim), dtype=float))
     for k, v in elmap.items():
@@ -426,7 +432,8 @@ def find_elem_from_hashmap(map: dict[int, set[int]], nodes: list[int]) -> int:
         raise ValueError(f">>>ERROR: No element was found containing {nodes}")
     elif len(elements) > 1:
         print(
-            f">>>WARNNING: Multiple element {elements} was found containing {nodes}. First one taken."
+            f">>>WARNNING: Multiple element {
+                elements} was found containing {nodes}. First one taken."
         )
     return list(elements)[0]
 
@@ -448,7 +455,8 @@ def make_boundary(
         n = n + 1
     if n != len(data):
         print(
-            f">>>WARNING: Duplicate boundary patch from in {elem.name}, ignored",
+            f">>>WARNING: Duplicate boundary patch from in {
+                elem.name}, ignored",
             file=sys.stderr,
         )
         n = len(data)
@@ -487,7 +495,8 @@ def import_boundaries(
         args = [
             (elmap, topmap, elems[b], int(k)) for k, v in boundary.items() for b in v
         ]
-        bnds = get_results_from_futures(checked_make_boundary, args, cores=cores)
+        bnds = get_results_from_futures(
+            checked_make_boundary, args, cores=cores)
 
     boundaries = BoundaryPatch()
     for b in bnds:
@@ -510,7 +519,8 @@ def export_cheart_mesh(
     if g.space is not None:
         CHWrite_d_utf(inp.prefix + "_FE.X", g.space.data)
     if g.topology is not None and g.space is not None:
-        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data, g.topology.n, g.space.n)
+        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data,
+                      g.topology.n, g.space.n)
     if g.boundary is not None:
         CHWrite_iarr_utf(inp.prefix + "_FE.B", g.boundary.data)
     if inp.topology is None and inp.boundary is None:

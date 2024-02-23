@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, TextIO, Union, Type, overload
+from typing import TextIO, Type, overload
 from .aliases import *
 from .keywords import *
 from .pytools import *
@@ -53,12 +53,12 @@ PFile
 class SolverMatrix:
     name: str
     method: str
-    problem: list[Type[Problem]] = field(default_factory=list)
+    problem: dict[str, Problem] = field(default_factory=dict)
     settings: dict[str, Setting] = field(default_factory=dict)
     aux_vars: dict[str, Variable] = field(default_factory=dict)
 
     def __post_init__(self):
-        for p in self.problem:
+        for _, p in self.problem.items():
             for k, x in p.aux_vars.items():
                 self.aux_vars[k] = x
 
@@ -67,7 +67,8 @@ class SolverMatrix:
 
     def write(self, f: TextIO):
         f.write(
-            f'!DefSolverMatrix={{{self.name}|{self.method}|{"|".join([p.name for p in self.problem])}}}\n'
+            f'!DefSolverMatrix={{{self.name}|{self.method}|{
+                "|".join([p.name for p in self.problem.values()])}}}\n'
         )
         for k, v in self.settings.items():
             f.write(f" !SetSolverMatrix={{{self.name}|{v.string()}}}\n")
@@ -80,14 +81,14 @@ class SolverSubGroup:
     method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"] = field(
         default="seq_fp_linesearch"
     )
-    problems: List[Union[SolverMatrix, Type[Problem], str]] = field(
-        default_factory=list
+    problems: dict[str, SolverMatrix | Problem] = field(
+        default_factory=dict
     )
-    aux_vars: Dict[str, Union[str, Variable]] = field(default_factory=dict)
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
     scale_file_residual: bool = False
 
     def __post_init__(self):
-        for p in self.problems:
+        for p in self.problems.values():
             for k, x in p.aux_vars.items():
                 self.aux_vars[k] = x
 
@@ -96,17 +97,17 @@ class SolverSubGroup:
 class SolverGroup(object):
     name: str
     time: TimeScheme
-    SolverSubGroups: List[SolverSubGroup] = field(default_factory=list)
-    aux_vars: Dict[str, Union[str, Variable]] = field(default_factory=dict)
     export_initial_condition: bool = False
-    settings: Dict[str, Setting] = field(default_factory=dict)
+    SolverSubGroups: list[SolverSubGroup] = field(default_factory=list)
+    aux_vars: dict[str, Variable] = field(default_factory=dict)
+    settings: dict[str, Setting] = field(default_factory=dict)
     use_dynamic_topologies: bool | float = False
 
     # TOL
     def __post_init__(self):
-        for v in self.SolverSubGroups:
-            for k, x in v.aux_vars.items():
-                self.aux_vars[k] = x
+        for sg in self.SolverSubGroups:
+            for k, v in sg.aux_vars.items():
+                self.aux_vars[k] = v
 
     @overload
     def AddSetting(
@@ -170,9 +171,10 @@ class SolverGroup(object):
     def catch_solver_errors(
         self, err: Literal["nan_maxval"], act: Literal["evaluate_full"]
     ) -> None:
-        self.settings["CatchSolverErrors"] = Setting("CatchSolverErrors", [err, act])
+        self.settings["CatchSolverErrors"] = Setting(
+            "CatchSolverErrors", [err, act])
 
-    def AddVariable(self, *var: Union[str, Variable]):
+    def AddVariable(self, *var: Variable):
         for v in var:
             if isinstance(v, str):
                 self.aux_vars[v] = v
@@ -195,15 +197,16 @@ class SolverGroup(object):
 
     def RemoveSolverSubGroup(self, *sg: SolverSubGroup) -> None:
         for v in sg:
-            self.SolverSubGroups.remove(v.name)
+            self.SolverSubGroups.remove(v)
 
     def MakeSolverSubGroup(
         self,
         method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"],
-        *problems: Union[SolverMatrix, Type[Problem], str],
+        *problems: Union[SolverMatrix, Problem],
     ) -> None:
         self.SolverSubGroups.append(
-            SolverSubGroup(method=method, problems=list(problems))
+            SolverSubGroup(method=method,
+                           problems={p.name: p for p in problems})
         )
 
     # WRITE
@@ -217,49 +220,54 @@ class SolverGroup(object):
         for l in splicegen(45, vars):
             if l:
                 f.write(
-                    f'  !SetSolverGroup={{{self.name}|AddVariables|{"|".join(l)}}}\n'
+                    f'  !SetSolverGroup={{{
+                        self.name}|AddVariables|{"|".join(l)}}}\n'
                 )
         # Print export init setting
         if self.export_initial_condition:
-            f.write(f"  !SetSolverGroup={{{self.name}|export_initial_condition}}\n")
+            f.write(
+                f"  !SetSolverGroup={{{self.name}|export_initial_condition}}\n")
         # Print Conv Settings
         for _, s in self.settings.items():
             f.write(f"  !SetSolverGroup={{{self.name}|{s.string()}}}\n")
         if self.use_dynamic_topologies:
-            f.write(f"  !SetSolverGroup={{{self.name}|UsingDynamicTopologies}}\n")
+            f.write(
+                f"  !SetSolverGroup={{{self.name}|UsingDynamicTopologies}}\n")
         for g in self.SolverSubGroups:
             pobs = [VoS(p) for p in g.problems]
             if g.scale_file_residual:
                 f.write(
-                    f'!DefSolverSubGroup={{{self.name}|{g.method}|{"|".join(pobs)}|ScaleFirstResidual[{g.scale_file_residual}]}}\n'
+                    f'!DefSolverSubGroup={{{self.name}|{g.method}|{
+                        "|".join(pobs)}|ScaleFirstResidual[{g.scale_file_residual}]}}\n'
                 )
             else:
                 f.write(
-                    f'!DefSolverSubGroup={{{self.name}|{g.method}|{"|".join(pobs)}}}\n'
+                    f'!DefSolverSubGroup={{{self.name}|{
+                        g.method}|{"|".join(pobs)}}}\n'
                 )
 
 
-def hash_tops(tops: List[Topology] | List[str]) -> str:
+def hash_tops(tops: list[Topology] | list[str]) -> str:
     names = [VoS(t) for t in tops]
     return "_".join(names)
 
 
-@dataclass
+@dataclass(slots=True)
 class PFile(object):
     h: str = ""
-    output_path: Optional[str] = None
-    times: Dict[str, TimeScheme] = field(default_factory=dict)
-    solverGs: Dict[str, SolverGroup] = field(default_factory=dict)
-    matrices: Dict[str, SolverMatrix] = field(default_factory=dict)
-    problems: Dict[str, Type[Problem]] = field(default_factory=dict)
-    vars: Dict[str, Variable] = field(default_factory=dict)
-    toplogies: Dict[str, Topology] = field(default_factory=dict)
-    bases: Dict[str, Basis] = field(default_factory=dict)
-    dataPs: Dict[str, DataPointer] = field(default_factory=dict)
-    exprs: Dict[str, Expression] = field(default_factory=dict)
-    interfaces: Dict[str, TopInterface] = field(default_factory=dict)
+    output_path: str | None = None
+    times: dict[str, TimeScheme] = field(default_factory=dict)
+    solverGs: dict[str, SolverGroup] = field(default_factory=dict)
+    matrices: dict[str, SolverMatrix] = field(default_factory=dict)
+    problems: dict[str, Problem] = field(default_factory=dict)
+    variables: dict[str, Variable] = field(default_factory=dict)
+    toplogies: dict[str, Topology] = field(default_factory=dict)
+    bases: dict[str, CheartBasis] = field(default_factory=dict)
+    dataPs: dict[str, DataPointer] = field(default_factory=dict)
+    exprs: dict[str, Expression] = field(default_factory=dict)
+    interfaces: dict[str, TopInterface] = field(default_factory=dict)
 
-    # exportfrequencies: Dict[str, Set[Variable]] = field(default_factory=dict)
+    # exportfrequencies: dict[str, Set[Variable]] = field(default_factory=dict)
     def SetOutputPath(self, path):
         self.output_path = path
 
@@ -277,7 +285,7 @@ class PFile(object):
     def AddMatrix(self, *mat: SolverMatrix) -> None:
         for v in mat:
             self.matrices[v.name] = v
-            for p in v.problem:
+            for p in v.problem.values():
                 self.AddProblem(p)
 
     # Problem
@@ -296,15 +304,14 @@ class PFile(object):
 
     def AddVariable(self, *var: Variable) -> None:
         for v in var:
-            self.vars[v.name] = v
+            self.variables[v.name] = v
             # self.SetExportFrequency(v, freq=v.freq)
             self.AddTopology(v.topology)
-            for settings in v.setting:
-                for s in settings.value:
-                    if isinstance(s, Variable):
-                        self.AddVariable(s)
-                    elif isinstance(s, Expression):
-                        self.AddExpression(s)
+            for val in v.setting.values():
+                if isinstance(val, Variable):
+                    self.AddVariable(val)
+                elif isinstance(val, Expression):
+                    self.AddExpression(val)
 
     # Add Topology
     def AddTopology(self, *top: Topology) -> None:
@@ -313,9 +320,9 @@ class PFile(object):
             self.AddBasis(t.basis)
 
     # Add Basis
-    def AddBasis(self, *basis: Basis) -> None:
+    def AddBasis(self, *basis: CheartBasis | None) -> None:
         for b in basis:
-            if b != "none":
+            if b is not None:
                 self.bases[b.name] = b
 
     # Expression
@@ -336,15 +343,22 @@ class PFile(object):
     def AddInterface(
         self,
         method: Literal["OneToOne", "ManyToOne"],
-        topologies: List[Union[str, Topology]],
+        topologies: list[Topology],
     ) -> None:
         name = hash_tops(topologies)
         self.interfaces[name] = TopInterface(name, method, topologies)
 
     # Add Variables
+    @overload
+    def SetVariable(
+        self, name: str, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: Expression) -> None: ...
 
-    def SetVariable(self, name, task, val: Optional[Union[str, int]]) -> None:
-        self.vars[name].AddSetting(task, val)
+    @overload
+    def SetVariable(
+        self, name: str, task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"], val: str) -> None: ...
+
+    def SetVariable(self, name: str, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR", "TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"], val: str | Expression):
+        self.variables[name].AddSetting(task, val)
 
     # Add Data Pointers
     def AddDataPointer(self, *var: DataPointer) -> None:
@@ -352,7 +366,7 @@ class PFile(object):
             self.dataPs[v.name] = v
 
     # Set Export Frequency
-    def SetExportFrequency(self, *vars: Union[Variable, str], freq: int = 1):
+    def SetExportFrequency(self, *vars: Variable, freq: int = 1):
         for v in vars:
             v.freq = freq
             # else:
@@ -361,7 +375,7 @@ class PFile(object):
     def get_variable_frequency_list(self):
         # pprint.pprint(self.vars)
         exportfrequencies = dict()
-        for v in self.vars.values():
+        for v in self.variables.values():
             if str(v.freq) in exportfrequencies:
                 exportfrequencies[str(v.freq)].update({VoS(v)})
             else:
@@ -405,7 +419,7 @@ class PFile(object):
         for i in self.interfaces.values():
             i.write(f)
         f.write(hline("Variables"))
-        for v in self.vars.values():
+        for v in self.variables.values():
             v.write(f)
         for v in self.dataPs.values():
             v.write(f)
