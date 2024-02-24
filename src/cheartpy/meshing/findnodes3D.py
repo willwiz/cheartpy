@@ -6,7 +6,7 @@
 #     filein cons1 cons2 ... consn fileout
 
 import sys
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 
 # Get the precision for double below
 dbl_eps = 4.4408920985e-15
@@ -50,7 +50,7 @@ with open(filein, "r") as f:
     nodes_total = int(items[0])
     print("There are {} points in the X file".format(nodes_total))
     collect = []
-    bar = progress_bar("Importing data", max=nodes_total)
+    bar = ProgressBar("Importing data", max=nodes_total)
     try:
         for line in f:
             line = line.strip()
@@ -78,7 +78,7 @@ points = range(n_points)
 # Start eliminating the points based on the constraints in order
 for i in range(ncons):
     # Set up a work array
-    func = lambda x, y, z: eval(str(arg[i + 2]))
+    def func(x, y, z): return eval(str(arg[i + 2]))
     if isinstance(func(0.0, 0.0, 0.0), (bool)):
         points = [
             p for p in points if func(collect[p][0], collect[p][1], collect[p][2])

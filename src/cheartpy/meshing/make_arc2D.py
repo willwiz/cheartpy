@@ -20,11 +20,15 @@ parser.add_argument(
     help="OPTIONAL: whether to export the rectangular mesh on the master domain",
 )
 parser.add_argument("dq", help="the angle spanning the arc", type=float)
-parser.add_argument("q0", help="where the mesh starts counter clockwise", type=float)
-parser.add_argument("nq", help="how many elements along circumference", type=int)
-parser.add_argument("dr", help="the thickness of the hollow circle", type=float)
+parser.add_argument(
+    "q0", help="where the mesh starts counter clockwise", type=float)
+parser.add_argument(
+    "nq", help="how many elements along circumference", type=int)
+parser.add_argument(
+    "dr", help="the thickness of the hollow circle", type=float)
 parser.add_argument("r0", help="the inner radius", type=float)
-parser.add_argument("nr", help="how many elements are along the radius", type=int)
+parser.add_argument(
+    "nr", help="how many elements are along the radius", type=int)
 parser.add_argument(
     "prefix",
     help="prefix of the name of the file to export the meshes, _FE.X, _FE.T and _FE.B for be added to outputs",
@@ -165,7 +169,8 @@ def scaled_cyl_to_cart(p: np.ndarray, s: np.ndarray) -> np.ndarray:
 
 def create_cylinder(g: make_grid, args) -> None:
     g.pspace = scaled_cyl_to_cart(
-        g.space, np.array([2.0 * pi * args.dq, 2.0 * pi * args.q0, args.dr, args.r0])
+        g.space, np.array(
+            [2.0 * pi * args.dq, 2.0 * pi * args.q0, args.dr, args.r0])
     )
 
 

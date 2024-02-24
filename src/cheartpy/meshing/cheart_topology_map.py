@@ -6,7 +6,7 @@ from cheartpy.meshing.core.interpolation_core import (
 )
 from cheartpy.meshing.parsing.interpolation_parsing import map_parser
 from cheartpy.io.cheartio import CHRead_header_utf
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 import json
 import argparse
 
@@ -21,7 +21,8 @@ class MapInputArgs:
 
 def check_args_map(args: argparse.Namespace) -> MapInputArgs:
     if args.prefix is None:
-        prefix = (lambda x: "l2q.map" if x == "" else x + "_l2q.map")(string_head(args.lin, args.quad).rstrip(" .-_"))
+        prefix = (lambda x: "l2q.map" if x == "" else x +
+                  "_l2q.map")(string_head(args.lin, args.quad).rstrip(" .-_"))
     else:
         prefix = args.prefix
     return MapInputArgs(prefix, args.lin, args.quad, args.elem)
@@ -30,9 +31,10 @@ def check_args_map(args: argparse.Namespace) -> MapInputArgs:
 def make_map(lin: str, quad: str, kind: Literal["TET", "HEX", "SQUARE"] | None):
     ne, nn = CHRead_header_utf(quad)
     print(f"Generating Map from {lin} to {quad}:")
-    bar = progress_bar(">>Progress:", max=ne)
+    bar = ProgressBar(">>Progress:", max=ne)
     map = gen_map(lin, quad, kind, bar=bar.next)
-    assert len(map) == nn, f"Mismatch in the size of map {len(map)} and number of nodes in the header {nn}"
+    assert len(map) == nn, f"Mismatch in the size of map {
+        len(map)} and number of nodes in the header {nn}"
     return map
 
 

@@ -14,7 +14,7 @@ import numpy as np
 import sys
 import argparse
 import re
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 
 
 ################################################################################################
@@ -283,7 +283,7 @@ def main():
     check_args(args)
     print_cmd_header(args)
     files, times = get_files_and_times(args)
-    bar = progress_bar("Processing", max=len(files))
+    bar = ProgressBar("Processing", max=len(files))
     with open(os.path.join(args.dir, args.name), "w") as f:
         xml_write_header(f)
         for n, t in zip(files, times):

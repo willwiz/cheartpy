@@ -9,7 +9,7 @@ import os
 from typing import Callable
 import argparse
 from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 
 ################################################################################################
 # The argument parse
@@ -75,13 +75,13 @@ parser.add_argument(
 
 # These function compares two values and see if they are numerically equal
 def comp_val(f: Callable, v, tol=4.4408920985e-15, bar=None):
-    if isinstance(bar, progress_bar):
+    if isinstance(bar, ProgressBar):
         bar.next()
     return abs(f(*v)) < tol
 
 
 def comp_ieq(f: Callable, v, bar=None):
-    if isinstance(bar, progress_bar):
+    if isinstance(bar, ProgressBar):
         bar.next()
     return f(*v)
 
@@ -101,11 +101,11 @@ def main(args=None):
     nodes = list(range(n))
     for s in args.cons:
         if args.progress:
-            bart = progress_bar(f"Working on {s}:", max=len(mesh))
+            bart = ProgressBar(f"Working on {s}:", max=len(mesh))
         else:
             bart = None
         if dim == 2:
-            func = lambda x, y: eval(str(s))
+            def func(x, y): return eval(str(s))
             if isinstance(func(0.0, 0.0), (bool)):
                 type = True
             elif isinstance(func(0.0, 0.0), (int, float)):
@@ -115,10 +115,10 @@ def main(args=None):
                 print("Please make sure the inequalities are functions of x, y")
                 exit()
         elif dim == 3:
-            func = lambda x, y, z: eval(str(s))
-            if isinstance(func(0.0, 0.0, 0.0), (bool)):
+            def func3D(x, y, z): return eval(str(s))
+            if isinstance(func3D(0.0, 0.0, 0.0), (bool)):
                 type = True
-            elif isinstance(func(0.0, 0.0, 0.0), (int, float)):
+            elif isinstance(func3D(0.0, 0.0, 0.0), (int, float)):
                 type = False
             else:
                 print(f"The constraint {s} given cannot be evaluated!!!")
@@ -127,10 +127,10 @@ def main(args=None):
         else:
             raise ValueError("Only 2D and 3D problems supported.")
         if type:
-            nodes = [p for p in nodes if comp_ieq(func, mesh[p], bar=bart)]
+            nodes = [p for p in nodes if comp_ieq(func3D, mesh[p], bar=bart)]
         else:
             nodes = [
-                p for p in nodes if comp_val(func, mesh[p], tol=args.tol, bar=bart)
+                p for p in nodes if comp_val(func3D, mesh[p], tol=args.tol, bar=bart)
             ]
     with open(name, "w") as f:
         print("\nNow writing to file.")

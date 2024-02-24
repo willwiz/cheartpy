@@ -20,7 +20,7 @@ from cheartpy.cheart2vtu_core.data_types import (
     VariableCache,
     CheartTopology,
 )
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 
 
 def compress_vtu(name: str, verbose: bool = False) -> None:
@@ -51,7 +51,8 @@ def parse_cmdline_args(
     generator = indexer.get_generator()
     i0 = next(generator)
     if not os.path.isfile(args.tfile):
-        print(f">>>ERROR: Topology = {args.tfile} cannot be found. Check if correct relative path is given")
+        print(f">>>ERROR: Topology = {
+              args.tfile} cannot be found. Check if correct relative path is given")
         err = True
     if os.path.isfile(args.xfile):
         space = CheartMeshFormat(args.xfile)
@@ -60,7 +61,8 @@ def parse_cmdline_args(
     elif os.path.isfile(f"{args.xfile}-{i0}.D.gz"):
         space = CheartZipFormat(args.input_folder, args.xfile)
     else:
-        print(f">>>ERROR: Space = {args.xfile} not recognized as mesh, var, or zip")
+        print(f">>>ERROR: Space = {
+              args.xfile} not recognized as mesh, var, or zip")
         err = True
 
     disp = None
@@ -73,7 +75,8 @@ def parse_cmdline_args(
     elif os.path.isfile(f"{args.disp}-{i0}.D.gz"):
         disp = CheartZipFormat(args.input_folder, args.disp)
     else:
-        print(f">>>ERROR: Disp = {args.disp} not recognized as mesh, var, or zip")
+        print(f">>>ERROR: Disp = {
+              args.disp} not recognized as mesh, var, or zip")
         err = True
 
     var: dict[str, CheartVarFormat | CheartZipFormat] = dict()
@@ -118,7 +121,8 @@ def get_space_data(space_file: str | Arr[tuple[int, int], f64], disp_file: str |
         fx = fx + CHRead_d_utf(disp_file)
     # VTU files are defined in 3D space, so we have to append a zero column for 2D data
     if fx.shape[1] == 1:
-        raise ValueError(">>>ERROR: Cannot convert data that lives on 1D domains.")
+        raise ValueError(
+            ">>>ERROR: Cannot convert data that lives on 1D domains.")
     elif fx.shape[1] == 2:
         z = np.zeros((fx.shape[0], 3), dtype=float)
         z[:, :2] = fx
@@ -182,18 +186,24 @@ def create_XML_for_boundary(
         )
     )
     dataarr = piece.add_elem(XMLElement("Points")).add_elem(
-        XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii")
+        XMLElement("DataArray", type="Float64",
+                   NumberOfComponents="3", Format="ascii")
     )
     dataarr.add_data(fx, XMLWriters.PointWriter)
     cell = piece.add_elem(XMLElement("CellData", Scalars="scalars"))
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii"))
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int8", Name="PatchIDs", Format="ascii"))
     dataarr.add_data(fbid, XMLWriters.IntegerWriter)
     cell = piece.add_elem(XMLElement("Cells", Scalars="scalars"))
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"))
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int64", Name="connectivity", Format="ascii"))
     dataarr.add_data(fb, tp.vtksurfacetype.write)
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"))
-    dataarr.add_data(np.arange(fb.shape[1], fb.size + 1, fb.shape[1]), XMLWriters.IntegerWriter)
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int8", Name="types", Format="ascii"))
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int64", Name="offsets", Format="ascii"))
+    dataarr.add_data(
+        np.arange(fb.shape[1], fb.size + 1, fb.shape[1]), XMLWriters.IntegerWriter)
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int8", Name="types", Format="ascii"))
     dataarr.add_data(
         np.full((fb.shape[0],), tp.vtkelementtype.vtksurfaceid),
         XMLWriters.IntegerWriter,
@@ -233,7 +243,8 @@ def import_mesh_data(args: InputArguments, binary: bool = False):
         if fv.ndim == 1:
             fv = fv[:, np.newaxis]
         if fx.shape[0] != fv.shape[0]:
-            raise AssertionError(f">>>ERROR: Number of values for {s} does not match Space.")
+            raise AssertionError(f">>>ERROR: Number of values for {
+                                 s} does not match Space.")
         # append zero column if need be
         if fv.shape[1] == 2:
             z = np.zeros((fv.shape[0], 3), dtype=float)
@@ -261,16 +272,22 @@ def create_XML_for_mesh(
         )
     )
     points = piece.add_elem(XMLElement("Points"))
-    dataarr = points.add_elem(XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"))
+    dataarr = points.add_elem(XMLElement(
+        "DataArray", type="Float64", NumberOfComponents="3", Format="ascii"))
     dataarr.add_data(fx, XMLWriters.PointWriter)
 
     cell = piece.add_elem(XMLElement("Cells"))
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"))
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int64", Name="connectivity", Format="ascii"))
     dataarr.add_data(tp._ft, tp.vtkelementtype.write)
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"))
-    dataarr.add_data(np.arange(tp.nc, tp.nc * (tp.ne + 1), tp.nc), XMLWriters.IntegerWriter)
-    dataarr = cell.add_elem(XMLElement("DataArray", type="Int8", Name="types", Format="ascii"))
-    dataarr.add_data(np.full((tp.ne,), tp.vtkelementtype.vtkelementid), XMLWriters.IntegerWriter)
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int64", Name="offsets", Format="ascii"))
+    dataarr.add_data(np.arange(tp.nc, tp.nc * (tp.ne + 1),
+                     tp.nc), XMLWriters.IntegerWriter)
+    dataarr = cell.add_elem(XMLElement(
+        "DataArray", type="Int8", Name="types", Format="ascii"))
+    dataarr.add_data(
+        np.full((tp.ne,), tp.vtkelementtype.vtkelementid), XMLWriters.IntegerWriter)
 
     points = piece.add_elem(XMLElement("PointData", Scalars="scalars"))
 
@@ -318,7 +335,8 @@ def find_args_iter(inp: ProgramArgs, time: str, cache: VariableCache):
 
 def run_exports_in_series(inp: ProgramArgs, indexer: IndexerList, cache: VariableCache) -> None:
     time_steps = indexer.get_generator()
-    bart = progress_bar("Exporting", indexer.size) if inp.progress_bar else None
+    bart = ProgressBar(
+        "Exporting", indexer.size) if inp.progress_bar else None
     for t in time_steps:
         args = find_args_iter(inp, t, cache)
         export_mesh_iter(args, inp, cache.top)
@@ -331,11 +349,13 @@ def run_exports_in_series(inp: ProgramArgs, indexer: IndexerList, cache: Variabl
 def run_exports_in_parallel(inp: ProgramArgs, indexer: IndexerList, cache: VariableCache) -> None:
     time_steps = indexer.get_generator()
     jobs: dict[futures.Future, str] = dict()
-    bart = progress_bar("Exporting", indexer.size) if inp.progress_bar else None
+    bart = ProgressBar(
+        "Exporting", indexer.size) if inp.progress_bar else None
     with futures.ProcessPoolExecutor(inp.cores) as exec:
         for t in time_steps:
             args = find_args_iter(inp, t, cache)
-            jobs[exec.submit(export_mesh_iter, args, inp, cache.top)] = args.prefix
+            jobs[exec.submit(export_mesh_iter, args, inp,
+                             cache.top)] = args.prefix
         for future in futures.as_completed(jobs):
             try:
                 future.result()

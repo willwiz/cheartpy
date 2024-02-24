@@ -22,7 +22,8 @@ import argparse
 
 
 parser = argparse.ArgumentParser("mesh", description="Make a cube")
-parser.add_argument("--prefix", "-p", type=str, default="cube", help="Prefix for saved file.")
+parser.add_argument("--prefix", "-p", type=str,
+                    default="cube", help="Prefix for saved file.")
 parser.add_argument(
     "--axis",
     "-a",
@@ -31,14 +32,16 @@ parser.add_argument(
     choices={"x", "y", "z"},
     help="Which cartesian axis should the central axis be in.",
 )
-parser.add_argument("--make-quad", action="store_true", help="Also make a quad mesh.")
+parser.add_argument("--make-quad", action="store_true",
+                    help="Also make a quad mesh.")
 parser.add_argument("rin", type=float, help="inner radius")
 parser.add_argument("rout", type=float, help="outer radius")
 parser.add_argument("length", type=float, help="longitudinal length")
 parser.add_argument("base", type=float, help="base position")
 parser.add_argument("rn", type=int, help="number of elements in thickness")
 parser.add_argument("qn", type=int, help="number of elements in theta")
-parser.add_argument("zn", type=int, help="number of elements along the central axis")
+parser.add_argument(
+    "zn", type=int, help="number of elements along the central axis")
 
 
 def gen_end_node_mapping(g: MeshCheart) -> dict[int, int]:
@@ -116,7 +119,8 @@ def create_cheart_mesh(
 # Get the command line arguments
 def main(args: argparse.Namespace):
     if args.qn < 3:
-        raise ValueError(f"Number of circumferential elements must be greater than 2")
+        raise ValueError(
+            f"Number of circumferential elements must be greater than 2")
     create_cheart_mesh(
         args.prefix,
         args.rin,

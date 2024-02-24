@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import os, sys
+import os
+import sys
 import subprocess as sp
 import argparse
 from cheartpy.cheart_core.data_types import PFile
@@ -56,7 +57,8 @@ def run_script(args, rest):
     pkg = importlib.import_module(pack)
     p = pkg.get_PFile()
     fout = name + ".P"
-    run_cheartpy(p, fout, *rest, cores=args.cores, log=args.log, keep=args.keep)
+    run_cheartpy(p, fout, *rest, cores=args.cores,
+                 log=args.log, keep=args.keep)
 
 
 def run_pfile(args, rest):
@@ -64,7 +66,8 @@ def run_pfile(args, rest):
 
     fout = args.pfile
     if args.cores > 1:
-        cmd = ["mpiexec", "-n", f"{args.cores!s}", "cheartsolver.out", fout, *rest]
+        cmd = ["mpiexec", "-n", f"{args.cores!s}",
+               "cheartsolver.out", fout, *rest]
     else:
         cmd = ["cheartsolver.out", fout, *rest]
     print(" ".join(cmd))
@@ -94,7 +97,7 @@ def which(program):
     return None
 
 
-def cheart_help(args=None, rest=None):
+def cheart_help(args=argparse.Namespace, rest=None):
     sp.run(["cheartsolver.out", f"--help={args.string}"])
 
 

@@ -1,51 +1,43 @@
-def printProgressBar(
-    iteration: int,
-    total: int,
-    prefix="",
-    suffix="Complete",
-    decimals=1,
-    length=50,
-    fill="*",
-    printEnd="\r",
-):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(
-        100 if (total == 0) else 100 * (iteration / float(total))
-    )
-    filledLength = int(length if (total == 0) else length * iteration // total)
-    bar = fill * filledLength + "-" * (length - filledLength)
-    print("\r%s |%s| %s%% %s" % (prefix, bar, percent, suffix), end=printEnd)
-    if iteration == total:
-        print()
+from typing import Final, Literal
 
 
-class progress_bar:
-    __slots__ = ["n", "i", "msg"]
-    n: int
+class ProgressBar:
+    __slots__ = ["_n", "i", "_l", "_p", "_s",
+                 "_b", "_bmt", "_pmt", "_endl"]
+
+    _n: Final[int]
     i: int
-    msg: str
+    _l: Final[int]
+    _p: Final[str]
+    _s: Final[str]
+    _b: Final[str]
+    _endl: Final[Literal["\n", "\r", ""]]
+    _bmt: Final[str]
+    _pmt: Final[str]
 
-    def __init__(self, message, max=100):
-        self.n, self.i, self.msg = max, 0, message
-        printProgressBar(self.i, self.n, prefix=self.msg)
+    def __init__(self, max: int, prefix: str = "", suffix: str = "", length: int = 40, decimal: int = 1, pixel: str = "*", end: Literal["\n", "\r", ""] = ""):
+        self.i, self._n = 0, max
+        self._p, self._s = prefix, suffix
+        self._l = length * len(pixel)
+        self._b = pixel
+        self._bmt = f"-<{self._l}"
+        self._pmt = f">{5+decimal}.{decimal}%"
+        self._endl = end
 
     def reset(self) -> None:
         self.i = 0
 
     def next(self):
         self.i = self.i + 1
-        printProgressBar(self.i, self.n, prefix=self.msg)
+        self._print_bar(self.i)
 
     def finish(self):
-        printProgressBar(self.n, self.n, prefix=self.msg)
+        self._print_bar(self._n)
+
+    def _print_bar(self, i: int):
+        p = 1.0 if (self._n == 0) else (i / self._n)
+        f = self._b * int(self._l * p)
+        bar = f"\r{self._p}|{f:{self._bmt}}|{p:{self._pmt}}{self._s}"
+        print(bar, end=self._endl)
+        if i == self._n:
+            print()

@@ -6,7 +6,9 @@
 # The inputs of this script are:
 #     dt_start n_start n_trans n_total time_end fileout
 
-import os, sys, fileinput
+import os
+import sys
+import fileinput
 
 from math import exp
 from math import log
@@ -84,7 +86,8 @@ if not (t_remaining > 0.0):
     )
 
 # Compute the final dt
-list_dt1_unscaled = get_hermite_array(n1)  # Generate the unscaled transition time steps
+# Generate the unscaled transition time steps
+list_dt1_unscaled = get_hermite_array(n1)
 if not (list_dt1_unscaled.size == n1):
     raise ValueError(
         "For some reason the number of steps in the transition {} is not the same as requested {}".format(
@@ -94,7 +97,8 @@ if not (list_dt1_unscaled.size == n1):
 t_unscaled = list_dt1_unscaled.sum() + n2  # Compute the unscaled remaining time
 dt2 = t_remaining / t_unscaled
 if not (dt2 > 1e-12):
-    raise ValueError("Something went wrong! But your initial step size are too large!")
+    raise ValueError(
+        "Something went wrong! But your initial step size are too large!")
 dtf = dt2 + dt0
 
 # Compute the remaining list of dts and combine
@@ -105,7 +109,8 @@ Tf_computed = list_dt.sum()
 
 
 print("A list of dt has been generated with the following:")
-print("    {} total time steps and {} time elapse".format(list_dt.size, list_dt.sum()))
+print("    {} total time steps and {} time elapse".format(
+    list_dt.size, list_dt.sum()))
 print(
     "    The first  part has {} steps with size {} and {} time elapsed".format(
         list_dt0.size, list_dt0[0], list_dt0.sum()

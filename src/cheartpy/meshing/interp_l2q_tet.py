@@ -13,7 +13,7 @@ import numpy as np
 from numpy import zeros, array, full
 from math import floor
 from typing import Callable, List
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 
 parser = argparse.ArgumentParser(
     description="""
@@ -100,7 +100,8 @@ def edit_val(arr: np.ndarray, ind: int, val: List[int]) -> None:
         pass
     else:
         print(f"index {ind} has value {arr[ind]} which does not match {val}")
-        raise LookupError(">>>ERROR: tried to insert index for map which does match input from prior elements")
+        raise LookupError(
+            ">>>ERROR: tried to insert index for map which does match input from prior elements")
 
 
 def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None) -> np.ndarray:
@@ -114,12 +115,18 @@ def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | N
         for i in range(rows_quad):
             for j in range(4):
                 edit_val(top_map, quad[i, j], [-1, lin[i, j]])
-            edit_val(top_map, quad[i, 4], [top_map[quad[i, 0], 1], top_map[quad[i, 1], 1]])
-            edit_val(top_map, quad[i, 5], [top_map[quad[i, 0], 1], top_map[quad[i, 2], 1]])
-            edit_val(top_map, quad[i, 6], [top_map[quad[i, 1], 1], top_map[quad[i, 2], 1]])
-            edit_val(top_map, quad[i, 7], [top_map[quad[i, 0], 1], top_map[quad[i, 3], 1]])
-            edit_val(top_map, quad[i, 8], [top_map[quad[i, 1], 1], top_map[quad[i, 3], 1]])
-            edit_val(top_map, quad[i, 9], [top_map[quad[i, 2], 1], top_map[quad[i, 3], 1]])
+            edit_val(top_map, quad[i, 4], [
+                     top_map[quad[i, 0], 1], top_map[quad[i, 1], 1]])
+            edit_val(top_map, quad[i, 5], [
+                     top_map[quad[i, 0], 1], top_map[quad[i, 2], 1]])
+            edit_val(top_map, quad[i, 6], [
+                     top_map[quad[i, 1], 1], top_map[quad[i, 2], 1]])
+            edit_val(top_map, quad[i, 7], [
+                     top_map[quad[i, 0], 1], top_map[quad[i, 3], 1]])
+            edit_val(top_map, quad[i, 8], [
+                     top_map[quad[i, 1], 1], top_map[quad[i, 3], 1]])
+            edit_val(top_map, quad[i, 9], [
+                     top_map[quad[i, 2], 1], top_map[quad[i, 3], 1]])
             if update is not None:
                 update()
     except LookupError as e:
@@ -154,7 +161,7 @@ def make_map(args):
     lin_top = lin_top - 1
     quad_top = quad_top - 1
     print(f"Generating Map from {args.make_map[0]} to {args.make_map[1]}:")
-    bar = progress_bar(">>Progress:", max=len(quad_top))
+    bar = ProgressBar(">>Progress:", max=len(quad_top))
     top_map = gen_map(lin_top, quad_top, nnode, bar.next)
     write_array_int(args.name[0], top_map)
 
@@ -162,7 +169,8 @@ def make_map(args):
 def map_vals(args):
     if len(args.name) < 2:
         raise AssertionError(
-            f"<<<ERROR: normal model requires 2 or 3 arguments: map, file, [filenameout]. {len(args.name)} provided: {args.name}"
+            f"<<<ERROR: normal model requires 2 or 3 arguments: map, file, [filenameout]. {
+                len(args.name)} provided: {args.name}"
         )
     l2q_map = read_arr_int(args.name[0])
 
@@ -178,7 +186,7 @@ def map_vals(args):
         print(fout)
         CHWrite_d_utf(fout, quadata)
     else:
-        bar = progress_bar(
+        bar = ProgressBar(
             f"{args.name[1]}:",
             max=floor((args.index[1] - args.index[0]) / args.index[2]) + 1,
         )

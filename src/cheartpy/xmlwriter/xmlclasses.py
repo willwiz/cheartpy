@@ -13,7 +13,8 @@ WriterSigs = (
 class XMLWriters:
     @staticmethod
     def PointWriter(fout: tp.TextIO, point: Arr[int, f64], level: int = 0) -> None:
-        fout.write(f'{" "*level}{point[0]: .16f} {point[1]: .16f} {point[2]: .16f}\n')
+        fout.write(
+            f'{" "*level}{point[0]: .16f} {point[1]: .16f} {point[2]: .16f}\n')
 
     @staticmethod
     def IntegerWriter(fout: tp.TextIO, id: int, level: int = 0) -> None:

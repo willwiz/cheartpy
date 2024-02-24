@@ -49,7 +49,8 @@ settinggroup.add_argument(
     action="store_true",
     help="OPTIONAL: controls whether to show a progress bar. Default is True.",
 )
-settinggroup.add_argument("--verbose", "-v", action="store_true", help="OPTIONAL: print more info")
+settinggroup.add_argument(
+    "--verbose", "-v", action="store_true", help="OPTIONAL: print more info")
 settinggroup.add_argument(
     "--binary",
     action="store_true",
@@ -81,10 +82,12 @@ extrasgroup.add_argument(
 )
 
 
-subparsers = main_parser.add_subparsers(help="Collective of subprogram", dest="cmd")
+subparsers = main_parser.add_subparsers(
+    help="Collective of subprogram", dest="cmd")
 
 
-parser_index = subparsers.add_parser("index", help="give specific indexing for all args", parents=[parser])
+parser_index = subparsers.add_parser(
+    "index", help="give specific indexing for all args", parents=[parser])
 parser_index.add_argument(
     "--index",
     "-i",
@@ -144,7 +147,8 @@ topgroup.add_argument(
 )
 
 
-parser_find = subparsers.add_parser("find", help="determine settings automatically", parents=[parser])
+parser_find = subparsers.add_parser(
+    "find", help="determine settings automatically", parents=[parser])
 parser_find.add_argument(
     "--mesh",
     dest="mesh",
@@ -229,7 +233,8 @@ def get_cmdline_args(
     if nsp.prefix:
         prefix = nsp.prefix
     else:
-        prefix = nsp.outfolder.replace("_vtu", "") if nsp.outfolder else "paraview"
+        prefix = nsp.outfolder.replace(
+            "_vtu", "") if nsp.outfolder else "paraview"
     args = CmdLineArgs(
         nsp.cmd,
         nsp.var,
@@ -249,7 +254,9 @@ def get_cmdline_args(
     )
     if nsp.cmd == "find":
         args.step = nsp.step
-    args.index = nsp.index if nsp.index is None else (nsp.index[0], nsp.index[1], nsp.index[2])
-    args.sub_index = nsp.subiter if nsp.subiter is None else (nsp.subiter[0], nsp.subiter[1], nsp.subiter[2])
+    args.index = nsp.index if nsp.index is None else (
+        nsp.index[0], nsp.index[1], nsp.index[2])
+    args.sub_index = nsp.subiter if nsp.subiter is None else (
+        nsp.subiter[0], nsp.subiter[1], nsp.subiter[2])
     args.sub_auto = nsp.subauto
     return args

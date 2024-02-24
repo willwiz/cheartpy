@@ -39,7 +39,8 @@ parser.add_argument(
     type=float,
     help="How much to shift the mesh in the Y direction",
 )
-parser.add_argument("prefix", type=str, help="Prefix of the files to save the mesh to")
+parser.add_argument("prefix", type=str,
+                    help="Prefix of the files to save the mesh to")
 
 # This is gives the order of the nodes in an elent given a starting indice
 vorder = [[0, 0], [1, 0], [0, 1], [1, 1]]

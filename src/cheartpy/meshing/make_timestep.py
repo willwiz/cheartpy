@@ -5,8 +5,10 @@
 # The input of the script are:
 #     n1 size1 n2 size2 ... nn sizen fileout
 
-import os, sys, fileinput
-from cheartpy.tools.progress_bar import progress_bar
+import os
+import sys
+import fileinput
+from cheartpy.tools.progress_bar import ProgressBar
 
 
 arg = sys.argv
@@ -51,7 +53,7 @@ for seg in range(n_seg):
     )
 
 # Start the progress bar
-bar = progress_bar("Processing", max=n_total)
+bar = ProgressBar("Processing", max=n_total)
 
 # Writing the time steps
 i = 0  # This is the time step number

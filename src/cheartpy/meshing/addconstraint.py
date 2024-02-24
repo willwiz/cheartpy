@@ -5,7 +5,7 @@
 
 
 import sys
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 
 
 arg = sys.argv
@@ -32,7 +32,7 @@ with open(filelin, "r") as f:
     items = line.split()
     b_elements = int(items[0])
     print("There are {} elements:".format(b_elements))
-    bar = progress_bar("Processing", max=b_elements)
+    bar = ProgressBar("Processing", max=b_elements)
     for line in f:
         fout.write("{} ".format(line.strip()))
         for i in range(ncons):

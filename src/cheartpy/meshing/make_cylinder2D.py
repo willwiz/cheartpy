@@ -15,10 +15,13 @@ parser = argparse.ArgumentParser(
 """,
     formatter_class=RawTextHelpFormatter,
 )
-parser.add_argument("nq", help="how many elements along circumference", type=int)
-parser.add_argument("dr", help="the thickness of the hollow circle", type=float)
+parser.add_argument(
+    "nq", help="how many elements along circumference", type=int)
+parser.add_argument(
+    "dr", help="the thickness of the hollow circle", type=float)
 parser.add_argument("r0", help="the inner radius", type=float)
-parser.add_argument("nr", help="how many elements are along the radius", type=int)
+parser.add_argument(
+    "nr", help="how many elements are along the radius", type=int)
 parser.add_argument(
     "prefix",
     help="prefix of the name of the file to export the meshes, _FE.X, _FE.T and _FE.B for be added to outputs",

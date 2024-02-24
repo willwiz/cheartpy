@@ -74,7 +74,8 @@ def get_elem_type(lin_size: int, quad_size: int) -> ElementTypes:
         case ElementTypes.SQUARE.value:
             return ElementTypes.SQUARE
         case _:
-            raise ValueError(f"Could not determine element type from lin = {lin_size} and quad = {quad_size}")
+            raise ValueError(f"Could not determine element type from lin = {
+                             lin_size} and quad = {quad_size}")
 
 
 def get_elmap(elem: ElementTypes, lin_dim: int, quad_dim: int):
@@ -87,6 +88,7 @@ def get_elmap(elem: ElementTypes, lin_dim: int, quad_dim: int):
             elmap = SQUARE_L2Q_MAP
         case _:
             raise ValueError(
-                f"Mismatch in element type {elem} and either number of nodes in linear element {lin_dim} or either number of nodes in quad element {quad_dim}. Should be {elem.value}."
+                f"Mismatch in element type {elem} and either number of nodes in linear element {
+                    lin_dim} or either number of nodes in quad element {quad_dim}. Should be {elem.value}."
             )
     return elmap

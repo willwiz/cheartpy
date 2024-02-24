@@ -37,13 +37,15 @@ def print_input_info(inp: CmdLineArgs) -> None:
     print(inp.var)
     if inp.index is not None:
         print(
-            f"<<< Time step: From {inp.index[0]} to {inp.index[1]} with steps of {inp.index[2]}"
+            f"<<< Time step: From {inp.index[0]} to {
+                inp.index[1]} with steps of {inp.index[2]}"
         )
     else:
         print(f"<<< Attempting to find time steps from variable file names")
     if inp.sub_index is not None:
         print(
-            f"<<< Sub iterations: From {inp.sub_index[0]} to {inp.sub_index[1]} with steps of {inp.sub_index[2]}"
+            f"<<< Sub iterations: From {inp.sub_index[0]} to {
+                inp.sub_index[1]} with steps of {inp.sub_index[2]}"
         )
     if inp.sub_auto:
         print(f"<<< Automatically finding subiterations")

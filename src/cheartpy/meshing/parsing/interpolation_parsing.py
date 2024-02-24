@@ -2,7 +2,8 @@ import argparse
 
 
 element_parser = argparse.ArgumentParser("elem", add_help=False)
-element_parser.add_argument("--elem", "-e", type=str.upper, default=None, choices=["HEX", "TET", "SQUARE"])
+element_parser.add_argument(
+    "--elem", "-e", type=str.upper, default=None, choices=["HEX", "TET", "SQUARE"])
 
 interp_parser = argparse.ArgumentParser(
     "interp", description="""interpolate data from linear topology to quadratic topology""", parents=[element_parser]

@@ -49,7 +49,8 @@ def read_T_array(file):
         arr = []
         try:
             for i in range(n):
-                arr.append([int(item) for item in f.readline().strip().split()])
+                arr.append([int(item)
+                           for item in f.readline().strip().split()])
         except:
             raise ValueError(
                 "Header information does not match the dimensions of the import"
@@ -58,7 +59,7 @@ def read_T_array(file):
 
 
 def filter_points(constraint, space, points):
-    func = lambda x, y, z: eval(str(constraint))
+    def func(x, y, z): return eval(str(constraint))
     if isinstance(func(0.0, 0.0, 0.0), (bool)):
         points = np.asarray(
             [p for p in points if func(space[p][0], space[p][1], space[p][2])]

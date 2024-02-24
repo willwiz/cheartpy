@@ -37,11 +37,14 @@ def load_topologies(lin: str, quad: str, kind: Literal["TET", "HEX", "SQUARE"] |
     lin_ne, _ = CHRead_header_utf(lin)
     quad_ne, _ = CHRead_header_utf(quad)
     if lin_ne != quad_ne:
-        raise ValueError(f"Lin top ne = {lin_ne} does not match quad top ne = {quad_ne}")
+        raise ValueError(
+            f"Lin top ne = {lin_ne} does not match quad top ne = {quad_ne}")
     if lin_top.shape[0] != lin_ne:
-        raise ValueError(f"Lin top ne = {lin_top.shape[0]} does not match header = {lin_ne}")
+        raise ValueError(
+            f"Lin top ne = {lin_top.shape[0]} does not match header = {lin_ne}")
     if quad_top.shape[0] != quad_ne:
-        raise ValueError(f"Lin top ne = {quad_top.shape[0]} does not match header = {quad_ne}")
+        raise ValueError(
+            f"Lin top ne = {quad_top.shape[0]} does not match header = {quad_ne}")
     if lin_top.shape[0] == quad_top.shape[0]:
         ValueError("Topologies do not have the same number of elements")
     if kind is None:
@@ -104,5 +107,6 @@ def get_file_name_indexer(
             return DFileSubIndex(input_folder, vars, index, sub_index)
         case _:
             raise ValueError(
-                f"Option with index={index}, sub_index={sub_index}, sub_auto={sub_auto} is not recognized"
+                f"Option with index={index}, sub_index={
+                    sub_index}, sub_auto={sub_auto} is not recognized"
             )

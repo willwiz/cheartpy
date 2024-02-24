@@ -11,7 +11,7 @@
 #     --name   / -n : indicate a output filename
 import os.path
 import typing as tp
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 from cheartpy.cheart2vtu_core.time_parser import parser, InputArgs
 
 
@@ -87,7 +87,8 @@ def print_cmd_header(inp: InputArgs):
     )
     print("")
     print(
-        "<<< Output folder:                                   {}".format(inp.outfolder)
+        "<<< Output folder:                                   {}".format(
+            inp.outfolder)
     )
     print("<<< Input file name prefix:                          {}".format(inp.prefix))
     print(
@@ -107,13 +108,14 @@ def main():
     args = parser.parse_args()
     inp = check_args(args)
     print_cmd_header(inp)
-    bar = progress_bar("Processing", max=inp.nt)
+    bar = ProgressBar("Processing", max=inp.nt)
     fout = os.path.join(inp.outfolder, inp.prefix + ".pvd")
     with open(fout, "w") as f:
         xml_write_header(f)
         for i in range(inp.i0, inp.it, inp.di):
             xml_write_content(
-                f, os.path.join(inp.outfolder, f"{inp.prefix}-{i}.vtu"), inp.time[i]
+                f, os.path.join(inp.outfolder, f"{
+                                inp.prefix}-{i}.vtu"), inp.time[i]
             )
             bar.next()
         xml_write_footer(f)

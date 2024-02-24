@@ -20,11 +20,14 @@ import argparse
 # Get the command line arguments
 parser = argparse.ArgumentParser("maketime")
 parser.add_argument("dt", type=float, help="initial dt")
-parser.add_argument("n0", type=int, help="number of starting time steps with dt")
-parser.add_argument("n1", type=int, help="number of time steps in the transition stage")
+parser.add_argument(
+    "n0", type=int, help="number of starting time steps with dt")
+parser.add_argument(
+    "n1", type=int, help="number of time steps in the transition stage")
 parser.add_argument("nt", type=int, help="total number of time steps")
 parser.add_argument("tend", type=float, help="final time")
-parser.add_argument("-p", "--prefix", type=str, default="time", help="prefix of output")
+parser.add_argument("-p", "--prefix", type=str,
+                    default="time", help="prefix of output")
 
 
 @dc.dataclass(slots=True)
@@ -85,7 +88,8 @@ def find_parameter2(inp: InputArgs) -> float:
         z = y - inp.tend
         return log(z * z)
 
-    optres = minimize(obf, np.array([1.0]), bounds=Bounds(0.9, 1.1), method="TNC", tol=1e-14)
+    optres = minimize(obf, np.array([1.0]), bounds=Bounds(
+        0.9, 1.1), method="TNC", tol=1e-14)
     return optres.x[0]
 
 
@@ -95,13 +99,17 @@ def mult_accumulate(n: int, a: float) -> Arr[int, f64]:
 
 
 def create_dt(par: float, inp: InputArgs):
-    dt = inp.dt * inp.tend / compute_total_time(par, inp.dt, inp.n0, inp.n1, inp.n2)
+    dt = inp.dt * inp.tend / \
+        compute_total_time(par, inp.dt, inp.n0, inp.n1, inp.n2)
     dt0 = np.full(inp.n0, dt)
     dt1 = dt * mult_accumulate(inp.n1, par)
     dt2 = np.full(inp.n2, dt1[-1])
-    print(f"The part 1 has {dt0.size} steps with size {dt0[0]} and {dt0.sum()} time elapsed")
-    print(f"The part 2 has {dt1.size} steps with multiplier {par} and {dt1.sum()} time elapsed")
-    print(f"The part 3 has {dt2.size} steps with size {dt2[0]} and {dt2.sum()} time elapsed")
+    print(f"The part 1 has {dt0.size} steps with size {
+          dt0[0]} and {dt0.sum()} time elapsed")
+    print(f"The part 2 has {dt1.size} steps with multiplier {
+          par} and {dt1.sum()} time elapsed")
+    print(f"The part 3 has {dt2.size} steps with size {
+          dt2[0]} and {dt2.sum()} time elapsed")
     return np.concatenate((dt0, dt1, dt2))
 
 
@@ -127,11 +135,13 @@ def main(inp: InputArgs) -> None:
             pass
         case (False, v):
             raise ValueError(
-                f"Total time {Tf_computed} is not the same as inputed {inp.tend} within tol = {v}. I did something wrong in the code!"
+                f"Total time {Tf_computed} is not the same as inputed {
+                    inp.tend} within tol = {v}. I did something wrong in the code!"
             )
     if not (dt.size == inp.nt):
         raise ValueError(
-            f"The total number of time steps {dt.size} is not the same as requested {inp.nt}, I did something wrong appearantly."
+            f"The total number of time steps {dt.size} is not the same as requested {
+                inp.nt}, I did something wrong appearantly."
         )
     print("Final Time Steps Generated:")
     print("    {} total time steps and {} time elapse".format(dt.size, dt.sum()))

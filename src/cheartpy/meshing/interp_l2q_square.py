@@ -9,7 +9,7 @@ from numpy import zeros, full
 from math import floor
 from typing import Callable, List
 from cheartpy.types import Arr, i32, f64
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 from cheartpy.io.cheartio import (
     CHRead_d_utf,
     CHRead_d_bin,
@@ -152,7 +152,8 @@ def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | N
 
 def get_qual_val(map: Arr[int, i32], arr: Arr[tuple[int, int], f64]) -> float | Arr[int, f64]:
     if map[0] < 1 or map[0] > 4:
-        raise AssertionError(f"<<<ERROR: Nodal value must be the average of 1, 2, or 4 other nodes, not {map[0]}")
+        raise AssertionError(
+            f"<<<ERROR: Nodal value must be the average of 1, 2, or 4 other nodes, not {map[0]}")
     kind: int = map[0] + 1
     return arr[map[1:kind]].sum() / map[0]
 
@@ -173,7 +174,7 @@ def make_map(args):
     # Convert to python index
     lin_top = lin_top - 1
     quad_top = quad_top - 1
-    bar = progress_bar(
+    bar = ProgressBar(
         f"Generating Map from {args.make_map[0]} to {args.make_map[1]}",
         max=len(quad_top),
     )
@@ -200,7 +201,7 @@ def map_vals_i(args, l2q_map, name):
         else:
             CHWrite_d_utf(tag, quadata)
     else:
-        bar = progress_bar(
+        bar = ProgressBar(
             f"Interpolating {name} to quad topology",
             max=floor((args.index[1] - args.index[0]) / args.index[2]) + 1,
         )
@@ -223,7 +224,8 @@ def map_vals_i(args, l2q_map, name):
 def map_vals(args):
     if len(args.name) < 2:
         raise AssertionError(
-            f"<<<ERROR: normal model requires 2 or 3 arguments: map, file, [filenameout]. {len(args.name)} provided: {args.name}"
+            f"<<<ERROR: normal model requires 2 or 3 arguments: map, file, [filenameout]. {
+                len(args.name)} provided: {args.name}"
         )
     l2q_map = read_array_int(args.name[0])
     if args.batch:

@@ -10,7 +10,7 @@ from cheartpy.meshing.core.interpolation_core import (
 )
 from cheartpy.meshing.parsing.interpolation_parsing import interp_parser
 from cheartpy.io.cheartio import CHRead_d, CHWrite_d_utf
-from cheartpy.tools.progress_bar import progress_bar
+from cheartpy.tools.progress_bar import ProgressBar
 from cheartpy.types import Mat, f64
 import argparse
 
@@ -46,13 +46,15 @@ def main_interp_file(file: str, map: dict[int, list[int]], suffix: str):
 
 
 def main_interp_var(var: str, map: dict[int, list[int]], inp: InterpInputArgs):
-    indexer = get_file_name_indexer([var], inp.index, inp.sub_auto, inp.sub_index, inp.input_folder)
-    bart = progress_bar("Interp", indexer.size)
+    indexer = get_file_name_indexer(
+        [var], inp.index, inp.sub_auto, inp.sub_index, inp.input_folder)
+    bart = ProgressBar("Interp", indexer.size)
     if indexer.size == 0:
         raise ValueError(f"No files found for variable {var}")
     for i in indexer.get_generator():
         input_file = os.path.join(inp.input_folder, f"{var}-{i}.D")
-        output_file = os.path.join(inp.input_folder, f"{var}{inp.suffix}-{i}.D")
+        output_file = os.path.join(
+            inp.input_folder, f"{var}{inp.suffix}-{i}.D")
         lin_data = CHRead_d(input_file)
         map_vals(map, lin_data, output_file)
         bart.next()
@@ -64,12 +66,14 @@ def main_interp(inp: InterpInputArgs):
     elif inp.topologies is not None:
         map = gen_map(inp.topologies[0], inp.topologies[1], inp.kind)
     else:
-        raise ValueError(f"Either supply the lin to quad mapping or supply the topologies")
+        raise ValueError(
+            f"Either supply the lin to quad mapping or supply the topologies")
     for v in inp.vars:
         if os.path.isfile(v):
             main_interp_file(v, map, inp.suffix)
         elif os.path.isfile(os.path.join(inp.input_folder, v)):
-            main_interp_file(os.path.join(inp.input_folder, v), map, inp.suffix)
+            main_interp_file(os.path.join(
+                inp.input_folder, v), map, inp.suffix)
         else:
             main_interp_var(v, map, inp)
 

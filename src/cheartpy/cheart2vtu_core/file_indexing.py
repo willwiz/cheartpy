@@ -1,4 +1,5 @@
-import os, re
+import os
+import re
 from glob import glob
 from collections import defaultdict
 from typing import Final, Generator
@@ -21,14 +22,16 @@ class DFileNoVariable:
 def get_int_from_string_template(template: str, s: str) -> tuple[int, int]:
     matched = re.search(template, os.path.basename(s))
     if matched is None:
-        raise ValueError("Unknown Error, regex cannot find int in str variable")
+        raise ValueError(
+            "Unknown Error, regex cannot find int in str variable")
     res = matched.group(1).split(".")
     if len(res) == 1:
         return (int(res[0]), -1)
     elif len(res) == 2:
         return (int(res[0]), int(res[1]))
     else:
-        raise ValueError(f"Applying template {template}, but index cannot be recognized as int or int.int")
+        raise ValueError(f"Applying template {
+                         template}, but index cannot be recognized as int or int.int")
 
 
 def get_index_from_filenames(folder: str, var: str, allow_subindex: bool = False) -> Arr[tuple[int, int], i32]:
@@ -36,7 +39,8 @@ def get_index_from_filenames(folder: str, var: str, allow_subindex: bool = False
     if not files:
         files = glob(os.path.join(folder, f"{var}-*.D.gz"))
     res = np.array(
-        sorted([get_int_from_string_template(rf"{var}-(.+?).(D|D.gz)", s) for s in files]),
+        sorted([get_int_from_string_template(
+            rf"{var}-(.+?).(D|D.gz)", s) for s in files]),
         dtype=int,
     )
     if res.size == 0:
@@ -53,7 +57,8 @@ def check_arrays_for_equality(array_list: list[Arr[tuple[int, int], i32]]) -> Ar
         return array_list[0]
     for i in range(1, len(array_list)):
         if not np.array_equal(array_list[0], array_list[i]):
-            print(">>>WARNING: Not all variables have the same index, find method cannot be used")
+            print(
+                ">>>WARNING: Not all variables have the same index, find method cannot be used")
     return max(array_list, key=len)
 
 
@@ -61,7 +66,8 @@ def find_index_from_filenames(
     folder: str, vars: list[str], step: int | None = None, allow_subindex: bool = False
 ) -> Arr[tuple[int, int], i32]:
     if vars:
-        index_from_vars = [get_index_from_filenames(folder, v, allow_subindex) for v in vars]
+        index_from_vars = [get_index_from_filenames(
+            folder, v, allow_subindex) for v in vars]
         index = check_arrays_for_equality(index_from_vars)
     else:
         index = np.zeros((0, 2), dtype=np.int32)
@@ -85,8 +91,10 @@ class DFileAutoFinder:
         allow_subindex: bool = False,
     ) -> None:
         self.step = step
-        int_index = find_index_from_filenames(folder, var, self.step, allow_subindex)
-        self.index = np.array([f"{i}" if j < 0 else f"{i}.{j}" for i, j in int_index])
+        int_index = find_index_from_filenames(
+            folder, var, self.step, allow_subindex)
+        self.index = np.array(
+            [f"{i}" if j < 0 else f"{i}.{j}" for i, j in int_index])
         self.size = len(self.index)
 
     def get_generator(self) -> Generator[str, None, None]:
@@ -98,7 +106,8 @@ def check_variable_exist_by_index(folder: str, var: list[str], i0: int, it: int,
     for i in range(i0, it, di):
         for v in var:
             if not os.path.isfile(os.path.join(folder, f"{v}-{i}.D")):
-                raise ValueError(f"variable {v} cannot be found with index {i}")
+                raise ValueError(
+                    f"variable {v} cannot be found with index {i}")
 
 
 class DFileIndex:
@@ -126,11 +135,13 @@ def check_variable_exist_by_subindex(
     for i in range(i0, it, di):
         for v in var:
             if not os.path.isfile(os.path.join(folder, f"{v}-{i}.D")):
-                raise ValueError(f"variable {v} cannot be found with index {i}")
+                raise ValueError(
+                    f"variable {v} cannot be found with index {i}")
         for j in range(s0, st, ds):
             for v in var:
                 if not os.path.isfile(os.path.join(folder, f"{v}-{i}.{j}.D")):
-                    print(f">>>WARNING: variable {v} cannot be found with index {i} and subindex {j}")
+                    print(f">>>WARNING: variable {
+                          v} cannot be found with index {i} and subindex {j}")
 
 
 class DFileSubIndex:
@@ -166,7 +177,8 @@ class DFileSubIndex:
             self.st,
             self.ds,
         )
-        self.size = len(range(self.i0, self.it, self.di)) * len(range(self.s0, self.st, self.ds))
+        self.size = len(range(self.i0, self.it, self.di)) * \
+            len(range(self.s0, self.st, self.ds))
 
     def get_generator(self) -> Generator[str, None, None]:
         for i in range(self.i0, self.it, self.di):
@@ -186,14 +198,16 @@ def check_variable_exist_by_autosubindex(folder: str, var: list[str], i0: int, i
                 os.path.isfile(os.path.join(folder, f"{v}-{i}.D"))
                 or os.path.isfile(os.path.join(folder, f"{v}-{i}.D.gz"))
             ):
-                raise ValueError(f"variable {v} cannot be found with index {i}")
+                raise ValueError(
+                    f"variable {v} cannot be found with index {i}")
             jlist = [item for item in glob(os.path.join(folder, f"{v}-{i}.D"))]
             if not jlist:
                 [item for item in glob(os.path.join(folder, f"{v}-{i}.D.gz"))]
             for j in jlist:
                 result = re.search(rf"{v}-(.+?).(D|D.gz)", os.path.basename(j))
                 if result is None:
-                    print(f"variable {v} cannot cannot be found with subindex {i}.x")
+                    print(f"variable {
+                          v} cannot cannot be found with subindex {i}.x")
                 else:
                     variable_subindex_list[result.group(1)] += 1
         if len(set(variable_subindex_list.values())) != 1:
@@ -214,7 +228,8 @@ class DFileAutoSubIndex:
         self.di = index[2]
         self.folder = folder
         self.var = var[0] if var else None
-        check_variable_exist_by_autosubindex(folder, var, self.i0, self.it, self.di)
+        check_variable_exist_by_autosubindex(
+            folder, var, self.i0, self.it, self.di)
 
     def get_generator(self) -> Generator[str, None, None]:
         if self.var is None:
@@ -223,7 +238,8 @@ class DFileAutoSubIndex:
             yield str(i)
             jlist = glob(os.path.join(self.folder, f"{self.var}-{i}.*.D"))
             for j in jlist:
-                result = re.search(rf"{self.var}-(.+?).(D|D.gz)", os.path.basename(j))
+                result = re.search(
+                    rf"{self.var}-(.+?).(D|D.gz)", os.path.basename(j))
                 if result is not None:
                     yield result.group(1)
                 else:
@@ -250,7 +266,8 @@ def get_file_name_indexer(
             print("<<< Acquring DFileAutoFinder")
             return (
                 ProgramMode.searchsubindex if args.sub_index else ProgramMode.search,
-                DFileAutoFinder(args.input_folder, args.var, args.step, args.sub_auto),
+                DFileAutoFinder(args.input_folder, args.var,
+                                args.step, args.sub_auto),
             )
         case (int(), int(), int()), False, None:
             print("<<< Acquring DFileIndex")
@@ -272,5 +289,6 @@ def get_file_name_indexer(
             )
         case _:
             raise ValueError(
-                f"Option with cmd={args.cmd}, index={args.index}, sub_index={args.sub_index}, sub_auto={args.sub_auto} is not recognized"
+                f"Option with cmd={args.cmd}, index={args.index}, sub_index={
+                    args.sub_index}, sub_auto={args.sub_auto} is not recognized"
             )

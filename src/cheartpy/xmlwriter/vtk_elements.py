@@ -222,9 +222,11 @@ def get_element_type(
             )
         case [4, _]:
             raise ValueError(
-                f"Bilinear quadrilateral / {nbnd}, boundary file is incompatible"
+                f"Bilinear quadrilateral / {
+                    nbnd}, boundary file is incompatible"
             )
         case _:
             raise ValueError(
-                f"Cannot determine element type from {nnodes} and {boundary}, perhaps not implemented."
+                f"Cannot determine element type from {nnodes} and {
+                    boundary}, perhaps not implemented."
             )
