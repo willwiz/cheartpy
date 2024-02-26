@@ -10,7 +10,7 @@ from cheartpy.cheart_core.variables import Variable
 from cheartpy.cheart_core.problems import Problem
 from cheartpy.cheart_core.solver_matrices import SolverMatrix
 from cheartpy.cheart_core.solver_groups import SolverGroup
-from cheartpy.cheart_core.pytools import get_enum, header, hline, cline, splicegen
+from cheartpy.cheart_core.pytools import get_enum, header, hline, splicegen
 from .aliases import *
 
 
@@ -37,6 +37,17 @@ class PFile(object):
     def AddSolverGroup(self, *grp: SolverGroup) -> None:
         for g in grp:
             self.solverGs[g.name] = g
+            self.AddTimeScheme(g.time)
+            if g.aux_vars:
+                self.AddVariable(*g.aux_vars.values())
+            for sg in g.SolverSubGroups:
+                for p in sg.problems.values():
+                    if isinstance(p, SolverMatrix):
+                        self.AddMatrix(p)
+                    elif isinstance(p, Problem):
+                        self.AddProblem(p)
+                if sg.aux_vars:
+                    self.AddVariable(*sg.aux_vars.values())
 
     # Add Time Scheme
     def AddTimeScheme(self, *time: TimeScheme) -> None:
@@ -47,21 +58,27 @@ class PFile(object):
     def AddMatrix(self, *mat: SolverMatrix) -> None:
         for v in mat:
             self.matrices[v.name] = v
-            for p in v.problem.values():
-                self.AddProblem(p)
+            if v.problem:
+                self.AddProblem(*v.problem.values())
+            if v.aux_vars:
+                self.AddVariable(*v.aux_vars.values())
 
     # Problem
+
     def AddProblem(self, *prob: Problem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
             self.problems[p.name] = p
             self.AddVariable(*p.variables.values())
+            if p.aux_vars:
+                self.AddVariable(*p.aux_vars.values())
             if p.bc.patches is not None:
                 for patch in p.bc.patches:
-                    if isinstance(patch.value, Variable):
-                        self.AddVariable(patch.value)
-                    elif isinstance(patch.value, Expression):
-                        self.AddExpression(patch.value)
+                    for v in patch.value:
+                        if isinstance(v, Variable):
+                            self.AddVariable(v)
+                        elif isinstance(v, Expression):
+                            self.AddExpression(v)
 
     def AddVariable(self, *var: Variable) -> None:
         for v in var:
@@ -73,6 +90,8 @@ class PFile(object):
             if v.setting:
                 if isinstance(v.setting[1], Expression):
                     self.AddExpression(v.setting[1])
+            if v.expressions:
+                self.AddExpression(*v.expressions.values())
 
     # Add Topology
     def AddTopology(self, *top: CheartTopology) -> None:
@@ -150,18 +169,11 @@ class PFile(object):
     # Resolve Pfile
     def resolve(self):
         for g in self.solverGs.values():
-            self.AddTimeScheme(g.time)
-            for sg in g.SolverSubGroups:
-                for p in sg.problems:
-                    if isinstance(p, SolverMatrix):
-                        self.AddMatrix(p)
-                    elif isinstance(p, Problem):
-                        self.AddProblem(p)
-            for v in g.aux_vars.values():
-                self.AddVariable(v)
+            self.AddSolverGroup(g)
 
     # ----------------------------------------------------------------------------
     # Producing the Pfile
+
     def write(self, f: TextIO):
         self.resolve()
         f.write(header(self.h))

@@ -56,14 +56,14 @@ def create_topology(
 def create_topology(
     name: str, basis: CheartBasis | None, mesh: str, format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT
 ) -> CheartTopology | NullTopology:
-    if basis is None:
-        return NullTopology(name)
-    else:
-        for ext in ["_FE.X", "_FE.T", "_FE.B"]:
-            file = mesh+ext
-            if not os.path.isfile(file):
-                raise ValueError(
-                    f"Mesh file {file} not found for topology {name}")
+    # if basis is None:
+    #     return NullTopology(name)
+    # else:
+    #     for ext in ["_FE.X", "_FE.T", "_FE.B"]:
+    #         file = mesh+ext
+    #         if not os.path.isfile(file):
+    #             raise ValueError(
+    #                 f"Mesh file {file} not found for topology {name}")
     fmt = get_enum(format, VariableExportFormat)
     return CheartTopology(name, basis, mesh, fmt)
 

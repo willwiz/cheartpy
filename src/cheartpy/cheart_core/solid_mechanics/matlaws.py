@@ -7,13 +7,7 @@ from ..variables import Variable
 
 
 class Law(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def name(self) -> str: ...
-
-    @property
-    @abc.abstractmethod
-    def aux_vars(self) -> dict[str, Variable]: ...
+    name: str
 
     @abc.abstractmethod
     def string(self) -> str: ...
@@ -22,7 +16,7 @@ class Law(abc.ABC):
 @dc.dataclass
 class Matlaw(Law):
     name: str
-    parameters: list[float]
+    parameters: list[float] = dc.field(default_factory=list)
     aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
 
     def string(self):

@@ -1,7 +1,7 @@
 import abc
 import dataclasses as dc
 import enum
-from typing import Union, Literal, TextIO
+from typing import Union, TextIO
 from .pytools import get_enum, join_fields
 from .expressions import Expression
 from .variables import Variable
@@ -12,9 +12,9 @@ class BCPatch:
     id: Union[int, str]
     component: tuple[Variable, int | None]
     bctype: BoundaryType
-    value: list[Expression | str | int |
-                float] = dc.field(default_factory=list)
-    options: list[str | int | float] = dc.field(default_factory=list)
+    value: list[Expression | Variable | str | int |
+                float]
+    options: list[str | int | float]
 
     def __init__(self, i: int, component: Variable | tuple[Variable, int | None], bctype: BOUNDARY_TYPE | BoundaryType, *val: Expression | str | int | float) -> None:
         self.id = i
@@ -25,6 +25,7 @@ class BCPatch:
         self.component = component[idx]
         self.bctype = get_enum(bctype, BoundaryType)
         self.value = list(val)
+        self.options = list()
 
     def UseOption(self) -> None:
         ...
@@ -34,7 +35,7 @@ class BCPatch:
         if idx is not None:
             var = f"{str(var)}.{idx}"
         string = join_fields(
-            [self.id, var, self.bctype, *self.value, *self.options], char="  ")
+            self.id, var, self.bctype, *self.value, *self.options, char="  ")
         return f'    {string}\n'
 
 
@@ -69,33 +70,16 @@ class BoundaryCondition:
 
 
 class Problem(abc.ABC):
-    @property
-    @abc.abstractmethod
-    def name(self) -> str: ...
+    name: str
+    problem: enum.StrEnum
+    variables: dict[str, Variable]
+    aux_vars: dict[str, Variable]
+    options: dict[str, list[str]]
+    flags: dict[str, None]
+    bc: BoundaryCondition
 
-    @property
-    @abc.abstractmethod
-    def problem(self) -> enum.StrEnum: ...
-
-    @property
-    @abc.abstractmethod
-    def variables(self) -> dict[str, Variable]: ...
-
-    @property
-    @abc.abstractmethod
-    def aux_vars(self) -> dict[str, Variable]: ...
-
-    @property
-    @abc.abstractmethod
-    def options(self) -> dict[str, list[str]]: ...
-
-    @property
-    @abc.abstractmethod
-    def flags(self) -> list[str]: ...
-
-    @property
-    @abc.abstractmethod
-    def bc(self) -> BoundaryCondition: ...
+    def __repr__(self) -> str:
+        return self.name
 
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...

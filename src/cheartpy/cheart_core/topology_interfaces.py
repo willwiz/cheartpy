@@ -13,7 +13,7 @@ class TopInterface:
     topologies: list[CheartTopology] = dc.field(default_factory=list)
 
     def write(self, f: TextIO):
-        string = join_fields([self.method, *self.topologies])
+        string = join_fields(self.method, *self.topologies)
         f.write(
             f'!DefInterface={{{string}}}\n'
         )

@@ -36,7 +36,7 @@ class CheartTopology(_CheartTopology):
 
     def write(self, f: TextIO):
         string = join_fields(
-            [self.name, self.mesh, self.basis if self.basis else "none"])
+            self.name, self.mesh, self.basis if self.basis else "none")
         f.write(f"!DefTopology={{{string}}}\n")
 
 

@@ -32,7 +32,7 @@ class SolidProblem(Problem):
     variables: dict[SOLID_VARIABLES, Variable]
     aux_vars: dict[str, Variable]
     options: dict[str, list[Any]]
-    flags: list[str]
+    flags: dict[str, None]
     bc: BoundaryCondition
 
     def __init__(self, name: str, problem: SolidProblemType, space: Variable, disp: Variable, vel: Variable | None = None, pres: Variable | None = None, matlaws: list[Law] | None = None) -> None:
@@ -46,6 +46,10 @@ class SolidProblem(Problem):
         if pres:
             self.variables["Pressure"] = pres
         self.matlaws = list() if matlaws is None else matlaws
+        self.aux_vars = dict()
+        self.options = dict()
+        self.flags = dict()
+        self.bc = BoundaryCondition()
 
     def AddMatlaw(self, *law: Matlaw):
         for v in law:
@@ -68,7 +72,7 @@ class SolidProblem(Problem):
         self, opt: Literal["SetProblemTimeDiscretization"], val: Literal["time_scheme_backward_euler"], sub_val: Literal["backward"]) -> None: ...
 
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
-        self.options[opt] = list(val, *sub_val)
+        self.options[opt] = list([val, *sub_val])
 
     def write(self, f: TextIO):
 
@@ -76,7 +80,7 @@ class SolidProblem(Problem):
         for k, v in self.variables.items():
             f.write(f"  !UseVariablePointer={{{k}|{v.name}}}\n")
         for k, v in self.options.items():
-            string = join_fields(v)
+            string = join_fields(*v)
             f.write(f'  !{k}={{{string}}}\n')
         for v in self.flags:
             f.write(f"  !{v}\n")

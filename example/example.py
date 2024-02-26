@@ -25,7 +25,6 @@ It really is.
         "LinBasis", "HEXAHEDRAL_ELEMENT", "NODAL_LAGRANGE", "GAUSS_LEGENDRE", 1, 1)
     b2 = create_basis(
         "QuadBasis", "HEXAHEDRAL_ELEMENT", "NODAL_LAGRANGE", "GAUSS_LEGENDRE", 2, 3)
-
     t1 = create_topology("TP1", b1, mesh+"_lin")
     t2 = create_topology("TP2", b2, mesh+"_quad")
     p.AddInterface("ManyToOne", [t2, t1])
@@ -41,25 +40,17 @@ It really is.
     mp.UseOption("Density", 1.0e-6)
     mp.UseOption("SetProblemTimeDiscretization",
                  "time_scheme_backward_euler", "backward")
-
     mp.AddMatlaw(Matlaw("neohookean", [0.5]))
 
     left = Expression("still", ["0", "0", "0"])
     right = Expression("move", ["t", "0", "0"])
-    p.AddExpression(left, right)
+    mp.bc.AddPatch(BCPatch(1, disp[1], "dirichlet", left))
+    mp.bc.AddPatch(BCPatch(2, disp, "dirichlet", right))
 
-    bc = BoundaryCondition()
-    bc.AddPatch(BCPatch(1, disp[1], "dirichlet", left))
-    bc.AddPatch(BCPatch(2, disp, "dirichlet", right))
-    mp.bc = bc
-
-    p.AddProblem(mp)
-
-    mat = create_solver_matrix("SolidMatrix", "SOLVER_MUMPS")
+    mat = create_solver_matrix("SolidMatrix", "SOLVER_MUMPS", mp)
     mat.AddSetting("ordering", "parallel")
     mat.AddSetting("SuppressOutput")
     mat.AddSetting("SolverMatrixCalculation", "evaluate_every_build")
-    p.AddMatrix(mat)
 
     g = create_solver_group("Main", time)
     p.AddSolverGroup(g)

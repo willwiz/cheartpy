@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import dataclasses as dc
-from typing import Optional, Self, TextIO, Literal, overload
+from typing import Self, TextIO, Literal, overload
 from .aliases import *
 from .pytools import get_enum, join_fields
 from .topologies import CheartTopology, NullTopology
@@ -17,6 +17,7 @@ class Variable:
     freq: int = 1
     loop_step: int | None = None
     setting: tuple[VariableUpdateSetting, str | Expression] | None = None
+    expressions: dict[str, Expression] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
@@ -72,14 +73,14 @@ class Variable:
 
     def write(self, f: TextIO):
         string = join_fields(
-            [self.name, self.topology if self.topology else "null_topology", self.file, self.dim])
+            self.name, self.topology if self.topology else "null_topology", self.file, self.dim)
         f.write(
             f"!DefVariablePointer={{{string}}}\n"
         )
         if self.setting:
             string = join_fields(
-                [self.name, self.setting[0],
-                    self.setting[1], self.freq, self.loop_step]
+                self.name, self.setting[0],
+                self.setting[1], self.freq, self.loop_step
             )
             f.write(
                 f"  !SetVariablePointer={{{string}}}\n"

@@ -201,7 +201,7 @@ class SolverGroup(object):
                 f"  !SetSolverGroup={{{self.name}|export_initial_condition}}\n")
         # Print Conv Settings
         for k, v in self.settings.items():
-            string = join_fields([self.name, k, *v])
+            string = join_fields(self.name, k, *v)
             f.write(f"  !SetSolverGroup={{{string}}}\n")
         if self.use_dynamic_topologies:
             f.write(

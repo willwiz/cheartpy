@@ -28,12 +28,12 @@ class SolverMatrix:
             self.problem[p.name] = p
 
     def write(self, f: TextIO):
+        string = join_fields(self.name, self.solver, *self.problem.values())
         f.write(
-            f'!DefSolverMatrix={{{self.name}|{self.solver}|{
-                "|".join([p.name for p in self.problem.values()])}}}\n'
+            f'!DefSolverMatrix={{{string}}}\n'
         )
         if self.suppress_output:
-            f.write(f" !SetSolverMatrix={{{self.name}|SuppressOutput}}\n")
+            f.write(f"  !SetSolverMatrix={{{self.name}|SuppressOutput}}\n")
         for k, v in self.settings.items():
-            string = join_fields([self.name, k, *v])
-            f.write(f" !SetSolverMatrix={{{string}}}\n")
+            string = join_fields(self.name, k, *v)
+            f.write(f"  !SetSolverMatrix={{{string}}}\n")
