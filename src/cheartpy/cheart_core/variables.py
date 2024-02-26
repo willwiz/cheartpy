@@ -3,7 +3,7 @@ import dataclasses as dc
 from typing import Self, TextIO, Literal, overload
 from .aliases import *
 from .pytools import get_enum, join_fields
-from .topologies import CheartTopology, NullTopology
+from .topologies import CheartTopology
 from .expressions import Expression
 
 

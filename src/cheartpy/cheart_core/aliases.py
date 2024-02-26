@@ -85,6 +85,11 @@ SOLID_PROBLEM_TYPE = Literal[
 ]
 
 
+class SolidProblemType(enum.StrEnum):
+    TRANSIENT = "transient_elasticity"
+    QUASI_STATIC = "quasi_static_elasticity"
+
+
 BOUNDARY_TYPE = Literal[
     "dirichlet",
     "neumann",
@@ -220,11 +225,6 @@ class SolverSubgroupAlgorithm(enum.StrEnum):
 
 class OPTIONS_BASIS:
     pass
-
-
-class SolidProblemType(enum.StrEnum):
-    TRANSIENT = "transient_elasticity"
-    QUASI_STATIC = "quasi_static_elasticity"
 
 
 class L2ProjectionProblems(enum.StrEnum):

@@ -6,7 +6,7 @@ from cheartpy.cheart_core.api import create_basis, create_solver_group, create_s
 from cheartpy.cheart_core.solid_mechanics.solid_problems import create_solid_problem
 from cheartpy.cheart_core.solid_mechanics.matlaws import Matlaw
 from cheartpy.cheart_core.expressions import Expression
-from cheartpy.cheart_core.problems import BoundaryCondition, BCPatch
+from cheartpy.cheart_core.problems import BCPatch
 
 
 def get_PFile():
@@ -35,14 +35,14 @@ It really is.
     p.SetExportFrequency(space, disp, pres, freq=1)
 
     mp = create_solid_problem("Solid", "QUASI_STATIC",
-                              space, disp=disp, pres=pres)
+                              space, disp, pres=pres)
     mp.UseOption("Perturbation-scale", 1.0e-6)
     mp.UseOption("Density", 1.0e-6)
     mp.UseOption("SetProblemTimeDiscretization",
                  "time_scheme_backward_euler", "backward")
     mp.AddMatlaw(Matlaw("neohookean", [0.5]))
 
-    left = Expression("still", ["0", "0", "0"])
+    left = Expression("still", [0])
     right = Expression("move", ["t", "0", "0"])
     mp.bc.AddPatch(BCPatch(1, disp[1], "dirichlet", left))
     mp.bc.AddPatch(BCPatch(2, disp, "dirichlet", right))

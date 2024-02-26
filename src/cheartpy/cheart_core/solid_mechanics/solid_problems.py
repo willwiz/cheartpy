@@ -120,6 +120,8 @@ def create_solid_problem(
     name: str, prob: SOLID_PROBLEM_TYPE | SolidProblemType, space: Variable, disp: Variable, vel: Variable | None = None, pres: Variable | None = None
 ) -> SolidProblem:
     problem = get_enum(prob, SolidProblemType)
+    if space.file is None:
+        raise ValueError(f"Space for {name} must be initialized with values")
     match problem, vel:
         case SolidProblemType.TRANSIENT, None:
             raise ValueError(f"Solid Problem {name}: Transient must have Vel")
