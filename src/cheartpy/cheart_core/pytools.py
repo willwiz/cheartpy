@@ -11,7 +11,7 @@ def VoS(x):
 
 def join_fields(*terms: Any, char: str = "|") -> str:
     vals = [str(v) for v in terms if v is not None]
-    return f"{{{char.join(vals)}}}"
+    return char.join(vals)
 
 
 def hline(s: str):

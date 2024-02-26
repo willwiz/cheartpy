@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
-from cheartpy.cheart_core.data_types import *
+from cheartpy.cheart_core.aliases import *  # type: ignore
+from cheartpy.cheart_core.p_file import PFile
+from cheartpy.cheart_core.api import create_basis, create_solver_group, create_solver_matrix, create_solver_subgroup, create_time_scheme, create_topology, create_variable
+from cheartpy.cheart_core.solid_mechanics.solid_problems import create_solid_problem
+from cheartpy.cheart_core.solid_mechanics.matlaws import Matlaw
+from cheartpy.cheart_core.expressions import Expression
+from cheartpy.cheart_core.problems import BoundaryCondition, BCPatch
 
 
 def get_PFile():
@@ -12,33 +18,29 @@ It really is.
         output_path="pfiles",
     )
 
-    time = TimeScheme("time", 1, 10, 0.005)
-    p.AddTimeScheme(time)
+    mesh = "mesh/cube10"
 
-    b1 = Basis("LinBasis", HEXAHEDRAL_ELEMENT, "NODAL_LAGRANGE1", "GAUSS_LEGENDRE9")
-    b2 = Basis("QuadBasis", HEXAHEDRAL_ELEMENT, "NODAL_LAGRANGE2", "GAUSS_LEGENDRE9")
-    p.AddBasis(b1, b2)
+    time = create_time_scheme("time", 1, 10, 0.005)
+    b1 = create_basis(
+        "LinBasis", "HEXAHEDRAL_ELEMENT", "NODAL_LAGRANGE", "GAUSS_LEGENDRE", 1, 1)
+    b2 = create_basis(
+        "QuadBasis", "HEXAHEDRAL_ELEMENT", "NODAL_LAGRANGE", "GAUSS_LEGENDRE", 2, 3)
 
-    t1 = Topology("TP1", "mesh/cube10_lin", "LinBasis")
-    t2 = Topology("TP2", "mesh/cube10_quad", "QuadBasis")
-    p.AddTopology(t1, t2)
-    p.AddInterface(TopInterface("p2p1", "OneToOne", ["TP1", "TP2"]))
+    t1 = create_topology("TP1", b1, mesh+"_lin")
+    t2 = create_topology("TP2", b2, mesh+"_quad")
+    p.AddInterface("ManyToOne", [t2, t1])
 
-    space = Variable("Space", t2, 3, file="mesh/cube10_quad")
-    disp = Variable("Disp", "TP2", 3)
-    pres = Variable("Pres", "TP1", 1)
-    p.AddVariable(space, disp, pres)
-    p.SetExportFrequency("Space", disp, "Pres", freq=1)
+    space = create_variable("Space", t2, 3, space="mesh/cube10_quad")
+    disp = create_variable("Disp", t2, 3)
+    pres = create_variable("Pres", t1, 1)
+    p.SetExportFrequency(space, disp, pres, freq=1)
 
-    mp = SolidProblem("Solid", quasi_static_elasticity)
-    mp.UseVariable("Space", space)
-    mp.UseVariable("Displacement", disp)
-    mp.UseVariable("Pressure", pres)
-    mp.UseOption("Perturbation-scale", 1e-9)
+    mp = create_solid_problem("Solid", "QUASI_STATIC",
+                              space, disp=disp, pres=pres)
+    mp.UseOption("Perturbation-scale", 1.0e-6)
     mp.UseOption("Density", 1.0e-6)
-    mp.UseOption(
-        "SetProblemTimeDiscretization", "time_scheme_backward_euler", "backward"
-    )
+    mp.UseOption("SetProblemTimeDiscretization",
+                 "time_scheme_backward_euler", "backward")
 
     mp.AddMatlaw(Matlaw("neohookean", [0.5]))
 
@@ -47,26 +49,24 @@ It really is.
     p.AddExpression(left, right)
 
     bc = BoundaryCondition()
-    bc.AddPatch(BCPatch(1, "Disp", "Dirichlet", "still"))
-    bc.AddPatch(
-        BCPatch(2, "Disp", "Dirichlet", "move")
-    )  # fix val could be float or expr
-    mp.BC = bc
+    bc.AddPatch(BCPatch(1, disp[1], "dirichlet", left))
+    bc.AddPatch(BCPatch(2, disp, "dirichlet", right))
+    mp.bc = bc
 
     p.AddProblem(mp)
 
-    mat = SolverMatrix("SolidMatrix", SOLVER_MUMPS, [mp])
+    mat = create_solver_matrix("SolidMatrix", "SOLVER_MUMPS")
     mat.AddSetting("ordering", "parallel")
     mat.AddSetting("SuppressOutput")
     mat.AddSetting("SolverMatrixCalculation", "evaluate_every_build")
     p.AddMatrix(mat)
 
-    g = SolverGroup("Main", time)
+    g = create_solver_group("Main", time)
     p.AddSolverGroup(g)
     g.AddSetting("L2TOL", "1e-9")
     g.AddSetting("L2PERCENT", "1e-10")
     g.export_initial_condition = True
-    sg2 = SolverSubGroup("2", seq_fp_linesearch, ["SolidMatrix"])
+    sg2 = create_solver_subgroup("seq_fp_linesearch", mat)
     g.AddSolverSubGroup(sg2)
 
     return p
