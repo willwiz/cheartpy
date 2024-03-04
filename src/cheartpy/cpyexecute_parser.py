@@ -16,6 +16,7 @@ def split_filename(f: str):
 
 def gen_script(args, rest):
     import importlib
+
     path, name, pack = split_filename(args.pfile)
     sys.path.append(os.getcwd())
     pkg = importlib.import_module(pack)
@@ -136,7 +137,7 @@ parser.set_defaults(main=self_default)
 
 subparsers = parser.add_subparsers()
 parser_help = subparsers.add_parser(
-    "help", help="call cheart --help=var", description="call cheart --help=var"
+    "help", description="call cheart --help=var"
 )
 parser_help.add_argument("string", type=str)
 parser_help.set_defaults(main=cheart_help)
@@ -147,6 +148,7 @@ parser_gen = subparsers.add_parser(
 )
 parser_gen.add_argument("pfile", type=str)
 parser_gen.set_defaults(main=gen_script)
+
 parser_run = subparsers.add_parser(
     "py",
     help="run cheart with a py script instead of a Pfile",
@@ -167,6 +169,7 @@ parser_run.add_argument(
     help="OPTIONAL: number of cores to compute with",
 )
 parser_run.set_defaults(main=run_script)
+
 parser_prep = subparsers.add_parser(
     "prep",
     help="run cheart prep but with a py script",
@@ -180,6 +183,7 @@ parser_prep.add_argument(
     "--log", type=str, help="OPTIONAL: store output in a log file with given name"
 )
 parser_prep.set_defaults(main=run_prep)
+
 parser_pf = subparsers.add_parser(
     "run", help="run cheart with a Pfile", description="run cheart with a Pfile"
 )

@@ -48,7 +48,7 @@ def main_interp_file(file: str, map: dict[int, list[int]], suffix: str):
 def main_interp_var(var: str, map: dict[int, list[int]], inp: InterpInputArgs):
     indexer = get_file_name_indexer(
         [var], inp.index, inp.sub_auto, inp.sub_index, inp.input_folder)
-    bart = ProgressBar("Interp", indexer.size)
+    bart = ProgressBar(indexer.size, "Interp")
     if indexer.size == 0:
         raise ValueError(f"No files found for variable {var}")
     for i in indexer.get_generator():
