@@ -336,7 +336,7 @@ def find_args_iter(inp: ProgramArgs, time: str, cache: VariableCache):
 def run_exports_in_series(inp: ProgramArgs, indexer: IndexerList, cache: VariableCache) -> None:
     time_steps = indexer.get_generator()
     bart = ProgressBar(
-        "Exporting", indexer.size) if inp.progress_bar else None
+        indexer.size, "Exporting") if inp.progress_bar else None
     for t in time_steps:
         args = find_args_iter(inp, t, cache)
         export_mesh_iter(args, inp, cache.top)
@@ -349,8 +349,7 @@ def run_exports_in_series(inp: ProgramArgs, indexer: IndexerList, cache: Variabl
 def run_exports_in_parallel(inp: ProgramArgs, indexer: IndexerList, cache: VariableCache) -> None:
     time_steps = indexer.get_generator()
     jobs: dict[futures.Future, str] = dict()
-    bart = ProgressBar(
-        "Exporting", indexer.size) if inp.progress_bar else None
+    bart = ProgressBar(indexer.size, "Exporting") if inp.progress_bar else None
     with futures.ProcessPoolExecutor(inp.cores) as exec:
         for t in time_steps:
             args = find_args_iter(inp, t, cache)

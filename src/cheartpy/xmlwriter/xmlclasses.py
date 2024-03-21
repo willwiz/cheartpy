@@ -29,8 +29,10 @@ class XMLWriters:
 
 
 class XMLElement:
-    data: Arr[Any, Any] | None = None
-    datawriter: WriterSigs = XMLWriters.PointWriter
+    data: Arr[Any, Any] | None
+    datawriter: WriterSigs
+    attribs: str
+    subelems: list[XMLElement]
 
     def __init__(self, tag: str, **attribs: str) -> None:
         self.tag = tag
@@ -38,6 +40,8 @@ class XMLElement:
         for k, v in attribs.items():
             string = string + f' {k}="{v}"'
         self.attribs = string
+        self.data = None
+        self.datawriter = XMLWriters.PointWriter
         self.subelems = list()
 
     def add_elem(self, elem: XMLElement):
