@@ -56,6 +56,6 @@ class MissingArgument(Exception):
 
 
 def get_enum[T:enum.Enum](v: str | T, e: Type[T]) -> T:
-    if not isinstance(v, e):
-        return e[v]
-    return v
+    if not isinstance(v, str):
+        return v
+    return e[v]
