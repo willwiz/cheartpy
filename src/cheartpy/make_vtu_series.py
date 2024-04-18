@@ -37,7 +37,7 @@ def import_time_data(file: str) -> tp.Tuple[int, tp.Dict[int, float]]:
     arr = dict()
     with open(file, "r") as f:
         try:
-            n = int(f.readline.strip())
+            n = int(f.readline().strip())
         except ValueError as e:
             print(">>>ERROR: check file format. Time series data has 1 int for header.")
             raise e
@@ -50,6 +50,7 @@ def import_time_data(file: str) -> tp.Tuple[int, tp.Dict[int, float]]:
                 arr[int(s)] = float(v) + arr[i]
         except Exception as e:
             raise e
+
     return len(arr), arr
 
 
@@ -65,7 +66,7 @@ def check_args(args) -> InputArgs:
         inp.nt, inp.time = import_time_data(args.time_series)
     file_check = False
     for i in range(inp.i0, inp.it, inp.di):
-        if not os.path.isfile(os.path.join(args.folder, f"{args.prefix}-{i}.vtu")):
+        if not os.path.isfile(os.path.join(args.outfolder, f"{args.prefix}-{i}.vtu")):
             print(f">>>ERROR: {args.prefix}-{i}.vtu cannot be found")
             file_check = True
         if not i in inp.time:
@@ -73,6 +74,7 @@ def check_args(args) -> InputArgs:
             file_check = True
     if file_check:
         raise FileNotFoundError()
+
     print("All files are found.")
     return inp
 
@@ -108,7 +110,7 @@ def main():
     args = parser.parse_args()
     inp = check_args(args)
     print_cmd_header(inp)
-    bar = ProgressBar("Processing", max=inp.nt)
+    bar = ProgressBar( max=inp.nt, prefix="Processing")
     fout = os.path.join(inp.outfolder, inp.prefix + ".pvd")
     with open(fout, "w") as f:
         xml_write_header(f)
