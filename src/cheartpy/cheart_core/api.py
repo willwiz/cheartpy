@@ -5,8 +5,9 @@ from .implementation.solver_groups import SolverGroup, SolverSubGroup
 from .implementation.solver_matrices import SolverMatrix
 from .implementation.variables import Variable
 from .implementation.time_schemes import TimeScheme
-from .implementation.topologies import _CheartTopology, NullTopology, CheartTopology
+from .implementation.topologies import NullTopology, CheartTopology
 from .implementation.basis import CheartBasis, Basis, Quadrature
+from .interface.basis import *
 from .pytools import get_enum
 from .aliases import *
 
@@ -27,7 +28,7 @@ def create_basis(
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: int,
     gp: int,
-) -> CheartBasis:
+) -> _CheartBasis:
     elem = get_enum(elem, CheartElementType)
     kind = get_enum(kind, CheartBasisType)
     quadrature = get_enum(quadrature, CheartQuadratureType)
@@ -50,7 +51,7 @@ def create_basis(
 
 def create_topology(
     name: str,
-    basis: CheartBasis | None,
+    basis: _CheartBasis | None,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> CheartTopology | NullTopology:
@@ -86,10 +87,7 @@ def create_variable(
     loop_step: int | None = None,
 ) -> Variable:
     fmt = get_enum(format, VariableExportFormat)
-    # if space and isinstance(top, CheartTopology):
-    #     if space != top.mesh:
-    #         raise ValueError(f"Variable {
-    #                          name} is a space variable but mesh file does not match {space} != {top.mesh}")
+    top = NullTopology() if top is None else top
     return Variable(name, top, dim, data, fmt, freq, loop_step)
 
 

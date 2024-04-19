@@ -6,8 +6,9 @@ from .implementation.solver_groups import SolverGroup, SolverSubGroup
 from .implementation.solver_matrices import SolverMatrix
 from .implementation.variables import Variable
 from .implementation.time_schemes import TimeScheme
-from .implementation.topologies import _CheartTopology, NullTopology, CheartTopology
+from .implementation.topologies import NullTopology, CheartTopology
 from .implementation.basis import CheartBasis
+from .interface.basis import *
 
 def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
@@ -19,11 +20,11 @@ def create_basis(
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: int,
     gp: int,
-) -> CheartBasis: ...
+) -> _CheartBasis: ...
 @overload
 def create_topology(
     name: str,
-    basis: CheartBasis,
+    basis: _CheartBasis,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> CheartTopology: ...

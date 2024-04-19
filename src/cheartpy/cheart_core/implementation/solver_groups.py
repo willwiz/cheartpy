@@ -3,12 +3,12 @@ import dataclasses as dc
 from typing import TextIO, overload
 from ..aliases import *
 from ..pytools import *
+from ..interface.basis import *
 from .variables import Variable
-from .topologies import _CheartTopology
-from .problems import _Problem
 from .expressions import Expression
-from ..time_schemes import TimeScheme
+from .time_schemes import TimeScheme
 from .solver_matrices import SolverMatrix
+from ..interface import *
 
 """
 Cheart dataclasses
@@ -51,13 +51,13 @@ PFile
 
 
 # Define Solver SubGroup
-@dc.dataclass
+@dc.dataclass(slots=True)
 class SolverSubGroup:
     method: SolverSubgroupAlgorithm
     problems: dict[str, SolverMatrix | _Problem] = dc.field(
         default_factory=dict
     )
-    aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     scale_file_residual: bool = False
 
     def __post_init__(self):
@@ -69,9 +69,9 @@ class SolverSubGroup:
 @dc.dataclass
 class SolverGroup(object):
     name: str
-    time: TimeScheme
+    time: _TimeScheme
     SolverSubGroups: list[SolverSubGroup] = dc.field(default_factory=list)
-    aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     settings: dict[str, list[str | int | float]
                    ] = dc.field(default_factory=dict)
     export_initial_condition: bool = False
@@ -94,7 +94,7 @@ class SolverGroup(object):
             "INFRELUPDATE",
             "L2RESRELPERCENT",
         ] | Literal["ITERATION", "SUBITERATION", "LINESEARCHITER", "SUBITERFRACTION"],
-        val: Expression| Variable| float| str,
+        val: _Expression| _Variable| float| str,
     ) -> None:
         ...
 
@@ -145,12 +145,10 @@ class SolverGroup(object):
     ) -> None:
         self.settings["CatchSolverErrors"] = [err, act]
 
-    def AddVariable(self, *var: Variable):
+    def AddVariable(self, *var: _Variable):
         for v in var:
-            if isinstance(v, str):
-                self.aux_vars[v] = v
-            else:
-                self.aux_vars[v.name] = v
+            self.aux_vars[str(v)] = v
+
 
     def RemoveVariable(self, *var: str|Variable):
         for v in var:

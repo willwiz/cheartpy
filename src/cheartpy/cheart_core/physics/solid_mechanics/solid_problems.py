@@ -2,9 +2,8 @@ import dataclasses as dc
 from typing import Any, Literal, TextIO, TypedDict, overload
 from cheartpy.cheart_core.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from cheartpy.cheart_core.pytools import get_enum, join_fields
-
-from cheartpy.cheart_core.base_types.variables import Variable
-from ...base_types.problems import BoundaryCondition, _Problem, BCPatch
+from ...implementation.problems import BoundaryCondition
+from ...interface import *
 from .matlaws import Law, Matlaw
 
 
@@ -29,8 +28,8 @@ class SolidProblem(_Problem):
     name: str
     problem: SolidProblemType
     matlaws: list[Law]
-    variables: dict[str, Variable]
-    aux_vars: dict[str, Variable]
+    variables: dict[str, _Variable]
+    aux_vars: dict[str, _Variable]
     options: dict[str, list[Any]]
     flags: dict[str, None]
     bc: BoundaryCondition
@@ -38,23 +37,23 @@ class SolidProblem(_Problem):
     def __repr__(self) -> str:
         return self.name
 
-    def get_variables(self) -> dict[str, Variable]:
+    def get_variables(self) -> dict[str, _Variable]:
         return self.variables
 
-    def get_aux_vars(self) -> dict[str, Variable]:
+    def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
-    def get_bc_patches(self) -> list[BCPatch]:
+    def get_bc_patches(self) -> list[_BCPatch]:
         return [] if self.bc.patches is None else self.bc.patches
 
     def __init__(
         self,
         name: str,
         problem: SolidProblemType,
-        space: Variable,
-        disp: Variable,
-        vel: Variable | None = None,
-        pres: Variable | None = None,
+        space: _Variable,
+        disp: _Variable,
+        vel: _Variable | None = None,
+        pres: _Variable | None = None,
         matlaws: list[Law] | None = None,
     ) -> None:
         self.name = name
@@ -78,7 +77,7 @@ class SolidProblem(_Problem):
             for k, x in v.get_aux_vars().items():
                 self.aux_vars[k] = x
 
-    def AddVariable(self, name: SOLID_VARIABLES, var: Variable) -> None:
+    def AddVariable(self, name: SOLID_VARIABLES, var: _Variable) -> None:
         self.variables[name] = var
 
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
@@ -87,7 +86,7 @@ class SolidProblem(_Problem):
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         for k, v in self.variables.items():
-            f.write(f"  !UseVariablePointer={{{k}|{v.name}}}\n")
+            f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
         for k, v in self.options.items():
             string = join_fields(*v)
             f.write(f"  !{k}={{{string}}}\n")
@@ -116,13 +115,13 @@ class SolidProblem(_Problem):
 def create_solid_problem(
     name: str,
     prob: SOLID_PROBLEM_TYPE | SolidProblemType,
-    space: Variable,
-    disp: Variable,
-    vel: Variable | None = None,
-    pres: Variable | None = None,
+    space: _Variable,
+    disp: _Variable,
+    vel: _Variable | None = None,
+    pres: _Variable | None = None,
 ) -> SolidProblem:
     problem = get_enum(prob, SolidProblemType)
-    if space.data is None:
+    if space.get_data() is None:
         raise ValueError(f"Space for {name} must be initialized with values")
     match problem, vel:
         case SolidProblemType.TRANSIENT, None:

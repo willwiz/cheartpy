@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import Self, TextIO, Literal, overload
+
+from .topologies import NullTopology
 from ..aliases import *
 from ..pytools import get_enum, join_fields
-from .topologies import _CheartTopology
-from .expressions import Expression
+from ..interface import *
+from .expressions import _Expression
 
 
-@dc.dataclass
-class Variable:
+@dc.dataclass(slots=True)
+class Variable(_Variable):
     name: str
-    topology: _CheartTopology | None
+    topology: _CheartTopology
     dim: int
     data: str | None = None
     fmt: VariableExportFormat = VariableExportFormat.TXT
     freq: int = 1
     loop_step: int | None = None
-    setting: tuple[VariableUpdateSetting, str | Expression] | None = None
-    expressions: dict[str, Expression] = dc.field(default_factory=dict)
+    setting: tuple[VariableUpdateSetting, str | _Expression] | None = None
+    expressions: dict[str, _Expression] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
@@ -30,7 +32,7 @@ class Variable:
 
     @overload
     def AddSetting(
-        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: Expression) -> None: ...
+        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: _Expression) -> None: ...
 
     @overload
     def AddSetting(
@@ -45,7 +47,7 @@ class Variable:
             "TEMPORAL_UPDATE_FILE",
             "TEMPORAL_UPDATE_FILE_LOOP",
         ],
-        val: str | Expression,
+        val: str | _Expression,
     ): ...
 
     def AddSetting(
@@ -56,10 +58,10 @@ class Variable:
             "TEMPORAL_UPDATE_FILE",
             "TEMPORAL_UPDATE_FILE_LOOP",
         ],
-        val: str | Expression,
+        val: str | _Expression,
     ):
         match task, val:
-            case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", Expression():
+            case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", _Expression():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
             case "TEMPORAL_UPDATE_FILE", str():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
@@ -70,6 +72,28 @@ class Variable:
             case _:
                 raise ValueError(f"Setting for variable {
                                  self.name} does not match correct type")
+    def get_data(self)-> str|None:
+        return self.data
+
+    def get_top(self) -> list[_CheartTopology]:
+        if isinstance(self.topology, NullTopology):
+            return []
+        return [self.topology]
+
+    def get_expressions(
+        self,
+    ) -> list[_Expression]:
+
+        if self.setting is None:
+            expr = []
+        elif isinstance(self.setting[1], str):
+            expr = []
+        else:
+            expr = [self.setting[1]]
+        return expr + [v for v in self.expressions.values()]
+
+    def get_export_frequency(self) -> int:
+        return self.freq
 
     def write(self, f: TextIO):
         string = join_fields(

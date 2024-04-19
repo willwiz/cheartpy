@@ -1,38 +1,37 @@
 import dataclasses as dc
 from typing import TextIO, overload
-from .implementation.time_schemes import TimeScheme
-from .implementation.basis import CheartBasis
+from .implementation.basis import _CheartBasis
 from .implementation.topologies import (
-    _CheartTopology,
     CheartTopology,
     NullTopology,
+    TopInterface,
     hash_tops,
 )
-from .implementation.topology_interfaces import TopInterface
 from .implementation.data_pointers import DataPointer, DataInterp
-from .implementation.expressions import Expression
+from .implementation.expressions import _Expression
 from .implementation.variables import Variable
 from .implementation.problems import _Problem
 from .implementation.solver_matrices import SolverMatrix
 from .implementation.solver_groups import SolverGroup
-from .pytools import get_enum, header, hline, splicegen
 from .aliases import *
+from .interface import *
+from .pytools import get_enum, header, hline, splicegen
 
 
 @dc.dataclass(slots=True)
 class PFile(object):
     h: str = ""
     output_path: str | None = None
-    times: dict[str, TimeScheme] = dc.field(default_factory=dict)
+    times: dict[str, _TimeScheme] = dc.field(default_factory=dict)
     solverGs: dict[str, SolverGroup] = dc.field(default_factory=dict)
     matrices: dict[str, SolverMatrix] = dc.field(default_factory=dict)
     problems: dict[str, _Problem] = dc.field(default_factory=dict)
-    variables: dict[str, Variable] = dc.field(default_factory=dict)
+    variables: dict[str, _Variable] = dc.field(default_factory=dict)
     toplogies: dict[str, _CheartTopology] = dc.field(default_factory=dict)
-    bases: dict[str, CheartBasis] = dc.field(default_factory=dict)
-    dataPs: dict[str, DataPointer] = dc.field(default_factory=dict)
-    exprs: dict[str, Expression] = dc.field(default_factory=dict)
-    interfaces: dict[str, TopInterface] = dc.field(default_factory=dict)
+    bases: dict[str, _CheartBasis] = dc.field(default_factory=dict)
+    dataPs: dict[str, _DataPointer] = dc.field(default_factory=dict)
+    exprs: dict[str, _Expression] = dc.field(default_factory=dict)
+    interfaces: dict[str, _TopInterface] = dc.field(default_factory=dict)
 
     # exportfrequencies: dict[str, Set[Variable]] = field(default_factory=dict)
     def SetOutputPath(self, path):
@@ -55,9 +54,9 @@ class PFile(object):
                     self.AddVariable(*sg.aux_vars.values())
 
     # Add Time Scheme
-    def AddTimeScheme(self, *time: TimeScheme) -> None:
+    def AddTimeScheme(self, *time: _TimeScheme) -> None:
         for t in time:
-            self.times[t.name] = t
+            self.times[str(t)] = t
 
     # Matrix
     def AddMatrix(self, *mat: SolverMatrix) -> None:
@@ -77,44 +76,39 @@ class PFile(object):
             self.AddVariable(*p.get_variables().values())
             self.AddVariable(*p.get_aux_vars().values())
             for patch in p.get_bc_patches():
-                for v in patch.value:
-                    if isinstance(v, Variable):
+                for v in patch.get_values():
+                    if isinstance(v, _Variable):
                         self.AddVariable(v)
-                    elif isinstance(v, Expression):
+                    elif isinstance(v, _Expression):
                         self.AddExpression(v)
 
-    def AddVariable(self, *var: Variable) -> None:
+    def AddVariable(self, *var: _Variable) -> None:
         for v in var:
-            if v.name not in self.variables:
-                self.variables[v.name] = v
+            if str(v) not in self.variables:
+                self.variables[str(v)] = v
             # self.SetExportFrequency(v, freq=v.freq)
-            if v.topology:
-                self.AddTopology(v.topology)
-            if v.setting:
-                if isinstance(v.setting[1], Expression):
-                    self.AddExpression(v.setting[1])
-            if v.expressions:
-                self.AddExpression(*v.expressions.values())
+            self.AddTopology(*v.get_top())
+            self.AddExpression(*v.get_expressions())
 
     # Add Topology
     def AddTopology(self, *top: _CheartTopology) -> None:
         for t in top:
-            self.toplogies[repr(t)] = t
             if isinstance(t, CheartTopology):
+                self.toplogies[str(t)] = t
                 self.AddBasis(t.basis)
 
     # Add Basis
-    def AddBasis(self, *basis: CheartBasis | None) -> None:
+    def AddBasis(self, *basis: _CheartBasis | None) -> None:
         for b in basis:
             if b is not None:
-                self.bases[b.name] = b
+                self.bases[str(b)] = b
 
     # Expression
-    def AddExpression(self, *expr: Expression) -> None:
+    def AddExpression(self, *expr: _Expression) -> None:
         for v in expr:
-            if v.name not in self.exprs:
-                self.exprs[v.name] = v
-            for x in v.value:
+            if str(v) not in self.exprs:
+                self.exprs[str(v)] = v
+            for x in v.get_values():
                 if isinstance(x, DataInterp):
                     self.AddDataPointer(x.var)
 
@@ -142,7 +136,7 @@ class PFile(object):
         self,
         name: str,
         task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
-        val: Expression,
+        val: _Expression,
     ) -> None: ...
 
     @overload
@@ -162,7 +156,7 @@ class PFile(object):
             "TEMPORAL_UPDATE_FILE",
             "TEMPORAL_UPDATE_FILE_LOOP",
         ],
-        val: str | Expression,
+        val: str | _Expression,
     ):
         self.variables[name].AddSetting(task, val)
 
@@ -182,10 +176,10 @@ class PFile(object):
         # pprint.pprint(self.vars)
         exportfrequencies = dict()
         for v in self.variables.values():
-            if str(v.freq) in exportfrequencies:
-                exportfrequencies[str(v.freq)].update({str(v)})
+            if v.get_export_frequency() in exportfrequencies:
+                exportfrequencies[v.get_export_frequency()].update({str(v)})
             else:
-                exportfrequencies[str(v.freq)] = {str(v)}
+                exportfrequencies[v.get_export_frequency()] = {str(v)}
         return exportfrequencies
 
     # ----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import abc
 import dataclasses as dc
 from typing import Final, Literal
-from ...base_types.variables import Variable
+from ...interface import _Variable
 
 # Matlaws -----------------------------------------------------------------------------
 
@@ -12,16 +12,16 @@ class Law(abc.ABC):
     def string(self) -> str: ...
 
     @abc.abstractmethod
-    def get_aux_vars(self) -> dict[str, Variable]: ...
+    def get_aux_vars(self) -> dict[str, _Variable]: ...
 
 
 @dc.dataclass
 class Matlaw(Law):
     name: str
     parameters: list[float] = dc.field(default_factory=list)
-    aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
 
-    def get_aux_vars(self) -> dict[str, Variable]:
+    def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
     def string(self):
@@ -36,20 +36,20 @@ class FractionalVE(Law):
     alpha: float
     np: int
     Tf: float
-    store: Variable
+    store: _Variable
     Tscale: float | None = 10.0
     name: Literal["fractional-ve"] = "fractional-ve"
     InitPK2: bool = True
     ZeroPK2: bool = True
     Order: Literal[1, 2] = 2
     laws: list[Matlaw] = dc.field(default_factory=list)
-    aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
 
-    def get_aux_vars(self) -> dict[str, Variable]:
+    def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
     def __post_init__(self):
-        self.aux_vars[self.store.name] = self.store
+        self.aux_vars[str(self.store)] = self.store
 
     def AddLaw(self, *laws: Matlaw):
         for v in laws:
@@ -85,20 +85,20 @@ class FractionalDiffEQ(Law):
     delta: float
     np: int
     Tf: float
-    store: Variable
+    store: _Variable
     Tscale: float | None = 10.0
     name: str = "fractional-diffeq"
     InitPK2: bool = False
     ZeroPK2: bool = False
     Order: Literal[1, 2] = 2
     laws: list[Matlaw | FractionalVE] = dc.field(default_factory=list)
-    aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
 
-    def get_aux_vars(self) -> dict[str, Variable]:
+    def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
     def __post_init__(self):
-        self.aux_vars[self.store.name] = self.store
+        self.aux_vars[str(self.store)] = self.store
 
     def AddLaw(self, *law: Matlaw | FractionalVE):
         for v in law:

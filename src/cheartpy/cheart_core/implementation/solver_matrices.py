@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import TextIO
+from ..interface import *
 from ..aliases import *
 from ..pytools import *
-from .problems import _Problem
-from .variables import Variable
 
 
 @dc.dataclass(slots=True)
@@ -13,7 +12,7 @@ class SolverMatrix:
     solver: MatrixSolverTypes
     problem: dict[str, _Problem] = dc.field(default_factory=dict)
     suppress_output: bool = True
-    aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     settings: dict[str, list[str]] = dc.field(default_factory=dict)
 
     def __post_init__(self):

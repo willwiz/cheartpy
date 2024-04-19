@@ -5,16 +5,16 @@ from typing import Self, Text, TextIO
 from cheartpy.cheart_core.pytools import join_fields
 
 from ..aliases import *
-from .basis import CheartBasis
-from ..interface.topology import *
+from .basis import _CheartBasis
+from ..interface import *
 
 
 
 
-@dc.dataclass
+@dc.dataclass(slots=True)
 class CheartTopology(_CheartTopology):
     name: str
-    basis: CheartBasis | None
+    basis: _CheartBasis | None
     mesh: str
     fmt: VariableExportFormat = VariableExportFormat.TXT
     embedded: 'CheartTopology | None' = None
@@ -40,7 +40,7 @@ class CheartTopology(_CheartTopology):
             f.write(f"  !SetTopology={{{self.name}|EmbeddedInTopology|{self.embedded}}}\n")
 
 
-@dc.dataclass
+@dc.dataclass(slots=True)
 class NullTopology(_CheartTopology):
     # method
     def __repr__(self) -> str:
@@ -51,6 +51,18 @@ class NullTopology(_CheartTopology):
 
     def write(self, f: TextIO):
         pass
+
+
+
+@dc.dataclass(slots=True)
+class TopInterface(_TopInterface):
+    name: str
+    method: TopologyInterfaceType
+    topologies: list[_CheartTopology] = dc.field(default_factory=list)
+
+    def write(self, f: TextIO):
+        string = join_fields(self.method, *self.topologies)
+        f.write(f"!DefInterface={{{string}}}\n")
 
 
 def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:

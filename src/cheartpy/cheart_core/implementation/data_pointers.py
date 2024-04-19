@@ -1,9 +1,10 @@
 import dataclasses as dc
 from typing import TextIO
+from ..interface.basis import *
 
 
-@dc.dataclass
-class DataPointer:
+@dc.dataclass(slots=True)
+class DataPointer(_DataPointer):
     name: str
     file: str
     nt: int
@@ -17,8 +18,8 @@ class DataPointer:
                 self.file}|{self.dim}|{self.nt}}}\n")
 
 
-@dc.dataclass
-class DataInterp:
+@dc.dataclass(slots=True)
+class DataInterp(_DataInterp):
     var: DataPointer
 
     def __repr__(self) -> str:

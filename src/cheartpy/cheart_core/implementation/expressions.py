@@ -1,16 +1,20 @@
 import dataclasses as dc
 from typing import TextIO, Self
 
-from .data_pointers import DataInterp
+from cheartpy.cheart_core.interface.basis import _DataInterp
+from ..interface import *
 
 
 @dc.dataclass
-class Expression:
+class Expression(_Expression):
     name: str
-    value: list[str | float | DataInterp]
+    value: list[str | float | _DataInterp]
 
     def __repr__(self) -> str:
         return self.name
+
+    def get_values(self) -> list[str | float | _DataInterp]:
+        return self.value
 
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)

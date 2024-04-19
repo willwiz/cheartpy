@@ -1,14 +1,15 @@
-import dataclasses as dc
 from typing import Literal, TextIO
-from ...base_types.topologies import CheartTopology
-from ...base_types.variables import Variable
-from ...base_types.problems import BoundaryCondition, _Problem, BCPatch
+
+from ...pytools import join_fields
+from ...interface import *
+from ...implementation.problems import BoundaryCondition
+from ...implementation.topologies import CheartTopology
 
 
 class NormProblem(_Problem):
     name: str
-    variables: dict[str, Variable]
-    aux_vars: dict[str, Variable]
+    variables: dict[str, _Variable]
+    aux_vars: dict[str, _Variable]
     bc: BoundaryCondition
     root_top: CheartTopology | None = None
     boundary_normal: int | None = None
@@ -20,9 +21,9 @@ class NormProblem(_Problem):
     def __init__(
         self,
         name: str,
-        space: Variable,
-        term1: Variable,
-        term2: Variable | None = None,
+        space: _Variable,
+        term1: _Variable,
+        term2: _Variable | None = None,
         boundary_n: int | None = None,
     ) -> None:
         self.name = name
@@ -39,17 +40,19 @@ class NormProblem(_Problem):
     def __repr__(self) -> str:
         return self.name
 
-    def get_variables(self) -> dict[str, Variable]:
+    def get_variables(self) -> dict[str, _Variable]:
         return self.variables
 
-    def get_aux_vars(self) -> dict[str, Variable]:
+    def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
-    def get_bc_patches(self) -> list[BCPatch]:
+    def get_bc_patches(self) -> list[_BCPatch]:
         return [] if self.bc.patches is None else self.bc.patches
 
     def AddVariable(
-        self, req: Literal["Space", "Term1", "Term2", "ExportToVariable"], var: Variable
+        self,
+        req: Literal["Space", "Term1", "Term2", "ExportToVariable"],
+        var: _Variable,
     ) -> None:
         self.variables[req] = var
 
@@ -60,9 +63,9 @@ class NormProblem(_Problem):
         self.output_filename = name
 
     def write(self, f: TextIO):
-        f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
+        f.write(f"!DefProblem={{{join_fields(self, self.problem)}}}\n")
         for k, v in self.variables.items():
-            f.write(f"  !UseVariablePointer={{{k}|{v.name}}}\n")
+            f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
         if self.boundary_normal is not None:
             f.write(f"  !Boundary-normal={{{self.boundary_normal}}}\n")
         if self.scale_by_measure:

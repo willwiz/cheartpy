@@ -1,11 +1,10 @@
 import enum
 from typing import Literal, TextIO
 
-from ...pytools import get_enum
-
+from ...pytools import get_enum, join_fields
+from ...interface import *
 from ..solid_mechanics.solid_problems import SolidProblem
-from ...base_types.variables import Variable
-from ...base_types.problems import BoundaryCondition, _Problem, BCPatch
+from ...implementation.problems import BoundaryCondition
 
 
 class L2SolidCalculationType(enum.StrEnum):
@@ -19,30 +18,32 @@ class L2SolidProjection(_Problem):
     name: str
     solid_prob: SolidProblem
     calculation: L2SolidCalculationType = L2SolidCalculationType.cauchy_stress
-    variables: dict[str, Variable]
+    variables: dict[str, _Variable]
     bc: BoundaryCondition
-    aux_vars: dict[str, Variable]
+    aux_vars: dict[str, _Variable]
     problem: str = "l2solidprojection_problem"
 
     def __repr__(self) -> str:
         return self.name
 
-    def get_variables(self) -> dict[str, Variable]:
+    def get_variables(self) -> dict[str, _Variable]:
         return self.variables
 
-    def get_aux_vars(self) -> dict[str, Variable]:
+    def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
-    def get_bc_patches(self) -> list[BCPatch]:
+    def get_bc_patches(self) -> list[_BCPatch]:
         return [] if self.bc.patches is None else self.bc.patches
 
-    def UseVariable(self, req: Literal["Space", "Variable"], var: Variable) -> None: ...
+    def UseVariable(
+        self, req: Literal["Space", "Variable"], var: _Variable
+    ) -> None: ...
 
     def __init__(
         self,
         name: str,
-        space: Variable,
-        var: Variable,
+        space: _Variable,
+        var: _Variable,
         solid_prob: SolidProblem,
         projected_var: (
             L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
@@ -58,7 +59,7 @@ class L2SolidProjection(_Problem):
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         for k, v in self.variables.items():
-            f.write(f"  !UseVariablePointer={{{k}|{v.name}}}\n")
+            f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
 
         f.write(f"  !Mechanical-Problem={{{self.solid_prob}}}\n")
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")

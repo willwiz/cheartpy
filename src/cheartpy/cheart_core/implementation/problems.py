@@ -1,36 +1,39 @@
-import abc
 import dataclasses as dc
-import enum
 from typing import Union, TextIO
+
+from cheartpy.cheart_core.interface.basis import _Expression, _Variable
 from ..pytools import get_enum, join_fields
-from .expressions import Expression
-from .variables import Variable
 from ..aliases import *
+from ..interface import *
 
 
-class BCPatch:
+@dc.dataclass(init=False, slots=True)
+class BCPatch(_BCPatch):
     id: Union[int, str]
-    component: tuple[Variable, int | None]
+    component: tuple[_Variable, int | None]
     bctype: BoundaryType
-    value: list[Expression | Variable | str | int | float]
+    values: list[_Expression | _Variable | str | int | float]
     options: list[str | int | float]
 
     def __init__(
         self,
         i: int,
-        component: Variable | tuple[Variable, int | None],
+        component: _Variable | tuple[_Variable, int | None],
         bctype: BOUNDARY_TYPE | BoundaryType,
-        *val: Expression | str | int | float,
+        *val: _Expression | str | int | float,
     ) -> None:
         self.id = i
-        if isinstance(component, Variable):
-            component, idx = component, None
-        else:
+        if isinstance(component, tuple):
             component, idx = component
+        else:
+            component, idx = component, None
         self.component = component[idx]
         self.bctype = get_enum(bctype, BoundaryType)
-        self.value = list(val)
+        self.values = list(val)
         self.options = list()
+
+    def get_values(self) -> list[_Expression | _Variable | str | int | float]:
+        return self.values
 
     def UseOption(self) -> None: ...
 
@@ -39,16 +42,16 @@ class BCPatch:
         if idx is not None:
             var = f"{str(var)}.{idx}"
         string = join_fields(
-            self.id, var, self.bctype, *self.value, *self.options, char="  "
+            self.id, var, self.bctype, *self.values, *self.options, char="  "
         )
         return f"    {string}\n"
 
 
 @dc.dataclass
 class BoundaryCondition:
-    patches: list[BCPatch] | None = None
+    patches: list[_BCPatch] | None = None
 
-    def AddPatch(self, *patch: BCPatch):
+    def AddPatch(self, *patch: _BCPatch):
         if self.patches is None:
             self.patches = list()
         for p in patch:
@@ -57,9 +60,9 @@ class BoundaryCondition:
     def DefPatch(
         self,
         id: int,
-        component: Variable,
+        component: _Variable,
         type: BoundaryType,
-        *val: Expression | str | int | float,
+        *val: _Expression | str | int | float,
     ):
         if self.patches is None:
             self.patches = list()
@@ -76,21 +79,3 @@ class BoundaryCondition:
 
 
 # Problems ----------------------------------------------------------------------
-
-
-class _Problem(abc.ABC):
-
-    @abc.abstractmethod
-    def __repr__(self) -> str: ...
-
-    @abc.abstractmethod
-    def get_variables(self) -> dict[str, Variable]: ...
-
-    @abc.abstractmethod
-    def get_aux_vars(self) -> dict[str, Variable]: ...
-
-    @abc.abstractmethod
-    def get_bc_patches(self) -> list[BCPatch]: ...
-
-    @abc.abstractmethod
-    def write(self, f: TextIO) -> None: ...
