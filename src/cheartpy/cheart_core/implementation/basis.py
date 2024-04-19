@@ -1,29 +1,30 @@
 import dataclasses as dc
 from typing import TextIO
 from ..aliases import CheartBasisType, CheartElementType, CheartQuadratureType
+from ..interface.basis import *
 from ..pytools import join_fields
 
 
 @dc.dataclass(slots=True)
-class Basis:
+class Basis(_Basis):
     name: CheartBasisType
     order: int
 
-    def to_str(self):
+    def __repr__(self):
         return self.name + str(self.order)
 
 
 @dc.dataclass(slots=True)
-class Quadrature:
+class Quadrature(_Quadrature):
     name: CheartQuadratureType
     gp: int
 
-    def to_str(self):
+    def __repr__(self):
         return self.name + str(self.gp)
 
 
-@dc.dataclass
-class CheartBasis:
+@dc.dataclass(slots=True)
+class CheartBasis(_CheartBasis):
     name: str
     elem: CheartElementType
     basis: Basis
@@ -33,7 +34,5 @@ class CheartBasis:
         return self.name
 
     def write(self, f: TextIO):
-        string = join_fields(
-            self.name, self.elem, self.basis.to_str(), self.quadrature.to_str()
-        )
+        string = join_fields(self.name, self.elem, self.basis, self.quadrature)
         f.write(f"!UseBasis={{{string}}}\n")

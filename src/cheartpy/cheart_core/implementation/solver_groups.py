@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import TextIO, overload
-from .aliases import *
-from .pytools import *
-from .base_types.variables import Variable
-from .base_types.topologies import _CheartTopology
-from .base_types.problems import _Problem
-from .base_types.expressions import Expression
-from .time_schemes import TimeScheme
+from ..aliases import *
+from ..pytools import *
+from .variables import Variable
+from .topologies import _CheartTopology
+from .problems import _Problem
+from .expressions import Expression
+from ..time_schemes import TimeScheme
 from .solver_matrices import SolverMatrix
 
 """

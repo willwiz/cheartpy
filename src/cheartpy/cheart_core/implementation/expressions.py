@@ -1,7 +1,7 @@
 import dataclasses as dc
 from typing import TextIO, Self
 
-from cheartpy.cheart_core.data_pointers import DataInterp
+from .data_pointers import DataInterp
 
 
 @dc.dataclass

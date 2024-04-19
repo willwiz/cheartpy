@@ -1,8 +1,8 @@
 import dataclasses as dc
 
 from cheartpy.cheart_core.pytools import join_fields
-from .base_types.topologies import _CheartTopology
-from .aliases import TopologyInterfaceType
+from .topologies import _CheartTopology
+from ..aliases import TopologyInterfaceType
 from typing import TextIO
 
 

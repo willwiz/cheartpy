@@ -6,20 +6,9 @@ from cheartpy.cheart_core.pytools import join_fields
 
 from ..aliases import *
 from .basis import CheartBasis
+from ..interface.topology import *
 
 
-@dc.dataclass
-class _CheartTopology(abc.ABC):
-
-    # methods
-    @abc.abstractmethod
-    def __repr__(self) -> str: ...
-
-    @abc.abstractmethod
-    def write(self, f: TextIO) -> None: ...
-
-    @abc.abstractmethod
-    def AddSetting(self, task: CheartTopologySetting, val: int | tuple[Self, int] | None = None): ...
 
 
 @dc.dataclass
@@ -37,7 +26,7 @@ class CheartTopology(_CheartTopology):
     def __repr__(self) -> str:
         return self.name
 
-    def AddSetting(self, task: CheartTopologySetting, val: int | tuple[Self, int] | None = None) -> None:
+    def AddSetting(self, task: CheartTopologySetting, val: int | tuple[_CheartTopology, int] | None = None) -> None:
         match task, val:
             case _:
                 raise ValueError(f"Setting for topology {self.name} {
@@ -57,7 +46,7 @@ class NullTopology(_CheartTopology):
     def __repr__(self) -> str:
         return "null_topology"
 
-    def AddSetting(self, task: CheartTopologySetting, val: int | tuple[Self, int] | None = None) -> None:
+    def AddSetting(self, task: CheartTopologySetting, val: int | tuple[_CheartTopology, int] | None = None) -> None:
         raise ValueError("Cannot add setting to null topology")
 
     def write(self, f: TextIO):

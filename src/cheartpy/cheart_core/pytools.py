@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-
-
 from typing import Any, Type
 import enum
 

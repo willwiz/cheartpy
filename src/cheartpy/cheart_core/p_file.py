@@ -1,21 +1,21 @@
 import dataclasses as dc
 from typing import TextIO, overload
-from cheartpy.cheart_core.time_schemes import TimeScheme
-from cheartpy.cheart_core.base_types.basis import CheartBasis
-from cheartpy.cheart_core.base_types.topologies import (
+from .implementation.time_schemes import TimeScheme
+from .implementation.basis import CheartBasis
+from .implementation.topologies import (
     _CheartTopology,
     CheartTopology,
     NullTopology,
     hash_tops,
 )
-from cheartpy.cheart_core.topology_interfaces import TopInterface
-from cheartpy.cheart_core.data_pointers import DataPointer, DataInterp
-from cheartpy.cheart_core.base_types.expressions import Expression
-from cheartpy.cheart_core.base_types.variables import Variable
-from cheartpy.cheart_core.base_types.problems import _Problem
-from cheartpy.cheart_core.solver_matrices import SolverMatrix
-from cheartpy.cheart_core.solver_groups import SolverGroup
-from cheartpy.cheart_core.pytools import get_enum, header, hline, splicegen
+from .implementation.topology_interfaces import TopInterface
+from .implementation.data_pointers import DataPointer, DataInterp
+from .implementation.expressions import Expression
+from .implementation.variables import Variable
+from .implementation.problems import _Problem
+from .implementation.solver_matrices import SolverMatrix
+from .implementation.solver_groups import SolverGroup
+from .pytools import get_enum, header, hline, splicegen
 from .aliases import *
 
 

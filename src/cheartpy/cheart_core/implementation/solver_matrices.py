@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import TextIO
-from .aliases import *
-from .pytools import *
-from .base_types.problems import _Problem
-from .base_types.variables import Variable
+from ..aliases import *
+from ..pytools import *
+from .problems import _Problem
+from .variables import Variable
 
 
 @dc.dataclass(slots=True)

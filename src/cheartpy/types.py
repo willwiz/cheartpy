@@ -7,7 +7,6 @@ i32 = np.dtype[np.int32]
 char = np.dtype[np.str_]
 bool_ = np.dtype[np.bool_]
 
-
 type Vec[T: (i32, f64, char, bool_)] = np.ndarray[tuple[int], T]
 type Mat[T: (i32, f64, char, bool_)] = np.ndarray[tuple[int, int], T]
 type MatV[T: (i32, f64, char, bool_)] = np.ndarray[tuple[int, int, int], T]

@@ -1,6 +1,6 @@
 import dataclasses as dc
 from typing import TextIO
-from .pytools import hline
+from ..pytools import hline
 
 
 @dc.dataclass

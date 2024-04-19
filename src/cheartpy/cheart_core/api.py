@@ -1,16 +1,14 @@
 __all__ = ["create_time_scheme", "create_basis", "create_topology", "create_variable"]
 import os
-from typing import Any, overload
-
-from cheartpy.cheart_core.base_types.problems import _Problem
-from cheartpy.cheart_core.solver_groups import SolverGroup, SolverSubGroup
-from cheartpy.cheart_core.solver_matrices import SolverMatrix
-from .base_types.variables import Variable
-from .time_schemes import TimeScheme
-from .base_types.topologies import _CheartTopology, NullTopology, CheartTopology
+from .implementation.problems import _Problem
+from .implementation.solver_groups import SolverGroup, SolverSubGroup
+from .implementation.solver_matrices import SolverMatrix
+from .implementation.variables import Variable
+from .implementation.time_schemes import TimeScheme
+from .implementation.topologies import _CheartTopology, NullTopology, CheartTopology
+from .implementation.basis import CheartBasis, Basis, Quadrature
 from .pytools import get_enum
 from .aliases import *
-from .base_types.basis import CheartBasis, Basis, Quadrature
 
 
 def create_time_scheme(
