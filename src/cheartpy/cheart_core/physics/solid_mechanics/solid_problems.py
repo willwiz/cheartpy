@@ -3,8 +3,8 @@ from typing import Any, Literal, TextIO, TypedDict, overload
 from cheartpy.cheart_core.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from cheartpy.cheart_core.pytools import get_enum, join_fields
 
-from cheartpy.cheart_core.variables import Variable
-from ..problems import BoundaryCondition, Problem
+from cheartpy.cheart_core.base_types.variables import Variable
+from ...base_types.problems import BoundaryCondition, _Problem, BCPatch
 from .matlaws import Law, Matlaw
 
 
@@ -25,20 +25,41 @@ SOLID_OPTIONS = Literal[
 ]
 
 
-class SolidProblem(Problem):
+class SolidProblem(_Problem):
     name: str
     problem: SolidProblemType
     matlaws: list[Law]
-    variables: dict[SOLID_VARIABLES, Variable]
+    variables: dict[str, Variable]
     aux_vars: dict[str, Variable]
     options: dict[str, list[Any]]
     flags: dict[str, None]
     bc: BoundaryCondition
 
-    def __init__(self, name: str, problem: SolidProblemType, space: Variable, disp: Variable, vel: Variable | None = None, pres: Variable | None = None, matlaws: list[Law] | None = None) -> None:
+    def __repr__(self) -> str:
+        return self.name
+
+    def get_variables(self) -> dict[str, Variable]:
+        return self.variables
+
+    def get_aux_vars(self) -> dict[str, Variable]:
+        return self.aux_vars
+
+    def get_bc_patches(self) -> list[BCPatch]:
+        return [] if self.bc.patches is None else self.bc.patches
+
+    def __init__(
+        self,
+        name: str,
+        problem: SolidProblemType,
+        space: Variable,
+        disp: Variable,
+        vel: Variable | None = None,
+        pres: Variable | None = None,
+        matlaws: list[Law] | None = None,
+    ) -> None:
         self.name = name
         self.problem = problem
-        self.variables = {"Space": space, "Disp": disp}
+        self.variables = {"Space": space, "Displacement": disp}
         if problem is SolidProblemType.TRANSIENT and vel is None:
             raise ValueError(f"{name}: Transient problem must have velocity")
         if vel:
@@ -51,37 +72,25 @@ class SolidProblem(Problem):
         self.flags = dict()
         self.bc = BoundaryCondition()
 
-    def AddMatlaw(self, *law: Matlaw):
+    def AddMatlaw(self, *law: Law):
         for v in law:
             self.matlaws.append(v)
-            for k, x in v.aux_vars.items():
+            for k, x in v.get_aux_vars().items():
                 self.aux_vars[k] = x
 
     def AddVariable(self, name: SOLID_VARIABLES, var: Variable) -> None:
         self.variables[name] = var
 
-    @overload
-    def UseOption(self, opt: Literal["Density"], val: float) -> None: ...
-
-    @overload
-    def UseOption(
-        self, opt: Literal["Perturbation-scale"], val: float) -> None: ...
-
-    @overload
-    def UseOption(
-        self, opt: Literal["SetProblemTimeDiscretization"], val: Literal["time_scheme_backward_euler"], sub_val: Literal["backward"]) -> None: ...
-
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
         self.options[opt] = list([val, *sub_val])
 
     def write(self, f: TextIO):
-
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         for k, v in self.variables.items():
             f.write(f"  !UseVariablePointer={{{k}|{v.name}}}\n")
         for k, v in self.options.items():
             string = join_fields(*v)
-            f.write(f'  !{k}={{{string}}}\n')
+            f.write(f"  !{k}={{{string}}}\n")
         for v in self.flags:
             f.write(f"  !{v}\n")
         for v in self.matlaws:
@@ -104,23 +113,16 @@ class SolidProblem(Problem):
     #         self.flags.append(opt)
 
 
-@overload
 def create_solid_problem(
-    name: str, prob: Literal["TRANSIENT", SolidProblemType.TRANSIENT], space: Variable, disp: Variable, vel: Variable, pres: Variable | None = None
-) -> SolidProblem: ...
-
-
-@overload
-def create_solid_problem(
-    name: str, prob: Literal["QUASI_STATIC", SolidProblemType.QUASI_STATIC], space: Variable, disp: Variable, vel: Variable | None = None, pres: Variable | None = None
-) -> SolidProblem: ...
-
-
-def create_solid_problem(
-    name: str, prob: SOLID_PROBLEM_TYPE | SolidProblemType, space: Variable, disp: Variable, vel: Variable | None = None, pres: Variable | None = None
+    name: str,
+    prob: SOLID_PROBLEM_TYPE | SolidProblemType,
+    space: Variable,
+    disp: Variable,
+    vel: Variable | None = None,
+    pres: Variable | None = None,
 ) -> SolidProblem:
     problem = get_enum(prob, SolidProblemType)
-    if space.file is None:
+    if space.data is None:
         raise ValueError(f"Space for {name} must be initialized with values")
     match problem, vel:
         case SolidProblemType.TRANSIENT, None:

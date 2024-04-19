@@ -12,7 +12,7 @@ class Expression:
     def __repr__(self) -> str:
         return self.name
 
-    def __getitem__[T:int | None](self, key: T) -> tuple[Self, T]:
+    def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)
 
     def idx(self, key: int) -> str:

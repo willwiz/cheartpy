@@ -3,9 +3,10 @@ import dataclasses as dc
 from typing import TextIO, overload
 from .aliases import *
 from .pytools import *
-from .variables import Variable
-from .topologies import CheartTopology
-from .problems import *
+from .base_types.variables import Variable
+from .base_types.topologies import _CheartTopology
+from .base_types.problems import _Problem
+from .base_types.expressions import Expression
 from .time_schemes import TimeScheme
 from .solver_matrices import SolverMatrix
 
@@ -53,7 +54,7 @@ PFile
 @dc.dataclass
 class SolverSubGroup:
     method: SolverSubgroupAlgorithm
-    problems: dict[str, SolverMatrix | Problem] = dc.field(
+    problems: dict[str, SolverMatrix | _Problem] = dc.field(
         default_factory=dict
     )
     aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
@@ -61,7 +62,7 @@ class SolverSubGroup:
 
     def __post_init__(self):
         for p in self.problems.values():
-            for k, x in p.aux_vars.items():
+            for k, x in p.get_aux_vars().items():
                 self.aux_vars[k] = x
 
 
@@ -83,8 +84,7 @@ class SolverGroup(object):
                 self.aux_vars[k] = v
 
     @overload
-    def AddSetting(
-        self,
+    def AddSetting(self,
         task: Literal[
             "L2TOL",
             "L2PERCENT",
@@ -93,9 +93,8 @@ class SolverGroup(object):
             "INFDEL",
             "INFRELUPDATE",
             "L2RESRELPERCENT",
-        ]
-        | Literal["ITERATION", "SUBITERATION", "LINESEARCHITER", "SUBITERFRACTION"],
-        val: Union[Expression, Variable, float, str],
+        ] | Literal["ITERATION", "SUBITERATION", "LINESEARCHITER", "SUBITERFRACTION"],
+        val: Expression| Variable| float| str,
     ) -> None:
         ...
 
@@ -123,7 +122,7 @@ class SolverGroup(object):
             "INFRELUPDATE",
             "L2RESRELPERCENT",
         ],
-        val: Union[float, str],
+        val: float|str,
     ) -> None:
         self.settings[task] = [val]
 
@@ -137,7 +136,7 @@ class SolverGroup(object):
             "SUBITERFRACTION",
             "GroupIterations",
         ],
-        val: Union[int, str],
+        val: int|str,
     ) -> None:
         self.settings[task] = [val]
 
@@ -153,7 +152,7 @@ class SolverGroup(object):
             else:
                 self.aux_vars[v.name] = v
 
-    def RemoveVariable(self, *var: Union[str, Variable]):
+    def RemoveVariable(self, *var: str|Variable):
         for v in var:
             if isinstance(v, str):
                 self.aux_vars.pop(v)
@@ -174,11 +173,11 @@ class SolverGroup(object):
     def MakeSolverSubGroup(
         self,
         method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"],
-        *problems: Union[SolverMatrix, Problem],
+        *problems: SolverMatrix| _Problem,
     ) -> None:
         self.SolverSubGroups.append(
             SolverSubGroup(method=get_enum(method, SolverSubgroupAlgorithm),
-                           problems={p.name: p for p in problems})
+                           problems={repr(p): p for p in problems})
         )
 
     # WRITE
@@ -220,6 +219,6 @@ class SolverGroup(object):
                 )
 
 
-def hash_tops(tops: list[CheartTopology] | list[str]) -> str:
+def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
     names = [VoS(t) for t in tops]
     return "_".join(names)

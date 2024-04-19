@@ -205,17 +205,17 @@ class TopologyInterfaceType(enum.StrEnum):
     ManyToOne = "ManyToOne"
 
 
-MATRIX_SOLVER_TYPES = Literal[
-    "SOLVER_MUMPS",
-]
+MATRIX_SOLVER_TYPES = Literal["SOLVER_MUMPS",]
 
 
 class MatrixSolverTypes(enum.StrEnum):
     SOLVER_MUMPS = "SOLVER_MUMPS"
+
+
 # Solver Algorithms
 
 
-SOLVER_SUBGROUP_ALGORITHM = Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"]
+SOLVER_SUBGROUP_ALGORITHM = Literal["seq_fp_linesearch", "seq_fp", "SOLVER_SEQUENTIAL"]
 
 
 class SolverSubgroupAlgorithm(enum.StrEnum):
@@ -233,6 +233,8 @@ class L2ProjectionProblems(enum.StrEnum):
 
 class SolidProjectionProbOptions(enum.StrEnum):
     MASTER_OVERRIDE = "Solid-Master-Override"
+
+
 # Solver Group Options
 
 

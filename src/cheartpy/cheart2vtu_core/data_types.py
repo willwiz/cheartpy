@@ -121,8 +121,7 @@ class CheartTopology:
         self.nc = self._ft.shape[1]
         # guess the VTK element type
         # bilinear triangle
-        self.vtkelementtype, self.vtksurfacetype = get_element_type(
-            self.nc, bfile)
+        self.vtkelementtype, self.vtksurfacetype = get_element_type(self.nc, bfile)
 
     def __setitem__(self, index, data) -> None:
         self._ft[index] = data

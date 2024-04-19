@@ -1,5 +1,5 @@
-from cheartpy.types import i32, Arr, TextIO
-
+from cheartpy.types import i32, Arr
+from typing import TextIO
 
 class VtkLinearLine:
     vtkelementid = 3

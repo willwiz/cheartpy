@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import Self, TextIO, Literal, overload
-from .aliases import *
-from .pytools import get_enum, join_fields
-from .topologies import CheartTopology
+from ..aliases import *
+from ..pytools import get_enum, join_fields
+from .topologies import _CheartTopology
 from .expressions import Expression
 
 
 @dc.dataclass
 class Variable:
     name: str
-    topology: CheartTopology | None
+    topology: _CheartTopology | None
     dim: int
-    file: str | None = None
+    data: str | None = None
     fmt: VariableExportFormat = VariableExportFormat.TXT
     freq: int = 1
     loop_step: int | None = None
@@ -73,7 +73,7 @@ class Variable:
 
     def write(self, f: TextIO):
         string = join_fields(
-            self.name, self.topology if self.topology else "null_topology", self.file, self.dim)
+            self.name, self.topology if self.topology else "null_topology", self.data, self.dim)
         f.write(
             f"!DefVariablePointer={{{string}}}\n"
         )

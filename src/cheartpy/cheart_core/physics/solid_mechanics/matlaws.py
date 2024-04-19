@@ -1,16 +1,18 @@
 import abc
 import dataclasses as dc
-from typing import Literal
-from ..variables import Variable
+from typing import Final, Literal
+from ...base_types.variables import Variable
 
 # Matlaws -----------------------------------------------------------------------------
 
 
 class Law(abc.ABC):
-    name: str
 
     @abc.abstractmethod
     def string(self) -> str: ...
+
+    @abc.abstractmethod
+    def get_aux_vars(self) -> dict[str, Variable]: ...
 
 
 @dc.dataclass
@@ -18,6 +20,9 @@ class Matlaw(Law):
     name: str
     parameters: list[float] = dc.field(default_factory=list)
     aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+
+    def get_aux_vars(self) -> dict[str, Variable]:
+        return self.aux_vars
 
     def string(self):
         return (
@@ -33,12 +38,15 @@ class FractionalVE(Law):
     Tf: float
     store: Variable
     Tscale: float | None = 10.0
-    name: str = "fractional-ve"
+    name: Literal["fractional-ve"] = "fractional-ve"
     InitPK2: bool = True
     ZeroPK2: bool = True
     Order: Literal[1, 2] = 2
     laws: list[Matlaw] = dc.field(default_factory=list)
     aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+
+    def get_aux_vars(self) -> dict[str, Variable]:
+        return self.aux_vars
 
     def __post_init__(self):
         self.aux_vars[self.store.name] = self.store
@@ -85,6 +93,9 @@ class FractionalDiffEQ(Law):
     Order: Literal[1, 2] = 2
     laws: list[Matlaw | FractionalVE] = dc.field(default_factory=list)
     aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
+
+    def get_aux_vars(self) -> dict[str, Variable]:
+        return self.aux_vars
 
     def __post_init__(self):
         self.aux_vars[self.store.name] = self.store

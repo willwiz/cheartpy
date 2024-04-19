@@ -1,13 +1,18 @@
 import dataclasses as dc
 from typing import TextIO, overload
 from cheartpy.cheart_core.time_schemes import TimeScheme
-from cheartpy.cheart_core.bases import CheartBasis
-from cheartpy.cheart_core.topologies import CheartTopology, hash_tops
+from cheartpy.cheart_core.base_types.basis import CheartBasis
+from cheartpy.cheart_core.base_types.topologies import (
+    _CheartTopology,
+    CheartTopology,
+    NullTopology,
+    hash_tops,
+)
 from cheartpy.cheart_core.topology_interfaces import TopInterface
 from cheartpy.cheart_core.data_pointers import DataPointer, DataInterp
-from cheartpy.cheart_core.expressions import Expression
-from cheartpy.cheart_core.variables import Variable
-from cheartpy.cheart_core.problems import Problem
+from cheartpy.cheart_core.base_types.expressions import Expression
+from cheartpy.cheart_core.base_types.variables import Variable
+from cheartpy.cheart_core.base_types.problems import _Problem
 from cheartpy.cheart_core.solver_matrices import SolverMatrix
 from cheartpy.cheart_core.solver_groups import SolverGroup
 from cheartpy.cheart_core.pytools import get_enum, header, hline, splicegen
@@ -21,9 +26,9 @@ class PFile(object):
     times: dict[str, TimeScheme] = dc.field(default_factory=dict)
     solverGs: dict[str, SolverGroup] = dc.field(default_factory=dict)
     matrices: dict[str, SolverMatrix] = dc.field(default_factory=dict)
-    problems: dict[str, Problem] = dc.field(default_factory=dict)
+    problems: dict[str, _Problem] = dc.field(default_factory=dict)
     variables: dict[str, Variable] = dc.field(default_factory=dict)
-    toplogies: dict[str, CheartTopology] = dc.field(default_factory=dict)
+    toplogies: dict[str, _CheartTopology] = dc.field(default_factory=dict)
     bases: dict[str, CheartBasis] = dc.field(default_factory=dict)
     dataPs: dict[str, DataPointer] = dc.field(default_factory=dict)
     exprs: dict[str, Expression] = dc.field(default_factory=dict)
@@ -44,7 +49,7 @@ class PFile(object):
                 for p in sg.problems.values():
                     if isinstance(p, SolverMatrix):
                         self.AddMatrix(p)
-                    elif isinstance(p, Problem):
+                    elif isinstance(p, _Problem):
                         self.AddProblem(p)
                 if sg.aux_vars:
                     self.AddVariable(*sg.aux_vars.values())
@@ -65,20 +70,18 @@ class PFile(object):
 
     # Problem
 
-    def AddProblem(self, *prob: Problem) -> None:
+    def AddProblem(self, *prob: _Problem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
-            self.problems[p.name] = p
-            self.AddVariable(*p.variables.values())
-            if p.aux_vars:
-                self.AddVariable(*p.aux_vars.values())
-            if p.bc.patches is not None:
-                for patch in p.bc.patches:
-                    for v in patch.value:
-                        if isinstance(v, Variable):
-                            self.AddVariable(v)
-                        elif isinstance(v, Expression):
-                            self.AddExpression(v)
+            self.problems[repr(p)] = p
+            self.AddVariable(*p.get_variables().values())
+            self.AddVariable(*p.get_aux_vars().values())
+            for patch in p.get_bc_patches():
+                for v in patch.value:
+                    if isinstance(v, Variable):
+                        self.AddVariable(v)
+                    elif isinstance(v, Expression):
+                        self.AddExpression(v)
 
     def AddVariable(self, *var: Variable) -> None:
         for v in var:
@@ -94,10 +97,11 @@ class PFile(object):
                 self.AddExpression(*v.expressions.values())
 
     # Add Topology
-    def AddTopology(self, *top: CheartTopology) -> None:
+    def AddTopology(self, *top: _CheartTopology) -> None:
         for t in top:
-            self.toplogies[t.name] = t
-            self.AddBasis(t.basis)
+            self.toplogies[repr(t)] = t
+            if isinstance(t, CheartTopology):
+                self.AddBasis(t.basis)
 
     # Add Basis
     def AddBasis(self, *basis: CheartBasis | None) -> None:
@@ -124,23 +128,42 @@ class PFile(object):
     def AddInterface(
         self,
         method: Literal["OneToOne", "ManyToOne"] | TopologyInterfaceType,
-        topologies: list[CheartTopology],
+        topologies: list[_CheartTopology],
     ) -> None:
         name = hash_tops(topologies)
         self.AddTopology(*topologies)
         self.interfaces[name] = TopInterface(
-            name, get_enum(method, TopologyInterfaceType), topologies)
+            name, get_enum(method, TopologyInterfaceType), topologies
+        )
 
     # Add Variables
     @overload
     def SetVariable(
-        self, name: str, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: Expression) -> None: ...
+        self,
+        name: str,
+        task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
+        val: Expression,
+    ) -> None: ...
 
     @overload
     def SetVariable(
-        self, name: str, task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"], val: str) -> None: ...
+        self,
+        name: str,
+        task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
+        val: str,
+    ) -> None: ...
 
-    def SetVariable(self, name: str, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR", "TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"], val: str | Expression):
+    def SetVariable(
+        self,
+        name: str,
+        task: Literal[
+            "INIT_EXPR",
+            "TEMPORAL_UPDATE_EXPR",
+            "TEMPORAL_UPDATE_FILE",
+            "TEMPORAL_UPDATE_FILE_LOOP",
+        ],
+        val: str | Expression,
+    ):
         self.variables[name].AddSetting(task, val)
 
     # Add Data Pointers
