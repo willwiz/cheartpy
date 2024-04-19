@@ -10,7 +10,7 @@ class NormProblem(_Problem):
     name: str
     variables: dict[str, _Variable]
     aux_vars: dict[str, _Variable]
-    bc: BoundaryCondition
+    bc: _BoundaryCondition
     root_top: CheartTopology | None = None
     boundary_normal: int | None = None
     scale_by_measure: bool = False
@@ -47,7 +47,8 @@ class NormProblem(_Problem):
         return self.aux_vars
 
     def get_bc_patches(self) -> list[_BCPatch]:
-        return [] if self.bc.patches is None else self.bc.patches
+        patches = self.bc.get_patches()
+        return [] if patches is None else patches
 
     def AddVariable(
         self,
@@ -73,7 +74,7 @@ class NormProblem(_Problem):
         if self.absolute_value:
             f.write(f"  !Absolute-value\n")
         if self.root_top is not None:
-            f.write(f"  !SetRootTopology={{{repr(self.root_top)}}}\n")
+            f.write(f"  !SetRootTopology={{{str(self.root_top)}}}\n")
         if self.output_filename is not None:
             f.write(f"  !Output-filename={{{self.output_filename}}}\n")
         self.bc.write(f)

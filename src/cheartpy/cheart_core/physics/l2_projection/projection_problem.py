@@ -1,5 +1,6 @@
 import enum
 from typing import Literal, TextIO
+from unittest.mock import patch
 
 from ...pytools import get_enum, join_fields
 from ...interface import *
@@ -19,7 +20,7 @@ class L2SolidProjection(_Problem):
     solid_prob: SolidProblem
     calculation: L2SolidCalculationType = L2SolidCalculationType.cauchy_stress
     variables: dict[str, _Variable]
-    bc: BoundaryCondition
+    bc: _BoundaryCondition
     aux_vars: dict[str, _Variable]
     problem: str = "l2solidprojection_problem"
 
@@ -33,7 +34,8 @@ class L2SolidProjection(_Problem):
         return self.aux_vars
 
     def get_bc_patches(self) -> list[_BCPatch]:
-        return [] if self.bc.patches is None else self.bc.patches
+        patches = self.bc.get_patches()
+        return [] if patches is None else patches
 
     def UseVariable(
         self, req: Literal["Space", "Variable"], var: _Variable

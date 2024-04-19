@@ -64,7 +64,3 @@ class TopInterface(_TopInterface):
         string = join_fields(self.method, *self.topologies)
         f.write(f"!DefInterface={{{string}}}\n")
 
-
-def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
-    names = [str(t) for t in tops]
-    return "_".join(names)

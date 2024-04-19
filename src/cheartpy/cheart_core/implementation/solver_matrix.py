@@ -7,7 +7,7 @@ from ..pytools import *
 
 
 @dc.dataclass(slots=True)
-class SolverMatrix:
+class SolverMatrix(_SolverMatrix):
     name: str
     solver: MatrixSolverTypes
     problem: dict[str, _Problem] = dc.field(default_factory=dict)
@@ -31,7 +31,7 @@ class SolverMatrix:
 
     def AddProblem(self, *prob: _Problem):
         for p in prob:
-            self.problem[repr(p)] = p
+            self.problem[str(p)] = p
 
     def write(self, f: TextIO):
         string = join_fields(self.name, self.solver, *self.problem.values())

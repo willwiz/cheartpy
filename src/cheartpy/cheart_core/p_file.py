@@ -5,17 +5,21 @@ from .implementation.topologies import (
     CheartTopology,
     NullTopology,
     TopInterface,
-    hash_tops,
 )
 from .implementation.data_pointers import DataPointer, DataInterp
 from .implementation.expressions import _Expression
 from .implementation.variables import Variable
 from .implementation.problems import _Problem
-from .implementation.solver_matrices import SolverMatrix
+from .implementation.solver_matrix import SolverMatrix
 from .implementation.solver_groups import SolverGroup
 from .aliases import *
 from .interface import *
 from .pytools import get_enum, header, hline, splicegen
+
+
+def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
+    names = [str(t) for t in tops]
+    return "_".join(names)
 
 
 @dc.dataclass(slots=True)
@@ -45,13 +49,13 @@ class PFile(object):
             if g.aux_vars:
                 self.AddVariable(*g.aux_vars.values())
             for sg in g.SolverSubGroups:
-                for p in sg.problems.values():
+                for p in sg.get_problems().values():
                     if isinstance(p, SolverMatrix):
                         self.AddMatrix(p)
                     elif isinstance(p, _Problem):
                         self.AddProblem(p)
-                if sg.aux_vars:
-                    self.AddVariable(*sg.aux_vars.values())
+                if sg.get_aux_vars():
+                    self.AddVariable(*sg.get_aux_vars().values())
 
     # Add Time Scheme
     def AddTimeScheme(self, *time: _TimeScheme) -> None:
@@ -72,7 +76,7 @@ class PFile(object):
     def AddProblem(self, *prob: _Problem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
-            self.problems[repr(p)] = p
+            self.problems[str(p)] = p
             self.AddVariable(*p.get_variables().values())
             self.AddVariable(*p.get_aux_vars().values())
             for patch in p.get_bc_patches():

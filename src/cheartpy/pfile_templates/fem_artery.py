@@ -14,10 +14,8 @@ def get_PFile() -> PFile:
     # time = TimeScheme('time', 1, int(nt/6), new_time_file)
     time = TimeScheme("time", 1, 5000, 0.0005)
 
-    b1 = Basis("LinBasis", c.EL.TETRAHEDRAL,
-               "NODAL_LAGRANGE1", "GAUSS_LEGENDRE9")
-    b2 = Basis("QuadBasis", c.EL.TETRAHEDRAL,
-               "NODAL_LAGRANGE2", "GAUSS_LEGENDRE9")
+    b1 = Basis("LinBasis", c.EL.TETRAHEDRAL, "NODAL_LAGRANGE1", "GAUSS_LEGENDRE9")
+    b2 = Basis("QuadBasis", c.EL.TETRAHEDRAL, "NODAL_LAGRANGE2", "GAUSS_LEGENDRE9")
 
     t1 = c.CheartTopology("TP1", mesh + "_lin", b1)
     t2 = c.CheartTopology("TP2", mesh + "_quad", b2)

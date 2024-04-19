@@ -2,12 +2,12 @@ __all__ = ["create_time_scheme", "create_basis", "create_topology", "create_vari
 import os
 from .implementation.problems import _Problem
 from .implementation.solver_groups import SolverGroup, SolverSubGroup
-from .implementation.solver_matrices import SolverMatrix
+from .implementation.solver_matrix import SolverMatrix
 from .implementation.variables import Variable
 from .implementation.time_schemes import TimeScheme
 from .implementation.topologies import NullTopology, CheartTopology
 from .implementation.basis import CheartBasis, Basis, Quadrature
-from .interface.basis import *
+from .interface import *
 from .pytools import get_enum
 from .aliases import *
 
@@ -96,7 +96,7 @@ def create_solver_matrix(
 ) -> SolverMatrix:
     problems = dict()
     for p in probs:
-        problems[repr(p)] = p
+        problems[str(p)] = p
     method = get_enum(solver, MatrixSolverTypes)
     return SolverMatrix(name, method, problems)
 
@@ -116,5 +116,5 @@ def create_solver_subgroup(
 ) -> SolverSubGroup:
     problems = dict()
     for p in probs:
-        problems[repr(p)] = p
+        problems[str(p)] = p
     return SolverSubGroup(get_enum(method, SolverSubgroupAlgorithm), problems)

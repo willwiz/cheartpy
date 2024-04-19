@@ -1,7 +1,8 @@
 import dataclasses as dc
 from typing import Union, TextIO
 
-from cheartpy.cheart_core.interface.basis import _Expression, _Variable
+from cheartpy.cheart_core.interface.basis import _BCPatch
+
 from ..pytools import get_enum, join_fields
 from ..aliases import *
 from ..interface import *
@@ -47,9 +48,12 @@ class BCPatch(_BCPatch):
         return f"    {string}\n"
 
 
-@dc.dataclass
-class BoundaryCondition:
+@dc.dataclass(slots=True)
+class BoundaryCondition(_BoundaryCondition):
     patches: list[_BCPatch] | None = None
+
+    def get_patches(self) -> list[_BCPatch] | None:
+        return self.patches
 
     def AddPatch(self, *patch: _BCPatch):
         if self.patches is None:

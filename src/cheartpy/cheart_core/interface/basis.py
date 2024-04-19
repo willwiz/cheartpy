@@ -14,6 +14,7 @@ __all__ = [
     "_TopInterface",
     "_Variable",
     "_BCPatch",
+    "_BoundaryCondition",
     "_Problem",
 ]
 
@@ -122,6 +123,23 @@ class _BCPatch:
     def get_values(self) -> list[_Expression | _Variable | str | int | float]: ...
     @abc.abstractmethod
     def string(self) -> str: ...
+
+
+class _BoundaryCondition(abc.ABC):
+    @abc.abstractmethod
+    def get_patches(self) -> list[_BCPatch] | None: ...
+    @abc.abstractmethod
+    def AddPatch(self, *patch: _BCPatch) -> None: ...
+    @abc.abstractmethod
+    def DefPatch(
+        self,
+        id: int,
+        component: _Variable,
+        type: BoundaryType,
+        *val: _Expression | str | int | float,
+    ) -> None: ...
+    @abc.abstractmethod
+    def write(self, f: TextIO) -> None: ...
 
 
 class _Problem(abc.ABC):

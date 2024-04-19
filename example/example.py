@@ -15,8 +15,8 @@ from cheartpy.cheart_core.physics.solid_mechanics.solid_problems import (
     create_solid_problem,
     Matlaw,
 )
-from cheartpy.cheart_core.base_types.expressions import Expression
-from cheartpy.cheart_core.base_types.problems import BCPatch
+from cheartpy.cheart_core.implementation.expressions import Expression
+from cheartpy.cheart_core.implementation.problems import BCPatch
 
 
 def get_PFile():
@@ -41,7 +41,7 @@ It really is.
     t2 = create_topology("TP2", b2, mesh + "_quad")
     p.AddInterface("ManyToOne", [t2, t1])
 
-    space = create_variable("Space", t2, 3, space="mesh/cube10_quad")
+    space = create_variable("Space", t2, 3, data="mesh/cube10_quad")
     disp = create_variable("Disp", t2, 3)
     pres = create_variable("Pres", t1, 1)
     p.SetExportFrequency(space, disp, pres, freq=1)

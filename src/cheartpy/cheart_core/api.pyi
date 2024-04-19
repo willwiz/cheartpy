@@ -3,7 +3,7 @@ from typing import overload
 from .aliases import *
 from .implementation.problems import _Problem
 from .implementation.solver_groups import SolverGroup, SolverSubGroup
-from .implementation.solver_matrices import SolverMatrix
+from .implementation.solver_matrix import SolverMatrix
 from .implementation.variables import Variable
 from .implementation.time_schemes import TimeScheme
 from .implementation.topologies import NullTopology, CheartTopology

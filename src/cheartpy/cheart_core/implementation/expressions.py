@@ -5,7 +5,7 @@ from cheartpy.cheart_core.interface.basis import _DataInterp
 from ..interface import *
 
 
-@dc.dataclass
+@dc.dataclass(slots=True)
 class Expression(_Expression):
     name: str
     value: list[str | float | _DataInterp]

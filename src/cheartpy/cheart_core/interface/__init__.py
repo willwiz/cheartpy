@@ -1,4 +1,6 @@
 from .basis import *
+from .solver_matrix import *
+from .solver_group import *
 
 __all__ = [
     "_TimeScheme",
@@ -12,5 +14,9 @@ __all__ = [
     "_TopInterface",
     "_Variable",
     "_BCPatch",
+    "_BoundaryCondition",
     "_Problem",
+    "_SolverMatrix",
+    "_SolverSubGroup",
+    "_SolverGroup",
 ]

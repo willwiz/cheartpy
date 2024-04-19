@@ -32,7 +32,7 @@ class SolidProblem(_Problem):
     aux_vars: dict[str, _Variable]
     options: dict[str, list[Any]]
     flags: dict[str, None]
-    bc: BoundaryCondition
+    bc: _BoundaryCondition
 
     def __repr__(self) -> str:
         return self.name
@@ -44,7 +44,8 @@ class SolidProblem(_Problem):
         return self.aux_vars
 
     def get_bc_patches(self) -> list[_BCPatch]:
-        return [] if self.bc.patches is None else self.bc.patches
+        patches = self.bc.get_patches()
+        return [] if patches is None else patches
 
     def __init__(
         self,
