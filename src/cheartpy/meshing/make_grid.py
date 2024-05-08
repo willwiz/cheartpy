@@ -152,10 +152,10 @@ def create_meshgrid_3D(
     yn: int,
     zn: int,
     xsize: float,
-    xoff: float,
     ysize: float,
-    yoff: float,
     zsize: float,
+    xoff: float,
+    yoff: float,
     zoff: float,
 ) -> MeshCheart:
     g = MeshCheart(xn, yn, zn)
@@ -166,25 +166,34 @@ def create_meshgrid_3D(
 
 
 def create_cheart_mesh(
-    xn, yn, zn, xsize, xoff, ysize, yoff, zsize, zoff, prefix: str
+    prefix: str,
+    xn,
+    yn,
+    zn,
+    xsize,
+    ysize,
+    zsize,
+    xoff: float = 0.0,
+    yoff: float = 0.0,
+    zoff: float = 0.0,
 ) -> None:
-    g = create_meshgrid_3D(xn, yn, zn, xsize, xoff, ysize, yoff, zsize, zoff)
+    g = create_meshgrid_3D(xn, yn, zn, xsize, ysize, zsize, xoff, yoff, zoff)
     g.write(prefix)
     print(f"!!!JOB COMPLETE!!!")
 
 
 def main(args: argparse.Namespace):
     create_cheart_mesh(
+        args.prefix,
         args.xn,
         args.yn,
         args.zn,
         args.xsize,
-        args.offset[0],
         args.ysize,
-        args.offset[1],
         args.zsize,
+        args.offset[0],
+        args.offset[1],
         args.offset[2],
-        args.prefix,
     )
 
 

@@ -37,9 +37,10 @@ class L2SolidProjection(_Problem):
         patches = self.bc.get_patches()
         return [] if patches is None else patches
 
-    def UseVariable(
-        self, req: Literal["Space", "Variable"], var: _Variable
-    ) -> None: ...
+    def set_projection(
+        self, calc: L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
+    ) -> None:
+        self.calculation = get_enum(calc, L2SolidCalculationType)
 
     def __init__(
         self,

@@ -99,6 +99,9 @@ class FractionalDiffEQ(Law):
 
     def __post_init__(self):
         self.aux_vars[str(self.store)] = self.store
+        for v in self.laws:
+            for k, x in v.aux_vars.items():
+                self.aux_vars[k] = x
 
     def AddLaw(self, *law: Matlaw | FractionalVE):
         for v in law:
