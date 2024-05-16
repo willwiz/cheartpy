@@ -22,8 +22,9 @@ import argparse
 
 
 parser = argparse.ArgumentParser("mesh", description="Make a cube")
-parser.add_argument("--prefix", "-p", type=str,
-                    default="cube", help="Prefix for saved file.")
+parser.add_argument(
+    "--prefix", "-p", type=str, default="cube", help="Prefix for saved file."
+)
 parser.add_argument(
     "--axis",
     "-a",
@@ -32,16 +33,14 @@ parser.add_argument(
     choices={"x", "y", "z"},
     help="Which cartesian axis should the central axis be in.",
 )
-parser.add_argument("--make-quad", action="store_true",
-                    help="Also make a quad mesh.")
+parser.add_argument("--make-quad", action="store_true", help="Also make a quad mesh.")
 parser.add_argument("rin", type=float, help="inner radius")
 parser.add_argument("rout", type=float, help="outer radius")
 parser.add_argument("length", type=float, help="longitudinal length")
 parser.add_argument("base", type=float, help="base position")
 parser.add_argument("rn", type=int, help="number of elements in thickness")
 parser.add_argument("qn", type=int, help="number of elements in theta")
-parser.add_argument(
-    "zn", type=int, help="number of elements along the central axis")
+parser.add_argument("zn", type=int, help="number of elements along the central axis")
 
 
 def gen_end_node_mapping(g: MeshCheart) -> dict[int, int]:
@@ -52,14 +51,18 @@ def gen_end_node_mapping(g: MeshCheart) -> dict[int, int]:
     return map
 
 
-def gen_cylindrical_positions(g: MeshCheart, r_in: float, r_out: float, length: float, base: float) -> MeshCheart:
+def gen_cylindrical_positions(
+    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
+) -> MeshCheart:
     g.space.v[:, 0] = (r_out - r_in) * (g.space.v[:, 0] ** 0.707) + r_in
     g.space.v[:, 1] = 2.0 * np.pi * g.space.v[:, 1]
     g.space.v[:, 2] = length * g.space.v[:, 2] + base
     return g
 
 
-def wrap_around_y(g: MeshCheart, r_in: float, r_out: float, length: float, base: float) -> MeshCheart:
+def wrap_around_y(
+    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
+) -> MeshCheart:
     map = gen_end_node_mapping(g)
     for i, row in enumerate(g.top.v):
         for j, v in enumerate(row):
@@ -84,7 +87,9 @@ def wrap_around_y(g: MeshCheart, r_in: float, r_out: float, length: float, base:
     return g
 
 
-def create_cylinder_geometry(g: MeshCheart, r_in: float, r_out: float, length: float, base: float) -> MeshCheart:
+def create_cylinder_geometry(
+    g: MeshCheart, r_in: float, r_out: float, length: float, base: float
+) -> MeshCheart:
     g = wrap_around_y(g, r_in, r_out, length, base)
     g = renormalized_mesh(g)
     return g
@@ -102,7 +107,7 @@ def create_cheart_mesh(
     axis: Literal["x", "y", "z"] = "z",
     make_quad: bool = False,
 ) -> None:
-    g = create_meshgrid_3D(rn, qn, zn, 1.0, 0, 1.0, 0, 1.0, 0.0)
+    g = create_meshgrid_3D(rn, qn, zn, 1.0, 1.0, 1.0, 0, 0, 0)
     g = create_cylinder_geometry(g, r_in, r_out, length, base)
     if make_quad:
         g_quad = create_quad_mesh_from_linear(g)
@@ -119,8 +124,7 @@ def create_cheart_mesh(
 # Get the command line arguments
 def main(args: argparse.Namespace):
     if args.qn < 3:
-        raise ValueError(
-            f"Number of circumferential elements must be greater than 2")
+        raise ValueError(f"Number of circumferential elements must be greater than 2")
     create_cheart_mesh(
         args.prefix,
         args.rin,
