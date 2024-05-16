@@ -89,7 +89,7 @@ class SolverGroup(_SolverGroup):
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     settings: dict[TolSettings|IterationSettings|Literal["CatchSolverErrors"], list[str | int | float|_Expression|_Variable]
                    ] = dc.field(default_factory=dict)
-    export_initial_condition: bool = False
+    export_initial_condition: bool = True
     use_dynamic_topologies: bool | float = False
 
     def __repr__(self) -> str:

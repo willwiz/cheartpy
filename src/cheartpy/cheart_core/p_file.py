@@ -3,7 +3,9 @@ from typing import TextIO, overload
 from .implementation.basis import _CheartBasis
 from .implementation.topologies import (
     CheartTopology,
+    ManyToOneTopInterface,
     NullTopology,
+    OneToOneTopInterface,
     TopInterface,
 )
 from .implementation.data_pointers import DataPointer, DataInterp
@@ -17,7 +19,7 @@ from .interface import *
 from .pytools import get_enum, header, hline, splicegen
 
 
-def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
+def hash_tops(tops: list[CheartTopology] | list[str]) -> str:
     names = [str(t) for t in tops]
     return "_".join(names)
 
@@ -115,6 +117,17 @@ class PFile(object):
             for x in v.get_values():
                 if isinstance(x, DataInterp):
                     self.AddDataPointer(x.var)
+                elif isinstance(x, _Expression):
+                    self.AddExpression(x)
+                elif isinstance(x, _Variable):
+                    self.AddVariable(x)
+                elif isinstance(x, tuple):
+                    if isinstance(x[0], DataInterp):
+                        self.AddDataPointer(x[0].var)
+                    elif isinstance(x[0], _Expression):
+                        self.AddExpression(x[0])
+                    elif isinstance(x[0], _Variable):
+                        self.AddVariable(x[0])
 
     def SetTopology(self, name, task, val) -> None:
         self.toplogies[name].AddSetting(task, val)
@@ -126,13 +139,27 @@ class PFile(object):
     def AddInterface(
         self,
         method: Literal["OneToOne", "ManyToOne"] | TopologyInterfaceType,
-        topologies: list[_CheartTopology],
+        topologies: list[CheartTopology],
+        master_topology: CheartTopology | None = None,
+        interface_file: str | None = None,
+        nest_in_boundary: int | None = None,
     ) -> None:
-        name = hash_tops(topologies)
-        self.AddTopology(*topologies)
-        self.interfaces[name] = TopInterface(
-            name, get_enum(method, TopologyInterfaceType), topologies
-        )
+        match method:
+            case "OneToOne":
+                name = hash_tops(topologies)
+                self.AddTopology(*topologies)
+                self.interfaces[name] = OneToOneTopInterface(name, topologies)
+            case "ManyToOne":
+                if master_topology is None:
+                    raise ValueError("ManyToOne requires a master_topology")
+                if interface_file is None:
+                    raise ValueError("ManyToOne requires a interface_file")
+                name = hash_tops(topologies)
+                self.AddTopology(*topologies)
+                self.AddTopology(master_topology)
+                self.interfaces[name] = ManyToOneTopInterface(
+                    name, topologies, master_topology, interface_file, nest_in_boundary
+                )
 
     # Add Variables
     @overload
@@ -199,7 +226,8 @@ class PFile(object):
         self.resolve()
         f.write(header(self.h))
         f.write(hline("New Output Path"))
-        f.write(f"!SetOutputPath={{{self.output_path}}}\n")
+        if self.output_path is not None:
+            f.write(f"!SetOutputPath={{{self.output_path}}}\n")
         for t in self.times.values():
             t.write(f)
         for v in self.solverGs.values():

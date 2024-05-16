@@ -104,7 +104,7 @@ class Variable(_Variable):
         if self.setting:
             string = join_fields(
                 self.name, self.setting[0],
-                self.setting[1], self.freq, self.loop_step
+                self.setting[1]
             )
             f.write(
                 f"  !SetVariablePointer={{{string}}}\n"

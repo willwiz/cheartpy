@@ -1,7 +1,5 @@
 import enum
 from typing import Literal, TextIO
-from unittest.mock import patch
-
 from ...pytools import get_enum, join_fields
 from ...interface import *
 from ..solid_mechanics.solid_problems import SolidProblem
@@ -10,9 +8,10 @@ from ...implementation.problems import BoundaryCondition
 
 class L2SolidCalculationType(enum.StrEnum):
     cauchy_stress = "cauchy_stress"
+    deformation_gradient = "deformation_gradient"
 
 
-L2_SOLID_CALCULATION_TYPE = Literal["cauchy_stress"]
+L2_SOLID_CALCULATION_TYPE = Literal["cauchy_stress", "deformation_gradient"]
 
 
 class L2SolidProjection(_Problem):

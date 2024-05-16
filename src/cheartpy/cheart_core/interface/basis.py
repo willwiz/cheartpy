@@ -3,6 +3,7 @@ from typing import TextIO, Self
 from ..aliases import *
 
 __all__ = [
+    "ExpressionValue",
     "_TimeScheme",
     "_DataPointer",
     "_DataInterp",
@@ -17,6 +18,8 @@ __all__ = [
     "_BoundaryCondition",
     "_Problem",
 ]
+
+type ExpressionValue = str | float | "_DataInterp" | "_Variable" | "_Expression"
 
 
 class _TimeScheme(abc.ABC):
@@ -46,7 +49,9 @@ class _Expression(abc.ABC):
     @abc.abstractmethod
     def idx(self, key: int) -> str: ...
     @abc.abstractmethod
-    def get_values(self) -> list[str | float | _DataInterp]: ...
+    def get_values(
+        self,
+    ) -> list[ExpressionValue | tuple[ExpressionValue, int]]: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
 

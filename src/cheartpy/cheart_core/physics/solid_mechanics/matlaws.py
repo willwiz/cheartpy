@@ -1,7 +1,7 @@
 import abc
 import dataclasses as dc
-from typing import Final, Literal
-from ...interface import _Variable
+from typing import Literal
+from ...interface import _Variable, _Expression
 
 # Matlaws -----------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ class Law(abc.ABC):
 @dc.dataclass
 class Matlaw(Law):
     name: str
-    parameters: list[float] = dc.field(default_factory=list)
+    parameters: list[float] |list[_Expression]= dc.field(default_factory=list)
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
 
     def get_aux_vars(self) -> dict[str, _Variable]:

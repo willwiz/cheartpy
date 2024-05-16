@@ -8,12 +8,12 @@ from ..interface import *
 @dc.dataclass(slots=True)
 class Expression(_Expression):
     name: str
-    value: list[str | float | _DataInterp]
+    value: list[ExpressionValue | tuple[ExpressionValue, int]]
 
     def __repr__(self) -> str:
         return self.name
 
-    def get_values(self) -> list[str | float | _DataInterp]:
+    def get_values(self):
         return self.value
 
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
@@ -25,5 +25,8 @@ class Expression(_Expression):
     def write(self, f: TextIO):
         f.write(f"!DefExpression={{{self.name}}}\n")
         for v in self.value:
-            f.write(f"  {v!s}\n")
+            if isinstance(v, tuple):
+                f.write(f"  {v[0]!s}.{v[1]}\n")
+            else:
+                f.write(f"  {v!s}\n")
         f.write("\n")
