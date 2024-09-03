@@ -31,7 +31,7 @@ def check_args_map(args: argparse.Namespace) -> MapInputArgs:
 def make_map(lin: str, quad: str, kind: Literal["TET", "HEX", "SQUARE"] | None):
     ne, nn = CHRead_header_utf(quad)
     print(f"Generating Map from {lin} to {quad}:")
-    bar = ProgressBar(">>Progress:", max=ne)
+    bar = ProgressBar(max=ne, prefix=">>Progress:")
     map = gen_map(lin, quad, kind, bar=bar.next)
     assert len(map) == nn, f"Mismatch in the size of map {
         len(map)} and number of nodes in the header {nn}"

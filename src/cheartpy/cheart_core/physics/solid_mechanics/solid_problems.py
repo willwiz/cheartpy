@@ -18,10 +18,10 @@ SOLID_VARIABLES = Literal[
 
 
 SOLID_OPTIONS = Literal[
-    "Density",
-    "Perturbation-scale",
-    "SetProblemTimeDiscretization",
+    "Density", "Perturbation-scale", "SetProblemTimeDiscretization", "UseStabilization"
 ]
+
+SOLID_FLAGS = Literal["Inverse-mechanics",]
 
 
 class SolidProblem(_Problem):
@@ -31,7 +31,7 @@ class SolidProblem(_Problem):
     variables: dict[str, _Variable]
     aux_vars: dict[str, _Variable]
     options: dict[str, list[Any]]
-    flags: dict[str, None]
+    flags: dict[str, bool]
     bc: _BoundaryCondition
 
     def __repr__(self) -> str:
@@ -65,6 +65,10 @@ class SolidProblem(_Problem):
         if vel:
             self.variables["Velocity"] = vel
         if pres:
+            if pres.get_dim() != 1:
+                raise ValueError(
+                    ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1"
+                )
             self.variables["Pressure"] = pres
         self.matlaws = list() if matlaws is None else matlaws
         self.aux_vars = dict()
@@ -84,6 +88,12 @@ class SolidProblem(_Problem):
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
         self.options[opt] = list([val, *sub_val])
 
+    def UseStabilization(self, val: float, order: int) -> None:
+        self.options["UseStabilization"] = [val, order]
+
+    def SetFlags(self, flag: SOLID_FLAGS) -> None:
+        self.flags[flag] = True
+
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         for k, v in self.variables.items():
@@ -91,8 +101,9 @@ class SolidProblem(_Problem):
         for k, v in self.options.items():
             string = join_fields(*v)
             f.write(f"  !{k}={{{string}}}\n")
-        for v in self.flags:
-            f.write(f"  !{v}\n")
+        for k, v in self.flags.items():
+            if v:
+                f.write(f"  !{k}\n")
         for v in self.matlaws:
             f.write(v.string())
         self.bc.write(f)
@@ -113,7 +124,7 @@ class SolidProblem(_Problem):
     #         self.flags.append(opt)
 
 
-def create_solid_problem(
+def create_solid_mechanics_problem(
     name: str,
     prob: SOLID_PROBLEM_TYPE | SolidProblemType,
     space: _Variable,

@@ -8,11 +8,11 @@ from ...implementation.problems import BoundaryCondition
 @dc.dataclass(slots=True)
 class FSExpr:
     var: _Variable | _Expression
-    expr: _Expression | _Variable | None
-    scaling: float = 1
+    expr: _Expression | _Variable | float = 1
+    op: str|None = None
 
     def to_str(self) -> str:
-        return f"{self.var}[{join_fields(self.expr,self.scaling, char=";")}]"
+        return f"{self.var}[{join_fields(self.expr, self.op, char=";")}]"
 
 
 @dc.dataclass(slots=True)

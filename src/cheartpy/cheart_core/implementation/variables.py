@@ -30,6 +30,9 @@ class Variable(_Variable):
     def idx(self, key: int) -> str:
         return f"{self.name}.{key}"
 
+    def get_dim(self) -> int:
+        return self.dim
+
     @overload
     def AddSetting(
         self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: _Expression) -> None: ...

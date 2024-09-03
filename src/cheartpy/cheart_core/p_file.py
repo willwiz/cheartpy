@@ -251,7 +251,7 @@ class PFile(object):
         f.write(hline("Export Frequency"))
         exportfrequencies = self.get_variable_frequency_list()
         for k, v in exportfrequencies.items():
-            for l in splicegen(60, v):
+            for l in splicegen(60, sorted(v)):
                 f.write(f'!SetExportFrequency={{{"|".join(l)}|{k}}}\n')
         f.write(hline("Problem Definitions"))
         for v in self.problems.values():

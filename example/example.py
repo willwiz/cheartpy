@@ -12,7 +12,7 @@ from cheartpy.cheart_core.api import (
     create_variable,
 )
 from cheartpy.cheart_core.physics.solid_mechanics.solid_problems import (
-    create_solid_problem,
+    create_solid_mechanics_problem,
     Matlaw,
 )
 from cheartpy.cheart_core.implementation.expressions import Expression
@@ -46,7 +46,7 @@ It really is.
     pres = create_variable("Pres", t1, 1)
     p.SetExportFrequency(space, disp, pres, freq=1)
 
-    mp = create_solid_problem("Solid", "QUASI_STATIC", space, disp, pres=pres)
+    mp = create_solid_mechanics_problem("Solid", "QUASI_STATIC", space, disp, pres=pres)
     mp.UseOption("Perturbation-scale", 1.0e-6)
     mp.UseOption("Density", 1.0e-6)
     mp.UseOption(

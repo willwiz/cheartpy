@@ -41,7 +41,8 @@ def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
                 bite = f.read(8)
                 if not bite:
                     raise BufferError(
-                        "Binary buffer being read ran out before indicated range")
+                        "Binary buffer being read ran out before indicated range"
+                    )
                 arr[i, j] = struct.unpack("d", bite)[0]
     return arr
 
