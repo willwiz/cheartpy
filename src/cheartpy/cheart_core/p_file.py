@@ -81,6 +81,7 @@ class PFile(object):
             self.problems[str(p)] = p
             self.AddVariable(*p.get_variables().values())
             self.AddVariable(*p.get_aux_vars().values())
+            self.AddExpression(*p.get_aux_expr().values())
             for patch in p.get_bc_patches():
                 for v in patch.get_values():
                     if isinstance(v, _Variable):

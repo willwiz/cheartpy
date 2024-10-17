@@ -35,10 +35,10 @@ def compress_vtu(name: str, verbose: bool = False) -> None:
 
 
 def parse_cmdline_args(
-    cmd_args: list[str] | None = None,
+    cmd_args: list[str|float|int] | None = None,
 ) -> tuple[ProgramArgs, IndexerList]:
     err: bool = False
-    args = get_cmdline_args(cmd_args)
+    args = get_cmdline_args([str(v) for v in cmd_args] if cmd_args else None)
     print_input_info(args)
     if not args.input_folder:
         pass

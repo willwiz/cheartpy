@@ -18,7 +18,7 @@ class Law(abc.ABC):
 @dc.dataclass
 class Matlaw(Law):
     name: str
-    parameters: list[float] |list[_Expression]= dc.field(default_factory=list)
+    parameters: list[str|float|_Expression]= dc.field(default_factory=list)
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
 
     def get_aux_vars(self) -> dict[str, _Variable]:

@@ -21,7 +21,7 @@ class BCPatch(_BCPatch):
         i: int,
         component: _Variable | tuple[_Variable, int | None],
         bctype: BOUNDARY_TYPE | BoundaryType,
-        *val: _Expression | str | int | float,
+        *val: _Expression | _Variable | str | int | float,
     ) -> None:
         self.id = i
         if isinstance(component, tuple):

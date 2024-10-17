@@ -30,6 +30,8 @@ class SolidProblem(_Problem):
     matlaws: list[Law]
     variables: dict[str, _Variable]
     aux_vars: dict[str, _Variable]
+    aux_expr: dict[str, _Expression]
+    state_vars: dict[str, _Variable]
     options: dict[str, list[Any]]
     flags: dict[str, bool]
     bc: _BoundaryCondition
@@ -42,6 +44,17 @@ class SolidProblem(_Problem):
 
     def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
+
+    def add_aux_vars(self, *var: _Variable) -> None:
+        for v in var:
+            self.aux_vars[str(v)] = v
+
+    def get_aux_expr(self) -> dict[str, _Expression]:
+        return self.aux_expr
+
+    def add_aux_expr(self, *expr: _Expression) -> None:
+        for v in expr:
+            self.aux_expr[str(v)] = v
 
     def get_bc_patches(self) -> list[_BCPatch]:
         patches = self.bc.get_patches()
@@ -72,6 +85,8 @@ class SolidProblem(_Problem):
             self.variables["Pressure"] = pres
         self.matlaws = list() if matlaws is None else matlaws
         self.aux_vars = dict()
+        self.aux_expr = dict()
+        self.state_vars = dict()
         self.options = dict()
         self.flags = dict()
         self.bc = BoundaryCondition()
@@ -85,11 +100,16 @@ class SolidProblem(_Problem):
     def AddVariable(self, name: SOLID_VARIABLES, var: _Variable) -> None:
         self.variables[name] = var
 
+    def AddStateVariable(self, *var: _Variable) -> None:
+        for v in var:
+            self.state_vars[str(v)] = v
+            self.aux_vars[str(v)] = v
+
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
         self.options[opt] = list([val, *sub_val])
 
     def UseStabilization(self, val: float, order: int) -> None:
-        self.options["UseStabilization"] = [val, order]
+        self.options["UseStabilization"] = [f"{val} {order}"]
 
     def SetFlags(self, flag: SOLID_FLAGS) -> None:
         self.flags[flag] = True
@@ -98,9 +118,17 @@ class SolidProblem(_Problem):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         for k, v in self.variables.items():
             f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
+        if self.state_vars:
+            f.write(
+                f"  !Add-State-Variables={{{join_fields(*self.state_vars.values())}}}\n"
+            )
         for k, v in self.options.items():
-            string = join_fields(*v)
-            f.write(f"  !{k}={{{string}}}\n")
+            if k == "UseStabilization":
+                f.write(f"  !{k}\n")
+                f.write(f"    {" ".join(v)}\n")
+            else:
+                string = join_fields(*v)
+                f.write(f"  !{k}={{{string}}}\n")
         for k, v in self.flags.items():
             if v:
                 f.write(f"  !{k}\n")

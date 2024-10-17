@@ -10,6 +10,7 @@ class NormProblem(_Problem):
     name: str
     variables: dict[str, _Variable]
     aux_vars: dict[str, _Variable]
+    aux_expr: dict[str, _Expression]
     bc: _BoundaryCondition
     root_top: CheartTopology | None = None
     boundary_normal: int | None = None
@@ -35,6 +36,7 @@ class NormProblem(_Problem):
         if term2 is not None != boundary_n is not None:
             raise ValueError(f"One of Term2 or Boundary normal must be None")
         self.aux_vars = dict()
+        self.aux_expr = dict()
         self.bc = BoundaryCondition()
 
     def __repr__(self) -> str:
@@ -43,8 +45,16 @@ class NormProblem(_Problem):
     def get_variables(self) -> dict[str, _Variable]:
         return self.variables
 
+    def add_aux_vars(self, *var: _Variable) -> None:
+        for v in var:
+            self.aux_vars[str(v)] = v
+
     def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
+
+    def add_aux_expr(self, *expr: _Expression) -> None:
+        for v in expr:
+            self.aux_expr[str(v)] = v
 
     def get_bc_patches(self) -> list[_BCPatch]:
         patches = self.bc.get_patches()

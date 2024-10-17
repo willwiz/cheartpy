@@ -1,9 +1,22 @@
 from cheartpy.types import i32, Arr
-from typing import TextIO
+from typing import TextIO, Protocol, ClassVar
+import abc
 
-class VtkLinearLine:
+
+class _VtkElementInterface(Protocol):
+    vtkelementid: ClassVar[int]
+    vtksurfaceid: ClassVar[int | None]
+    connectivity: ClassVar[tuple[int, ...]]
+
+    @staticmethod
+    @abc.abstractmethod
+    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None: ...
+
+
+class VtkLinearLine(_VtkElementInterface):
     vtkelementid = 3
     vtksurfaceid = None
+    connectivity = (0, 1)
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
@@ -13,9 +26,10 @@ class VtkLinearLine:
         fout.write("\n")
 
 
-class VtkQuadraticLine:
+class VtkQuadraticLine(_VtkElementInterface):
     vtkelementid = 21
     vtksurfaceid = None
+    connectivity = (0, 1, 2)
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
@@ -25,9 +39,10 @@ class VtkQuadraticLine:
         fout.write("\n")
 
 
-class VtkBilinearTriangle:
+class VtkBilinearTriangle(_VtkElementInterface):
     vtkelementid = 5
     vtksurfaceid = 3
+    connectivity = (0, 1, 2)
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
@@ -37,9 +52,10 @@ class VtkBilinearTriangle:
         fout.write("\n")
 
 
-class VtkBiquadraticTriangle:
+class VtkBiquadraticTriangle(_VtkElementInterface):
     vtkelementid = 22
     vtksurfaceid = 21
+    connectivity = (0, 1, 2, 3, 5, 4)
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
@@ -53,7 +69,7 @@ class VtkBiquadraticTriangle:
         fout.write("\n")
 
 
-class VtkBilinearQuadrilateral:
+class VtkBilinearQuadrilateral(_VtkElementInterface):
     vtkelementid = 9
     vtksurfaceid = 3
 
@@ -67,7 +83,7 @@ class VtkBilinearQuadrilateral:
         fout.write("\n")
 
 
-class VtkTrilinearTetrahedron:
+class VtkTrilinearTetrahedron(_VtkElementInterface):
     vtkelementid = 10
     vtksurfaceid = 5
 
@@ -79,7 +95,7 @@ class VtkTrilinearTetrahedron:
         fout.write("\n")
 
 
-class VtkBiquadraticQuadrilateral:
+class VtkBiquadraticQuadrilateral(_VtkElementInterface):
     vtkelementid = 28
     vtksurfaceid = 21
 
@@ -98,7 +114,7 @@ class VtkBiquadraticQuadrilateral:
         fout.write("\n")
 
 
-class VtkTriquadraticTetrahedron:
+class VtkTriquadraticTetrahedron(_VtkElementInterface):
     vtkelementid = 24
     vtksurfaceid = 22
 
@@ -115,7 +131,7 @@ class VtkTriquadraticTetrahedron:
         fout.write("\n")
 
 
-class VtkTrilinearHexahedron:
+class VtkTrilinearHexahedron(_VtkElementInterface):
     vtkelementid = 12
     vtksurfaceid = 9
 
@@ -133,7 +149,7 @@ class VtkTrilinearHexahedron:
         fout.write("\n")
 
 
-class VtkTriquadraticHexahedron:
+class VtkTriquadraticHexahedron(_VtkElementInterface):
     vtkelementid = 29
     vtksurfaceid = 28
 

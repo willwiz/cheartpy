@@ -97,7 +97,8 @@ BOUNDARY_TYPE = Literal[
     "neumann_nl",
     "stabilized_neumann",
     "consistent",
-    "SCALED_NORMAL",
+    "scaled_normal",
+    "scaled_normal_ref",
 ]
 
 
@@ -108,7 +109,8 @@ class BoundaryType(enum.StrEnum):
     neumann_nl = "neumann_nl"
     stabilized_neumann = "stabilized_neumann"
     consistent = "consistent"
-    SCALED_NORMAL = "SCALED_NORMAL"
+    scaled_normal = "scaled_normal"
+    scaled_normal_ref = "scaled_normal_ref"
 
 
 CHEART_ELEMENT_TYPE = Literal[

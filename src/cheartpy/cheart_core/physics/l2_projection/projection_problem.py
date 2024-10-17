@@ -21,6 +21,7 @@ class L2SolidProjection(_Problem):
     variables: dict[str, _Variable]
     bc: _BoundaryCondition
     aux_vars: dict[str, _Variable]
+    aux_expr: dict[str, _Expression]
     problem: str = "l2solidprojection_problem"
 
     def __repr__(self) -> str:
@@ -31,6 +32,17 @@ class L2SolidProjection(_Problem):
 
     def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
+
+    def add_aux_vars(self, *var: _Variable) -> None:
+        for v in var:
+            self.aux_vars[str(v)] = v
+
+    def get_aux_expr(self) -> dict[str, _Expression]:
+        return self.aux_expr
+
+    def add_aux_expr(self, *expr: _Expression) -> None:
+        for v in expr:
+            self.aux_expr[str(v)] = v
 
     def get_bc_patches(self) -> list[_BCPatch]:
         patches = self.bc.get_patches()
