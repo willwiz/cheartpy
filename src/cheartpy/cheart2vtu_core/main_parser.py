@@ -1,3 +1,4 @@
+import os
 from cheartpy.cheart2vtu_core.data_types import CmdLineArgs
 import argparse
 
@@ -210,6 +211,7 @@ def parse_findmode_args(nsp: argparse.Namespace):
     space = subs + "X"
     topology = subs + "T"
     boundary = subs + "B"
+    boundary = boundary if os.path.isfile(boundary) else None
     return space, topology, boundary, None
 
 
