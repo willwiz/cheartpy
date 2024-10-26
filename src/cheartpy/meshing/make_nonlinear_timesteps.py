@@ -12,7 +12,7 @@ from typing import Literal
 import numpy as np
 from scipy.optimize import minimize
 from scipy.optimize import Bounds
-from cheartpy.types import Arr, f64
+from cheartpy.var_types import Arr, f64
 import argparse
 
 
@@ -20,14 +20,11 @@ import argparse
 # Get the command line arguments
 parser = argparse.ArgumentParser("maketime")
 parser.add_argument("dt", type=float, help="initial dt")
-parser.add_argument(
-    "n0", type=int, help="number of starting time steps with dt")
-parser.add_argument(
-    "n1", type=int, help="number of time steps in the transition stage")
+parser.add_argument("n0", type=int, help="number of starting time steps with dt")
+parser.add_argument("n1", type=int, help="number of time steps in the transition stage")
 parser.add_argument("nt", type=int, help="total number of time steps")
 parser.add_argument("tend", type=float, help="final time")
-parser.add_argument("-p", "--prefix", type=str,
-                    default="time", help="prefix of output")
+parser.add_argument("-p", "--prefix", type=str, default="time", help="prefix of output")
 
 
 @dc.dataclass(slots=True)
@@ -49,7 +46,9 @@ def check_args(nsp: argparse.Namespace) -> InputArgs:
 
 
 # These function compares two values and see if they are numerically equal given some numerical error from summing n floats
-def float_equals(A: float, B: float, n: int, tol: float = 10.0) -> Literal[True] | tuple[Literal[False], float]:
+def float_equals(
+    A: float, B: float, n: int, tol: float = 10.0
+) -> Literal[True] | tuple[Literal[False], float]:
     trial: float = max(abs(A - np.full(n, A / n).sum()), np.finfo(float).eps)
     diff = abs(A - B)
     test = max(abs(A), abs(B))
@@ -88,8 +87,9 @@ def find_parameter2(inp: InputArgs) -> float:
         z = y - inp.tend
         return log(z * z)
 
-    optres = minimize(obf, np.array([1.0]), bounds=Bounds(
-        0.9, 1.1), method="TNC", tol=1e-14)
+    optres = minimize(
+        obf, np.array([1.0]), bounds=Bounds(0.9, 1.1), method="TNC", tol=1e-14
+    )
     return optres.x[0]
 
 
@@ -99,17 +99,22 @@ def mult_accumulate(n: int, a: float) -> Arr[int, f64]:
 
 
 def create_dt(par: float, inp: InputArgs):
-    dt = inp.dt * inp.tend / \
-        compute_total_time(par, inp.dt, inp.n0, inp.n1, inp.n2)
+    dt = inp.dt * inp.tend / compute_total_time(par, inp.dt, inp.n0, inp.n1, inp.n2)
     dt0 = np.full(inp.n0, dt)
     dt1 = dt * mult_accumulate(inp.n1, par)
     dt2 = np.full(inp.n2, dt1[-1])
-    print(f"The part 1 has {dt0.size} steps with size {
-          dt0[0]} and {dt0.sum()} time elapsed")
-    print(f"The part 2 has {dt1.size} steps with multiplier {
-          par} and {dt1.sum()} time elapsed")
-    print(f"The part 3 has {dt2.size} steps with size {
-          dt2[0]} and {dt2.sum()} time elapsed")
+    print(
+        f"The part 1 has {dt0.size} steps with size {
+          dt0[0]} and {dt0.sum()} time elapsed"
+    )
+    print(
+        f"The part 2 has {dt1.size} steps with multiplier {
+          par} and {dt1.sum()} time elapsed"
+    )
+    print(
+        f"The part 3 has {dt2.size} steps with size {
+          dt2[0]} and {dt2.sum()} time elapsed"
+    )
     return np.concatenate((dt0, dt1, dt2))
 
 

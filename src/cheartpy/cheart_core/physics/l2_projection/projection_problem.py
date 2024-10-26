@@ -1,5 +1,5 @@
 import enum
-from typing import Literal, TextIO
+from typing import Literal, TextIO, ValuesView
 from ...pytools import get_enum, join_fields
 from ...interface import *
 from ..solid_mechanics.solid_problems import SolidProblem
@@ -30,8 +30,8 @@ class L2SolidProjection(_Problem):
     def get_variables(self) -> dict[str, _Variable]:
         return self.variables
 
-    def get_aux_vars(self) -> dict[str, _Variable]:
-        return self.aux_vars
+    def get_aux_vars(self) -> ValuesView[_Variable]:
+        return self.aux_vars.values()
 
     def add_aux_vars(self, *var: _Variable) -> None:
         for v in var:

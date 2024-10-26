@@ -24,7 +24,7 @@ class Variable(_Variable):
     def __repr__(self) -> str:
         return self.name
 
-    def __getitem__[T:int | None](self, key: T) -> tuple[Self, T]:
+    def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)
 
     def idx(self, key: int) -> str:
@@ -35,11 +35,15 @@ class Variable(_Variable):
 
     @overload
     def AddSetting(
-        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: _Expression) -> None: ...
+        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: _Expression
+    ) -> None: ...
 
     @overload
     def AddSetting(
-        self, task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"], val: str) -> None: ...
+        self,
+        task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
+        val: str,
+    ) -> None: ...
 
     @overload
     def AddSetting(
@@ -73,15 +77,19 @@ class Variable(_Variable):
                 if self.loop_step is None:
                     self.loop_step = self.freq
             case _:
-                raise ValueError(f"Setting for variable {
-                                 self.name} does not match correct type")
-    def get_data(self)-> str|None:
+                raise ValueError(
+                    f"Setting for variable {
+                                 self.name} does not match correct type"
+                )
+
+    def add_data(self, data: str | None) -> None:
+        self.data = data
+
+    def get_data(self) -> str | None:
         return self.data
 
-    def get_top(self) -> list[_CheartTopology]:
-        if isinstance(self.topology, NullTopology):
-            return []
-        return [self.topology]
+    def get_top(self) -> _CheartTopology:
+        return self.topology
 
     def get_expressions(
         self,
@@ -95,23 +103,23 @@ class Variable(_Variable):
             expr = [self.setting[1]]
         return expr + [v for v in self.expressions.values()]
 
+    def set_export_frequency(self, v: int) -> None:
+        self.freq = v
+
     def get_export_frequency(self) -> int:
         return self.freq
 
     def write(self, f: TextIO):
         string = join_fields(
-            self.name, self.topology if self.topology else "null_topology", self.data, self.dim)
-        f.write(
-            f"!DefVariablePointer={{{string}}}\n"
+            self.name,
+            self.topology if self.topology else "null_topology",
+            self.data,
+            self.dim,
         )
+        f.write(f"!DefVariablePointer={{{string}}}\n")
         if self.setting:
-            string = join_fields(
-                self.name, self.setting[0],
-                self.setting[1]
-            )
-            f.write(
-                f"  !SetVariablePointer={{{string}}}\n"
-            )
+            string = join_fields(self.name, self.setting[0], self.setting[1])
+            f.write(f"  !SetVariablePointer={{{string}}}\n")
         if self.fmt == VariableExportFormat.BINARY or self.fmt == "BINARY":
             f.write(f"  !SetVariablePointer={{{self.name}|ReadBinary}}\n")
         elif self.fmt == VariableExportFormat.MMAP or self.fmt == "MMAP":

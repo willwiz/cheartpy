@@ -16,6 +16,7 @@ def split_filename(f: str):
 
 def gen_script(args, rest):
     import importlib
+
     path, name, pack = split_filename(args.pfile)
     sys.path.append(os.getcwd())
     pkg = importlib.import_module(pack)
@@ -56,8 +57,7 @@ def run_script(args, rest):
     pkg = importlib.import_module(pack)
     p = pkg.get_PFile()
     fout = name + ".P"
-    run_cheartpy(p, fout, *rest, cores=args.cores,
-                 log=args.log, keep=args.keep)
+    run_cheartpy(p, fout, *rest, cores=args.cores, log=args.log, keep=args.keep)
 
 
 def run_pfile(args, rest):
@@ -65,8 +65,7 @@ def run_pfile(args, rest):
 
     fout = args.pfile
     if args.cores > 1:
-        cmd = ["mpiexec", "-n", f"{args.cores!s}",
-               "cheartsolver.out", fout, *rest]
+        cmd = ["mpiexec", "-n", f"{args.cores!s}", "cheartsolver.out", fout, *rest]
     else:
         cmd = ["cheartsolver.out", fout, *rest]
     print(" ".join(cmd))

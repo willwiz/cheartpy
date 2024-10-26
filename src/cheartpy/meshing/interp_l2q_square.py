@@ -8,9 +8,9 @@ import numpy as np
 from numpy import zeros, full
 from math import floor
 from typing import Callable, List
-from cheartpy.types import Arr, i32, f64
+from cheartpy.var_types import Arr, i32, f64
 from cheartpy.tools.progress_bar import ProgressBar
-from cheartpy.io.cheartio import (
+from cheartpy.meshing.cheart.io import (
     CHRead_d_utf,
     CHRead_d_bin,
     CHRead_header_utf,
@@ -98,7 +98,9 @@ def edit_val(arr: np.ndarray, ind: int, val: List[int]) -> None:
         )
 
 
-def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None) -> np.ndarray:
+def gen_map(
+    lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | None = None
+) -> np.ndarray:
     rows_lin, _ = lin.shape
     rows_quad, _ = quad.shape
     if rows_lin != rows_quad:
@@ -150,10 +152,13 @@ def gen_map(lin: np.ndarray, quad: np.ndarray, quad_n: int, update: Callable | N
     return top_map
 
 
-def get_qual_val(map: Arr[int, i32], arr: Arr[tuple[int, int], f64]) -> float | Arr[int, f64]:
+def get_qual_val(
+    map: Arr[int, i32], arr: Arr[tuple[int, int], f64]
+) -> float | Arr[int, f64]:
     if map[0] < 1 or map[0] > 4:
         raise AssertionError(
-            f"<<<ERROR: Nodal value must be the average of 1, 2, or 4 other nodes, not {map[0]}")
+            f"<<<ERROR: Nodal value must be the average of 1, 2, or 4 other nodes, not {map[0]}"
+        )
     kind: int = map[0] + 1
     return arr[map[1:kind]].sum() / map[0]
 
@@ -175,8 +180,8 @@ def make_map(args):
     lin_top = lin_top - 1
     quad_top = quad_top - 1
     bar = ProgressBar(
+        len(quad_top),
         f"Generating Map from {args.make_map[0]} to {args.make_map[1]}",
-        max=len(quad_top),
     )
     top_map = gen_map(lin_top, quad_top, nnode, bar.next)
     write_array_int(args.name[-1], top_map)
@@ -202,8 +207,8 @@ def map_vals_i(args, l2q_map, name):
             CHWrite_d_utf(tag, quadata)
     else:
         bar = ProgressBar(
+            floor((args.index[1] - args.index[0]) / args.index[2]) + 1,
             f"Interpolating {name} to quad topology",
-            max=floor((args.index[1] - args.index[0]) / args.index[2]) + 1,
         )
         for i in range(args.index[0], args.index[1] + args.index[2], args.index[2]):
             fin = name + f"-{i}.D"

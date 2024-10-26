@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import dataclasses as dc
-from typing import TextIO, overload
+from typing import Sequence, TextIO, ValuesView, overload
 
-from cheartpy.cheart_core.interface.basis import _Problem
+from cheartpy.cheart_core.interface.basis import _Problem, _TimeScheme, _Variable
+from cheartpy.cheart_core.interface.solver_group import _SolverSubGroup
 from cheartpy.cheart_core.interface.solver_matrix import _SolverMatrix
 from ..aliases import *
 from ..pytools import *
@@ -59,8 +60,8 @@ class SolverSubGroup(_SolverSubGroup):
 
     def __post_init__(self):
         for p in self.problems.values():
-            for k, x in p.get_aux_vars().items():
-                self.aux_vars[k] = x
+            for v in p.get_aux_vars():
+                self.aux_vars[str(v)] = v
 
     def get_method(self) -> SolverSubgroupAlgorithm:
         return self.method
@@ -68,8 +69,8 @@ class SolverSubGroup(_SolverSubGroup):
     def get_aux_vars(self) -> dict[str, _Variable]:
         return self.aux_vars
 
-    def get_problems(self) -> dict[str, _SolverMatrix | _Problem]:
-        return self.problems
+    def get_problems(self) -> ValuesView[_SolverMatrix | _Problem]:
+        return self.problems.values()
 
     @property
     def scale_first_residual(self) -> float | None:
@@ -84,7 +85,7 @@ class SolverSubGroup(_SolverSubGroup):
 class SolverGroup(_SolverGroup):
     name: str
     time: _TimeScheme
-    SolverSubGroups: list[_SolverSubGroup] = dc.field(default_factory=list)
+    sub_groups: list[_SolverSubGroup] = dc.field(default_factory=list)
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     settings: dict[
         TolSettings | IterationSettings | Literal["CatchSolverErrors"],
@@ -98,9 +99,18 @@ class SolverGroup(_SolverGroup):
 
     # TOL
     def __post_init__(self):
-        for sg in self.SolverSubGroups:
+        for sg in self.sub_groups:
             for k, v in sg.get_aux_vars().items():
                 self.aux_vars[k] = v
+
+    def get_time_scheme(self) -> _TimeScheme:
+        return self.time
+
+    def get_aux_vars(self) -> ValuesView[_Variable]:
+        return self.aux_vars.values()
+
+    def get_subgroups(self) -> Sequence[_SolverSubGroup]:
+        return self.sub_groups
 
     def set_convergence(
         self,
@@ -140,20 +150,20 @@ class SolverGroup(_SolverGroup):
     # SG
     def AddSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
         for v in sg:
-            self.SolverSubGroups.append(v)
+            self.sub_groups.append(v)
             for x in v.get_aux_vars().values():
                 self.AddVariable(x)
 
     def RemoveSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
         for v in sg:
-            self.SolverSubGroups.remove(v)
+            self.sub_groups.remove(v)
 
     def MakeSolverSubGroup(
         self,
         method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"],
         *problems: _SolverMatrix | _Problem,
     ) -> None:
-        self.SolverSubGroups.append(
+        self.sub_groups.append(
             SolverSubGroup(
                 method=get_enum(method, SolverSubgroupAlgorithm),
                 problems={str(p): p for p in problems},
@@ -183,7 +193,7 @@ class SolverGroup(_SolverGroup):
             f.write(f"  !SetSolverGroup={{{string}}}\n")
         if self.use_dynamic_topologies:
             f.write(f"  !SetSolverGroup={{{self.name}|UsingDynamicTopologies}}\n")
-        for g in self.SolverSubGroups:
+        for g in self.sub_groups:
             pobs = [VoS(p) for p in g.get_problems()]
             if g.scale_first_residual:
                 f.write(

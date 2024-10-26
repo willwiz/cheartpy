@@ -18,7 +18,7 @@ class Law(abc.ABC):
 @dc.dataclass
 class Matlaw(Law):
     name: str
-    parameters: list[str|float|_Expression]= dc.field(default_factory=list)
+    parameters: list[str | float | _Expression] = dc.field(default_factory=list)
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
 
     def get_aux_vars(self) -> dict[str, _Variable]:
@@ -74,8 +74,7 @@ class FractionalVE(Law):
         if self.Order != 2:
             l = l + f"    Order 1\n"
         for v in self.laws:
-            l = l + \
-                f'    {v.name}  [{" ".join([str(i) for i in v.parameters])}]\n'
+            l = l + f'    {v.name}  [{" ".join([str(i) for i in v.parameters])}]\n'
         return l
 
 

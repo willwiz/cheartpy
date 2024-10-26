@@ -1,6 +1,6 @@
 from .data import *
 from .elements import *
-from ...types import *
+from ...var_types import *
 import numpy as np
 from scipy.linalg import lstsq
 
@@ -34,3 +34,6 @@ def compute_normal_surface(kind: VtkElemInterface, space: Mat[f64], elem: Mat[i3
     )
     # print(f"{normals=}")
     return normalize_by_row(normals)
+
+
+def reset_cheart_mesh(mesh: CheartMesh): ...

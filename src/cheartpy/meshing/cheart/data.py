@@ -1,7 +1,7 @@
 import dataclasses as dc
-from ...io.cheartio import CHWrite_d_utf, CHWrite_iarr_utf, CHWrite_t_utf
+from .io import CHWrite_d_utf, CHWrite_iarr_utf, CHWrite_t_utf
 import numpy as np
-from ...types import Mat, Vec, f64, i32
+from ...var_types import Mat, Vec, f64, i32
 
 
 @dc.dataclass(slots=True)

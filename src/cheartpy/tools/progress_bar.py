@@ -2,8 +2,7 @@ from typing import Final, Literal
 
 
 class ProgressBar:
-    __slots__ = ["_n", "i", "_l", "_p", "_s",
-                 "_b", "_bmt", "_pmt", "_endl"]
+    __slots__ = ["_n", "i", "_l", "_p", "_s", "_b", "_bmt", "_pmt", "_endl"]
 
     _n: Final[int]
     i: int
@@ -15,7 +14,16 @@ class ProgressBar:
     _bmt: Final[str]
     _pmt: Final[str]
 
-    def __init__(self, max: int, prefix: str = "", suffix: str = "", length: int = 40, decimal: int = 1, pixel: str = "*", end: Literal["\n", "\r", ""] = ""):
+    def __init__(
+        self,
+        max: int,
+        prefix: str = "",
+        suffix: str = "",
+        length: int = 50,
+        decimal: int = 1,
+        pixel: str = "*",
+        end: Literal["\n", "\r", ""] = "",
+    ):
         self.i, self._n = 0, max
         self._p, self._s = prefix, suffix
         self._l = length * len(pixel)

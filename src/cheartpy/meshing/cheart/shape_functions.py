@@ -1,5 +1,5 @@
 import numpy as np
-from ...types import *
+from ...var_types import *
 
 
 def sf_line_linear(coord: Vec[f64]) -> Vec[f64]:

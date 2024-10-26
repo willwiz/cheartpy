@@ -1,4 +1,4 @@
-from cheartpy.types import i32, Arr
+from cheartpy.var_types import i32, Arr
 from typing import TextIO, Protocol, ClassVar
 import abc
 

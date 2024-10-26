@@ -1,8 +1,9 @@
-__all__ = ["LogLevel", "BasicLogger"]
+__all__ = ["LogLevel", "BasicLogger", "NullLogger"]
 import enum
 from typing import Any
 from datetime import datetime
 import traceback
+from inspect import getframeinfo, stack
 
 
 def now() -> str:
@@ -27,7 +28,8 @@ class BasicLogger:
         self.level = level
 
     def print(self, msg: Any, level: LogLevel):
-        print(f"{now()}[{level.name:5}]>>> {msg}")
+        frame = getframeinfo(stack()[2][0])
+        print(f"[{now()}][{level.name:5}]::{frame.function}-{frame.lineno}>>>\n{msg}\n")
 
     def debug(self, msg: Any):
         if self.level >= LogLevel.DEBUG:

@@ -1,4 +1,4 @@
-from typing import Literal, TextIO
+from typing import Literal, TextIO, ValuesView
 
 from ...pytools import join_fields
 from ...interface import *
@@ -49,8 +49,8 @@ class NormProblem(_Problem):
         for v in var:
             self.aux_vars[str(v)] = v
 
-    def get_aux_vars(self) -> dict[str, _Variable]:
-        return self.aux_vars
+    def get_aux_vars(self) -> ValuesView[_Variable]:
+        return self.aux_vars.values()
 
     def add_aux_expr(self, *expr: _Expression) -> None:
         for v in expr:

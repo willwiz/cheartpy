@@ -1,9 +1,9 @@
 import abc
-from typing import TextIO, Self
+from typing import Sequence, TextIO, Self, ValuesView
 from ..aliases import *
 
 __all__ = [
-    "ExpressionValue",
+    "EXPRESSION_VALUE_TYPES",
     "_TimeScheme",
     "_DataPointer",
     "_DataInterp",
@@ -19,7 +19,17 @@ __all__ = [
     "_Problem",
 ]
 
-type ExpressionValue = str | float | "_DataInterp" | "_Variable" | "_Expression"
+type EXPRESSION_VALUE_TYPES = (
+    str
+    | int
+    | float
+    | "_Variable"
+    | "_Expression"
+    | "_DataInterp"
+    | tuple["_Variable", int]
+    | tuple["_Expression", int]
+    | tuple["_DataInterp", int]
+)
 
 
 class _TimeScheme(abc.ABC):
@@ -39,6 +49,8 @@ class _DataPointer(abc.ABC):
 class _DataInterp(abc.ABC):
     @abc.abstractmethod
     def __repr__(self) -> str: ...
+    @abc.abstractmethod
+    def get_val(self) -> _DataPointer: ...
 
 
 class _Expression(abc.ABC):
@@ -51,7 +63,19 @@ class _Expression(abc.ABC):
     @abc.abstractmethod
     def get_values(
         self,
-    ) -> list[ExpressionValue | tuple[ExpressionValue, int]]: ...
+    ) -> Sequence[EXPRESSION_VALUE_TYPES]: ...
+    @abc.abstractmethod
+    def add_expr_deps(self, *var: "_Expression") -> None: ...
+    @abc.abstractmethod
+    def get_expr_deps(
+        self,
+    ) -> ValuesView["_Expression"]: ...
+    @abc.abstractmethod
+    def add_var_deps(self, *var: "_Variable") -> None: ...
+    @abc.abstractmethod
+    def get_var_deps(
+        self,
+    ) -> ValuesView["_Variable"]: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
 
@@ -79,6 +103,8 @@ class _CheartTopology(abc.ABC):
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
     @abc.abstractmethod
+    def get_basis(self) -> _CheartBasis | None: ...
+    @abc.abstractmethod
     def AddSetting(
         self,
         task: CheartTopologySetting,
@@ -97,15 +123,19 @@ class _Variable(abc.ABC):
     @abc.abstractmethod
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]: ...
     @abc.abstractmethod
+    def add_data(self, data: str | None) -> None: ...
+    @abc.abstractmethod
     def get_data(self) -> str | None: ...
     @abc.abstractmethod
-    def get_top(self) -> list[_CheartTopology]: ...
+    def get_top(self) -> _CheartTopology: ...
     @abc.abstractmethod
     def get_expressions(self) -> list[_Expression]: ...
     @abc.abstractmethod
     def get_dim(self) -> int: ...
     @abc.abstractmethod
     def get_export_frequency(self) -> int: ...
+    @abc.abstractmethod
+    def set_export_frequency(self, v: int) -> None: ...
     @abc.abstractmethod
     def idx(self, key: int) -> str: ...
     @abc.abstractmethod
@@ -155,7 +185,7 @@ class _Problem(abc.ABC):
     @abc.abstractmethod
     def get_variables(self) -> dict[str, _Variable]: ...
     @abc.abstractmethod
-    def get_aux_vars(self) -> dict[str, _Variable]: ...
+    def get_aux_vars(self) -> ValuesView[_Variable]: ...
     @abc.abstractmethod
     def add_aux_vars(self, *var: _Variable) -> None: ...
     @abc.abstractmethod

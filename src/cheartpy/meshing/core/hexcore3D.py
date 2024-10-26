@@ -1,7 +1,7 @@
 from typing import TextIO, Final
 import numpy as np
 from numpy import ndarray as Arr
-from cheartpy.types import i32, f64
+from cheartpy.var_types import i32, f64
 
 
 # This is gives the order of the nodes in an elent given a starting indice

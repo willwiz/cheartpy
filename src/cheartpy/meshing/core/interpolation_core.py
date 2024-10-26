@@ -3,15 +3,25 @@ import dataclasses as dc
 import re
 import json
 import numpy as np
-from cheartpy.io.cheartio import CHRead_d, CHRead_t_utf, CHRead_header_utf, CHWrite_d_utf
+from cheartpy.meshing.cheart.io import (
+    CHRead_d,
+    CHRead_t_utf,
+    CHRead_header_utf,
+    CHWrite_d_utf,
+)
 from cheartpy.meshing.core.element_mapping import (
     ElementTypes,
     get_elem_type,
     get_elmap,
 )
-from cheartpy.cheart2vtu_core.file_indexing import DFileAutoFinder, DFileAutoSubIndex, DFileIndex, DFileSubIndex
+from cheartpy.cheart2vtu_core.file_indexing import (
+    DFileAutoFinder,
+    DFileAutoSubIndex,
+    DFileIndex,
+    DFileSubIndex,
+)
 
-from cheartpy.types import Arr, Vec, Mat, f64, i32
+from cheartpy.var_types import Arr, Vec, Mat, f64, i32
 
 
 def string_head(str1: str, str2: str) -> str:
@@ -38,13 +48,16 @@ def load_topologies(lin: str, quad: str, kind: Literal["TET", "HEX", "SQUARE"] |
     quad_ne, _ = CHRead_header_utf(quad)
     if lin_ne != quad_ne:
         raise ValueError(
-            f"Lin top ne = {lin_ne} does not match quad top ne = {quad_ne}")
+            f"Lin top ne = {lin_ne} does not match quad top ne = {quad_ne}"
+        )
     if lin_top.shape[0] != lin_ne:
         raise ValueError(
-            f"Lin top ne = {lin_top.shape[0]} does not match header = {lin_ne}")
+            f"Lin top ne = {lin_top.shape[0]} does not match header = {lin_ne}"
+        )
     if quad_top.shape[0] != quad_ne:
         raise ValueError(
-            f"Lin top ne = {quad_top.shape[0]} does not match header = {quad_ne}")
+            f"Lin top ne = {quad_top.shape[0]} does not match header = {quad_ne}"
+        )
     if lin_top.shape[0] == quad_top.shape[0]:
         ValueError("Topologies do not have the same number of elements")
     if kind is None:
@@ -55,7 +68,12 @@ def load_topologies(lin: str, quad: str, kind: Literal["TET", "HEX", "SQUARE"] |
     return lin_top - 1, quad_top - 1, elmap
 
 
-def gen_map(lin: str, quad: str, kind: Literal["TET", "HEX", "SQUARE"] | None, bar: Callable | None = None):
+def gen_map(
+    lin: str,
+    quad: str,
+    kind: Literal["TET", "HEX", "SQUARE"] | None,
+    bar: Callable | None = None,
+):
     map: dict[int, list[int]] = dict()
     lin_top, quad_top, elmap = load_topologies(lin, quad, kind)
     rows_quad, _ = quad_top.shape

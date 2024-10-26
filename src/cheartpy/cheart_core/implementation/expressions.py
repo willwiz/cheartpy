@@ -1,20 +1,44 @@
 import dataclasses as dc
-from typing import TextIO, Self
-
-from cheartpy.cheart_core.interface.basis import _DataInterp
+from typing import Mapping, Sequence, TextIO, Self
 from ..interface import *
 
 
 @dc.dataclass(slots=True)
 class Expression(_Expression):
     name: str
-    value: list[ExpressionValue | tuple[ExpressionValue, int]]
+    value: Sequence[
+        int
+        | str
+        | float
+        | "_Variable"
+        | "_Expression"
+        | "_DataInterp"
+        | tuple["_Variable", int]
+        | tuple["_Expression", int]
+        | tuple["_DataInterp", int]
+    ]
+    deps_var: dict[str, _Variable] = dc.field(default_factory=dict)
+    deps_expr: dict[str, _Expression] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
 
     def get_values(self):
         return self.value
+
+    def add_expr_deps(self, *expr: _Expression):
+        for v in expr:
+            self.deps_expr[str(v)] = v
+
+    def get_expr_deps(self):
+        return self.deps_expr.values()
+
+    def add_var_deps(self, *var: _Variable) -> None:
+        for v in var:
+            self.deps_var[str(v)] = v
+
+    def get_var_deps(self):
+        return self.deps_var.values()
 
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)

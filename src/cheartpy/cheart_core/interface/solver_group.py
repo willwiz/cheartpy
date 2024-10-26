@@ -1,5 +1,5 @@
 import abc
-from typing import TextIO
+from typing import Sequence, TextIO, ValuesView
 from ..aliases import *
 from .basis import *
 from .solver_matrix import *
@@ -13,7 +13,7 @@ class _SolverSubGroup(abc.ABC):
     @abc.abstractmethod
     def get_aux_vars(self) -> dict[str, _Variable]: ...
     @abc.abstractmethod
-    def get_problems(self) -> dict[str, _SolverMatrix | _Problem]: ...
+    def get_problems(self) -> ValuesView[_SolverMatrix | _Problem]: ...
     @property
     @abc.abstractmethod
     def scale_first_residual(self) -> float | None: ...
@@ -25,6 +25,12 @@ class _SolverSubGroup(abc.ABC):
 class _SolverGroup(abc.ABC):
     @abc.abstractmethod
     def __repr__(self) -> str: ...
+    @abc.abstractmethod
+    def get_time_scheme(self) -> _TimeScheme: ...
+    @abc.abstractmethod
+    def get_aux_vars(self) -> ValuesView[_Variable]: ...
+    @abc.abstractmethod
+    def get_subgroups(self) -> Sequence[_SolverSubGroup]: ...
     @abc.abstractmethod
     def set_convergence(
         self,

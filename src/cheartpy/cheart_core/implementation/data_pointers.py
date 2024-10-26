@@ -1,5 +1,7 @@
 import dataclasses as dc
 from typing import TextIO
+
+from cheartpy.cheart_core.interface.basis import _Variable
 from ..interface.basis import *
 
 
@@ -14,13 +16,18 @@ class DataPointer(_DataPointer):
         return self.name
 
     def write(self, f: TextIO):
-        f.write(f"!DefDataPointer={{{self.name}|{
-                self.file}|{self.dim}|{self.nt}}}\n")
+        f.write(
+            f"!DefDataPointer={{{self.name}|{
+                self.file}|{self.dim}|{self.nt}}}\n"
+        )
 
 
 @dc.dataclass(slots=True)
 class DataInterp(_DataInterp):
-    var: DataPointer
+    var: _DataPointer
 
     def __repr__(self) -> str:
-        return f"Interp({self.var.name},t)"
+        return f"Interp({str(self.var)},t)"
+
+    def get_val(self) -> _DataPointer:
+        return self.var

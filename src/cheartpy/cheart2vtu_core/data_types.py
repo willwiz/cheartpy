@@ -3,7 +3,7 @@ import enum
 import os
 import numpy as np
 from typing import Final, Literal
-from cheartpy.types import i32, f64, Arr
+from cheartpy.var_types import i32, f64, Arr
 from cheartpy.xmlwriter.vtk_elements import (
     VtkBoundaryElement,
     VtkTopologyElement,

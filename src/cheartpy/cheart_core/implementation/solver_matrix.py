@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import dataclasses as dc
-from typing import TextIO
+from typing import TextIO, ValuesView
+
+from cheartpy.cheart_core.interface.basis import _Variable
 from ..interface import *
 from ..aliases import *
 from ..pytools import *
@@ -17,14 +19,17 @@ class SolverMatrix(_SolverMatrix):
 
     def __post_init__(self):
         for _, p in self.problem.items():
-            for k, x in p.get_aux_vars().items():
-                self.aux_vars[k] = x
+            for v in p.get_aux_vars():
+                self.aux_vars[str(v)] = v
 
     def __repr__(self) -> str:
         return self.name
 
     def get_aux_vars(self):
-        return self.aux_vars
+        return self.aux_vars.values()
+
+    def get_problems(self) -> ValuesView[_Problem]:
+        return self.problem.values()
 
     def AddSetting(self, opt, *val):
         self.settings[opt] = list(val)

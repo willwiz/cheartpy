@@ -8,7 +8,7 @@
 import os
 from typing import Callable
 import argparse
-from cheartpy.io.cheartio import CHRead_d_utf, CHRead_d_bin
+from cheartpy.meshing.cheart.io import CHRead_d_utf, CHRead_d_bin
 from cheartpy.tools.progress_bar import ProgressBar
 
 ################################################################################################
@@ -101,11 +101,15 @@ def main(args=None):
     nodes = list(range(n))
     for s in args.cons:
         if args.progress:
-            bart = ProgressBar(f"Working on {s}:", max=len(mesh))
+            bart = ProgressBar(len(mesh), prefix=f"Working on {s}:")
         else:
             bart = None
+
         if dim == 2:
-            def func(x, y): return eval(str(s))
+
+            def func(x, y):
+                return eval(str(s))
+
             if isinstance(func(0.0, 0.0), (bool)):
                 type = True
             elif isinstance(func(0.0, 0.0), (int, float)):
@@ -115,7 +119,10 @@ def main(args=None):
                 print("Please make sure the inequalities are functions of x, y")
                 exit()
         elif dim == 3:
-            def func3D(x, y, z): return eval(str(s))
+
+            def func3D(x, y, z):
+                return eval(str(s))
+
             if isinstance(func3D(0.0, 0.0, 0.0), (bool)):
                 type = True
             elif isinstance(func3D(0.0, 0.0, 0.0), (int, float)):

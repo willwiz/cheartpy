@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TextIO
+from typing import TextIO, ValuesView
 from ...pytools import get_enum, join_fields
 from ...interface import *
 from ...implementation.problems import BoundaryCondition
@@ -9,7 +9,7 @@ from ...implementation.problems import BoundaryCondition
 class FSExpr:
     var: _Variable | _Expression
     expr: _Expression | _Variable | float = 1
-    op: str|None = None
+    op: str | None = None
 
     def to_str(self) -> str:
         return f"{self.var}[{join_fields(self.expr, self.op, char=";")}]"
@@ -24,7 +24,7 @@ class FSCouplingTerm:
 class FSCouplingProblem(_Problem):
     name: str
     space: _Variable
-    root_topology: _CheartTopology
+    root_topology: _CheartTopology | None
     lm: FSCouplingTerm
     terms: dict[str, FSCouplingTerm]
     bc: _BoundaryCondition
@@ -57,9 +57,8 @@ class FSCouplingProblem(_Problem):
                     vars[str(t.expr)] = t.expr
         return vars
 
-
-    def get_aux_vars(self) -> dict[str, _Variable]:
-        return self.aux_vars
+    def get_aux_vars(self) -> ValuesView[_Variable]:
+        return self.aux_vars.values()
 
     def add_aux_vars(self, *var: _Variable) -> None:
         for v in var:
@@ -80,11 +79,11 @@ class FSCouplingProblem(_Problem):
         self,
         name: str,
         space: _Variable,
-        root_top: _CheartTopology,
+        root_top: _CheartTopology | None = None,
     ) -> None:
         self.name = name
         self.space = space
-        self.root_topology = root_top
+        self.root_topology = None if root_top is None else root_top
         self.aux_vars = dict()
         self.aux_expr = dict()
         self.terms = dict()
@@ -94,9 +93,14 @@ class FSCouplingProblem(_Problem):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
         for t in self.terms.values():
-            f.write(f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.expr])}}}\n")
-        f.write(f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.expr])}}}\n")
+            f.write(
+                f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.expr])}}}\n"
+            )
+        f.write(
+            f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.expr])}}}\n"
+        )
         if self.perturbation:
             f.write(f"  !SetPerturbationBuild\n")
-        f.write(f"  !SetRootTopology={{{self.root_topology}}}\n")
+        if self.root_topology is not None:
+            f.write(f"  !SetRootTopology={{{self.root_topology}}}\n")
         self.bc.write(f)

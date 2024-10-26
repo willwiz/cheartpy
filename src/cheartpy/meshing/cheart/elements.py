@@ -1,7 +1,7 @@
 import dataclasses as dc
 import enum
 from typing import Callable, Final, Literal, TextIO
-from ...types import *
+from ...var_types import *
 from .shape_functions import *
 
 VTK_ELEM_TYPE = Literal[

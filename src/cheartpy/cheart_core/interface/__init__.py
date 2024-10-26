@@ -3,7 +3,7 @@ from .solver_matrix import *
 from .solver_group import *
 
 __all__ = [
-    "ExpressionValue",
+    "EXPRESSION_VALUE_TYPES",
     "_TimeScheme",
     "_DataPointer",
     "_DataInterp",

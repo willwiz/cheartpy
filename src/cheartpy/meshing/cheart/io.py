@@ -1,5 +1,5 @@
 import struct
-from cheartpy.types import i32, f64, Arr, char
+from ...var_types import *
 import numpy as np
 
 """

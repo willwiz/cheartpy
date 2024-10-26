@@ -1,25 +1,15 @@
 import dataclasses as dc
 from typing import TextIO, overload
-from .implementation.basis import _CheartBasis
 from .implementation.topologies import (
-    CheartTopology,
     ManyToOneTopInterface,
-    NullTopology,
     OneToOneTopInterface,
-    TopInterface,
 )
-from .implementation.data_pointers import DataPointer, DataInterp
-from .implementation.expressions import _Expression
-from .implementation.variables import Variable
-from .implementation.problems import _Problem
-from .implementation.solver_matrix import SolverMatrix
-from .implementation.solver_groups import SolverGroup
 from .aliases import *
 from .interface import *
-from .pytools import get_enum, header, hline, splicegen
+from .pytools import header, hline, splicegen
 
 
-def hash_tops(tops: list[CheartTopology] | list[str]) -> str:
+def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
     names = [str(t) for t in tops]
     return "_".join(names)
 
@@ -29,8 +19,8 @@ class PFile(object):
     h: str = ""
     output_path: str | None = None
     times: dict[str, _TimeScheme] = dc.field(default_factory=dict)
-    solverGs: dict[str, SolverGroup] = dc.field(default_factory=dict)
-    matrices: dict[str, SolverMatrix] = dc.field(default_factory=dict)
+    solverGs: dict[str, _SolverGroup] = dc.field(default_factory=dict)
+    matrices: dict[str, _SolverMatrix] = dc.field(default_factory=dict)
     problems: dict[str, _Problem] = dc.field(default_factory=dict)
     variables: dict[str, _Variable] = dc.field(default_factory=dict)
     toplogies: dict[str, _CheartTopology] = dc.field(default_factory=dict)
@@ -44,15 +34,14 @@ class PFile(object):
         self.output_path = path
 
     # SolverGroup
-    def AddSolverGroup(self, *grp: SolverGroup) -> None:
+    def AddSolverGroup(self, *grp: _SolverGroup) -> None:
         for g in grp:
-            self.solverGs[g.name] = g
-            self.AddTimeScheme(g.time)
-            if g.aux_vars:
-                self.AddVariable(*g.aux_vars.values())
-            for sg in g.SolverSubGroups:
-                for p in sg.get_problems().values():
-                    if isinstance(p, SolverMatrix):
+            self.solverGs[str(g)] = g
+            self.AddTimeScheme(g.get_time_scheme())
+            self.AddVariable(*g.get_aux_vars())
+            for sg in g.get_subgroups():
+                for p in sg.get_problems():
+                    if isinstance(p, _SolverMatrix):
                         self.AddMatrix(p)
                     elif isinstance(p, _Problem):
                         self.AddProblem(p)
@@ -65,13 +54,11 @@ class PFile(object):
             self.times[str(t)] = t
 
     # Matrix
-    def AddMatrix(self, *mat: SolverMatrix) -> None:
+    def AddMatrix(self, *mat: _SolverMatrix) -> None:
         for v in mat:
-            self.matrices[v.name] = v
-            if v.problem:
-                self.AddProblem(*v.problem.values())
-            if v.aux_vars:
-                self.AddVariable(*v.aux_vars.values())
+            self.matrices[str(v)] = v
+            self.AddProblem(*v.get_problems())
+            self.AddVariable(*v.get_aux_vars())
 
     # Problem
 
@@ -80,7 +67,7 @@ class PFile(object):
         for p in prob:
             self.problems[str(p)] = p
             self.AddVariable(*p.get_variables().values())
-            self.AddVariable(*p.get_aux_vars().values())
+            self.AddVariable(*p.get_aux_vars())
             self.AddExpression(*p.get_aux_expr().values())
             for patch in p.get_bc_patches():
                 for v in patch.get_values():
@@ -94,15 +81,15 @@ class PFile(object):
             if str(v) not in self.variables:
                 self.variables[str(v)] = v
             # self.SetExportFrequency(v, freq=v.freq)
-            self.AddTopology(*v.get_top())
+            self.AddTopology(v.get_top())
             self.AddExpression(*v.get_expressions())
 
     # Add Topology
     def AddTopology(self, *top: _CheartTopology) -> None:
         for t in top:
-            if isinstance(t, CheartTopology):
+            if isinstance(t, _CheartTopology):
                 self.toplogies[str(t)] = t
-                self.AddBasis(t.basis)
+                self.AddBasis(t.get_basis())
 
     # Add Basis
     def AddBasis(self, *basis: _CheartBasis | None) -> None:
@@ -116,19 +103,21 @@ class PFile(object):
             if str(v) not in self.exprs:
                 self.exprs[str(v)] = v
             for x in v.get_values():
-                if isinstance(x, DataInterp):
-                    self.AddDataPointer(x.var)
+                if isinstance(x, _DataInterp):
+                    self.AddDataPointer(x.get_val())
                 elif isinstance(x, _Expression):
                     self.AddExpression(x)
                 elif isinstance(x, _Variable):
                     self.AddVariable(x)
                 elif isinstance(x, tuple):
-                    if isinstance(x[0], DataInterp):
-                        self.AddDataPointer(x[0].var)
+                    if isinstance(x[0], _DataInterp):
+                        self.AddDataPointer(x[0].get_val())
                     elif isinstance(x[0], _Expression):
                         self.AddExpression(x[0])
                     elif isinstance(x[0], _Variable):
                         self.AddVariable(x[0])
+            self.AddVariable(*v.get_var_deps())
+            self.AddExpression(*v.get_expr_deps())
 
     def SetTopology(self, name, task, val) -> None:
         self.toplogies[name].AddSetting(task, val)
@@ -140,8 +129,8 @@ class PFile(object):
     def AddInterface(
         self,
         method: Literal["OneToOne", "ManyToOne"] | TopologyInterfaceType,
-        topologies: list[CheartTopology],
-        master_topology: CheartTopology | None = None,
+        topologies: list[_CheartTopology],
+        master_topology: _CheartTopology | None = None,
         interface_file: str | None = None,
         nest_in_boundary: int | None = None,
     ) -> None:
@@ -193,16 +182,14 @@ class PFile(object):
         self.variables[name].AddSetting(task, val)
 
     # Add Data Pointers
-    def AddDataPointer(self, *var: DataPointer) -> None:
+    def AddDataPointer(self, *var: _DataPointer) -> None:
         for v in var:
-            self.dataPs[v.name] = v
+            self.dataPs[str(v)] = v
 
     # Set Export Frequency
-    def SetExportFrequency(self, *vars: Variable, freq: int = 1):
+    def SetExportFrequency(self, *vars: _Variable, freq: int = 1):
         for v in vars:
-            v.freq = freq
-            # else:
-            #   print(f">>>WARNING: setting frequency but {v.name} is not being used.",file=sys.stderr)
+            v.set_export_frequency(freq)
 
     def get_variable_frequency_list(self):
         # pprint.pprint(self.vars)

@@ -2,8 +2,13 @@ import os
 import meshio
 import numpy as np
 from concurrent import futures
-from cheartpy.types import i32, f64, Arr
-from cheartpy.io.cheartio import CHRead_d, CHRead_d_utf, CHRead_d_bin, CHRead_b_utf
+from cheartpy.var_types import i32, f64, Arr
+from cheartpy.meshing.cheart.io import (
+    CHRead_d,
+    CHRead_d_utf,
+    CHRead_d_bin,
+    CHRead_b_utf,
+)
 from cheartpy.xmlwriter.xmlclasses import XMLElement, XMLWriters
 from cheartpy.cheart2vtu_core.print_headers import print_input_info
 from cheartpy.cheart2vtu_core.main_parser import get_cmdline_args

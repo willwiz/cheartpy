@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import Any, Literal, TextIO, TypedDict, overload
+from typing import Any, Literal, TextIO, TypedDict, ValuesView, overload
 from cheartpy.cheart_core.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from cheartpy.cheart_core.pytools import get_enum, join_fields
 from ...implementation.problems import BoundaryCondition
@@ -42,8 +42,8 @@ class SolidProblem(_Problem):
     def get_variables(self) -> dict[str, _Variable]:
         return self.variables
 
-    def get_aux_vars(self) -> dict[str, _Variable]:
-        return self.aux_vars
+    def get_aux_vars(self) -> ValuesView[_Variable]:
+        return self.aux_vars.values()
 
     def add_aux_vars(self, *var: _Variable) -> None:
         for v in var:

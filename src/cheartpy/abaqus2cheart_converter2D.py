@@ -10,8 +10,8 @@ from typing import Any, Callable, TextIO, Self
 import numpy as np
 import dataclasses as dc
 from concurrent import futures
-from cheartpy.types import Arr, i32, f64
-from cheartpy.io.cheartio import (
+from cheartpy.var_types import Arr, i32, f64
+from cheartpy.meshing.cheart.io import (
     CHWrite_d_utf,
     CHWrite_t_utf,
     CHWrite_iarr_utf,
@@ -294,8 +294,7 @@ def get_results_from_futures(func: Callable, args: list[Any], cores: int = 2):
         for a in args:
             future_jobs.append(exec.submit(func, *a))
         try:
-            res = [future.result()
-                   for future in futures.as_completed(future_jobs)]
+            res = [future.result() for future in futures.as_completed(future_jobs)]
         except:
             raise
     return res
@@ -495,8 +494,7 @@ def import_boundaries(
         args = [
             (elmap, topmap, elems[b], int(k)) for k, v in boundary.items() for b in v
         ]
-        bnds = get_results_from_futures(
-            checked_make_boundary, args, cores=cores)
+        bnds = get_results_from_futures(checked_make_boundary, args, cores=cores)
 
     boundaries = BoundaryPatch()
     for b in bnds:
@@ -519,8 +517,7 @@ def export_cheart_mesh(
     if g.space is not None:
         CHWrite_d_utf(inp.prefix + "_FE.X", g.space.data)
     if g.topology is not None and g.space is not None:
-        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data,
-                      g.topology.n, g.space.n)
+        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data, g.topology.n, g.space.n)
     if g.boundary is not None:
         CHWrite_iarr_utf(inp.prefix + "_FE.B", g.boundary.data)
     if inp.topology is None and inp.boundary is None:

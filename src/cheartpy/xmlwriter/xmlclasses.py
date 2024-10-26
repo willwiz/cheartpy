@@ -1,7 +1,7 @@
 from __future__ import annotations
 import typing as tp
 from typing import Any
-from cheartpy.types import i32, f64, Arr
+from cheartpy.var_types import i32, f64, Arr
 
 WriterSigs = (
     tp.Callable[[tp.TextIO, int, int], None]
