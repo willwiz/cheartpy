@@ -1,22 +1,12 @@
-import abc
 import dataclasses as dc
 from typing import Literal
-from ...interface import _Variable, _Expression
+from ...interface import *
 
 # Matlaws -----------------------------------------------------------------------------
 
 
-class Law(abc.ABC):
-
-    @abc.abstractmethod
-    def string(self) -> str: ...
-
-    @abc.abstractmethod
-    def get_aux_vars(self) -> dict[str, _Variable]: ...
-
-
 @dc.dataclass
-class Matlaw(Law):
+class Matlaw(_Law):
     name: str
     parameters: list[str | float | _Expression] = dc.field(default_factory=list)
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
@@ -32,7 +22,7 @@ class Matlaw(Law):
 
 
 @dc.dataclass
-class FractionalVE(Law):
+class FractionalVE(_Law):
     alpha: float
     np: int
     Tf: float
@@ -79,7 +69,7 @@ class FractionalVE(Law):
 
 
 @dc.dataclass
-class FractionalDiffEQ(Law):
+class FractionalDiffEQ(_Law):
     alpha: float
     delta: float
     np: int

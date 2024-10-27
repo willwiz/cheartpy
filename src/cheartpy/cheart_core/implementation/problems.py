@@ -1,8 +1,5 @@
 import dataclasses as dc
 from typing import Union, TextIO
-
-from cheartpy.cheart_core.interface.basis import _BCPatch
-
 from ..pytools import get_enum, join_fields
 from ..aliases import *
 from ..interface import *

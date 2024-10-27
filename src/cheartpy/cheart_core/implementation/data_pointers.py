@@ -1,7 +1,5 @@
 import dataclasses as dc
 from typing import TextIO
-
-from cheartpy.cheart_core.interface.basis import _Variable
 from ..interface.basis import *
 
 

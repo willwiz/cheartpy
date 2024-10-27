@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 import dataclasses as dc
-from typing import Sequence, TextIO, ValuesView, overload
-
-from cheartpy.cheart_core.interface.basis import _Problem, _TimeScheme, _Variable
-from cheartpy.cheart_core.interface.solver_group import _SolverSubGroup
-from cheartpy.cheart_core.interface.solver_matrix import _SolverMatrix
+from typing import Sequence, TextIO, ValuesView
 from ..aliases import *
 from ..pytools import *
-from ..interface.basis import *
 from ..interface import *
 
 """

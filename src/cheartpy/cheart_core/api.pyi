@@ -1,4 +1,11 @@
-__all__ = ["create_time_scheme", "create_basis", "create_topology", "create_variable"]
+__all__ = [
+    "hash_tops",
+    "create_time_scheme",
+    "create_basis",
+    "create_topology",
+    "create_variable",
+    "create_top_interface",
+]
 from typing import overload
 from .aliases import *
 from .implementation.problems import _Problem
@@ -6,10 +13,15 @@ from .implementation.solver_groups import SolverGroup, SolverSubGroup
 from .implementation.solver_matrix import SolverMatrix
 from .implementation.variables import Variable
 from .implementation.time_schemes import TimeScheme
-from .implementation.topologies import NullTopology, CheartTopology
-from .implementation.basis import CheartBasis
+from .implementation.topologies import (
+    ManyToOneTopInterface,
+    NullTopology,
+    CheartTopology,
+    OneToOneTopInterface,
+)
 from .interface.basis import *
 
+def hash_tops(tops: list[_CheartTopology] | list[str]) -> str: ...
 def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
 ) -> TimeScheme: ...
@@ -60,3 +72,19 @@ def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
     *probs: SolverMatrix | _Problem,
 ) -> SolverSubGroup: ...
+@overload
+def create_top_interface(
+    method: Literal["OneToOne"],
+    topologies: list[_CheartTopology],
+    master_topology: None = None,
+    interface_file: None = None,
+    nest_in_boundary: int | None = None,
+) -> OneToOneTopInterface: ...
+@overload
+def create_top_interface(
+    method: Literal["ManyToOne"],
+    topologies: list[_CheartTopology],
+    master_topology: _CheartTopology,
+    interface_file: str,
+    nest_in_boundary: int | None = None,
+) -> ManyToOneTopInterface: ...

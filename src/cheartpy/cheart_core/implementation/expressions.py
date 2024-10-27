@@ -1,22 +1,12 @@
 import dataclasses as dc
-from typing import Mapping, Sequence, TextIO, Self
+from typing import Sequence, TextIO, Self
 from ..interface import *
 
 
 @dc.dataclass(slots=True)
 class Expression(_Expression):
     name: str
-    value: Sequence[
-        int
-        | str
-        | float
-        | "_Variable"
-        | "_Expression"
-        | "_DataInterp"
-        | tuple["_Variable", int]
-        | tuple["_Expression", int]
-        | tuple["_DataInterp", int]
-    ]
+    value: Sequence[EXPRESSION_VALUE_TYPES]
     deps_var: dict[str, _Variable] = dc.field(default_factory=dict)
     deps_expr: dict[str, _Expression] = dc.field(default_factory=dict)
 

@@ -2,8 +2,8 @@ import enum
 from typing import Literal, TextIO, ValuesView
 from ...pytools import get_enum, join_fields
 from ...interface import *
+from ...implementation import BoundaryCondition
 from ..solid_mechanics.solid_problems import SolidProblem
-from ...implementation.problems import BoundaryCondition
 
 
 class L2SolidCalculationType(enum.StrEnum):

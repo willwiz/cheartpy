@@ -1,9 +1,7 @@
 from typing import Literal, TextIO, ValuesView
-
 from ...pytools import join_fields
 from ...interface import *
-from ...implementation.problems import BoundaryCondition
-from ...implementation.topologies import CheartTopology
+from ...implementation import BoundaryCondition, CheartTopology
 
 
 class NormProblem(_Problem):

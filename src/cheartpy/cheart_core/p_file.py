@@ -1,21 +1,12 @@
 import dataclasses as dc
 from typing import TextIO, overload
-from .implementation.topologies import (
-    ManyToOneTopInterface,
-    OneToOneTopInterface,
-)
 from .aliases import *
 from .interface import *
 from .pytools import header, hline, splicegen
 
 
-def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
-    names = [str(t) for t in tops]
-    return "_".join(names)
-
-
 @dc.dataclass(slots=True)
-class PFile(object):
+class PFile:
     h: str = ""
     output_path: str | None = None
     times: dict[str, _TimeScheme] = dc.field(default_factory=dict)
@@ -126,30 +117,36 @@ class PFile(object):
     # def AddInterface(self, *interface:TopInterface) -> None:
     #   for v in interface:
     #     self.interfaces[v.name] = v
-    def AddInterface(
-        self,
-        method: Literal["OneToOne", "ManyToOne"] | TopologyInterfaceType,
-        topologies: list[_CheartTopology],
-        master_topology: _CheartTopology | None = None,
-        interface_file: str | None = None,
-        nest_in_boundary: int | None = None,
-    ) -> None:
-        match method:
-            case "OneToOne":
-                name = hash_tops(topologies)
-                self.AddTopology(*topologies)
-                self.interfaces[name] = OneToOneTopInterface(name, topologies)
-            case "ManyToOne":
-                if master_topology is None:
-                    raise ValueError("ManyToOne requires a master_topology")
-                if interface_file is None:
-                    raise ValueError("ManyToOne requires a interface_file")
-                name = hash_tops(topologies)
-                self.AddTopology(*topologies)
-                self.AddTopology(master_topology)
-                self.interfaces[name] = ManyToOneTopInterface(
-                    name, topologies, master_topology, interface_file, nest_in_boundary
-                )
+    # def AddInterface(
+    #     self,
+    #     method: Literal["OneToOne", "ManyToOne"] | TopologyInterfaceType,
+    #     topologies: list[_CheartTopology],
+    #     master_topology: _CheartTopology | None = None,
+    #     interface_file: str | None = None,
+    #     nest_in_boundary: int | None = None,
+    # ) -> None:
+    #     match method:
+    #         case "OneToOne":
+    #             name = hash_tops(topologies)
+    #             self.AddTopology(*topologies)
+    #             self.interfaces[name] = OneToOneTopInterface(name, topologies)
+    #         case "ManyToOne":
+    #             if master_topology is None:
+    #                 raise ValueError("ManyToOne requires a master_topology")
+    #             if interface_file is None:
+    #                 raise ValueError("ManyToOne requires a interface_file")
+    #             name = hash_tops(topologies)
+    #             self.AddTopology(*topologies)
+    #             self.AddTopology(master_topology)
+    #             self.interfaces[name] = ManyToOneTopInterface(
+    #                 name, topologies, master_topology, interface_file, nest_in_boundary
+    #             )
+
+    def AddInterface(self, *interfaces: _TopInterface) -> None:
+        for item in interfaces:
+            self.interfaces[str(item)] = item
+            for t in item.get_tops():
+                self.AddTopology(t)
 
     # Add Variables
     @overload

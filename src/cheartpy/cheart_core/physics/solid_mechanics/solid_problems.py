@@ -1,10 +1,9 @@
-import dataclasses as dc
-from typing import Any, Literal, TextIO, TypedDict, ValuesView, overload
-from cheartpy.cheart_core.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
-from cheartpy.cheart_core.pytools import get_enum, join_fields
+from typing import Any, Literal, TextIO, ValuesView
+from ...aliases import SOLID_PROBLEM_TYPE, SolidProblemType
+from ...pytools import get_enum, join_fields
 from ...implementation.problems import BoundaryCondition
 from ...interface import *
-from .matlaws import Law, Matlaw
+from .matlaws import _Law
 
 
 SOLID_VARIABLES = Literal[
@@ -27,7 +26,7 @@ SOLID_FLAGS = Literal["Inverse-mechanics",]
 class SolidProblem(_Problem):
     name: str
     problem: SolidProblemType
-    matlaws: list[Law]
+    matlaws: list[_Law]
     variables: dict[str, _Variable]
     aux_vars: dict[str, _Variable]
     aux_expr: dict[str, _Expression]
@@ -68,7 +67,7 @@ class SolidProblem(_Problem):
         disp: _Variable,
         vel: _Variable | None = None,
         pres: _Variable | None = None,
-        matlaws: list[Law] | None = None,
+        matlaws: list[_Law] | None = None,
     ) -> None:
         self.name = name
         self.problem = problem
@@ -91,7 +90,7 @@ class SolidProblem(_Problem):
         self.flags = dict()
         self.bc = BoundaryCondition()
 
-    def AddMatlaw(self, *law: Law):
+    def AddMatlaw(self, *law: _Law):
         for v in law:
             self.matlaws.append(v)
             for k, x in v.get_aux_vars().items():

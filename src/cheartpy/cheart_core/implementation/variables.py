@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import Self, TextIO, Literal, overload
-
-from .topologies import NullTopology
 from ..aliases import *
 from ..pytools import get_enum, join_fields
 from ..interface import *
-from .expressions import _Expression
 
 
 @dc.dataclass(slots=True)
@@ -45,26 +42,9 @@ class Variable(_Variable):
         val: str,
     ) -> None: ...
 
-    @overload
     def AddSetting(
         self,
-        task: Literal[
-            "INIT_EXPR",
-            "TEMPORAL_UPDATE_EXPR",
-            "TEMPORAL_UPDATE_FILE",
-            "TEMPORAL_UPDATE_FILE_LOOP",
-        ],
-        val: str | _Expression,
-    ): ...
-
-    def AddSetting(
-        self,
-        task: Literal[
-            "INIT_EXPR",
-            "TEMPORAL_UPDATE_EXPR",
-            "TEMPORAL_UPDATE_FILE",
-            "TEMPORAL_UPDATE_FILE_LOOP",
-        ],
+        task: VARIABLE_UPDATE_SETTING,
         val: str | _Expression,
     ):
         match task, val:
@@ -78,8 +58,7 @@ class Variable(_Variable):
                     self.loop_step = self.freq
             case _:
                 raise ValueError(
-                    f"Setting for variable {
-                                 self.name} does not match correct type"
+                    f"Setting for variable {self.name} does not match correct type"
                 )
 
     def add_data(self, data: str | None) -> None:

@@ -1,11 +1,7 @@
-import abc
 import dataclasses as dc
-from typing import Self, Text, TextIO
-
-from cheartpy.cheart_core.pytools import join_fields
-
+from typing import Sequence, TextIO
+from ..pytools import join_fields
 from ..aliases import *
-from .basis import _CheartBasis
 from ..interface import *
 
 
@@ -15,12 +11,12 @@ class CheartTopology(_CheartTopology):
     basis: _CheartBasis | None
     mesh: str
     fmt: VariableExportFormat = VariableExportFormat.TXT
-    embedded: "CheartTopology | None" = None
+    embedded: "_CheartTopology | None" = None
     partitioning_weight: int | None = None
     in_partition: bool = False
     continuous: bool = True
     spatial_constant: bool = False
-    in_boundary: tuple["CheartTopology", int | str] | None = None
+    in_boundary: tuple["_CheartTopology", int | str] | None = None
 
     def __repr__(self) -> str:
         return self.name
@@ -92,6 +88,18 @@ class OneToOneTopInterface(_TopInterface):
     name: str
     topologies: list[_CheartTopology] = dc.field(default_factory=list)
 
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return hash("_".join([str(s) for s in self.topologies]))
+
+    def get_master(self) -> _CheartTopology | None:
+        return None
+
+    def get_tops(self) -> Sequence[_CheartTopology]:
+        return self.topologies
+
     def write(self, f: TextIO):
         string = join_fields("OneToOne", *self.topologies)
         f.write(f"!DefInterface={{{string}}}\n")
@@ -104,6 +112,22 @@ class ManyToOneTopInterface(_TopInterface):
     master_topology: _CheartTopology
     interface_file: str
     nested_in_boundary: int | None = None
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return hash(
+            "_".join([str(s) for s in self.topologies])
+            + ":"
+            + str(self.master_topology)
+        )
+
+    def get_master(self) -> _CheartTopology | None:
+        return self.master_topology
+
+    def get_tops(self) -> Sequence[_CheartTopology]:
+        return [self.master_topology, *self.topologies]
 
     def write(self, f: TextIO):
         nest_in_boundary = (

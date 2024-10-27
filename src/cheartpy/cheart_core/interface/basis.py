@@ -17,19 +17,10 @@ __all__ = [
     "_BCPatch",
     "_BoundaryCondition",
     "_Problem",
+    "_Law",
 ]
 
-type EXPRESSION_VALUE_TYPES = (
-    str
-    | int
-    | float
-    | "_Variable"
-    | "_Expression"
-    | "_DataInterp"
-    | tuple["_Variable", int]
-    | tuple["_Expression", int]
-    | tuple["_DataInterp", int]
-)
+type EXPRESSION_VALUE_TYPES = "int|str|float|_Variable|_Expression|_DataInterp|tuple[_Variable, int]|tuple[_Expression, int]|tuple[_DataInterp, int]"
 
 
 class _TimeScheme(abc.ABC):
@@ -114,6 +105,14 @@ class _CheartTopology(abc.ABC):
 
 class _TopInterface(abc.ABC):
     @abc.abstractmethod
+    def __repr__(self) -> str: ...
+    @abc.abstractmethod
+    def __hash__(self) -> int: ...
+    @abc.abstractmethod
+    def get_tops(self) -> Sequence[_CheartTopology]: ...
+    @abc.abstractmethod
+    def get_master(self) -> _CheartTopology | None: ...
+    @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
 
 
@@ -141,12 +140,7 @@ class _Variable(abc.ABC):
     @abc.abstractmethod
     def AddSetting(
         self,
-        task: Literal[
-            "INIT_EXPR",
-            "TEMPORAL_UPDATE_EXPR",
-            "TEMPORAL_UPDATE_FILE",
-            "TEMPORAL_UPDATE_FILE_LOOP",
-        ],
+        task: VARIABLE_UPDATE_SETTING,
         val: str | _Expression,
     ): ...
     @abc.abstractmethod
@@ -196,3 +190,10 @@ class _Problem(abc.ABC):
     def get_bc_patches(self) -> list[_BCPatch]: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
+
+
+class _Law(abc.ABC):
+    @abc.abstractmethod
+    def string(self) -> str: ...
+    @abc.abstractmethod
+    def get_aux_vars(self) -> dict[str, _Variable]: ...

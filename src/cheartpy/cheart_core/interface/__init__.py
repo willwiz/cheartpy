@@ -20,4 +20,5 @@ __all__ = [
     "_SolverMatrix",
     "_SolverSubGroup",
     "_SolverGroup",
+    "_Law",
 ]

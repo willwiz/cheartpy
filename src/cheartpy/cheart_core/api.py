@@ -1,15 +1,25 @@
-__all__ = ["create_time_scheme", "create_basis", "create_topology", "create_variable"]
+__all__ = [
+    "create_time_scheme",
+    "create_basis",
+    "create_topology",
+    "create_variable",
+    "create_top_interface",
+]
 import os
-from .implementation.problems import _Problem
-from .implementation.solver_groups import SolverGroup, SolverSubGroup
-from .implementation.solver_matrix import SolverMatrix
-from .implementation.variables import Variable
-from .implementation.time_schemes import TimeScheme
-from .implementation.topologies import NullTopology, CheartTopology
 from .implementation.basis import CheartBasis, Basis, Quadrature
+from .implementation import *
+from .implementation.topologies import (
+    ManyToOneTopInterface,
+    OneToOneTopInterface,
+)
 from .interface import *
 from .pytools import get_enum
 from .aliases import *
+
+
+def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
+    names = [str(t) for t in tops]
+    return "_".join(names)
 
 
 def create_time_scheme(
@@ -54,7 +64,7 @@ def create_topology(
     basis: _CheartBasis | None,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-) -> CheartTopology | NullTopology:
+) -> _CheartTopology:
     if basis is None:
         return NullTopology()
     fmt = get_enum(format, VariableExportFormat)
@@ -63,10 +73,10 @@ def create_topology(
 
 def create_embedded_topology(
     name: str,
-    embedded_top: CheartTopology,
+    embedded_top: _CheartTopology,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-) -> CheartTopology:
+) -> _CheartTopology:
     fmt = get_enum(format, VariableExportFormat)
     return CheartTopology(name, None, mesh, fmt, embedded=embedded_top)
 
@@ -79,7 +89,7 @@ def create_variable(
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
     freq: int = 1,
     loop_step: int | None = None,
-) -> Variable:
+) -> _Variable:
     fmt = get_enum(format, VariableExportFormat)
     top = NullTopology() if top is None else top
     return Variable(name, top, dim, data, fmt, freq, loop_step)
@@ -87,7 +97,7 @@ def create_variable(
 
 def create_solver_matrix(
     name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: _Problem
-) -> SolverMatrix:
+) -> _SolverMatrix:
     problems = dict()
     for p in probs:
         problems[str(p)] = p
@@ -96,8 +106,8 @@ def create_solver_matrix(
 
 
 def create_solver_group(
-    name: str, time: TimeScheme, *solver_subgroup: SolverSubGroup
-) -> SolverGroup:
+    name: str, time: _TimeScheme, *solver_subgroup: _SolverSubGroup
+) -> _SolverGroup:
     sub_group = list()
     for sg in solver_subgroup:
         sub_group.append(sg)
@@ -106,9 +116,31 @@ def create_solver_group(
 
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
-    *probs: SolverMatrix | _Problem,
+    *probs: _SolverMatrix | _Problem,
 ) -> SolverSubGroup:
     problems = dict()
     for p in probs:
         problems[str(p)] = p
     return SolverSubGroup(get_enum(method, SolverSubgroupAlgorithm), problems)
+
+
+def create_top_interface(
+    method: Literal["OneToOne", "ManyToOne"],
+    topologies: list[_CheartTopology],
+    master_topology: _CheartTopology | None = None,
+    interface_file: str | None = None,
+    nest_in_boundary: int | None = None,
+) -> _TopInterface:
+    match method:
+        case "OneToOne":
+            name = hash_tops(topologies)
+            return OneToOneTopInterface(name, topologies)
+        case "ManyToOne":
+            if master_topology is None:
+                raise ValueError("ManyToOne requires a master_topology")
+            if interface_file is None:
+                raise ValueError("ManyToOne requires a interface_file")
+            name = hash_tops(topologies) + ":" + str(master_topology)
+            return ManyToOneTopInterface(
+                name, topologies, master_topology, interface_file, nest_in_boundary
+            )

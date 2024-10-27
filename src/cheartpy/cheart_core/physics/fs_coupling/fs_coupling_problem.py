@@ -2,7 +2,7 @@ import dataclasses as dc
 from typing import TextIO, ValuesView
 from ...pytools import get_enum, join_fields
 from ...interface import *
-from ...implementation.problems import BoundaryCondition
+from ...implementation import BoundaryCondition
 
 
 @dc.dataclass(slots=True)

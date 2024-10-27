@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import dataclasses as dc
 from typing import TextIO, ValuesView
-
-from cheartpy.cheart_core.interface.basis import _Variable
 from ..interface import *
 from ..aliases import *
 from ..pytools import *
