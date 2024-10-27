@@ -3,28 +3,27 @@ __all__ = [
     "create_time_scheme",
     "create_basis",
     "create_topology",
+    "create_embedded_topology",
     "create_variable",
+    "create_solver_matrix",
+    "create_solver_subgroup",
+    "create_solver_group",
     "create_top_interface",
 ]
 from typing import overload
 from .aliases import *
-from .implementation.problems import _Problem
-from .implementation.solver_groups import SolverGroup, SolverSubGroup
-from .implementation.solver_matrix import SolverMatrix
-from .implementation.variables import Variable
-from .implementation.time_schemes import TimeScheme
+from .interface import *
 from .implementation.topologies import (
     ManyToOneTopInterface,
     NullTopology,
     CheartTopology,
     OneToOneTopInterface,
 )
-from .interface.basis import *
 
 def hash_tops(tops: list[_CheartTopology] | list[str]) -> str: ...
 def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
-) -> TimeScheme: ...
+) -> _TimeScheme: ...
 def create_basis(
     name: str,
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
@@ -61,23 +60,21 @@ def create_variable(
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
     freq: int = 1,
     loop_step: int | None = None,
-) -> Variable: ...
+) -> _Variable: ...
 def create_solver_matrix(
     name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: _Problem
-) -> SolverMatrix: ...
+) -> _SolverMatrix: ...
 def create_solver_group(
-    name: str, time: TimeScheme, *solver_subgroup: SolverSubGroup
-) -> SolverGroup: ...
+    name: str, time: _TimeScheme, *solver_subgroup: _SolverSubGroup
+) -> _SolverGroup: ...
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
-    *probs: SolverMatrix | _Problem,
-) -> SolverSubGroup: ...
+    *probs: _SolverMatrix | _Problem,
+) -> _SolverSubGroup: ...
 @overload
 def create_top_interface(
     method: Literal["OneToOne"],
     topologies: list[_CheartTopology],
-    master_topology: None = None,
-    interface_file: None = None,
     nest_in_boundary: int | None = None,
 ) -> OneToOneTopInterface: ...
 @overload

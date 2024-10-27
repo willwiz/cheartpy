@@ -1,20 +1,20 @@
 __all__ = [
+    "hash_tops",
     "create_time_scheme",
     "create_basis",
     "create_topology",
+    "create_embedded_topology",
     "create_variable",
+    "create_solver_matrix",
+    "create_solver_subgroup",
+    "create_solver_group",
     "create_top_interface",
 ]
 import os
-from .implementation.basis import CheartBasis, Basis, Quadrature
-from .implementation import *
-from .implementation.topologies import (
-    ManyToOneTopInterface,
-    OneToOneTopInterface,
-)
-from .interface import *
-from .pytools import get_enum
 from .aliases import *
+from .interface import *
+from .implementation import *
+from .pytools import get_enum
 
 
 def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
@@ -24,7 +24,7 @@ def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
 
 def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
-) -> TimeScheme:
+) -> _TimeScheme:
     if isinstance(step, str):
         if not os.path.isfile(step):
             raise ValueError(f"Time step file {step} is not found!")
@@ -117,7 +117,7 @@ def create_solver_group(
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
     *probs: _SolverMatrix | _Problem,
-) -> SolverSubGroup:
+) -> _SolverSubGroup:
     problems = dict()
     for p in probs:
         problems[str(p)] = p

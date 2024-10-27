@@ -11,7 +11,7 @@ class SolverMatrix(_SolverMatrix):
     name: str
     solver: MatrixSolverTypes
     problem: dict[str, _Problem] = dc.field(default_factory=dict)
-    suppress_output: bool = True
+    _suppress_output: bool = dc.field(default=True)
     aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     settings: dict[str, list[str]] = dc.field(default_factory=dict)
 
@@ -22,6 +22,14 @@ class SolverMatrix(_SolverMatrix):
 
     def __repr__(self) -> str:
         return self.name
+
+    @property
+    def suppress_output(self) -> bool:
+        return self._suppress_output
+
+    @suppress_output.setter
+    def suppress_output(self, val: bool):
+        self._suppress_output = val
 
     def get_aux_vars(self):
         return self.aux_vars.values()
