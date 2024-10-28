@@ -27,7 +27,8 @@ class PFile:
     # SolverGroup
     def AddSolverGroup(self, *grp: _SolverGroup) -> None:
         for g in grp:
-            self.solverGs[str(g)] = g
+            if str(g) not in self.solverGs:
+                self.solverGs[str(g)] = g
             self.AddTimeScheme(g.get_time_scheme())
             self.AddVariable(*g.get_aux_vars())
             for sg in g.get_subgroups():
@@ -42,12 +43,14 @@ class PFile:
     # Add Time Scheme
     def AddTimeScheme(self, *time: _TimeScheme) -> None:
         for t in time:
-            self.times[str(t)] = t
+            if str(t) not in self.times:
+                self.times[str(t)] = t
 
     # Matrix
     def AddMatrix(self, *mat: _SolverMatrix) -> None:
         for v in mat:
-            self.matrices[str(v)] = v
+            if str(v) not in self.matrices:
+                self.matrices[str(v)] = v
             self.AddProblem(*v.get_problems())
             self.AddVariable(*v.get_aux_vars())
 
@@ -56,7 +59,8 @@ class PFile:
     def AddProblem(self, *prob: _Problem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
-            self.problems[str(p)] = p
+            if str(p) not in self.problems:
+                self.problems[str(p)] = p
             self.AddVariable(*p.get_variables().values())
             self.AddVariable(*p.get_aux_vars())
             self.AddExpression(*p.get_aux_expr().values())
@@ -78,15 +82,16 @@ class PFile:
     # Add Topology
     def AddTopology(self, *top: _CheartTopology) -> None:
         for t in top:
-            if isinstance(t, _CheartTopology):
+            if str(t) not in self.toplogies:
                 self.toplogies[str(t)] = t
-                self.AddBasis(t.get_basis())
+            self.AddBasis(t.get_basis())
 
     # Add Basis
     def AddBasis(self, *basis: _CheartBasis | None) -> None:
         for b in basis:
             if b is not None:
-                self.bases[str(b)] = b
+                if str(b) not in self.bases:
+                    self.bases[str(b)] = b
 
     # Expression
     def AddExpression(self, *expr: _Expression) -> None:
@@ -144,7 +149,8 @@ class PFile:
 
     def AddInterface(self, *interfaces: _TopInterface) -> None:
         for item in interfaces:
-            self.interfaces[str(item)] = item
+            if str(item) not in self.interfaces:
+                self.interfaces[str(item)] = item
             for t in item.get_tops():
                 self.AddTopology(t)
 

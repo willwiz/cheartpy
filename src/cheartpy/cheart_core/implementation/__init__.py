@@ -7,7 +7,7 @@ from .topologies import (
     ManyToOneTopInterface,
     OneToOneTopInterface,
 )
-from .problems import BoundaryCondition
+from .problems import BoundaryCondition, BCPatch
 from .time_schemes import TimeScheme
 from .solver_groups import SolverGroup, SolverSubGroup
 from .solver_matrix import SolverMatrix

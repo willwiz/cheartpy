@@ -1,4 +1,5 @@
 __all__ = ["LogLevel", "BasicLogger", "NullLogger"]
+import abc
 import enum
 from typing import Any
 from datetime import datetime
@@ -20,7 +21,24 @@ class LogLevel(enum.IntEnum):
     DEBUG = 6
 
 
-class BasicLogger:
+class _Logger(abc.ABC):
+    @abc.abstractmethod
+    def debug(self, msg: Any): ...
+    @abc.abstractmethod
+    def info(self, msg: Any): ...
+    @abc.abstractmethod
+    def brief(self, msg: Any): ...
+    @abc.abstractmethod
+    def warn(self, msg: Any): ...
+    @abc.abstractmethod
+    def error(self, msg: Any): ...
+    @abc.abstractmethod
+    def fatal(self, msg: Any): ...
+    @abc.abstractmethod
+    def exception(self, e: Exception): ...
+
+
+class BasicLogger(_Logger):
     __slots__ = ["level"]
     level: LogLevel
 
@@ -60,7 +78,7 @@ class BasicLogger:
         print(e)
 
 
-class NullLogger:
+class NullLogger(_Logger):
     __slots__ = ["level"]
     level: LogLevel
 

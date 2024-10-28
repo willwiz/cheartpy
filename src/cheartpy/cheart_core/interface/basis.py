@@ -91,8 +91,9 @@ class _CheartBasis(abc.ABC):
 class _CheartTopology(abc.ABC):
     @abc.abstractmethod
     def __repr__(self) -> str: ...
+    @property
     @abc.abstractmethod
-    def write(self, f: TextIO) -> None: ...
+    def mesh(self) -> str: ...
     @abc.abstractmethod
     def get_basis(self) -> _CheartBasis | None: ...
     @abc.abstractmethod
@@ -101,6 +102,8 @@ class _CheartTopology(abc.ABC):
         task: CheartTopologySetting,
         val: int | tuple["_CheartTopology", int] | None = None,
     ): ...
+    @abc.abstractmethod
+    def write(self, f: TextIO) -> None: ...
 
 
 class _TopInterface(abc.ABC):

@@ -9,7 +9,7 @@ from ..interface import *
 class CheartTopology(_CheartTopology):
     name: str
     basis: _CheartBasis | None
-    mesh: str
+    _mesh: str
     fmt: VariableExportFormat = VariableExportFormat.TXT
     embedded: "_CheartTopology | None" = None
     partitioning_weight: int | None = None
@@ -20,6 +20,10 @@ class CheartTopology(_CheartTopology):
 
     def __repr__(self) -> str:
         return self.name
+
+    @property
+    def mesh(self) -> str:
+        return self.mesh
 
     def get_basis(self) -> _CheartBasis | None:
         return self.basis
@@ -40,7 +44,9 @@ class CheartTopology(_CheartTopology):
         self.in_boundary = (top, surf)
 
     def write(self, f: TextIO):
-        string = join_fields(self.name, self.mesh, self.basis if self.basis else "none")
+        string = join_fields(
+            self.name, self._mesh, self.basis if self.basis else "none"
+        )
         f.write(f"!DefTopology={{{string}}}\n")
         if self.embedded is not None:
             f.write(

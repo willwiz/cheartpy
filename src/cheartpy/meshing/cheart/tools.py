@@ -1,8 +1,14 @@
+import os
 from .data import *
 from .elements import *
 from ...var_types import *
 import numpy as np
 from scipy.linalg import lstsq
+
+
+def check_for_meshes(name: str) -> bool:
+    meshes = [f"{name}_FE.{s}" for s in ["X", "T", "B"]]
+    return all(os.path.isfile(s) for s in meshes)
 
 
 def compute_normal_patch(
