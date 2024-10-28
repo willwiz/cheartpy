@@ -7,7 +7,7 @@ from ..cheart_core.interface.basis import _Variable, _Expression
 from ..cheart_core.implementation.expressions import Expression
 from ..meshing.cheart.data import *
 from ..meshing.cheart.tools import compute_normal_surface
-from ..meshing.cheart.elements import VtkType
+from ..meshing.cheart.elements import VtkType, get_element_type
 from ..var_types import *
 from ..tools.basiclogging import *
 
@@ -52,15 +52,17 @@ def filter_mesh_normals(
     mesh: CheartMesh,
     elems: Mat[i32],
     normal_check: Mat[f64],
-    log: BasicLogger | NullLogger = NullLogger(),
+    LOG: _Logger = NullLogger(),
 ):
-    log.debug(f"The number of elements in patch is {len(elems)}")
-    normals = compute_normal_surface(VtkType.TriangleLinear, mesh.space.v, elems)
+    LOG.debug(f"The number of elements in patch is {len(elems)}")
+    elem_type = get_element_type(mesh)[1]
+    LOG.debug(elem_type)
+    normals = compute_normal_surface(elem_type, mesh.space.v, elems, LOG)
     elems = np.array(
         [i for i, v in zip(elems, normals) if check_normal(normal_check, i, v)],
         dtype=int,
     )
-    log.debug(f"The number of elements in patch normal filtering is {len(elems)}")
+    LOG.debug(f"The number of elements in patch normal filtering is {len(elems)}")
     return elems
 
 

@@ -23,7 +23,7 @@ class CheartTopology(_CheartTopology):
 
     @property
     def mesh(self) -> str:
-        return self.mesh
+        return self._mesh
 
     def get_basis(self) -> _CheartBasis | None:
         return self.basis
@@ -63,6 +63,10 @@ class NullTopology(_CheartTopology):
     # method
     def __repr__(self) -> str:
         return "null_topology"
+
+    @property
+    def mesh(self) -> str | None:
+        return None
 
     def get_basis(self) -> _CheartBasis | None:
         return None

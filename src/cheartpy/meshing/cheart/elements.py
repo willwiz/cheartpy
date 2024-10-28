@@ -3,6 +3,7 @@ import enum
 from typing import Callable, Final, Literal, TextIO
 from ...var_types import *
 from .shape_functions import *
+from .data import CheartMesh
 
 VTK_ELEM_TYPE = Literal[
     "VtkLineLinear",
@@ -25,6 +26,7 @@ class VtkElemInterface:
     vtksurfaceid: Final[int | None]
     nodeordering: Final[tuple[int, ...]]
     connectivity: Final[tuple[int, ...]]
+    ref_nodes: Mat[f64]
     shape_funcs: Callable[[Vec[f64]], Vec[f64]]
     shape_dfuncs: Callable[[Vec[f64]], Mat[f64]]
 
@@ -42,6 +44,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         None,
         (0, 1),
         (0, 1),
+        np.array([[0, 0, 0], [1, 0, 0]], dtype=float),
         sf_line_linear,
         dsf_line_linear,
     )
@@ -51,6 +54,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         None,
         (0, 1, 2),
         (0, 1, 2),
+        np.array([[0, 0, 0], [1, 0, 0], [1 / 2, 0, 0]], dtype=float),
         sf_line_quadratic,
         dsf_line_quadratic,
     )
@@ -60,6 +64,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         3,
         (0, 1, 2),
         (0, 1, 2),
+        np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float),
         sf_triangle_linear,
         dsf_triangle_linear,
     )
@@ -69,6 +74,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         21,
         (0, 1, 2, 3, 5, 4),
         (0, 1, 2, 3, 5, 4),
+        np.array([[0,0,0], [1,0,0], [0,1,0], [1/2,0,0], [0,1/2,0], [1/2,1/2,0]], dtype=float),  # fmt: skip
         sf_triangle_quadratic,
         dsf_triangle_quadratic,
     )
@@ -78,6 +84,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         3,
         (0, 1, 3, 2),
         (0, 1, 3, 2),
+        np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=float),
         sf_quadrilateral_linear,
         dsf_quadrilateral_linear,
     )
@@ -87,6 +94,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         21,
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
+        np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[1/2,0,0],[0,1/2,0],[1/2,1/2,0],[1,1/2,0],[1/2,1,0]], dtype=float),  # fmt: skip
         sf_quadrilateral_quadratic,
         dsf_quadrilateral_quadratic,
     )
@@ -96,6 +104,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         5,
         (0, 1, 2, 3),
         (0, 1, 2, 3),
+        np.array([0], dtype=float),  # fmt: skip
         sf_tetrahedron_linear,
         dsf_tetrahedron_linear,
     )
@@ -105,6 +114,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         22,
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
+        np.array([0], dtype=float),  # fmt: skip
         sf_tetrahedron_quadratic,
         dsf_tetrahedron_quadratic,
     )
@@ -114,6 +124,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         9,
         (0, 1, 5, 4, 2, 3, 7, 6),
         (0, 1, 5, 4, 2, 3, 7, 6),
+        np.array([0], dtype=float),  # fmt: skip
         sf_hexahedron_linear,
         dsf_hexahedron_linear,
     )
@@ -123,6 +134,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         28,
         (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
         (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
+        np.array([0], dtype=float),  # fmt: skip
         sf_hexahedron_quadratic,
         dsf_hexahedron_quadratic,
     )
@@ -161,16 +173,12 @@ VtkBoundaryElement = Literal[
 ]
 
 
-def get_element_type(
-    nnodes: int, boundary: str | None
-) -> tuple[VtkElemInterface, VtkElemInterface]:
-    if boundary is None:
+def get_element_type(mesh: CheartMesh) -> tuple[VtkElemInterface, VtkElemInterface]:
+    if mesh.bnd is None:
         nbnd = None
     else:
-        with open(boundary, "r") as f:
-            _ = f.readline()
-            nbnd = len(f.readline().strip().split())
-    match [nnodes, nbnd]:
+        nbnd = next(iter(mesh.bnd.v.values())).v.shape[1] + 2
+    match [mesh.top.v.shape[1], nbnd]:
         case [3, _]:
             return VtkType.TriangleLinear, VtkType.LineLinear
         case [6, _]:
@@ -197,6 +205,6 @@ def get_element_type(
             )
         case _:
             raise ValueError(
-                f"Cannot determine element type from {nnodes} and {
-                    boundary}, perhaps not implemented."
+                f"Cannot determine element type from {mesh.top.v.shape[1]} and {
+                    nbnd}, perhaps not implemented."
             )

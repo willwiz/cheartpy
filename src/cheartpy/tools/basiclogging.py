@@ -1,4 +1,4 @@
-__all__ = ["LogLevel", "BasicLogger", "NullLogger"]
+__all__ = ["LogLevel", "BasicLogger", "NullLogger", "_Logger"]
 import abc
 import enum
 from typing import Any
@@ -35,7 +35,7 @@ class _Logger(abc.ABC):
     @abc.abstractmethod
     def fatal(self, msg: Any): ...
     @abc.abstractmethod
-    def exception(self, e: Exception): ...
+    def exception(self, e: Exception) -> Exception: ...
 
 
 class BasicLogger(_Logger):
@@ -75,7 +75,7 @@ class BasicLogger(_Logger):
 
     def exception(self, e: Exception):
         print(traceback.format_exc())
-        print(e)
+        return e
 
 
 class NullLogger(_Logger):
@@ -107,4 +107,4 @@ class NullLogger(_Logger):
         pass
 
     def exception(self, e: Exception):
-        pass
+        return e

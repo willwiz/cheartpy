@@ -4,6 +4,7 @@ from .elements import *
 from ...var_types import *
 import numpy as np
 from scipy.linalg import lstsq
+from ...tools.basiclogging import _Logger, NullLogger
 
 
 def check_for_meshes(name: str) -> bool:
@@ -29,13 +30,14 @@ def normalize_by_row(vals: Mat[f64]) -> Mat[f64]:
     return vals / norm[:, np.newaxis]
 
 
-def compute_normal_surface(kind: VtkElemInterface, space: Mat[f64], elem: Mat[i32]):
-    ref_nodes = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float)
-    centroid = np.mean(ref_nodes, axis=0)
+def compute_normal_surface(
+    kind: VtkElemInterface, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
+):
+    centroid = np.mean(kind.ref_nodes, axis=0)
     interp_basis = kind.shape_dfuncs(centroid)
     # print(f"{interp_basis=}")
     normals = np.array(
-        [compute_normal_patch(interp_basis, space, i, ref_nodes) for i in elem],
+        [compute_normal_patch(interp_basis, space, i, kind.ref_nodes) for i in elem],
         dtype=float,
     )
     # print(f"{normals=}")
