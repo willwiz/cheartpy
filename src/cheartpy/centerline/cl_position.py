@@ -1,3 +1,4 @@
+from typing import Sequence
 from ..cheart_core.interface import *
 from ..cheart_core.implementation import Expression
 from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
@@ -7,15 +8,17 @@ from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
 from .types import *
 
 
-def create_center_pos_expr(cl_nodes: _Variable, p_basis: Mapping[int, _Expression]):
+def create_center_pos_expr(
+    prefix: str, cl_nodes: Mapping[int, _Variable], p_basis: Mapping[int, _Expression]
+):
     cl_pos_expr = Expression(
-        f"cl_pos_expr",
+        prefix,
         [
-            " + ".join([f"{cl_nodes}.{3*k + j}*{v}" for k, v in p_basis.items()])
+            " + ".join([f"{cl_nodes[k]}.{j}*{v}" for k, v in p_basis.items()])
             for j in [1, 2, 3]
         ],
     )
-    cl_pos_expr.add_var_deps(cl_nodes)
+    cl_pos_expr.add_var_deps(*cl_nodes.values())
     cl_pos_expr.add_expr_deps(*p_basis.values())
     return cl_pos_expr
 
@@ -27,37 +30,34 @@ def create_cl_position_problem(
     disp: _Variable,
     cl_nodes: _Variable,
     cl_pos_expr: _Expression,
-    lm: _Variable,
+    neighbours: Sequence[_Variable],
     p_basis: _Expression,
-    i: int,
 ) -> FSCouplingProblem:
-    zeros = Expression(
-        f"zeros_{3*cl_nodes.get_dim()}", [0 for _ in range(3 * cl_nodes.get_dim())]
-    )
+    zero_expr = Expression(f"zero_1_expr", [0])
     cons = Expression(
-        f"cl{i}_pos_cons", [f"- {cl_pos_expr}.{j} * {p_basis}" for j in [1, 2, 3]]
+        f"{name}_cons_expr", [f"- {cl_pos_expr}.{j} * {p_basis}" for j in [1, 2, 3]]
     )
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(
-        lm,
+        cl_nodes,
         FSExpr(space, p_basis),
         FSExpr(disp, p_basis),
         FSExpr(cons),
     )
-    fsbc.add_term(cl_nodes, FSExpr(lm, zeros))
-    fsbc.add_aux_expr(zeros, p_basis, cl_pos_expr, cons)
-    fsbc.add_aux_vars(cl_nodes, lm)
+    for v in neighbours:
+        fsbc.add_term(v, FSExpr(cl_nodes, zero_expr))
+    fsbc.add_aux_expr(zero_expr, cl_pos_expr, p_basis, cons)
+    fsbc.add_aux_vars(cl_nodes)
     return fsbc
 
 
 def create_cl_position_problems(
     space: _Variable,
     disp: _Variable,
-    cl_nodes: _Variable,
-    cl_pos_expr: _Expression,
+    cl_nodes: Mapping[int, _Variable],
     tops: Mapping[int, _CheartTopology],
-    lms: Mapping[int, _Variable],
+    cl_pos_expr: _Expression,
     p_basis: Mapping[int, _Expression],
 ) -> Mapping[int, FSCouplingProblem]:
     return {
@@ -66,11 +66,10 @@ def create_cl_position_problems(
             v,
             space,
             disp,
-            cl_nodes,
+            cl_nodes[k],
             cl_pos_expr,
-            lms[k],
+            [cl_nodes[n] for n in [k - 1, k + 1] if n in cl_nodes],
             p_basis[k],
-            k,
         )
         for k, v in tops.items()
     }
