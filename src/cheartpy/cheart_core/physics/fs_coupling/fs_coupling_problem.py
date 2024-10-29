@@ -62,14 +62,16 @@ class FSCouplingProblem(_Problem):
 
     def add_aux_vars(self, *var: _Variable) -> None:
         for v in var:
-            self.aux_vars[str(v)] = v
+            if str(v) not in self.aux_vars:
+                self.aux_vars[str(v)] = v
 
     def get_aux_expr(self) -> dict[str, _Expression]:
         return self.aux_expr
 
     def add_aux_expr(self, *expr: _Expression) -> None:
         for v in expr:
-            self.aux_expr[str(v)] = v
+            if str(v) not in self.aux_expr:
+                self.aux_expr[str(v)] = v
 
     def get_bc_patches(self) -> list[_BCPatch]:
         patches = self.bc.get_patches()

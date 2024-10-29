@@ -1,4 +1,6 @@
 import dataclasses as dc
+
+from .elements import VtkType
 from .io import CHWrite_d_utf, CHWrite_iarr_utf, CHWrite_t_utf
 import numpy as np
 from ...var_types import Mat, Vec, f64, i32
@@ -17,6 +19,7 @@ class CheartMeshSpace:
 class CheartMeshTopology:
     n: int
     v: Mat[i32]
+    TYPE: VtkType
 
     def save(self, name: str) -> None:
         CHWrite_t_utf(name, self.v + 1, self.n, self.v.max() + 1)
@@ -40,6 +43,7 @@ class CheartMeshSurface:
 class CheartMeshBoundary:
     n: int
     v: dict[str | int, CheartMeshSurface]
+    TYPE: VtkType
 
     def save(self, name: str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)

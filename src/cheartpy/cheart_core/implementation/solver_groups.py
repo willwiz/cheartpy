@@ -133,7 +133,8 @@ class SolverGroup(_SolverGroup):
 
     def AddVariable(self, *var: _Variable):
         for v in var:
-            self.aux_vars[str(v)] = v
+            if str(v) not in self.aux_vars:
+                self.aux_vars[str(v)] = v
 
     def RemoveVariable(self, *var: str | _Variable):
         for v in var:
@@ -145,9 +146,9 @@ class SolverGroup(_SolverGroup):
     # SG
     def AddSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
         for v in sg:
-            self.sub_groups.append(v)
             for x in v.get_aux_vars().values():
                 self.AddVariable(x)
+            self.sub_groups.append(v)
 
     def RemoveSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
         for v in sg:

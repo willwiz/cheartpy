@@ -18,14 +18,16 @@ class Expression(_Expression):
 
     def add_expr_deps(self, *expr: _Expression):
         for v in expr:
-            self.deps_expr[str(v)] = v
+            if str(v) not in self.deps_expr:
+                self.deps_expr[str(v)] = v
 
     def get_expr_deps(self):
         return self.deps_expr.values()
 
     def add_var_deps(self, *var: _Variable) -> None:
         for v in var:
-            self.deps_var[str(v)] = v
+            if str(v) not in self.deps_var:
+                self.deps_var[str(v)] = v
 
     def get_var_deps(self):
         return self.deps_var.values()

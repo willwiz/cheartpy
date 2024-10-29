@@ -7,7 +7,10 @@ from ..cheart_core.interface.basis import _Variable, _Expression
 from ..cheart_core.implementation.expressions import Expression
 from ..meshing.cheart.data import *
 from ..meshing.cheart.tools import compute_normal_surface
-from ..meshing.cheart.elements import VtkType, get_element_type
+from ..meshing.cheart.elements import (
+    VTK_ELEM,
+    guess_elem_type_from_dim,
+)
 from ..var_types import *
 from ..tools.basiclogging import *
 
@@ -55,9 +58,10 @@ def filter_mesh_normals(
     LOG: _Logger = NullLogger(),
 ):
     LOG.debug(f"The number of elements in patch is {len(elems)}")
-    elem_type = get_element_type(mesh)[1]
-    LOG.debug(elem_type)
-    normals = compute_normal_surface(elem_type, mesh.space.v, elems, LOG)
+    surf_type = VTK_ELEM[mesh.top.TYPE.surf]
+    if surf_type is None:
+        raise ValueError(f"Attempting to compute normal from a 1D mesh, not possible")
+    normals = compute_normal_surface(surf_type, mesh.space.v, elems, LOG)
     elems = np.array(
         [i for i, v in zip(elems, normals) if check_normal(normal_check, i, v)],
         dtype=int,
@@ -132,6 +136,10 @@ def create_cheartmesh_in_clrange(
     normal_check: Mat[f64] | None = None,
     LOG: BasicLogger | NullLogger = NullLogger(),
 ) -> CheartMesh:
+    surf_type = VTK_ELEM[mesh.top.TYPE.surf]
+    if surf_type is None:
+        e = LOG.exception(ValueError(f"Mesh is 1D, normal not defined"))
+        raise e
     LOG.debug(f"{domain=}")
     elems = surf.v[get_boundaryelems_in_clrange(bnd_map, domain)]
     LOG.debug(f"{len(elems)=}")
@@ -141,7 +149,9 @@ def create_cheartmesh_in_clrange(
     node_map: Mapping[int, int] = {v: i for i, v in enumerate(nodes)}
     space = CheartMeshSpace(len(nodes), mesh.space.v[nodes])
     top = CheartMeshTopology(
-        len(elems), np.array([[node_map[i] for i in e] for e in elems], dtype=int)
+        len(elems),
+        np.array([[node_map[i] for i in e] for e in elems], dtype=int),
+        surf_type,
     )
     return CheartMesh(space, top, None)
 

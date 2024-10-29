@@ -1,9 +1,8 @@
 import dataclasses as dc
 import enum
-from typing import Callable, Final, Literal, TextIO
+from typing import Callable, Final, Literal, Mapping, TextIO
 from ...var_types import *
 from .shape_functions import *
-from .data import CheartMesh
 
 VTK_ELEM_TYPE = Literal[
     "VtkLineLinear",
@@ -22,6 +21,7 @@ VTK_ELEM_TYPE = Literal[
 @dc.dataclass(slots=True)
 class VtkElemInterface:
     elem: VTK_ELEM_TYPE
+    surf: VTK_ELEM_TYPE | None
     vtkelementid: Final[int]
     vtksurfaceid: Final[int | None]
     nodeordering: Final[tuple[int, ...]]
@@ -40,6 +40,7 @@ class VtkElemInterface:
 class VtkType(VtkElemInterface, enum.Enum):
     LineLinear = (
         "VtkLineLinear",
+        None,
         3,
         None,
         (0, 1),
@@ -50,6 +51,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     LineQuadratic = (
         "VtkLineQuadratic",
+        None,
         21,
         None,
         (0, 1, 2),
@@ -60,6 +62,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     TriangleLinear = (
         "VtkTriangleLinear",
+        "VtkLineLinear",
         5,
         3,
         (0, 1, 2),
@@ -70,6 +73,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     TriangleQuadratic = (
         "VtkTriangleQuadratic",
+        "VtkLineQuadratic",
         22,
         21,
         (0, 1, 2, 3, 5, 4),
@@ -80,6 +84,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     QuadrilateralLinear = (
         "VtkQuadrilateralLinear",
+        "VtkLineLinear",
         9,
         3,
         (0, 1, 3, 2),
@@ -90,6 +95,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     QuadrilateralQuadratic = (
         "VtkQuadrilateralQuadratic",
+        "VtkLineQuadratic",
         28,
         21,
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
@@ -100,6 +106,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     TetrahedronLinear = (
         "VtkTetrahedronLinear",
+        "VtkTriangleLinear",
         10,
         5,
         (0, 1, 2, 3),
@@ -110,6 +117,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     TetrahedronQuadratic = (
         "VtkTetrahedronQuadratic",
+        "VtkTriangleQuadratic",
         24,
         22,
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
@@ -120,6 +128,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     HexahedronLinear = (
         "VtkHexahedronLinear",
+        "VtkQuadrilateralLinear",
         12,
         9,
         (0, 1, 5, 4, 2, 3, 7, 6),
@@ -130,6 +139,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     )
     HexahedronQuadratic = (
         "VtkHexahedronQuadratic",
+        "VtkQuadrilateralQuadratic",
         29,
         28,
         (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
@@ -152,59 +162,79 @@ class VtkType(VtkElemInterface, enum.Enum):
     #     return super(VtkType, cls).__new__(VtkElemInterface)
 
 
-VtkTopologyElement = Literal[
-    VtkType.TriangleLinear,
-    VtkType.TriangleQuadratic,
-    VtkType.QuadrilateralLinear,
-    VtkType.QuadrilateralQuadratic,
-    VtkType.TetrahedronLinear,
-    VtkType.TetrahedronQuadratic,
-    VtkType.HexahedronLinear,
-    VtkType.HexahedronQuadratic,
-]
-
-VtkBoundaryElement = Literal[
-    VtkType.LineLinear,
-    VtkType.LineQuadratic,
-    VtkType.TriangleLinear,
-    VtkType.TriangleQuadratic,
-    VtkType.QuadrilateralLinear,
-    VtkType.QuadrilateralQuadratic,
-]
+VTK_ELEM: Mapping[VTK_ELEM_TYPE | None, VtkType | None] = {
+    None: None,
+    "VtkLineLinear": VtkType.LineLinear,
+    "VtkLineQuadratic": VtkType.LineQuadratic,
+    "VtkTriangleLinear": VtkType.TriangleLinear,
+    "VtkTriangleQuadratic": VtkType.TriangleQuadratic,
+    "VtkQuadrilateralLinear": VtkType.QuadrilateralLinear,
+    "VtkQuadrilateralQuadratic": VtkType.QuadrilateralQuadratic,
+    "VtkTetrahedronLinear": VtkType.TetrahedronLinear,
+    "VtkTetrahedronQuadratic": VtkType.TetrahedronQuadratic,
+    "VtkHexahedronLinear": VtkType.HexahedronLinear,
+    "VtkHexahedronQuadratic": VtkType.HexahedronQuadratic,
+}
 
 
-def get_element_type(mesh: CheartMesh) -> tuple[VtkElemInterface, VtkElemInterface]:
-    if mesh.bnd is None:
-        nbnd = None
-    else:
-        nbnd = next(iter(mesh.bnd.v.values())).v.shape[1] + 2
-    match [mesh.top.v.shape[1], nbnd]:
-        case [3, _]:
+def guess_elem_type_from_dim(edim: int, bdim: int | None) -> tuple[VtkType, VtkType]:
+    match [edim, bdim]:
+        case [3, 2 | None]:
             return VtkType.TriangleLinear, VtkType.LineLinear
-        case [6, _]:
+        case [6, 3 | None]:
             return VtkType.TriangleQuadratic, VtkType.LineQuadratic
-        case [4, 4]:
+        case [4, 2]:
             return VtkType.QuadrilateralLinear, VtkType.LineLinear
-        case [9, _]:
+        case [9, 3 | None]:
             return VtkType.QuadrilateralQuadratic, VtkType.LineQuadratic
-        case [4, 5]:
+        case [4, 3]:
             return VtkType.TetrahedronLinear, VtkType.TriangleLinear
-        case [10, _]:
+        case [10, 6 | None]:
             return VtkType.TetrahedronQuadratic, VtkType.TriangleQuadratic
-        case [8, _]:
+        case [8, 4 | None]:
             return VtkType.HexahedronLinear, VtkType.QuadrilateralLinear
-        case [27, _]:
+        case [27, 9 | None]:
             return VtkType.HexahedronQuadratic, VtkType.QuadrilateralQuadratic
         case [4, None]:
             raise ValueError(
-                "Bilinear quadrilateral / Trilinear tetrahedron detected, need boundary file"
-            )
-        case [4, _]:
-            raise ValueError(
-                f"Bilinear quadrilateral / {nbnd}, boundary file is incompatible"
+                "Cannot detect Bilinear quadrilateral/Trilinear tetrahedron, need boundary dim"
             )
         case _:
-            raise ValueError(
-                f"Cannot determine element type from {mesh.top.v.shape[1]} and {
-                    nbnd}, perhaps not implemented."
-            )
+            raise ValueError(f"Cannot determine element type from {edim} and {bdim}")
+
+
+# def get_element_type(mesh: CheartMesh) -> tuple[VtkElemInterface, VtkElemInterface]:
+#     if mesh.bnd is None:
+#         nbnd = None
+#     else:
+#         nbnd = next(iter(mesh.bnd.v.values())).v.shape[1] + 2
+#     match [mesh.top.v.shape[1], nbnd]:
+#         case [3, _]:
+#             return VtkType.TriangleLinear, VtkType.LineLinear
+#         case [6, _]:
+#             return VtkType.TriangleQuadratic, VtkType.LineQuadratic
+#         case [4, 4]:
+#             return VtkType.QuadrilateralLinear, VtkType.LineLinear
+#         case [9, _]:
+#             return VtkType.QuadrilateralQuadratic, VtkType.LineQuadratic
+#         case [4, 5]:
+#             return VtkType.TetrahedronLinear, VtkType.TriangleLinear
+#         case [10, _]:
+#             return VtkType.TetrahedronQuadratic, VtkType.TriangleQuadratic
+#         case [8, _]:
+#             return VtkType.HexahedronLinear, VtkType.QuadrilateralLinear
+#         case [27, _]:
+#             return VtkType.HexahedronQuadratic, VtkType.QuadrilateralQuadratic
+#         case [4, None]:
+#             raise ValueError(
+#                 "Bilinear quadrilateral / Trilinear tetrahedron detected, need boundary file"
+#             )
+#         case [4, _]:
+#             raise ValueError(
+#                 f"Bilinear quadrilateral / {nbnd}, boundary file is incompatible"
+#             )
+#         case _:
+#             raise ValueError(
+#                 f"Cannot determine element type from {mesh.top.v.shape[1]} and {
+#                     nbnd}, perhaps not implemented."
+#             )

@@ -22,6 +22,9 @@ class LogLevel(enum.IntEnum):
 
 
 class _Logger(abc.ABC):
+    @property
+    @abc.abstractmethod
+    def mode(self) -> LogLevel: ...
     @abc.abstractmethod
     def debug(self, msg: Any): ...
     @abc.abstractmethod
@@ -44,6 +47,10 @@ class BasicLogger(_Logger):
 
     def __init__(self, level: LogLevel) -> None:
         self.level = level
+
+    @property
+    def mode(self) -> LogLevel:
+        return self.level
 
     def print(self, msg: Any, level: LogLevel):
         frame = getframeinfo(stack()[2][0])
@@ -84,6 +91,10 @@ class NullLogger(_Logger):
 
     def __init__(self, level: LogLevel = LogLevel.NULL) -> None:
         self.level = LogLevel.NULL
+
+    @property
+    def mode(self) -> LogLevel:
+        return self.level
 
     def print(self, msg: Any, level: LogLevel):
         pass

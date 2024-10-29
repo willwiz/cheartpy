@@ -27,8 +27,6 @@ class PFile:
     # SolverGroup
     def AddSolverGroup(self, *grp: _SolverGroup) -> None:
         for g in grp:
-            if str(g) not in self.solverGs:
-                self.solverGs[str(g)] = g
             self.AddTimeScheme(g.get_time_scheme())
             self.AddVariable(*g.get_aux_vars())
             for sg in g.get_subgroups():
@@ -39,6 +37,8 @@ class PFile:
                         self.AddProblem(p)
                 if sg.get_aux_vars():
                     self.AddVariable(*sg.get_aux_vars().values())
+            if str(g) not in self.solverGs:
+                self.solverGs[str(g)] = g
 
     # Add Time Scheme
     def AddTimeScheme(self, *time: _TimeScheme) -> None:
@@ -49,20 +49,18 @@ class PFile:
     # Matrix
     def AddMatrix(self, *mat: _SolverMatrix) -> None:
         for v in mat:
+            self.AddVariable(*v.get_aux_vars())
+            self.AddProblem(*v.get_problems())
             if str(v) not in self.matrices:
                 self.matrices[str(v)] = v
-            self.AddProblem(*v.get_problems())
-            self.AddVariable(*v.get_aux_vars())
 
     # Problem
 
     def AddProblem(self, *prob: _Problem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
-            if str(p) not in self.problems:
-                self.problems[str(p)] = p
-            self.AddVariable(*p.get_variables().values())
             self.AddVariable(*p.get_aux_vars())
+            self.AddVariable(*p.get_variables().values())
             self.AddExpression(*p.get_aux_expr().values())
             for patch in p.get_bc_patches():
                 for v in patch.get_values():
@@ -70,21 +68,23 @@ class PFile:
                         self.AddVariable(v)
                     elif isinstance(v, _Expression):
                         self.AddExpression(v)
+            if str(p) not in self.problems:
+                self.problems[str(p)] = p
 
     def AddVariable(self, *var: _Variable) -> None:
         for v in var:
-            if str(v) not in self.variables:
-                self.variables[str(v)] = v
             # self.SetExportFrequency(v, freq=v.freq)
             self.AddTopology(v.get_top())
             self.AddExpression(*v.get_expressions())
+            if str(v) not in self.variables:
+                self.variables[str(v)] = v
 
     # Add Topology
     def AddTopology(self, *top: _CheartTopology) -> None:
         for t in top:
+            self.AddBasis(t.get_basis())
             if str(t) not in self.toplogies:
                 self.toplogies[str(t)] = t
-            self.AddBasis(t.get_basis())
 
     # Add Basis
     def AddBasis(self, *basis: _CheartBasis | None) -> None:
@@ -96,8 +96,7 @@ class PFile:
     # Expression
     def AddExpression(self, *expr: _Expression) -> None:
         for v in expr:
-            if str(v) not in self.exprs:
-                self.exprs[str(v)] = v
+            # print(f"Consider: {str(v)}")
             for x in v.get_values():
                 if isinstance(x, _DataInterp):
                     self.AddDataPointer(x.get_val())
@@ -114,6 +113,9 @@ class PFile:
                         self.AddVariable(x[0])
             self.AddVariable(*v.get_var_deps())
             self.AddExpression(*v.get_expr_deps())
+            if str(v) not in self.exprs:
+                # print(f"Added:{str(v)}")
+                self.exprs[str(v)] = v
 
     def SetTopology(self, name, task, val) -> None:
         self.toplogies[name].AddSetting(task, val)
@@ -149,10 +151,10 @@ class PFile:
 
     def AddInterface(self, *interfaces: _TopInterface) -> None:
         for item in interfaces:
-            if str(item) not in self.interfaces:
-                self.interfaces[str(item)] = item
             for t in item.get_tops():
                 self.AddTopology(t)
+            if str(item) not in self.interfaces:
+                self.interfaces[str(item)] = item
 
     # Add Variables
     @overload
