@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import Sequence, Union, TextIO, ValuesView
+from typing import Union, TextIO, ValuesView
 
 from cheartpy.cheart_core.interface.basis import _Expression
 from ..pytools import get_enum, join_fields

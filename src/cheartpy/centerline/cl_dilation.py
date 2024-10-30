@@ -8,33 +8,6 @@ from ..cheart_core.interface import _Variable, _CheartTopology, _Expression
 from ..cheart_core.implementation.expressions import Expression
 
 
-def create_radial_len_expr(
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    cl: _Expression,
-):
-    v_disp = Expression(
-        "v_disp_expr", [f"{disp}.{i} + {space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
-    )
-    r_disp = Expression(
-        "r_disp_expr",
-        [f"sqrt({" + ".join([f"{v_disp}.{i}*{v_disp}.{i}" for i in [1,2,3]])})"],
-    )
-    r_disp.add_expr_deps(cl, v_disp)
-    r_disp.add_var_deps(disp)
-    v_motion = Expression(
-        "v_motion_expr", [f"{motion}.{i} + {space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
-    )
-    r_motion = Expression(
-        "r_motion_expr",
-        [f"sqrt({" + ".join([f"{v_motion}.{i}*{v_motion}.{i}" for i in [1,2,3]])})"],
-    )
-    r_motion.add_expr_deps(v_motion)
-    r_motion.add_var_deps(motion)
-    return r_disp, r_motion
-
-
 def create_outward_normal_expr(space: _Variable, cl: _Expression):
     n_expr = Expression(
         "Space_p_normal_expr", [f"{space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
@@ -43,26 +16,6 @@ def create_outward_normal_expr(space: _Variable, cl: _Expression):
     m_expr = Expression("Space_m_normal_expr", [f"-{n_expr}.{i}" for i in [1, 2, 3]])
     m_expr.add_deps(n_expr)
     return n_expr, m_expr
-
-
-def create_dilation_expr(
-    disp: _Expression,
-    motion: _Expression,
-    cl_basis: _Expression,
-    k: int,
-):
-    cons_expr = Expression(f"DL{k}_cons_expr", [f"({disp} - {motion}) * {cl_basis}"])
-    cons_expr.add_expr_deps(disp, motion)
-    return cons_expr
-
-
-def create_dilation_expr_terms(
-    disp: _Expression, motion: _Expression, cl_basis: CLBasisExpressions
-):
-    return {
-        k: create_dilation_expr(disp, motion, v, k)
-        for k, v in cl_basis["pelem"].items()
-    }
 
 
 def create_dilation_problem(
@@ -96,7 +49,6 @@ def create_dilation_problems(
     dirichlet_bc: bool = True,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
-    # cl_pos_expr = create_center_pos_expr(cl_nodes, cl_basis)
     p_norm_expr, m_norm_expr = create_outward_normal_expr(space, cl_pos_expr)
     res = {
         i: create_dilation_problem(
@@ -115,6 +67,4 @@ def create_dilation_problems(
     if dirichlet_bc:
         keys = sorted(res.keys())
         res = {k: res[k] for k in keys[1:-1]}
-    # fs1 = next(iter(res.values()))
-    # fs1.add_aux_expr(cl_pos_expr)
     return res

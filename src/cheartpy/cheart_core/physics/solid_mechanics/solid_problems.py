@@ -41,7 +41,7 @@ class SolidProblem(_Problem):
     def get_prob_vars(self) -> Mapping[str, _Variable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
         _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
-        return {**_self_vars_, **_vars_}
+        return {**_vars_, **_self_vars_}
 
     def add_var_deps(self, *var: _Variable) -> None:
         for v in var:
@@ -56,12 +56,12 @@ class SolidProblem(_Problem):
     def get_var_deps(self) -> ValuesView[_Variable]:
         _vars_ = self.get_prob_vars()
         _w_vars_ = {str(v): v for w in self.matlaws for v in w.get_var_deps()}
-        return {**_vars_, **_w_vars_, **self.aux_vars}.values()
+        return {**self.aux_vars, **_w_vars_, **_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[_Expression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         _w_exprs_ = {str(e): e for w in self.matlaws for e in w.get_expr_deps()}
-        return {**_expr_, **_w_exprs_, **self.aux_expr}.values()
+        return {**_w_exprs_, **_expr_, **self.aux_expr}.values()
 
     def get_bc_patches(self) -> Sequence[_BCPatch]:
         patches = self.bc.get_patches()

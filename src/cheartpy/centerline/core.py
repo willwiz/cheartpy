@@ -39,12 +39,14 @@ def LL_interp(top: CLTopology, var: Mat[f64] | Vec[f64], cl: Vec[f64]) -> Mat[f6
 def LL_expr(
     name: str, v: _Variable, b: tuple[float, float, float] | Vec[f64]
 ) -> _Expression:
-    return Expression(
+    basis = Expression(
         name,
         [
             f"max(min(({v}{-b[0]:+.8g})/({b[1] - b[0]:.8g}),({b[2]:.8g}-{v})/({b[2] - b[1]:.8g})), 0)"
         ],
     )
+    basis.add_deps(v)
+    return basis
 
 
 def check_normal(node_normals: Mat[f64], elem: Vec[i32], patch_normals: Vec[f64]):
@@ -105,8 +107,7 @@ def create_clbasis_expr(
     melem = {
         i: Expression(f"{s}B_m", [f"-{pelem[i]}"]) for i, s in cl.node_prefix.items()
     }
-    first = next(iter(pelem.values()))
-    first.add_var_deps(var)
+    [m.add_deps(pelem[k]) for k, m in melem.items()]
     return {"pelem": pelem, "melem": melem}
 
 

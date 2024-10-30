@@ -72,7 +72,9 @@ class FSCouplingProblem(_Problem):
                 self.aux_expr[str(v)] = v
 
     def get_var_deps(self) -> ValuesView[_Variable]:
-        vars: dict[str, _Variable] = {str(self.space): self.space}
+        vars = {str(v): v for v in self.bc.get_vars_deps()}
+        if str(self.space) not in vars:
+            vars[str(self.space)] = self.space
         vars[str(self.lm.test_var)] = self.lm.test_var
         for t in self.lm.terms:
             if isinstance(t.var, _Variable):
@@ -91,9 +93,8 @@ class FSCouplingProblem(_Problem):
                 if isinstance(t.mult, _Variable):
                     if str(t.mult) not in vars:
                         vars[str(t.mult)] = t.mult
-        for v in self.bc.get_vars_deps():
-            vars[str(v)] = v
-        return {**vars, **self.aux_vars}.values()
+
+        return {**self.aux_vars, **vars}.values()
 
     def get_expr_deps(self) -> ValuesView[_Expression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
@@ -112,9 +113,7 @@ class FSCouplingProblem(_Problem):
                 if isinstance(t.mult, _Expression):
                     if str(t.mult) not in _expr_:
                         _expr_[str(t.mult)] = t.mult
-        for v in self.bc.get_expr_deps():
-            _expr_[str(v)] = v
-        return {**_expr_, **self.aux_expr}.values()
+        return {**self.aux_expr, **_expr_}.values()
 
     def get_bc_patches(self) -> Sequence[_BCPatch]:
         patches = self.bc.get_patches()

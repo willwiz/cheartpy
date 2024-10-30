@@ -1,5 +1,5 @@
 import abc
-from typing import Sequence, TextIO, ValuesView
+from typing import TextIO, ValuesView
 from ..aliases import *
 from .basis import *
 

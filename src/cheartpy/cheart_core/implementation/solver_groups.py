@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from collections import ChainMap
 import dataclasses as dc
 from typing import Mapping, Sequence, TextIO, ValuesView
 
@@ -8,7 +7,7 @@ from cheartpy.cheart_core.interface.solver_matrix import _SolverMatrix
 from ..aliases import *
 from ..pytools import *
 from ..interface import *
-from .tools import recurse_get_var_list_var
+from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
 
 """
 Cheart dataclasses
@@ -55,13 +54,7 @@ PFile
 class SolverSubGroup(_SolverSubGroup):
     method: SolverSubgroupAlgorithm
     problems: dict[str, _SolverMatrix | _Problem] = dc.field(default_factory=dict)
-    # aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     _scale_first_residual: float | None = None
-
-    # def __post_init__(self):
-    #     for p in self.problems.values():
-    #         for v in p.get_aux_var():
-    #             self.aux_vars[str(v)] = v
 
     def get_method(self) -> SolverSubgroupAlgorithm:
         return self.method
@@ -76,7 +69,20 @@ class SolverSubGroup(_SolverSubGroup):
         }
         _all_vars = {**_prob_vars, **_matrix_vars}
         _all_vars_dicts_ = [recurse_get_var_list_var(v) for v in _all_vars.values()]
-        return {k: v for d in _all_vars_dicts_ for k, v in d.items()}
+        _prob_exprs = {
+            str(e): e for p in self.get_problems() for e in p.get_expr_deps()
+        }
+        _matrix_exprs = {
+            str(v): v
+            for m in self.get_matrices()
+            for p in m.get_problems()
+            for v in p.get_expr_deps()
+        }
+        _all_exprs = {**_prob_exprs, **_matrix_exprs}
+        _all_exprs_dicts_ = [recurse_get_var_list_expr(v) for v in _all_exprs.values()]
+        return {
+            k: v for d in _all_vars_dicts_ + _all_exprs_dicts_ for k, v in d.items()
+        }
 
     def get_prob_vars(self) -> Mapping[str, _Variable]:
         _prob_vars = {
@@ -88,16 +94,6 @@ class SolverSubGroup(_SolverSubGroup):
             for p in m.get_problems()
             for k, v in p.get_prob_vars().items()
         }
-        # for g in self.get_systems():
-        #     print(g)
-        #     if isinstance(g, _SolverMatrix):
-        #         for p in g.get_problems():
-        #             print(p)
-        #             for k, v in p.get_prob_vars().items():
-        #                 print(k, v)
-        #     else:
-        #         for k, v in g.get_prob_vars().items():
-        #             print(k, v)
         _all_vars = {**_prob_vars, **_matrix_vars}
         return _all_vars
 
@@ -196,8 +192,6 @@ class SolverGroup(_SolverGroup):
     # SG
     def AddSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
         for v in sg:
-            # for x in v.get_aux_vars().values():
-            #     self.AddAuxVariable(x)
             self.sub_groups.append(v)
 
     def RemoveSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
@@ -218,8 +212,6 @@ class SolverGroup(_SolverGroup):
 
     # WRITE
     def write(self, f: TextIO) -> None:
-        # if isinstance(self.time,TimeScheme):
-        #   self.time.write(f)
         f.write(hline("Solver Groups"))
         f.write(f"!DefSolverGroup={{{self.name}|{self.time}}}\n")
         # Handle Additional Vars

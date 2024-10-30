@@ -52,5 +52,4 @@ def create_cl_coupling_problems(
         )
         for i, s in cl_part.node_prefix.items()
     }
-    # next(iter(res.values())).add_aux_vars(motion)
     return res
