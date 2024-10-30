@@ -26,7 +26,7 @@ class FSCouplingProblem(_Problem):
     space: _Variable
     root_topology: _CheartTopology | None
     lm: FSCouplingTerm
-    terms: dict[str, FSCouplingTerm]
+    m_terms: dict[str, FSCouplingTerm]
     bc: _BoundaryCondition
     aux_vars: dict[str, _Variable]
     aux_expr: dict[str, _Expression]
@@ -40,23 +40,23 @@ class FSCouplingProblem(_Problem):
         self.lm = FSCouplingTerm(var, list(expr))
 
     def add_term(self, var: _Variable, *expr: FSExpr) -> None:
-        self.terms[str(var)] = FSCouplingTerm(var, list(expr))
+        self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
 
     def get_prob_vars(self) -> dict[str, _Variable]:
         vars: dict[str, _Variable] = {str(self.space): self.space}
         vars[str(self.lm.test_var)] = self.lm.test_var
-        for t in self.lm.terms:
-            if isinstance(t.var, _Variable):
-                if str(t.var) not in vars:
-                    vars[str(t.var)] = t.var
-        for k, v in self.terms.items():
+        # for t in self.lm.terms:
+        #     if isinstance(t.var, _Variable):
+        #         if str(t.var) not in vars:
+        #             vars[str(t.var)] = t.var
+        for k, v in self.m_terms.items():
             if str(v.test_var) not in vars:
                 vars[str(v.test_var)] = v.test_var
-            for t in v.terms:
-                if isinstance(t.var, _Variable):
-                    vars[str(t.var)] = t.var
-                # if isinstance(t.expr, _Variable):
-                #     vars[str(t.expr)] = t.expr
+            # for t in v.terms:
+            #     if isinstance(t.var, _Variable):
+            #         vars[str(t.var)] = t.var
+            # if isinstance(t.expr, _Variable):
+            #     vars[str(t.expr)] = t.expr
         for v in self.bc.get_vars_deps():
             vars[str(v)] = v
         return vars
@@ -81,7 +81,7 @@ class FSCouplingProblem(_Problem):
             if isinstance(t.mult, _Variable):
                 if str(t.mult) not in vars:
                     vars[str(t.mult)] = t.mult
-        for k, v in self.terms.items():
+        for k, v in self.m_terms.items():
             if str(v.test_var) not in vars:
                 vars[str(v.test_var)] = v.test_var
             for t in v.terms:
@@ -104,7 +104,7 @@ class FSCouplingProblem(_Problem):
             if isinstance(t.mult, _Expression):
                 if str(t.mult) not in _expr_:
                     _expr_[str(t.mult)] = t.mult
-        for k, v in self.terms.items():
+        for k, v in self.m_terms.items():
             for t in v.terms:
                 if isinstance(t.var, _Expression):
                     if str(t.var) not in _expr_:
@@ -131,13 +131,13 @@ class FSCouplingProblem(_Problem):
         self.root_topology = None if root_top is None else root_top
         self.aux_vars = dict()
         self.aux_expr = dict()
-        self.terms = dict()
+        self.m_terms = dict()
         self.bc = BoundaryCondition()
 
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
-        for t in self.terms.values():
+        for t in self.m_terms.values():
             f.write(
                 f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.terms])}}}\n"
             )

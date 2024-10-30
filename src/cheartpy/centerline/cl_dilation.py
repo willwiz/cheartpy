@@ -35,6 +35,16 @@ def create_radial_len_expr(
     return r_disp, r_motion
 
 
+def create_outward_normal_expr(space: _Variable, cl: _Expression):
+    n_expr = Expression(
+        "Space_p_normal_expr", [f"{space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
+    )
+    n_expr.add_deps(space, cl)
+    m_expr = Expression("Space_m_normal_expr", [f"-{n_expr}.{i}" for i in [1, 2, 3]])
+    m_expr.add_deps(n_expr)
+    return n_expr, m_expr
+
+
 def create_dilation_expr(
     disp: _Expression,
     motion: _Expression,
@@ -60,15 +70,17 @@ def create_dilation_problem(
     top: _CheartTopology,
     space: _Variable,
     disp: _Variable,
+    motion: _Variable,
     lm: _Variable,
     zeros: _Expression,
-    cons_expr: _Expression,
+    normal: _Expression,
+    mormal: _Expression,
 ) -> FSCouplingProblem:
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
-    fsbc.set_lagrange_mult(lm, FSExpr(cons_expr))
+    fsbc.set_lagrange_mult(lm, FSExpr(disp, normal), FSExpr(motion, mormal))
     fsbc.add_term(disp, FSExpr(lm, zeros))
-    fsbc.add_expr_deps(zeros, cons_expr)
+    fsbc.add_expr_deps(zeros, normal, mormal)
     return fsbc
 
 
@@ -85,19 +97,18 @@ def create_dilation_problems(
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
     # cl_pos_expr = create_center_pos_expr(cl_nodes, cl_basis)
-    r_disp_expr, r_motion_expr = create_radial_len_expr(
-        space, disp, motion, cl_pos_expr
-    )
-    cons_exprs = create_dilation_expr_terms(r_disp_expr, r_motion_expr, cl_basis)
+    p_norm_expr, m_norm_expr = create_outward_normal_expr(space, cl_pos_expr)
     res = {
         i: create_dilation_problem(
             f"PB_{s}_DL",
             tops[i],
             space,
             disp,
+            motion,
             lms[i],
             zero_expr,
-            cons_exprs[i],
+            p_norm_expr,
+            m_norm_expr,
         )
         for i, s in cl_part.node_prefix.items()
     }

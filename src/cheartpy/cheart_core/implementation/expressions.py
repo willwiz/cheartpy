@@ -1,5 +1,7 @@
 import dataclasses as dc
 from typing import Sequence, TextIO, Self
+
+from cheartpy.cheart_core.interface.basis import _Expression, _Variable
 from ..interface import *
 
 
@@ -15,6 +17,13 @@ class Expression(_Expression):
 
     def get_values(self):
         return self.value
+
+    def add_deps(self, *vars: _Expression | _Variable) -> None:
+        for v in vars:
+            if isinstance(v, _Expression):
+                self.add_expr_deps(v)
+            elif isinstance(v, _Variable):
+                self.add_var_deps(v)
 
     def add_expr_deps(self, *expr: _Expression):
         for v in expr:
