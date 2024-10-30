@@ -53,6 +53,6 @@ def create_rotation_constraint(
     rot_bc = FSCouplingProblem("Rotation_Cons", space, root)
     rot_bc.set_lagrange_mult(lm, FSExpr(disp, rot_dof["p"]))
     rot_bc.add_term(disp, FSExpr(lm, rot_dof["m"]))
-    rot_bc.add_aux_expr(*rot_dof.values())
+    rot_bc.add_expr_deps(*rot_dof.values())
     # rot_bc.add_aux_vars(root)
     return rot_bc

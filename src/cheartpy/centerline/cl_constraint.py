@@ -26,7 +26,7 @@ def create_cl_coupling_problem(
         fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis), FSExpr(motion, m_basis))
     # fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis))
     fsbc.add_term(disp, FSExpr(lm, p_basis))
-    fsbc.add_aux_expr(p_basis, m_basis)
+    fsbc.add_expr_deps(p_basis, m_basis)
     return fsbc
 
 

@@ -1,4 +1,4 @@
-from typing import Any, Literal, TextIO, ValuesView
+from typing import Any, Literal, Mapping, Sequence, TextIO, ValuesView
 from ...aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from ...pytools import get_enum, join_fields
 from ...implementation.problems import BoundaryCondition
@@ -38,26 +38,34 @@ class SolidProblem(_Problem):
     def __repr__(self) -> str:
         return self.name
 
-    def get_variables(self) -> dict[str, _Variable]:
-        return self.variables
+    def get_prob_vars(self) -> Mapping[str, _Variable]:
+        _self_vars_ = {str(v): v for v in self.variables.values()}
+        _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        return {**_self_vars_, **_vars_}
 
-    def get_aux_vars(self) -> ValuesView[_Variable]:
-        return self.aux_vars.values()
-
-    def add_aux_vars(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: _Variable) -> None:
         for v in var:
-            self.aux_vars[str(v)] = v
+            if str(v) not in self.aux_vars:
+                self.aux_vars[str(v)] = v
 
-    def get_aux_expr(self) -> dict[str, _Expression]:
-        return self.aux_expr
-
-    def add_aux_expr(self, *expr: _Expression) -> None:
+    def add_expr_deps(self, *expr: _Expression) -> None:
         for v in expr:
-            self.aux_expr[str(v)] = v
+            if str(v) not in self.aux_expr:
+                self.aux_expr[str(v)] = v
 
-    def get_bc_patches(self) -> list[_BCPatch]:
+    def get_var_deps(self) -> ValuesView[_Variable]:
+        _vars_ = self.get_prob_vars()
+        _w_vars_ = {str(v): v for w in self.matlaws for v in w.get_var_deps()}
+        return {**_vars_, **_w_vars_, **self.aux_vars}.values()
+
+    def get_expr_deps(self) -> ValuesView[_Expression]:
+        _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
+        _w_exprs_ = {str(e): e for w in self.matlaws for e in w.get_expr_deps()}
+        return {**_expr_, **_w_exprs_, **self.aux_expr}.values()
+
+    def get_bc_patches(self) -> Sequence[_BCPatch]:
         patches = self.bc.get_patches()
-        return [] if patches is None else patches
+        return list() if patches is None else patches
 
     def __init__(
         self,
@@ -91,10 +99,10 @@ class SolidProblem(_Problem):
         self.bc = BoundaryCondition()
 
     def AddMatlaw(self, *law: _Law):
-        for v in law:
-            self.matlaws.append(v)
-            for k, x in v.get_aux_vars().items():
-                self.aux_vars[k] = x
+        for w in law:
+            self.matlaws.append(w)
+            for v in w.get_var_deps():
+                self.aux_vars[str(v)] = v
 
     def AddVariable(self, name: SOLID_VARIABLES, var: _Variable) -> None:
         self.variables[name] = var

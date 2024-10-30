@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TextIO, overload
+from typing import TextIO
 from .aliases import *
 from .interface import *
 from .pytools import header, hline, splicegen
@@ -10,35 +10,19 @@ class PFile:
     h: str = ""
     output_path: str | None = None
     times: dict[str, _TimeScheme] = dc.field(default_factory=dict)
-    solverGs: dict[str, _SolverGroup] = dc.field(default_factory=dict)
-    matrices: dict[str, _SolverMatrix] = dc.field(default_factory=dict)
-    problems: dict[str, _Problem] = dc.field(default_factory=dict)
-    variables: dict[str, _Variable] = dc.field(default_factory=dict)
-    toplogies: dict[str, _CheartTopology] = dc.field(default_factory=dict)
-    bases: dict[str, _CheartBasis] = dc.field(default_factory=dict)
     dataPs: dict[str, _DataPointer] = dc.field(default_factory=dict)
-    exprs: dict[str, _Expression] = dc.field(default_factory=dict)
+    bases: dict[str, _CheartBasis] = dc.field(default_factory=dict)
+    toplogies: dict[str, _CheartTopology] = dc.field(default_factory=dict)
     interfaces: dict[str, _TopInterface] = dc.field(default_factory=dict)
+    variables: dict[str, _Variable] = dc.field(default_factory=dict)
+    exprs: dict[str, _Expression] = dc.field(default_factory=dict)
+    problems: dict[str, _Problem] = dc.field(default_factory=dict)
+    matrices: dict[str, _SolverMatrix] = dc.field(default_factory=dict)
+    solverGs: dict[str, _SolverGroup] = dc.field(default_factory=dict)
 
     # exportfrequencies: dict[str, Set[Variable]] = field(default_factory=dict)
     def SetOutputPath(self, path):
         self.output_path = path
-
-    # SolverGroup
-    def AddSolverGroup(self, *grp: _SolverGroup) -> None:
-        for g in grp:
-            self.AddTimeScheme(g.get_time_scheme())
-            self.AddVariable(*g.get_aux_vars())
-            for sg in g.get_subgroups():
-                for p in sg.get_problems():
-                    if isinstance(p, _SolverMatrix):
-                        self.AddMatrix(p)
-                    elif isinstance(p, _Problem):
-                        self.AddProblem(p)
-                if sg.get_aux_vars():
-                    self.AddVariable(*sg.get_aux_vars().values())
-            if str(g) not in self.solverGs:
-                self.solverGs[str(g)] = g
 
     # Add Time Scheme
     def AddTimeScheme(self, *time: _TimeScheme) -> None:
@@ -46,45 +30,11 @@ class PFile:
             if str(t) not in self.times:
                 self.times[str(t)] = t
 
-    # Matrix
-    def AddMatrix(self, *mat: _SolverMatrix) -> None:
-        for v in mat:
-            self.AddVariable(*v.get_aux_vars())
-            self.AddProblem(*v.get_problems())
-            if str(v) not in self.matrices:
-                self.matrices[str(v)] = v
-
-    # Problem
-
-    def AddProblem(self, *prob: _Problem) -> None:
-        """Internal automatically done through add solver group"""
-        for p in prob:
-            self.AddVariable(*p.get_aux_vars())
-            self.AddVariable(*p.get_variables().values())
-            self.AddExpression(*p.get_aux_expr().values())
-            for patch in p.get_bc_patches():
-                for v in patch.get_values():
-                    if isinstance(v, _Variable):
-                        self.AddVariable(v)
-                    elif isinstance(v, _Expression):
-                        self.AddExpression(v)
-            if str(p) not in self.problems:
-                self.problems[str(p)] = p
-
-    def AddVariable(self, *var: _Variable) -> None:
+    # Add Data Pointers
+    def AddDataPointer(self, *var: _DataPointer) -> None:
         for v in var:
-            # self.SetExportFrequency(v, freq=v.freq)
-            self.AddTopology(v.get_top())
-            self.AddExpression(*v.get_expressions())
-            if str(v) not in self.variables:
-                self.variables[str(v)] = v
-
-    # Add Topology
-    def AddTopology(self, *top: _CheartTopology) -> None:
-        for t in top:
-            self.AddBasis(t.get_basis())
-            if str(t) not in self.toplogies:
-                self.toplogies[str(t)] = t
+            if str(v) not in self.dataPs:
+                self.dataPs[str(v)] = v
 
     # Add Basis
     def AddBasis(self, *basis: _CheartBasis | None) -> None:
@@ -93,20 +43,39 @@ class PFile:
                 if str(b) not in self.bases:
                     self.bases[str(b)] = b
 
+    # Add Topology
+    def AddTopology(self, *top: _CheartTopology) -> None:
+        for t in top:
+            self.AddBasis(t.get_basis())
+            if str(t) not in self.toplogies:
+                self.toplogies[str(t)] = t
+
+    def AddInterface(self, *interfaces: _TopInterface) -> None:
+        for item in interfaces:
+            self.AddTopology(*item.get_tops())
+            if str(item) not in self.interfaces:
+                self.interfaces[str(item)] = item
+
+    def AddVariable(self, *var: _Variable) -> None:
+        for v in var:
+            self.AddTopology(v.get_top())
+            self.AddExpression(*v.get_expr_deps())
+            if str(v) not in self.variables:
+                self.variables[str(v)] = v
+
     # Expression
     def AddExpression(self, *expr: _Expression) -> None:
         for v in expr:
-            # print(f"Consider: {str(v)}")
             for x in v.get_values():
                 if isinstance(x, _DataInterp):
-                    self.AddDataPointer(x.get_val())
-                elif isinstance(x, _Expression):
-                    self.AddExpression(x)
+                    self.AddDataPointer(x.get_datapointer())
                 elif isinstance(x, _Variable):
                     self.AddVariable(x)
+                elif isinstance(x, _Expression):
+                    self.AddExpression(x)
                 elif isinstance(x, tuple):
                     if isinstance(x[0], _DataInterp):
-                        self.AddDataPointer(x[0].get_val())
+                        self.AddDataPointer(x[0].get_datapointer())
                     elif isinstance(x[0], _Expression):
                         self.AddExpression(x[0])
                     elif isinstance(x[0], _Variable):
@@ -114,82 +83,84 @@ class PFile:
             self.AddVariable(*v.get_var_deps())
             self.AddExpression(*v.get_expr_deps())
             if str(v) not in self.exprs:
-                # print(f"Added:{str(v)}")
                 self.exprs[str(v)] = v
 
-    def SetTopology(self, name, task, val) -> None:
-        self.toplogies[name].AddSetting(task, val)
+    def AddProblem(self, *prob: _Problem) -> None:
+        """Internal automatically done through add solver group"""
+        for p in prob:
+            self.AddVariable(*p.get_var_deps())
+            self.AddExpression(*p.get_expr_deps())
+            # self.AddVariable(*p.get_variables().values())
+            for patch in p.get_bc_patches():
+                self.AddVariable(*patch.get_var_deps())
+                self.AddExpression(*patch.get_expr_deps())
+            if str(p) not in self.problems:
+                self.problems[str(p)] = p
 
-    # Add Interfaces
-    # def AddInterface(self, *interface:TopInterface) -> None:
-    #   for v in interface:
-    #     self.interfaces[v.name] = v
-    # def AddInterface(
-    #     self,
-    #     method: Literal["OneToOne", "ManyToOne"] | TopologyInterfaceType,
-    #     topologies: list[_CheartTopology],
-    #     master_topology: _CheartTopology | None = None,
-    #     interface_file: str | None = None,
-    #     nest_in_boundary: int | None = None,
-    # ) -> None:
-    #     match method:
-    #         case "OneToOne":
-    #             name = hash_tops(topologies)
-    #             self.AddTopology(*topologies)
-    #             self.interfaces[name] = OneToOneTopInterface(name, topologies)
-    #         case "ManyToOne":
-    #             if master_topology is None:
-    #                 raise ValueError("ManyToOne requires a master_topology")
-    #             if interface_file is None:
-    #                 raise ValueError("ManyToOne requires a interface_file")
-    #             name = hash_tops(topologies)
-    #             self.AddTopology(*topologies)
-    #             self.AddTopology(master_topology)
-    #             self.interfaces[name] = ManyToOneTopInterface(
-    #                 name, topologies, master_topology, interface_file, nest_in_boundary
-    #             )
+    # Matrix
+    def AddMatrix(self, *mat: _SolverMatrix) -> None:
+        for m in mat:
+            self.AddProblem(*m.get_problems())
+            if str(m) not in self.matrices:
+                self.matrices[str(m)] = m
 
-    def AddInterface(self, *interfaces: _TopInterface) -> None:
-        for item in interfaces:
-            for t in item.get_tops():
-                self.AddTopology(t)
-            if str(item) not in self.interfaces:
-                self.interfaces[str(item)] = item
+    def AddSolverSubGroup(self, *subgroup: _SolverSubGroup) -> None:
+        # PFile does not need this, SolverGroup will handle printing
+        for sg in subgroup:
+            self.AddProblem(*sg.get_problems())
+            self.AddMatrix(*sg.get_matrices())
+
+    # SolverGroup
+    def AddSolverGroup(self, *grp: _SolverGroup) -> None:
+        for g in grp:
+            self.AddTimeScheme(g.get_time_scheme())
+            self.AddSolverSubGroup(*g.get_subgroups())
+            # self.AddVariable(*g.get_aux_vars())
+            # for sg in g.get_subgroups():
+            # for p in sg.get_problems():
+            #     if isinstance(p, _SolverMatrix):
+            #         self.AddMatrix(p)
+            #     elif isinstance(p, _Problem):
+            #         self.AddProblem(p)
+            # if sg.get_aux_vars():
+            #     self.AddVariable(*sg.get_aux_vars().values())
+            if str(g) not in self.solverGs:
+                self.solverGs[str(g)] = g
+
+    # Problem
+
+    # def SetTopology(self, name, task, val) -> None:
+    #     self.toplogies[name].AddSetting(task, val)
 
     # Add Variables
-    @overload
-    def SetVariable(
-        self,
-        name: str,
-        task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
-        val: _Expression,
-    ) -> None: ...
+    # @overload
+    # def SetVariable(
+    #     self,
+    #     name: str,
+    #     task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
+    #     val: _Expression,
+    # ) -> None: ...
 
-    @overload
-    def SetVariable(
-        self,
-        name: str,
-        task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
-        val: str,
-    ) -> None: ...
+    # @overload
+    # def SetVariable(
+    #     self,
+    #     name: str,
+    #     task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
+    #     val: str,
+    # ) -> None: ...
 
-    def SetVariable(
-        self,
-        name: str,
-        task: Literal[
-            "INIT_EXPR",
-            "TEMPORAL_UPDATE_EXPR",
-            "TEMPORAL_UPDATE_FILE",
-            "TEMPORAL_UPDATE_FILE_LOOP",
-        ],
-        val: str | _Expression,
-    ):
-        self.variables[name].AddSetting(task, val)
-
-    # Add Data Pointers
-    def AddDataPointer(self, *var: _DataPointer) -> None:
-        for v in var:
-            self.dataPs[str(v)] = v
+    # def SetVariable(
+    #     self,
+    #     name: str,
+    #     task: Literal[
+    #         "INIT_EXPR",
+    #         "TEMPORAL_UPDATE_EXPR",
+    #         "TEMPORAL_UPDATE_FILE",
+    #         "TEMPORAL_UPDATE_FILE_LOOP",
+    #     ],
+    #     val: str | _Expression,
+    # ):
+    #     self.variables[name].AddSetting(task, val)
 
     # Set Export Frequency
     def SetExportFrequency(self, *vars: _Variable, freq: int = 1):

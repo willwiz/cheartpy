@@ -1,6 +1,6 @@
 import dataclasses as dc
-from typing import TextIO, ValuesView
-from ...pytools import get_enum, join_fields
+from typing import Sequence, TextIO, ValuesView
+from ...pytools import join_fields
 from ...interface import *
 from ...implementation import BoundaryCondition
 
@@ -8,17 +8,17 @@ from ...implementation import BoundaryCondition
 @dc.dataclass(slots=True)
 class FSExpr:
     var: _Variable | _Expression
-    expr: _Expression | _Variable | float = 1
+    mult: _Expression | _Variable | float = 1
     op: str | None = None
 
     def to_str(self) -> str:
-        return f"{self.var}[{join_fields(self.expr, self.op, char=";")}]"
+        return f"{self.var}[{join_fields(self.mult, self.op, char=";")}]"
 
 
 @dc.dataclass(slots=True)
 class FSCouplingTerm:
     test_var: _Variable
-    expr: list[FSExpr]
+    terms: list[FSExpr]
 
 
 class FSCouplingProblem(_Problem):
@@ -42,40 +42,83 @@ class FSCouplingProblem(_Problem):
     def add_term(self, var: _Variable, *expr: FSExpr) -> None:
         self.terms[str(var)] = FSCouplingTerm(var, list(expr))
 
-    def get_variables(self) -> dict[str, _Variable]:
+    def get_prob_vars(self) -> dict[str, _Variable]:
         vars: dict[str, _Variable] = {str(self.space): self.space}
         vars[str(self.lm.test_var)] = self.lm.test_var
-        for t in self.lm.expr:
-            if isinstance(t.expr, _Variable):
-                vars[str(t.expr)] = t.expr
+        for t in self.lm.terms:
+            if isinstance(t.var, _Variable):
+                if str(t.var) not in vars:
+                    vars[str(t.var)] = t.var
         for k, v in self.terms.items():
-            vars[k] = v.test_var
-            for t in v.expr:
+            if str(v.test_var) not in vars:
+                vars[str(v.test_var)] = v.test_var
+            for t in v.terms:
                 if isinstance(t.var, _Variable):
-                    vars[k] = t.var
-                if isinstance(t.expr, _Variable):
-                    vars[str(t.expr)] = t.expr
+                    vars[str(t.var)] = t.var
+                # if isinstance(t.expr, _Variable):
+                #     vars[str(t.expr)] = t.expr
+        for v in self.bc.get_vars_deps():
+            vars[str(v)] = v
         return vars
 
-    def get_aux_vars(self) -> ValuesView[_Variable]:
-        return self.aux_vars.values()
-
-    def add_aux_vars(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: _Variable) -> None:
         for v in var:
             if str(v) not in self.aux_vars:
                 self.aux_vars[str(v)] = v
 
-    def get_aux_expr(self) -> dict[str, _Expression]:
-        return self.aux_expr
-
-    def add_aux_expr(self, *expr: _Expression) -> None:
+    def add_expr_deps(self, *expr: _Expression) -> None:
         for v in expr:
             if str(v) not in self.aux_expr:
                 self.aux_expr[str(v)] = v
 
-    def get_bc_patches(self) -> list[_BCPatch]:
+    def get_var_deps(self) -> ValuesView[_Variable]:
+        vars: dict[str, _Variable] = {str(self.space): self.space}
+        vars[str(self.lm.test_var)] = self.lm.test_var
+        for t in self.lm.terms:
+            if isinstance(t.var, _Variable):
+                if str(t.var) not in vars:
+                    vars[str(t.var)] = t.var
+            if isinstance(t.mult, _Variable):
+                if str(t.mult) not in vars:
+                    vars[str(t.mult)] = t.mult
+        for k, v in self.terms.items():
+            if str(v.test_var) not in vars:
+                vars[str(v.test_var)] = v.test_var
+            for t in v.terms:
+                if isinstance(t.var, _Variable):
+                    if str(t.var) not in vars:
+                        vars[str(t.var)] = t.var
+                if isinstance(t.mult, _Variable):
+                    if str(t.mult) not in vars:
+                        vars[str(t.mult)] = t.mult
+        for v in self.bc.get_vars_deps():
+            vars[str(v)] = v
+        return {**vars, **self.aux_vars}.values()
+
+    def get_expr_deps(self) -> ValuesView[_Expression]:
+        _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
+        for t in self.lm.terms:
+            if isinstance(t.var, _Expression):
+                if str(t.var) not in _expr_:
+                    _expr_[str(t.var)] = t.var
+            if isinstance(t.mult, _Expression):
+                if str(t.mult) not in _expr_:
+                    _expr_[str(t.mult)] = t.mult
+        for k, v in self.terms.items():
+            for t in v.terms:
+                if isinstance(t.var, _Expression):
+                    if str(t.var) not in _expr_:
+                        _expr_[str(t.var)] = t.var
+                if isinstance(t.mult, _Expression):
+                    if str(t.mult) not in _expr_:
+                        _expr_[str(t.mult)] = t.mult
+        for v in self.bc.get_expr_deps():
+            _expr_[str(v)] = v
+        return {**_expr_, **self.aux_expr}.values()
+
+    def get_bc_patches(self) -> Sequence[_BCPatch]:
         patches = self.bc.get_patches()
-        return [] if patches is None else patches
+        return list() if patches is None else patches
 
     def __init__(
         self,
@@ -96,10 +139,10 @@ class FSCouplingProblem(_Problem):
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
         for t in self.terms.values():
             f.write(
-                f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.expr])}}}\n"
+                f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.terms])}}}\n"
             )
         f.write(
-            f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.expr])}}}\n"
+            f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.terms])}}}\n"
         )
         if self.perturbation:
             f.write(f"  !SetPerturbationBuild\n")

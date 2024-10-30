@@ -12,13 +12,12 @@ class SolverMatrix(_SolverMatrix):
     solver: MatrixSolverTypes
     problem: dict[str, _Problem] = dc.field(default_factory=dict)
     _suppress_output: bool = dc.field(default=True)
-    aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
     settings: dict[str, list[str]] = dc.field(default_factory=dict)
 
-    def __post_init__(self):
-        for _, p in self.problem.items():
-            for v in p.get_aux_vars():
-                self.aux_vars[str(v)] = v
+    # def __post_init__(self):
+    #     for _, p in self.problem.items():
+    #         for v in p.get_aux_vars():
+    #             self.aux_vars[str(v)] = v
 
     def __repr__(self) -> str:
         return self.name
@@ -31,8 +30,8 @@ class SolverMatrix(_SolverMatrix):
     def suppress_output(self, val: bool):
         self._suppress_output = val
 
-    def get_aux_vars(self):
-        return self.aux_vars.values()
+    # def get_aux_var(self):
+    #     return [v for p in self.problem.values() for v in p.get_var_deps()]
 
     def get_problems(self) -> ValuesView[_Problem]:
         return self.problem.values()

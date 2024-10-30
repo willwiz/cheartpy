@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import dataclasses as dc
-from typing import Self, TextIO, Literal, overload
+from typing import Self, TextIO, Literal, ValuesView, overload
 from ..aliases import *
 from ..pytools import get_enum, join_fields
 from ..interface import *
@@ -16,7 +16,7 @@ class Variable(_Variable):
     freq: int = 1
     loop_step: int | None = None
     setting: tuple[VariableUpdateSetting, str | _Expression] | None = None
-    expressions: dict[str, _Expression] = dc.field(default_factory=dict)
+    deps_expr: dict[str, _Expression] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
@@ -50,6 +50,7 @@ class Variable(_Variable):
         match task, val:
             case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", _Expression():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
+                self.deps_expr[str(val)] = val
             case "TEMPORAL_UPDATE_FILE", str():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
             case "TEMPORAL_UPDATE_FILE_LOOP", str():
@@ -70,17 +71,10 @@ class Variable(_Variable):
     def get_top(self) -> _CheartTopology:
         return self.topology
 
-    def get_expressions(
+    def get_expr_deps(
         self,
-    ) -> list[_Expression]:
-
-        if self.setting is None:
-            expr = []
-        elif isinstance(self.setting[1], str):
-            expr = []
-        else:
-            expr = [self.setting[1]]
-        return expr + [v for v in self.expressions.values()]
+    ) -> ValuesView[_Expression]:
+        return self.deps_expr.values()
 
     def set_export_frequency(self, v: int) -> None:
         self.freq = v

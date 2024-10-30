@@ -1,5 +1,5 @@
 import abc
-from typing import TextIO, ValuesView
+from typing import Sequence, TextIO, ValuesView
 from ..aliases import *
 from .basis import *
 
@@ -15,8 +15,9 @@ class _SolverMatrix(abc.ABC):
     @suppress_output.setter
     @abc.abstractmethod
     def suppress_output(self, val: bool): ...
-    @abc.abstractmethod
-    def get_aux_vars(self) -> ValuesView[_Variable]: ...
+
+    # @abc.abstractmethod
+    # def get_aux_var(self) -> Sequence[_Variable]: ...
     @abc.abstractmethod
     def get_problems(self) -> ValuesView[_Problem]: ...
     @abc.abstractmethod

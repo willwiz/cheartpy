@@ -1,5 +1,5 @@
 import enum
-from typing import Literal, TextIO, ValuesView
+from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 from ...pytools import get_enum, join_fields
 from ...interface import *
 from ...implementation import BoundaryCondition
@@ -27,26 +27,30 @@ class L2SolidProjection(_Problem):
     def __repr__(self) -> str:
         return self.name
 
-    def get_variables(self) -> dict[str, _Variable]:
-        return self.variables
+    def get_prob_vars(self) -> Mapping[str, _Variable]:
+        _self_vars_ = {str(v): v for v in self.variables.values()}
+        _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        return {**_self_vars_, **_vars_}
 
-    def get_aux_vars(self) -> ValuesView[_Variable]:
-        return self.aux_vars.values()
-
-    def add_aux_vars(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: _Variable) -> None:
         for v in var:
             self.aux_vars[str(v)] = v
 
-    def get_aux_expr(self) -> dict[str, _Expression]:
-        return self.aux_expr
-
-    def add_aux_expr(self, *expr: _Expression) -> None:
+    def add_expr_deps(self, *expr: _Expression) -> None:
         for v in expr:
             self.aux_expr[str(v)] = v
 
-    def get_bc_patches(self) -> list[_BCPatch]:
+    def get_var_deps(self) -> ValuesView[_Variable]:
+        _vars_ = self.get_prob_vars()
+        return {**_vars_, **self.aux_vars}.values()
+
+    def get_expr_deps(self) -> ValuesView[_Expression]:
+        _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
+        return {**_expr_, **self.aux_expr}.values()
+
+    def get_bc_patches(self) -> Sequence[_BCPatch]:
         patches = self.bc.get_patches()
-        return [] if patches is None else patches
+        return list() if patches is None else patches
 
     def set_projection(
         self, calc: L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE

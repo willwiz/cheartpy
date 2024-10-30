@@ -1,5 +1,7 @@
 import dataclasses as dc
-from typing import Union, TextIO
+from typing import Sequence, Union, TextIO, ValuesView
+
+from cheartpy.cheart_core.interface.basis import _Expression
 from ..pytools import get_enum, join_fields
 from ..aliases import *
 from ..interface import *
@@ -30,8 +32,13 @@ class BCPatch(_BCPatch):
         self.values = list(val)
         self.options = list()
 
-    def get_values(self) -> list[_Expression | _Variable | str | int | float]:
-        return self.values
+    def get_var_deps(self) -> ValuesView[_Variable]:
+        vars = {str(v): v for v in self.values if isinstance(v, _Variable)}
+        return vars.values()
+
+    def get_expr_deps(self) -> ValuesView[_Expression]:
+        exprs = {str(e): e for e in self.values if isinstance(e, _Expression)}
+        return exprs.values()
 
     def UseOption(self) -> None: ...
 
@@ -48,6 +55,18 @@ class BCPatch(_BCPatch):
 @dc.dataclass(slots=True)
 class BoundaryCondition(_BoundaryCondition):
     patches: list[_BCPatch] | None = None
+
+    def get_vars_deps(self) -> ValuesView[_Variable]:
+        if self.patches is None:
+            return dict().values()
+        vars = {str(v): v for patch in self.patches for v in patch.get_var_deps()}
+        return vars.values()
+
+    def get_expr_deps(self) -> ValuesView[_Expression]:
+        if self.patches is None:
+            return dict().values()
+        exprs = {str(e): e for patch in self.patches for e in patch.get_expr_deps()}
+        return exprs.values()
 
     def get_patches(self) -> list[_BCPatch] | None:
         return self.patches

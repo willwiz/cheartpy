@@ -27,5 +27,5 @@ class DataInterp(_DataInterp):
     def __repr__(self) -> str:
         return f"Interp({str(self.var)},t)"
 
-    def get_val(self) -> _DataPointer:
+    def get_datapointer(self) -> _DataPointer:
         return self.var

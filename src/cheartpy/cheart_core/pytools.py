@@ -53,7 +53,7 @@ class MissingArgument(Exception):
         super().__init__(self.message)
 
 
-def get_enum[T:enum.Enum](v: str | T, e: Type[T]) -> T:
+def get_enum[T: enum.Enum](v: str | T, e: Type[T]) -> T:
     if not isinstance(v, str):
         return v
     return e[v]
