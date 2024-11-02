@@ -1,6 +1,6 @@
 import os
-
 from .elements import guess_elem_type_from_dim
+from .io import fix_suffix
 from .data import *
 
 

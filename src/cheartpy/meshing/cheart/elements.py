@@ -1,3 +1,9 @@
+__all__ = (
+    "VTK_ELEM_TYPE",
+    "VTK_ELEM",
+    "VtkType",
+    "guess_elem_type_from_dim",
+)
 import dataclasses as dc
 import enum
 from typing import Callable, Final, Literal, Mapping, TextIO

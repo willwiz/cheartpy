@@ -1,6 +1,21 @@
+__all__ = (
+    "is_binary",
+    "check_for_meshes",
+    "CHRead_d",
+    "CHRead_d_bin",
+    "CHRead_d_utf",
+    "CHRead_t_utf",
+    "CHRead_b_utf",
+    "CHRead_header_utf",
+    "CHWrite_d_binary",
+    "CHWrite_d_utf",
+    "CHWrite_t_utf",
+    "CHWrite_iarr_utf",
+)
 import struct
-from ...var_types import *
 import numpy as np
+import os
+from ...var_types import *
 
 """
 CHeart Read Array functions
@@ -25,6 +40,21 @@ def is_binary(filename):
             return False
         except:
             return True
+
+
+def fix_suffix(prefix: str, suffix: str = "_FE.") -> str:
+    for i in range(len(suffix), 0, -1):
+        if prefix.endswith(suffix[:i]):
+            return prefix + suffix[i:]
+    return prefix + suffix
+
+
+def check_for_meshes(*names: str) -> bool:
+    """
+    Returns True if all X, T, B files are found for prefix
+    """
+    meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in ["X", "T", "B"]]]
+    return all(os.path.isfile(s) for s in meshes)
 
 
 def CHRead_d_utf(file: str) -> Arr[tuple[int, int], f64]:

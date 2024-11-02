@@ -1,9 +1,8 @@
 import dataclasses as dc
-
-from .elements import VtkType
-from .io import CHWrite_d_utf, CHWrite_iarr_utf, CHWrite_t_utf
 import numpy as np
 from ...var_types import Mat, Vec, f64, i32
+from .elements import VtkType
+from .io import *
 
 
 @dc.dataclass(slots=True)
@@ -56,18 +55,13 @@ class CheartMesh:
     top: CheartMeshTopology
     bnd: CheartMeshBoundary | None
 
-    def save(self, prefix: str) -> None:
+    def save(self, prefix: str, forced: bool = False) -> None:
+        if check_for_meshes("prefix") and not forced:
+            return
         self.space.save(f"{prefix}_FE.X")
         self.top.save(f"{prefix}_FE.T")
         if self.bnd is not None:
             self.bnd.save(f"{prefix}_FE.B")
-
-
-def fix_suffix(prefix: str, suffix: str = "_FE.") -> str:
-    for i in range(len(suffix), 0, -1):
-        if prefix.endswith(suffix[:i]):
-            return prefix + suffix[i:]
-    return prefix + suffix
 
 
 def create_bnd_surf(v: Mat[i32], tag: int) -> CheartMeshSurface:

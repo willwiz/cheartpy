@@ -1,6 +1,7 @@
 import os
-from cheartpy.cheart2vtu_core.data_types import CmdLineArgs
 import argparse
+from ..meshing.cheart.io import fix_suffix
+from .data_types import CmdLineArgs
 
 main_parser = argparse.ArgumentParser()
 
@@ -197,13 +198,6 @@ parser_find.add_argument(
     action="store_true",
     help="OPTIONAL: specify the start, end, and step for the range of data files. If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory.",
 )
-
-
-def fix_suffix(prefix: str, suffix: str = "_FE.") -> str:
-    for i in range(len(suffix), 0, -1):
-        if prefix.endswith(suffix[:i]):
-            return prefix + suffix[i:]
-    return prefix + suffix
 
 
 def parse_findmode_args(nsp: argparse.Namespace):

@@ -1,15 +1,10 @@
 import os
-from .data import *
-from .elements import *
-from ...var_types import *
 import numpy as np
 from scipy.linalg import lstsq
+from ...var_types import *
 from ...tools.basiclogging import _Logger, NullLogger
-
-
-def check_for_meshes(name: str) -> bool:
-    meshes = [f"{name}_FE.{s}" for s in ["X", "T", "B"]]
-    return all(os.path.isfile(s) for s in meshes)
+from .data import *
+from .elements import *
 
 
 def compute_normal_patch(
@@ -35,7 +30,7 @@ def normalize_by_row(vals: Mat[f64]) -> Mat[f64]:
 
 
 def compute_normal_surface_at_center(
-    kind: VtkElemInterface, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
+    kind: VtkType, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
 ):
     centroid = np.mean(kind.ref_nodes, axis=0)
     interp_basis = kind.shape_dfuncs(centroid)
@@ -49,7 +44,7 @@ def compute_normal_surface_at_center(
 
 
 def compute_normal_surface_at_nodes(
-    kind: VtkElemInterface, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
+    kind: VtkType, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
 ):
     interp_basis = {k: kind.shape_dfuncs(v) for k, v in enumerate(kind.ref_nodes)}
     LOG.debug(f"{interp_basis=}")

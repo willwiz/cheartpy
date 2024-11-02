@@ -20,9 +20,6 @@ def parallel_exec(
     for future in futures.as_completed(jobs):
         try:
             future.result()
-            if bart:
-                bart.next()
-            else:
-                print(f"<<< Completed {jobs[future]}")
+            bart.next() if bart else print(f"<<< Completed {jobs[future]}")
         except Exception as e:
             raise e
