@@ -7,7 +7,7 @@ from ..cheart_core.interface import _Variable, _Expression
 from ..cheart_core.implementation import Expression
 from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
-from ..cheart_mesh.tools import compute_normal_surface_at_center
+from ..meshing.cheart.surface import compute_normal_surface_at_center
 from ..var_types import *
 from ..tools.basiclogging import *
 
