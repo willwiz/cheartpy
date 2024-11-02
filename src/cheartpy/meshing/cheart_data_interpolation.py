@@ -9,7 +9,7 @@ from cheartpy.meshing.core.interpolation_core import (
     get_file_name_indexer,
 )
 from cheartpy.meshing.parsing.interpolation_parsing import interp_parser
-from cheartpy.meshing.cheart.io import CHRead_d, CHWrite_d_utf
+from ..cheart_mesh.io import CHRead_d, CHWrite_d_utf
 from cheartpy.tools.progress_bar import ProgressBar
 from cheartpy.var_types import Mat, f64
 import argparse

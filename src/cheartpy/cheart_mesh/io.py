@@ -1,6 +1,7 @@
-__all__ = (
+__all__ = [
     "is_binary",
     "check_for_meshes",
+    "fix_suffix",
     "CHRead_d",
     "CHRead_d_bin",
     "CHRead_d_utf",
@@ -11,11 +12,11 @@ __all__ = (
     "CHWrite_d_utf",
     "CHWrite_t_utf",
     "CHWrite_iarr_utf",
-)
+]
 import struct
 import numpy as np
 import os
-from ...var_types import *
+from ..var_types import *
 
 """
 CHeart Read Array functions

@@ -3,14 +3,11 @@ from typing import cast
 from collections import defaultdict
 from .types import *
 from ..tools.path_tools import path
-from ..cheart_core.interface.basis import _Variable, _Expression
-from ..cheart_core.implementation.expressions import Expression
-from ..meshing.cheart.data import *
-from ..meshing.cheart.tools import compute_normal_surface_at_center
-from ..meshing.cheart.elements import (
-    VTK_ELEM,
-    guess_elem_type_from_dim,
-)
+from ..cheart_core.interface import _Variable, _Expression
+from ..cheart_core.implementation import Expression
+from ..cheart_mesh import VTK_ELEM
+from ..cheart_mesh.data import *
+from ..cheart_mesh.tools import compute_normal_surface_at_center
 from ..var_types import *
 from ..tools.basiclogging import *
 
@@ -111,7 +108,7 @@ def create_clbasis_expr(
     return {"pelem": pelem, "melem": melem}
 
 
-def create_boundarynode_map(cl: Mat[f64], b: CheartMeshSurface) -> PatchNode2ElemMap:
+def create_boundarynode_map(cl: Mat[f64], b: _CheartMeshPatch) -> PatchNode2ElemMap:
     n2p_map: Mapping[int, list[int]] = defaultdict(list)
     for k, vs in enumerate(b.v):
         for v in vs:
@@ -131,7 +128,7 @@ def get_boundaryelems_in_clrange(
 
 def create_cheartmesh_in_clrange(
     mesh: CheartMesh,
-    surf: CheartMeshSurface,
+    surf: _CheartMeshPatch,
     bnd_map: PatchNode2ElemMap,
     domain: tuple[float, float] | Vec[f64],
     normal_check: Mat[f64] | None = None,
@@ -148,8 +145,8 @@ def create_cheartmesh_in_clrange(
         elems = filter_mesh_normals(mesh, elems, normal_check, LOG)
     nodes = np.unique(elems)
     node_map: Mapping[int, int] = {v: i for i, v in enumerate(nodes)}
-    space = CheartMeshSpace(len(nodes), mesh.space.v[nodes])
-    top = CheartMeshTopology(
+    space = _CheartMeshSpace(len(nodes), mesh.space.v[nodes])
+    top = _CheartMeshTopology(
         len(elems),
         np.array([[node_map[i] for i in e] for e in elems], dtype=int),
         surf_type,
@@ -176,8 +173,4 @@ def create_cheart_cl_nodal_meshes(
         )
         for k, (l, c, r) in enumerate(cl_top.support)
     }
-    # top_names = [path(mesh_dir, cl_top.node_prefix[i]) for v in cl_top.]
-    # for name, t in zip(top_names, tops):
-    #     if not os.path.isfile(name):
-    #         t.save(name)
     return tops

@@ -3,7 +3,7 @@ import meshio
 import numpy as np
 from concurrent import futures
 from ..var_types import i32, f64, Arr
-from ..meshing.cheart.io import (
+from ..cheart_mesh import (
     CHRead_d,
     CHRead_d_utf,
     CHRead_d_bin,

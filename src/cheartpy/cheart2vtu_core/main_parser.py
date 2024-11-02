@@ -1,6 +1,6 @@
 import os
 import argparse
-from ..meshing.cheart.io import fix_suffix
+from ..cheart_mesh import fix_suffix
 from .data_types import CmdLineArgs
 
 main_parser = argparse.ArgumentParser()

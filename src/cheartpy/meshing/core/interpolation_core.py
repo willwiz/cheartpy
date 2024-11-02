@@ -2,7 +2,7 @@ from typing import Callable, Literal
 import re
 import json
 import numpy as np
-from ..cheart.io import *
+from ...cheart_mesh.io import *
 from ..core.element_mapping import (
     ElementTypes,
     get_elem_type,

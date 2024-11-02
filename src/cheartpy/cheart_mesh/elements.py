@@ -1,13 +1,14 @@
-__all__ = (
+__all__ = [
     "VTK_ELEM_TYPE",
     "VTK_ELEM",
     "VtkType",
     "guess_elem_type_from_dim",
-)
-import dataclasses as dc
+]
 import enum
+import numpy as np
+import dataclasses as dc
 from typing import Callable, Final, Literal, Mapping, TextIO
-from ...var_types import *
+from ..var_types import *
 from .shape_functions import *
 
 VTK_ELEM_TYPE = Literal[

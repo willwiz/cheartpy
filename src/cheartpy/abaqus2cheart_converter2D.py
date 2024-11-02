@@ -11,7 +11,7 @@ import numpy as np
 import dataclasses as dc
 from concurrent import futures
 from cheartpy.var_types import Arr, i32, f64
-from cheartpy.meshing.cheart.io import (
+from .cheart_mesh.io import (
     CHWrite_d_utf,
     CHWrite_t_utf,
     CHWrite_iarr_utf,

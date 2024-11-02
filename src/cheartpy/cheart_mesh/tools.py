@@ -1,8 +1,8 @@
 import os
 import numpy as np
 from scipy.linalg import lstsq
-from ...var_types import *
-from ...tools.basiclogging import _Logger, NullLogger
+from ..var_types import *
+from ..tools.basiclogging import _Logger, NullLogger
 from .data import *
 from .elements import *
 
