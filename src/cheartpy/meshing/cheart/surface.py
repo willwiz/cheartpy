@@ -1,10 +1,8 @@
-import os
 import numpy as np
 from scipy.linalg import lstsq
-from ..var_types import *
-from ..tools.basiclogging import _Logger, NullLogger
-from .data import *
-from .elements import *
+from ...var_types import *
+from ...tools.basiclogging import *
+from ...cheart_mesh import *
 
 
 def compute_normal_patch(
@@ -56,6 +54,3 @@ def compute_normal_surface_at_nodes(
         for k, v in interp_basis.items()
     }
     return {k: normalize_by_row(v) for k, v in normals.items()}
-
-
-def reset_cheart_mesh(mesh: CheartMesh): ...
