@@ -1,7 +1,7 @@
 __all__ = ["LogLevel", "BasicLogger", "NullLogger", "_Logger"]
 import abc
 import enum
-from typing import Any
+from typing import Any, Literal
 from datetime import datetime
 import traceback
 from inspect import getframeinfo, stack
@@ -45,8 +45,14 @@ class BasicLogger(_Logger):
     __slots__ = ["level"]
     level: LogLevel
 
-    def __init__(self, level: LogLevel) -> None:
-        self.level = level
+    def __init__(
+        self,
+        level: (
+            LogLevel
+            | Literal["NULL", "FATAL", "ERROR", "WARN", "BRIEF", "INFO", "DEBUG"]
+        ),
+    ) -> None:
+        self.level = level if isinstance(level, LogLevel) else LogLevel[level]
 
     @property
     def mode(self) -> LogLevel:

@@ -13,7 +13,11 @@ def check_for_meshes(name: str) -> bool:
 
 
 def compute_normal_patch(
-    basis: Mat[f64], space: Mat[f64], elem: Vec[i32], ref_space: Mat[f64]
+    basis: Mat[f64],
+    space: Mat[f64],
+    elem: Vec[i32],
+    ref_space: Mat[f64],
+    LOG: _Logger = NullLogger(),
 ):
     nodes = space[elem] - ref_space
     F = np.array(
@@ -30,18 +34,33 @@ def normalize_by_row(vals: Mat[f64]) -> Mat[f64]:
     return vals / norm[:, np.newaxis]
 
 
-def compute_normal_surface(
+def compute_normal_surface_at_center(
     kind: VtkElemInterface, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
 ):
     centroid = np.mean(kind.ref_nodes, axis=0)
     interp_basis = kind.shape_dfuncs(centroid)
-    # print(f"{interp_basis=}")
+    LOG.debug(f"{interp_basis=}")
     normals = np.array(
         [compute_normal_patch(interp_basis, space, i, kind.ref_nodes) for i in elem],
         dtype=float,
     )
-    # print(f"{normals=}")
+    LOG.debug(f"{normals=}")
     return normalize_by_row(normals)
+
+
+def compute_normal_surface_at_nodes(
+    kind: VtkElemInterface, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
+):
+    interp_basis = {k: kind.shape_dfuncs(v) for k, v in enumerate(kind.ref_nodes)}
+    LOG.debug(f"{interp_basis=}")
+    normals = {
+        k: np.array(
+            [compute_normal_patch(v, space, i, kind.ref_nodes) for i in elem],
+            dtype=float,
+        )
+        for k, v in interp_basis.items()
+    }
+    return {k: normalize_by_row(v) for k, v in normals.items()}
 
 
 def reset_cheart_mesh(mesh: CheartMesh): ...

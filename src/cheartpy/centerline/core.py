@@ -6,7 +6,7 @@ from ..tools.path_tools import path
 from ..cheart_core.interface.basis import _Variable, _Expression
 from ..cheart_core.implementation.expressions import Expression
 from ..meshing.cheart.data import *
-from ..meshing.cheart.tools import compute_normal_surface
+from ..meshing.cheart.tools import compute_normal_surface_at_center
 from ..meshing.cheart.elements import (
     VTK_ELEM,
     guess_elem_type_from_dim,
@@ -63,7 +63,7 @@ def filter_mesh_normals(
     surf_type = VTK_ELEM[mesh.top.TYPE.surf]
     if surf_type is None:
         raise ValueError(f"Attempting to compute normal from a 1D mesh, not possible")
-    normals = compute_normal_surface(surf_type, mesh.space.v, elems, LOG)
+    normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems, LOG)
     elems = np.array(
         [i for i, v in zip(elems, normals) if check_normal(normal_check, i, v)],
         dtype=int,

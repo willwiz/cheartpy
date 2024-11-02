@@ -20,7 +20,6 @@ class PFile:
     matrices: dict[str, _SolverMatrix] = dc.field(default_factory=dict)
     solverGs: dict[str, _SolverGroup] = dc.field(default_factory=dict)
 
-    # exportfrequencies: dict[str, Set[Variable]] = field(default_factory=dict)
     def SetOutputPath(self, path):
         self.output_path = path
 

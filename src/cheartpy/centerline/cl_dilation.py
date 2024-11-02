@@ -9,13 +9,22 @@ from ..cheart_core.implementation.expressions import Expression
 
 
 def create_outward_normal_expr(space: _Variable, cl: _Expression):
-    n_expr = Expression(
-        "Space_p_normal_expr", [f"{space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
+    dist_expr = Expression(
+        "Space_dl_disp_expr", [f"{space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
     )
-    n_expr.add_deps(space, cl)
-    m_expr = Expression("Space_m_normal_expr", [f"-{n_expr}.{i}" for i in [1, 2, 3]])
-    m_expr.add_deps(n_expr)
-    return n_expr, m_expr
+    dist_expr.add_deps(space, cl)
+    mag = Expression(
+        "Space_norm_expr",
+        [f"sqrt({'+'.join([f"{dist_expr}.{i}*{dist_expr}.{i}" for i in [1, 2, 3]])})"],
+    )
+    mag.add_deps(dist_expr)
+    p_expr = Expression(
+        "Space_p_normal_expr", [f"-{dist_expr}.{i} / {mag}" for i in [1, 2, 3]]
+    )
+    p_expr.add_deps(dist_expr, mag)
+    m_expr = Expression("Space_m_normal_expr", [f"-{p_expr}.{i}" for i in [1, 2, 3]])
+    m_expr.add_deps(p_expr)
+    return p_expr, m_expr
 
 
 def create_dilation_problem(
@@ -64,7 +73,7 @@ def create_dilation_problems(
         )
         for i, s in cl_part.node_prefix.items()
     }
-    if dirichlet_bc:
-        keys = sorted(res.keys())
-        res = {k: res[k] for k in keys[1:-1]}
+    # if dirichlet_bc:
+    #     keys = sorted(res.keys())
+    #     res = {k: res[k] for k in keys[1:-1]}
     return res

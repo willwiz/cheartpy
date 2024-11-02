@@ -37,18 +37,18 @@ def create_cl_position_problem(
     cons = Expression(
         f"{name}_cons_expr", [f"- {cl_pos_expr}.{j} * {p_basis}" for j in [1, 2, 3]]
     )
-    cons.add_expr_deps(zero_expr, cl_pos_expr)
+    cons.add_expr_deps(cl_pos_expr)
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(
         cl_nodes,
-        FSExpr(space, p_basis),
+        # FSExpr(space, p_basis),
         FSExpr(disp, p_basis),
         FSExpr(cons),
     )
     for v in neighbours:
         fsbc.add_term(v, FSExpr(cl_nodes, zero_expr))
-    fsbc.add_expr_deps(p_basis, cons)
+    fsbc.add_expr_deps(zero_expr, p_basis, cons)
     fsbc.add_var_deps(cl_nodes)
     return fsbc
 

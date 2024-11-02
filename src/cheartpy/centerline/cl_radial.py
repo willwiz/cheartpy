@@ -1,4 +1,4 @@
-from typing import Mapping
+from typing import Mapping, Sequence
 from .types import CLTopology, CLBasisExpressions
 from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
@@ -14,19 +14,17 @@ def create_radial_len_expr(
     motion: _Variable,
     cl: _Expression,
 ):
-    v_disp = Expression(
-        "v_disp_expr", [f"{disp}.{i} + {space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
-    )
-    v_disp.add_deps(space, disp, cl)
+    v_disp = Expression("v_disp_expr", [f"{disp}.{i} - {cl}.{i}" for i in [1, 2, 3]])
+    v_disp.add_deps(disp, cl)
     r_disp = Expression(
         "r_disp_expr",
         [f"sqrt({" + ".join([f"{v_disp}.{i}*{v_disp}.{i}" for i in [1,2,3]])})"],
     )
     r_disp.add_deps(v_disp)
     v_motion = Expression(
-        "v_motion_expr", [f"{motion}.{i} + {space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
+        "v_motion_expr", [f"{motion}.{i} - {cl}.{i}" for i in [1, 2, 3]]
     )
-    v_motion.add_deps(space, motion, cl)
+    v_motion.add_deps(motion, cl)
     r_motion = Expression(
         "r_motion_expr",
         [f"sqrt({" + ".join([f"{v_motion}.{i}*{v_motion}.{i}" for i in [1,2,3]])})"],
@@ -62,12 +60,17 @@ def create_radial_problem(
     lm: _Variable,
     zeros: _Expression,
     cons_expr: _Expression,
+    neighbours: Sequence[_Variable],
 ) -> FSCouplingProblem:
+    zero_1_expr = Expression(f"zero_1_expr", [0])
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(lm, FSExpr(cons_expr))
     fsbc.add_term(disp, FSExpr(lm, zeros))
-    fsbc.add_expr_deps(zeros, cons_expr)
+    print(neighbours)
+    for v in neighbours:
+        fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
+    fsbc.add_expr_deps(zeros, cons_expr, zero_1_expr)
     return fsbc
 
 
@@ -88,18 +91,19 @@ def create_radial_problems(
     )
     cons_exprs = create_radial_expr_terms(r_disp_expr, r_motion_expr, cl_basis)
     res = {
-        i: create_radial_problem(
-            f"PB_{s}_DL",
-            tops[i],
+        k: create_radial_problem(
+            f"PB_{v}_DL",
+            tops[k],
             space,
             disp,
-            lms[i],
+            lms[k],
             zero_expr,
-            cons_exprs[i],
+            cons_exprs[k],
+            [lms[n] for n in [k - 1, k + 1] if n in lms],
         )
-        for i, s in cl_part.node_prefix.items()
+        for k, v in cl_part.node_prefix.items()
     }
-    if dirichlet_bc:
-        keys = sorted(res.keys())
-        res = {k: res[k] for k in keys[1:-1]}
+    # if dirichlet_bc:
+    #     keys = sorted(res.keys())
+    #     res = {k: res[k] for k in keys[1:-1]}
     return res
