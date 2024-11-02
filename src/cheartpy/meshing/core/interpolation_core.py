@@ -1,27 +1,21 @@
 from typing import Callable, Literal
-import dataclasses as dc
 import re
 import json
 import numpy as np
-from cheartpy.meshing.cheart.io import (
-    CHRead_d,
-    CHRead_t_utf,
-    CHRead_header_utf,
-    CHWrite_d_utf,
-)
-from cheartpy.meshing.core.element_mapping import (
+from ..cheart.io import *
+from ..core.element_mapping import (
     ElementTypes,
     get_elem_type,
     get_elmap,
 )
-from cheartpy.cheart2vtu_core.file_indexing import (
+from ...cheart2vtu_core.file_indexing import (
     DFileAutoFinder,
     DFileAutoSubIndex,
     DFileIndex,
     DFileSubIndex,
 )
 
-from cheartpy.var_types import Arr, Vec, Mat, f64, i32
+from ...var_types import *
 
 
 def string_head(str1: str, str2: str) -> str:

@@ -1,14 +1,7 @@
 import enum
-from cheartpy.meshing.core.hexcore3D import (
-    MeshSpace,
-    MeshSurface,
-    MeshTopology,
-    MeshCheart,
-)
+from ...var_types import *
+from .hexcore3D import *
 import numpy as np
-from numpy import ndarray as Arr
-
-from cheartpy.meshing.core.hexcore3D import i32, f64
 
 
 class RotationOption(enum.Enum):
@@ -63,7 +56,7 @@ _hex_lin2quad_map: list[list[int]] = [
 ]
 
 
-def generate_new_topology_nodes(top: Arr[int, i32]) -> list[frozenset[int]]:
+def generate_new_topology_nodes(top: Vec[i32]) -> list[frozenset[int]]:
     return [
         frozenset([top[0], top[1]]),
         frozenset([top[0], top[2]]),
@@ -87,7 +80,7 @@ def generate_new_topology_nodes(top: Arr[int, i32]) -> list[frozenset[int]]:
     ]
 
 
-def generate_new_surface_nodes(surf: Arr[int, i32]) -> list[frozenset[int]]:
+def generate_new_surface_nodes(surf: Vec[i32]) -> list[frozenset[int]]:
     return [
         frozenset([surf[0], surf[1]]),
         frozenset([surf[0], surf[2]]),
@@ -97,9 +90,7 @@ def generate_new_surface_nodes(surf: Arr[int, i32]) -> list[frozenset[int]]:
     ]
 
 
-def get_mid_point(
-    nodes: Arr[tuple[int, int], f64], node_pts: frozenset[int]
-) -> Arr[int, f64]:
+def get_mid_point(nodes: Mat[f64], node_pts: frozenset[int]) -> Vec[f64]:
     node_pos = nodes[list(node_pts)]
     theta = np.remainder(node_pos[:, 1] - np.min(node_pos[:, 1]), 2 * np.pi) + np.min(
         node_pos[:, 1]

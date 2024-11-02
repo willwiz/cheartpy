@@ -74,8 +74,10 @@ def get_elem_type(lin_size: int, quad_size: int) -> ElementTypes:
         case ElementTypes.SQUARE.value:
             return ElementTypes.SQUARE
         case _:
-            raise ValueError(f"Could not determine element type from lin = {
-                             lin_size} and quad = {quad_size}")
+            raise ValueError(
+                f"Could not determine element type from lin = {
+                             lin_size} and quad = {quad_size}"
+            )
 
 
 def get_elmap(elem: ElementTypes, lin_dim: int, quad_dim: int):
