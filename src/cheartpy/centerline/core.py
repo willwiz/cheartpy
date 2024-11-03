@@ -108,7 +108,7 @@ def create_clbasis_expr(
     return {"pelem": pelem, "melem": melem}
 
 
-def create_boundarynode_map(cl: Mat[f64], b: _CheartMeshPatch) -> PatchNode2ElemMap:
+def create_boundarynode_map(cl: Mat[f64], b: CheartMeshPatch) -> PatchNode2ElemMap:
     n2p_map: Mapping[int, list[int]] = defaultdict(list)
     for k, vs in enumerate(b.v):
         for v in vs:
@@ -128,7 +128,7 @@ def get_boundaryelems_in_clrange(
 
 def create_cheartmesh_in_clrange(
     mesh: CheartMesh,
-    surf: _CheartMeshPatch,
+    surf: CheartMeshPatch,
     bnd_map: PatchNode2ElemMap,
     domain: tuple[float, float] | Vec[f64],
     normal_check: Mat[f64] | None = None,
@@ -145,8 +145,8 @@ def create_cheartmesh_in_clrange(
         elems = filter_mesh_normals(mesh, elems, normal_check, LOG)
     nodes = np.unique(elems)
     node_map: Mapping[int, int] = {v: i for i, v in enumerate(nodes)}
-    space = _CheartMeshSpace(len(nodes), mesh.space.v[nodes])
-    top = _CheartMeshTopology(
+    space = CheartMeshSpace(len(nodes), mesh.space.v[nodes])
+    top = CheartMeshTopology(
         len(elems),
         np.array([[node_map[i] for i in e] for e in elems], dtype=int),
         surf_type,

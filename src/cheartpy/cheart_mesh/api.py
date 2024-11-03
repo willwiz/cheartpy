@@ -10,7 +10,7 @@ from .io import fix_suffix
 def _create_cheart_mesh_surf_from_raw(raw_bnd: Mat[i32], surf_type: VtkType):
     bnd_tags = np.unique(raw_bnd[:, -1])
     bnd = {tag: create_bnd_surf(raw_bnd, tag) for tag in bnd_tags}
-    return _CheartMeshBoundary(len(raw_bnd), bnd, surf_type)
+    return CheartMeshBoundary(len(raw_bnd), bnd, surf_type)
 
 
 def import_cheart_mesh(name: str) -> CheartMesh:
@@ -25,8 +25,8 @@ def import_cheart_mesh(name: str) -> CheartMesh:
         raw_bnd = None
         bdim = None
     vol_type, surf_type = guess_elem_type_from_dim(edim, bdim)
-    space = _CheartMeshSpace(len(raw_space), raw_space)
-    top = _CheartMeshTopology(len(raw_top), raw_top, vol_type)
+    space = CheartMeshSpace(len(raw_space), raw_space)
+    top = CheartMeshTopology(len(raw_top), raw_top, vol_type)
     bnd = (
         None
         if raw_bnd is None

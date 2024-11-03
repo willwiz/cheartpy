@@ -1,12 +1,13 @@
 __all__ = [
-    "_CheartMeshSpace",
-    "_CheartMeshTopology",
-    "_CheartMeshPatch",
-    "_CheartMeshBoundary",
+    "CheartMeshSpace",
+    "CheartMeshTopology",
+    "CheartMeshPatch",
+    "CheartMeshBoundary",
     "CheartMesh",
     "create_bnd_surf",
 ]
 import dataclasses as dc
+from typing import Mapping
 import numpy as np
 from ..var_types import Mat, Vec, f64, i32
 from .elements import VtkType
@@ -14,7 +15,7 @@ from .io import *
 
 
 @dc.dataclass(slots=True)
-class _CheartMeshSpace:
+class CheartMeshSpace:
     n: int
     v: Mat[f64]
 
@@ -23,7 +24,7 @@ class _CheartMeshSpace:
 
 
 @dc.dataclass(slots=True)
-class _CheartMeshTopology:
+class CheartMeshTopology:
     n: int
     v: Mat[i32]
     TYPE: VtkType
@@ -33,7 +34,7 @@ class _CheartMeshTopology:
 
 
 @dc.dataclass(slots=True)
-class _CheartMeshPatch:
+class CheartMeshPatch:
     tag: int
     n: int
     k: Vec[i32]
@@ -47,9 +48,9 @@ class _CheartMeshPatch:
 
 
 @dc.dataclass(slots=True)
-class _CheartMeshBoundary:
+class CheartMeshBoundary:
     n: int
-    v: dict[str | int, _CheartMeshPatch]
+    v: Mapping[str | int, CheartMeshPatch]
     TYPE: VtkType
 
     def save(self, name: str) -> None:
@@ -59,9 +60,9 @@ class _CheartMeshBoundary:
 
 @dc.dataclass(slots=True)
 class CheartMesh:
-    space: _CheartMeshSpace
-    top: _CheartMeshTopology
-    bnd: _CheartMeshBoundary | None
+    space: CheartMeshSpace
+    top: CheartMeshTopology
+    bnd: CheartMeshBoundary | None
 
     def save(self, prefix: str, forced: bool = False) -> None:
         if check_for_meshes("prefix") and not forced:
@@ -72,8 +73,8 @@ class CheartMesh:
             self.bnd.save(f"{prefix}_FE.B")
 
 
-def create_bnd_surf(v: Mat[i32], tag: int) -> _CheartMeshPatch:
+def create_bnd_surf(v: Mat[i32], tag: int) -> CheartMeshPatch:
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1
-    return _CheartMeshPatch(tag, len(bnd), elems, nodes)
+    return CheartMeshPatch(tag, len(bnd), elems, nodes)

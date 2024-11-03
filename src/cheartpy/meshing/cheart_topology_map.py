@@ -5,7 +5,7 @@ from cheartpy.meshing.core.interpolation_core import (
     gen_map,
 )
 from cheartpy.meshing.parsing.interpolation_parsing import map_parser
-from cheartpy.meshing.cheart.io import CHRead_header_utf
+from cheartpy.cheart_mesh.io import CHRead_header_utf
 from cheartpy.tools.progress_bar import ProgressBar
 import json
 import argparse

@@ -8,7 +8,7 @@
 import os
 from typing import Callable
 import argparse
-from cheartpy.meshing.cheart.io import CHRead_d_utf, CHRead_d_bin
+from cheartpy.cheart_mesh.io import CHRead_d_utf, CHRead_d_bin
 from cheartpy.tools.progress_bar import ProgressBar
 
 ################################################################################################

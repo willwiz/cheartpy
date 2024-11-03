@@ -33,7 +33,8 @@ class VtkElemInterface:
     vtksurfaceid: Final[int | None]
     nodeordering: Final[tuple[int, ...]]
     connectivity: Final[tuple[int, ...]]
-    ref_nodes: Mat[f64]
+    ref_order: Final[Mat[i32]]
+    ref_nodes: Final[Mat[f64]]
     shape_funcs: Callable[[Vec[f64]], Vec[f64]]
     shape_dfuncs: Callable[[Vec[f64]], Mat[f64]]
 
@@ -42,6 +43,9 @@ class VtkElemInterface:
         for j in self.nodeordering:
             fout.write(f" {elem[j] - 1:d}")
         fout.write("\n")
+
+    def __hash__(self) -> int:
+        return hash(self.elem)
 
 
 class VtkType(VtkElemInterface, enum.Enum):
@@ -52,6 +56,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         None,
         (0, 1),
         (0, 1),
+        np.array([[0, 0, 0], [1, 0, 0]], dtype=int),
         np.array([[0, 0, 0], [1, 0, 0]], dtype=float),
         sf_line_linear,
         dsf_line_linear,
@@ -63,6 +68,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         None,
         (0, 1, 2),
         (0, 1, 2),
+        np.array([[0, 0, 0], [2, 0, 0], [1, 0, 0]], dtype=int),
         np.array([[0, 0, 0], [1, 0, 0], [1 / 2, 0, 0]], dtype=float),
         sf_line_quadratic,
         dsf_line_quadratic,
@@ -74,6 +80,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         3,
         (0, 1, 2),
         (0, 1, 2),
+        np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=int),
         np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=float),
         sf_triangle_linear,
         dsf_triangle_linear,
@@ -85,6 +92,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         21,
         (0, 1, 2, 3, 5, 4),
         (0, 1, 2, 3, 5, 4),
+        np.array([[0,0,0], [2,0,0], [0,2,0], [1,0,0], [0,1,0], [1,1,0]], dtype=int),  # fmt: skip
         np.array([[0,0,0], [1,0,0], [0,1,0], [1/2,0,0], [0,1/2,0], [1/2,1/2,0]], dtype=float),  # fmt: skip
         sf_triangle_quadratic,
         dsf_triangle_quadratic,
@@ -96,6 +104,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         3,
         (0, 1, 3, 2),
         (0, 1, 3, 2),
+        np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=int),
         np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=float),
         sf_quadrilateral_linear,
         dsf_quadrilateral_linear,
@@ -107,6 +116,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         21,
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
+        np.array([[0,0,0],[2,0,0],[0,2,0],[2,2,0],[1,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0]], dtype=float),  # fmt: skip
         np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[1/2,0,0],[0,1/2,0],[1/2,1/2,0],[1,1/2,0],[1/2,1,0]], dtype=float),  # fmt: skip
         sf_quadrilateral_quadratic,
         dsf_quadrilateral_quadratic,
@@ -118,6 +128,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         5,
         (0, 1, 2, 3),
         (0, 1, 2, 3),
+        np.array([0], dtype=int),  # fmt: skip
         np.array([0], dtype=float),  # fmt: skip
         sf_tetrahedron_linear,
         dsf_tetrahedron_linear,
@@ -129,6 +140,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         22,
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
+        np.array([0], dtype=int),  # fmt: skip
         np.array([0], dtype=float),  # fmt: skip
         sf_tetrahedron_quadratic,
         dsf_tetrahedron_quadratic,
@@ -140,6 +152,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         9,
         (0, 1, 5, 4, 2, 3, 7, 6),
         (0, 1, 5, 4, 2, 3, 7, 6),
+        np.array([0], dtype=int),  # fmt: skip
         np.array([0], dtype=float),  # fmt: skip
         sf_hexahedron_linear,
         dsf_hexahedron_linear,
@@ -151,6 +164,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         28,
         (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
         (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
+        np.array([0], dtype=int),  # fmt: skip
         np.array([0], dtype=float),  # fmt: skip
         sf_hexahedron_quadratic,
         dsf_hexahedron_quadratic,
