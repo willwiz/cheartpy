@@ -1,22 +1,15 @@
-__all__ = ["create_mesh"]
+__all__ = ["create_hex_mesh"]
 import numpy as np
 from ...var_types import *
-from ...cheart_mesh import (
-    CheartMesh,
-    VtkType,
-    CheartMeshSpace,
-    CheartMeshTopology,
-    CheartMeshPatch,
-    CheartMeshBoundary,
-)
+from ...cheart_mesh import *
 
 
 def _create_square_nodal_index(nx: int, ny: int, nz: int):
     index = np.zeros((nx + 1, ny + 1, nz + 1), dtype=int)
     nn = 0
-    for i in range(nx + 1):
+    for k in range(nz + 1):
         for j in range(ny + 1):
-            for k in range(nz + 1):
+            for i in range(nx + 1):
                 index[i, j, k] = nn
                 nn = nn + 1
     return index
@@ -25,9 +18,9 @@ def _create_square_nodal_index(nx: int, ny: int, nz: int):
 def _create_square_element_index(nx: int, ny: int, nz: int):
     index = np.zeros((nx, ny, nz), dtype=int)
     ne = 0
-    for i in range(nx):
+    for k in range(nz):
         for j in range(ny):
-            for k in range(nz):
+            for i in range(nx):
                 index[i, j, k] = ne
                 ne = ne + 1
     return index
@@ -41,9 +34,9 @@ def _create_space(shape: V3[float], shift: V3[float], dim: V3[int], index: MatV[
     y_nodes = np.linspace(y0, Ly + y0, ny + 1)
     z_nodes = np.linspace(z0, Lz + z0, nz + 1)
     nodes = np.zeros(((nx + 1) * (ny + 1) * (nz + 1), 3), dtype=float)
-    for i, x in enumerate(x_nodes):
+    for k, z in enumerate(z_nodes):
         for j, y in enumerate(y_nodes):
-            for k, z in enumerate(z_nodes):
+            for i, x in enumerate(x_nodes):
                 nodes[index[i, j, k]] = [x, y, z]
     return CheartMeshSpace(len(nodes), nodes)
 
@@ -52,9 +45,9 @@ def _create_topology(
     nx: int, ny: int, nz: int, node_index: MatV[i32], elem_index: MatV[i32]
 ):
     elems = np.zeros((nx * ny * nz, 8), dtype=int)
-    for i in range(nx):
+    for k in range(nz):
         for j in range(ny):
-            for k in range(nz):
+            for i in range(nx):
                 elems[elem_index[i, j, k]] = [
                     node_index[i + l, j + m, k + n]
                     for l, m, n in VtkType.HexahedronLinear.ref_order
@@ -64,7 +57,7 @@ def _create_topology(
 
 def _create_boundary_side_x(
     tag: int,
-    ix: int,
+    ix: tuple[int, int],
     iy: Vec[i32],
     iz: Vec[i32],
     node_index: MatV[i32],
@@ -73,20 +66,20 @@ def _create_boundary_side_x(
     ny, nz = len(iy), len(iz)
     patch = np.zeros((ny * nz, 4), dtype=int)
     elems = np.zeros((ny * nz,), dtype=int)
-    for j in iy:
-        for k in iz:
-            patch[nz * j + k] = [
-                node_index[ix, j + m, k + n]
+    for k in iz:
+        for j in iy:
+            patch[ny * k + j] = [
+                node_index[ix[1], j + m, k + n]
                 for m, n, _ in VtkType.QuadrilateralLinear.ref_order
             ]
-            elems[nz * j + k] = elem_index[min(ix, len(elem_index) - 1), j, k]
+            elems[ny * k + j] = elem_index[ix[0], j, k]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
 def _create_boundary_side_y(
     tag: int,
     ix: Vec[i32],
-    iy: int,
+    iy: tuple[int, int],
     iz: Vec[i32],
     node_index: MatV[i32],
     elem_index: MatV[i32],
@@ -94,13 +87,13 @@ def _create_boundary_side_y(
     nx, nz = len(ix), len(iz)
     patch = np.zeros((nx * nz, 4), dtype=int)
     elems = np.zeros((nx * nz,), dtype=int)
-    for i in ix:
-        for k in iz:
-            patch[nz * i + k] = [
-                node_index[i + m, iy, k + n]
+    for k in iz:
+        for i in ix:
+            patch[nx * k + i] = [
+                node_index[i + m, iy[1], k + n]
                 for m, n, _ in VtkType.QuadrilateralLinear.ref_order
             ]
-            elems[nz * i + k] = elem_index[i, min(iy, len(elem_index) - 1), k]
+            elems[nx * k + i] = elem_index[i, iy[0], k]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
@@ -108,37 +101,40 @@ def _create_boundary_side_z(
     tag: int,
     ix: Vec[i32],
     iy: Vec[i32],
-    iz: int,
+    iz: tuple[int, int],
     node_index: MatV[i32],
     elem_index: MatV[i32],
 ):
     nx, ny = len(ix), len(iy)
     patch = np.zeros((nx * ny, 4), dtype=int)
     elems = np.zeros((nx * ny,), dtype=int)
-    for i in ix:
-        for j in iy:
-            patch[ny * i + j] = [
-                node_index[i + m, j + n, iz]
+    for j in iy:
+        for i in ix:
+            patch[nx * j + i] = [
+                node_index[i + m, j + n, iz[1]]
                 for m, n, _ in VtkType.QuadrilateralLinear.ref_order
             ]
-            elems[ny * i + j] = elem_index[i, j, min(iz, len(elem_index) - 1)]
+            elems[nx * j + i] = elem_index[i, j, iz[0]]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
 def _create_boundary_side(
     tag: int,
-    ix: Vec[i32] | int,
-    iy: Vec[i32] | int,
-    iz: Vec[i32] | int,
+    ix: Vec[i32] | tuple[int, int],
+    iy: Vec[i32] | tuple[int, int],
+    iz: Vec[i32] | tuple[int, int],
     node_index: MatV[i32],
     elem_index: MatV[i32],
 ):
+    """
+    if ix is tuple, then it is the pair of (elem, node) of the side
+    """
     match ix, iy, iz:
-        case int(), np.ndarray(), np.ndarray():
+        case tuple(), np.ndarray(), np.ndarray():
             return _create_boundary_side_x(tag, ix, iy, iz, node_index, elem_index)
-        case np.ndarray(), int(), np.ndarray():
+        case np.ndarray(), tuple(), np.ndarray():
             return _create_boundary_side_y(tag, ix, iy, iz, node_index, elem_index)
-        case np.ndarray(), np.ndarray(), int():
+        case np.ndarray(), np.ndarray(), tuple():
             return _create_boundary_side_z(tag, ix, iy, iz, node_index, elem_index)
         case _:
             raise ValueError(f"Combination of {type(ix)}, {type(iy)} is not allowed")
@@ -154,17 +150,17 @@ def _create_boundary(
     iy = np.arange(ny, dtype=int)
     iz = np.arange(nz, dtype=int)
     bnds: dict[str | int, CheartMeshPatch] = {
-        1: _create_boundary_side(1, 0, iy, iz, node_index, elem_index),
-        2: _create_boundary_side(2, nx, iy, iz, node_index, elem_index),
-        3: _create_boundary_side(3, ix, 0, iz, node_index, elem_index),
-        4: _create_boundary_side(4, ix, ny, iz, node_index, elem_index),
-        5: _create_boundary_side(5, ix, iy, 0, node_index, elem_index),
-        6: _create_boundary_side(6, ix, iy, nz, node_index, elem_index),
+        1: _create_boundary_side(1, (0, 0), iy, iz, node_index, elem_index),
+        2: _create_boundary_side(2, (nx - 1, nx), iy, iz, node_index, elem_index),
+        3: _create_boundary_side(3, ix, (0, 0), iz, node_index, elem_index),
+        4: _create_boundary_side(4, ix, (ny - 1, ny), iz, node_index, elem_index),
+        5: _create_boundary_side(5, ix, iy, (0, 0), node_index, elem_index),
+        6: _create_boundary_side(6, ix, iy, (nz - 1, nz), node_index, elem_index),
     }
     return CheartMeshBoundary(len(bnds), bnds, VtkType.QuadrilateralLinear)
 
 
-def create_mesh(
+def create_hex_mesh(
     dim: V3[int],
     shape: V3[float] = (1.0, 1.0, 1.0),
     shift: V3[float] = (0.0, 0.0, 0.0),

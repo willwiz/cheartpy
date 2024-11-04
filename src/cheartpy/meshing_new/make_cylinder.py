@@ -27,29 +27,17 @@ parser.add_argument("zn", type=int, help="number of elements in z")
 
 
 def main(args: argparse.Namespace):
-    if args.make_quad:
-        mesh, quad = create_cylinder_mesh(
-            args.rin,
-            args.rout,
-            args.l,
-            args.b,
-            (args.xn, args.yn, args.zn),
-            args.axis,
-            True,
-        )
-        mesh.save(args.prefix)
-        quad.save(args.prefix + "_quad")
-    else:
-        mesh = create_cylinder_mesh(
-            args.rin,
-            args.rout,
-            args.l,
-            args.b,
-            (args.xn, args.yn, args.zn),
-            args.axis,
-            False,
-        )
-        mesh.save(args.prefix)
+    mesh, quad = create_cylinder_mesh(
+        args.rin,
+        args.rout,
+        args.l,
+        args.b,
+        (args.xn, args.yn, args.zn),
+        args.axis,
+        args.make_quad,
+    )
+    mesh.save(args.prefix)
+    quad.save(args.prefix + "_quad") if quad else ...
 
 
 # ----  Here beging the main program  ---------------------------------------

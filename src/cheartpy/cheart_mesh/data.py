@@ -67,10 +67,11 @@ class CheartMesh:
     def save(self, prefix: str, forced: bool = False) -> None:
         if check_for_meshes("prefix") and not forced:
             return
-        self.space.save(f"{prefix}_FE.X")
-        self.top.save(f"{prefix}_FE.T")
+        prefix = fix_suffix(prefix)
+        self.space.save(f"{prefix}X")
+        self.top.save(f"{prefix}T")
         if self.bnd is not None:
-            self.bnd.save(f"{prefix}_FE.B")
+            self.bnd.save(f"{prefix}B")
 
 
 def create_bnd_surf(v: Mat[i32], tag: int) -> CheartMeshPatch:

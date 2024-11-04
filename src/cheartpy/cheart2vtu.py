@@ -1,3 +1,4 @@
+from typing import Sequence
 from cheartpy.cheart2vtu_core.core import (
     export_boundary,
     init_variable_cache,
@@ -12,7 +13,7 @@ from cheartpy.cheart2vtu_core.print_headers import (
 )
 
 
-def main_cli(cmd_args: list[str | int | float] | None = None) -> None:
+def main_cli(cmd_args: Sequence[str | int | float] | None = None) -> None:
     print_header()
     inp, indexer = parse_cmdline_args(cmd_args)
     print_index_info(indexer)

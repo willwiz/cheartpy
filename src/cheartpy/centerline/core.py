@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from typing import cast
 from collections import defaultdict
@@ -7,7 +8,10 @@ from ..cheart_core.interface import _Variable, _Expression
 from ..cheart_core.implementation import Expression
 from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
-from ..meshing.cheart.surface import compute_normal_surface_at_center
+from ..meshing.cheart.surface import (
+    compute_normal_surface_at_center,
+    compute_mesh_normal_at_nodes,
+)
 from ..var_types import *
 from ..tools.basiclogging import *
 
@@ -73,7 +77,7 @@ def create_cl_topology(
     ne: int,
     bc: tuple[float, float] = (0.0, 1.0),
     prefix: str = "CL",
-    LOG: BasicLogger | NullLogger = NullLogger(),
+    LOG: _Logger = NullLogger(),
 ) -> CLTopology:
     nn = ne + 1
     nodes = np.linspace(*bc, nn, dtype=float)
@@ -132,7 +136,7 @@ def create_cheartmesh_in_clrange(
     bnd_map: PatchNode2ElemMap,
     domain: tuple[float, float] | Vec[f64],
     normal_check: Mat[f64] | None = None,
-    LOG: BasicLogger | NullLogger = NullLogger(),
+    LOG: _Logger = NullLogger(),
 ) -> CheartMesh:
     surf_type = VTK_ELEM[mesh.top.TYPE.surf]
     if surf_type is None:
@@ -154,6 +158,12 @@ def create_cheartmesh_in_clrange(
     return CheartMesh(space, top, None)
 
 
+class CLNodalData(TypedDict):
+    file: str
+    mesh: CheartMesh
+    n: Mat[f64]
+
+
 def create_cheart_cl_nodal_meshes(
     mesh_dir: str,
     mesh: CheartMesh,
@@ -161,16 +171,23 @@ def create_cheart_cl_nodal_meshes(
     cl_top: CLTopology,
     inner_surf_id: int = 3,
     normal_check: Mat[f64] | None = None,
-    LOG: BasicLogger | NullLogger = NullLogger(),
-) -> Mapping[str, CheartMesh]:
+    LOG: _Logger = NullLogger(),
+) -> Mapping[int, CLNodalData]:
     if mesh.bnd is None:
         raise ValueError("Mesh has not boundary")
     surf = mesh.bnd.v[inner_surf_id]
     bnd_map = create_boundarynode_map(cl, surf)
     tops = {
-        path(mesh_dir, cl_top.node_prefix[k]): create_cheartmesh_in_clrange(
+        k: create_cheartmesh_in_clrange(
             mesh, surf, bnd_map, (l, r), normal_check=normal_check, LOG=LOG
         )
         for k, (l, c, r) in enumerate(cl_top.support)
     }
-    return tops
+    return {
+        k: {
+            "file": path(mesh_dir, v),
+            "mesh": tops[k],
+            "n": compute_mesh_normal_at_nodes(tops[k], LOG),
+        }
+        for k, v in cl_top.node_prefix.items()
+    }

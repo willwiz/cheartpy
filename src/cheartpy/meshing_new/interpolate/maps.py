@@ -7,7 +7,7 @@ __all__ = [
     "L2QMAP",
     "L2QMAPDICT",
 ]
-from typing import Collection, Final, Literal, Mapping, Sequence
+from typing import Collection, Final, Sequence
 
 from ...cheart_mesh.elements import VtkType
 

@@ -1,4 +1,4 @@
-__all__ = ["create_mesh"]
+__all__ = ["create_square_mesh"]
 import numpy as np
 from ...var_types import *
 from ...cheart_mesh import *
@@ -54,31 +54,39 @@ def _create_topology(nx: int, ny: int, node_index: Mat[i32], elem_index: Mat[i32
 
 
 def _create_boundary_side_x(
-    tag: int, ix: int, iy: Vec[i32], node_index: Mat[i32], elem_index: Mat[i32]
+    tag: int,
+    ix: tuple[int, int],
+    iy: Vec[i32],
+    node_index: Mat[i32],
+    elem_index: Mat[i32],
 ):
     patch = np.zeros((len(iy), 2), dtype=int)
     elems = np.zeros((len(iy),), dtype=int)
     for j in iy:
-        patch[j] = [node_index[ix, j + m] for m, *_ in VtkType.LineLinear.ref_order]
-        elems[j] = elem_index[min(ix, len(elem_index) - 1), j]
+        patch[j] = [node_index[ix[1], j + m] for m, *_ in VtkType.LineLinear.ref_order]
+        elems[j] = elem_index[ix[0], j]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
 def _create_boundary_side_y(
-    tag: int, ix: Vec[i32], iy: int, node_index: Mat[i32], elem_index: Mat[i32]
+    tag: int,
+    ix: Vec[i32],
+    iy: tuple[int, int],
+    node_index: Mat[i32],
+    elem_index: Mat[i32],
 ):
     patch = np.zeros((len(ix), 2), dtype=int)
     elems = np.zeros((len(ix),), dtype=int)
     for i in ix:
-        patch[i] = [node_index[i + m, iy] for m, *_ in VtkType.LineLinear.ref_order]
-        elems[i] = elem_index[i, min(iy, len(elem_index) - 1)]
+        patch[i] = [node_index[i + m, iy[1]] for m, *_ in VtkType.LineLinear.ref_order]
+        elems[i] = elem_index[i, iy[0]]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
 def _create_boundary_side(
     tag: int,
-    ix: Vec[i32] | int,
-    iy: Vec[i32] | int,
+    ix: Vec[i32] | tuple[int, int],
+    iy: Vec[i32] | tuple[int, int],
     node_index: Mat[i32],
     elem_index: Mat[i32],
 ):
@@ -95,15 +103,15 @@ def _create_boundary(nx: int, ny: int, node_index: Mat[i32], elem_index: Mat[i32
     ix = np.arange(nx, dtype=int)
     iy = np.arange(ny, dtype=int)
     bnds: dict[str | int, CheartMeshPatch] = {
-        1: _create_boundary_side(1, 0, iy, node_index, elem_index),
-        2: _create_boundary_side(2, nx, iy, node_index, elem_index),
-        3: _create_boundary_side(3, ix, 0, node_index, elem_index),
-        4: _create_boundary_side(4, ix, ny, node_index, elem_index),
+        1: _create_boundary_side(1, (0, 0), iy, node_index, elem_index),
+        2: _create_boundary_side(2, (nx - 1, nx), iy, node_index, elem_index),
+        3: _create_boundary_side(3, ix, (0, 0), node_index, elem_index),
+        4: _create_boundary_side(4, ix, (ny - 1, ny), node_index, elem_index),
     }
     return CheartMeshBoundary(len(bnds), bnds, VtkType.LineLinear)
 
 
-def create_mesh(
+def create_square_mesh(
     dim: V2[int], shape: V2[float] = (1.0, 1.0), shift: V2[float] = (0.0, 0.0)
 ):
     node_index = _create_square_nodal_index(*dim)

@@ -1,4 +1,5 @@
 import os
+from typing import Sequence
 import meshio
 import numpy as np
 from concurrent import futures
@@ -40,7 +41,7 @@ def compress_vtu(name: str, verbose: bool = False) -> None:
 
 
 def parse_cmdline_args(
-    cmd_args: list[str | float | int] | None = None,
+    cmd_args: Sequence[str | float | int] | None = None,
 ) -> tuple[ProgramArgs, IndexerList]:
     err: bool = False
     args = get_cmdline_args([str(v) for v in cmd_args] if cmd_args else None)
@@ -386,9 +387,6 @@ def run_exports_in_parallel(
         for future in futures.as_completed(jobs):
             try:
                 future.result()
-                if bart:
-                    bart.next()
-                else:
-                    print(f"<<< Completed {jobs[future]}")
+                bart.next() if bart else print(f"<<< Completed {jobs[future]}")
             except Exception as e:
                 raise e

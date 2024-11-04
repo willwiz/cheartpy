@@ -80,10 +80,9 @@ def create_radial_problems(
     disp: _Variable,
     motion: _Variable,
     lms: Mapping[int, _Variable],
-    cl_pos_expr: _Expression,
-    cl_basis: CLBasisExpressions,
     cl_part: CLTopology,
-    dirichlet_bc: bool = True,
+    cl_basis: CLBasisExpressions,
+    cl_pos_expr: _Expression,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
     r_disp_expr, r_motion_expr = create_radial_len_expr(

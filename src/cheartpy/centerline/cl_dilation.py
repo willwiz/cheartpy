@@ -52,10 +52,9 @@ def create_dilation_problems(
     disp: _Variable,
     motion: _Variable,
     lms: Mapping[int, _Variable],
-    cl_pos_expr: _Expression,
-    cl_basis: CLBasisExpressions,
     cl_part: CLTopology,
-    dirichlet_bc: bool = True,
+    cl_basis: CLBasisExpressions,
+    cl_pos_expr: _Expression,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
     p_norm_expr, m_norm_expr = create_outward_normal_expr(space, cl_pos_expr)
@@ -73,7 +72,4 @@ def create_dilation_problems(
         )
         for i, s in cl_part.node_prefix.items()
     }
-    # if dirichlet_bc:
-    #     keys = sorted(res.keys())
-    #     res = {k: res[k] for k in keys[1:-1]}
     return res

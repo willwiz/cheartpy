@@ -10,7 +10,7 @@ def path(*v: str) -> str:
     return os.path.join(*v)
 
 
-def clear_dir(folder: str, LOG: _Logger = NullLogger()) -> None:
+def Clear_Dir(folder: str, LOG: _Logger = NullLogger()) -> None:
     """
     Remove all files in directory
     """

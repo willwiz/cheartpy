@@ -5,10 +5,7 @@ from typing import Literal, Mapping, overload
 from ...cheart_mesh import *
 from ...var_types import *
 from ..hex_core import create_hex_mesh
-from ..interpolate import (
-    create_quad_mesh_from_lin,
-    create_quad_mesh_from_lin_cylindrical,
-)
+from ..interpolate import create_quad_mesh_from_lin_cylindrical
 
 
 def gen_end_node_mapping(
@@ -71,10 +68,8 @@ def merge_circ_ends(cube: CheartMesh):
     new_t = update_elems(cube.top.v, node_map)
     new_b: dict[int | str, CheartMeshPatch] = {
         n: update_boundary(cube.bnd.v[k], node_map, n)
-        for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
+        for n, k in {1: 5, 2: 6, 3: 1, 4: 2}.items()
     }
-    for k in [1, 2, 3, 4]:
-        new_b[k].tag = k
     mesh = CheartMesh(
         cube.space,
         CheartMeshTopology(len(new_t), new_t, VtkType.HexahedronLinear),
@@ -122,7 +117,7 @@ def create_cylinder_mesh(
     base: float,
     dim: V3[int],
     axis: Literal["x", "y", "z"],
-) -> CheartMesh: ...
+) -> tuple[CheartMesh, None]: ...
 @overload
 def create_cylinder_mesh(
     r_in: float,
@@ -132,7 +127,7 @@ def create_cylinder_mesh(
     dim: V3[int],
     axis: Literal["x", "y", "z"],
     make_quad: Literal[False],
-) -> CheartMesh: ...
+) -> tuple[CheartMesh, None]: ...
 @overload
 def create_cylinder_mesh(
     r_in: float,
@@ -164,4 +159,4 @@ def create_cylinder_mesh(
         quad = cylindrical_to_cartesian(quad)
         quad = rotate_axis(quad, CartesianDirection[axis])
         return g, quad
-    return g
+    return g, None
