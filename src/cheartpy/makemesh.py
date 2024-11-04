@@ -9,6 +9,7 @@ from .meshing.make_nonlinear_timesteps import (
     parser as time_parser,
     main_cli as time_main,
 )
+from .meshing_new.make_block import create_hex_mesh
 
 parser = argparse.ArgumentParser("mesh")
 subpar = parser.add_subparsers()

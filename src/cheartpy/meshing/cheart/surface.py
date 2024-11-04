@@ -1,3 +1,4 @@
+from collections import defaultdict
 import numpy as np
 from scipy.linalg import lstsq
 from ...var_types import *
@@ -11,7 +12,7 @@ def compute_normal_patch(
     elem: Vec[i32],
     ref_space: Mat[f64],
     LOG: _Logger = NullLogger(),
-):
+) -> Vec[f64]:
     nodes = space[elem] - ref_space
     F = np.array(
         [[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)]
@@ -54,3 +55,23 @@ def compute_normal_surface_at_nodes(
         for k, v in interp_basis.items()
     }
     return {k: normalize_by_row(v) for k, v in normals.items()}
+
+
+def compute_mesh_normal_at_nodes(
+    mesh: CheartMesh, elem: Vec[i32], LOG: _Logger = NullLogger()
+):
+    KIND = mesh.top.TYPE
+    LOG.debug(f"{KIND=}")
+    interp_basis = {k: KIND.shape_dfuncs(v) for k, v in enumerate(KIND.ref_nodes)}
+    node_normal: dict[int, list[Vec[f64]]] = defaultdict(list)
+    for elem in mesh.top.v:
+        for i in range(len(interp_basis)):
+            node_normal[elem[i]].append(
+                compute_normal_patch(
+                    interp_basis[i], mesh.space.v, elem, KIND.ref_nodes
+                )
+            )
+    normals = np.zeros_like(mesh.space.v)
+    for k, v in node_normal.items():
+        normals[k] = sum(v) / len(v)
+    return normals

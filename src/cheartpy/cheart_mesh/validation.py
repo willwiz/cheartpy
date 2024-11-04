@@ -8,9 +8,9 @@ from .data import *
 def create_node_map(elems: Mat[i32]) -> Mapping[int, int]:
     node_map: dict[int, int] = dict()
     nn = 0
-    for elem in np.unique(elems):
-        for node in elem:
-            node_map[node] = nn
+    for node in np.unique(elems):
+        node_map[node] = nn
+        nn = nn + 1
     return node_map
 
 

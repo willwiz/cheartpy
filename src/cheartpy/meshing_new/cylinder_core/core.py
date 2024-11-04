@@ -1,6 +1,7 @@
-from typing import Literal, Mapping
-
+__all__ = ["create_cylinder_mesh"]
+import enum
 import numpy as np
+from typing import Literal, Mapping
 from ...cheart_mesh import *
 from ...var_types import *
 from ..hex_core import create_hex_mesh
@@ -34,8 +35,8 @@ def convert_cartesian_space_to_cylindrical(
 
 def update_elems(elems: Mat[i32], map: Mapping[int, int]):
     new_elems = elems.copy()
-    for i, row in elems:
-        for j, v in row:
+    for i, row in enumerate(elems):
+        for j, v in enumerate(row):
             if v in map:
                 new_elems[i, j] = map[v]
     return new_elems
@@ -43,35 +44,70 @@ def update_elems(elems: Mat[i32], map: Mapping[int, int]):
 
 def update_boundary(patch: CheartMeshPatch, map: Mapping[int, int], tag: int):
     surf = patch.v.copy()
-    for i, row in surf:
-        for j, v in row:
+    for i, row in enumerate(surf):
+        for j, v in enumerate(row):
             if v in map:
                 surf[i, j] = map[v]
     return CheartMeshPatch(tag, patch.n, patch.k, surf)
 
 
-def create_cylinder_geometry(
+def convert_to_cylindrical(
     cube: CheartMesh, r_in: float, r_out: float, length: float, base: float
 ):
-    if cube.bnd is None:
-        raise
-    node_map = gen_end_node_mapping(cube.bnd.v[3], cube.bnd.v[4])
     new_x = convert_cartesian_space_to_cylindrical(
         cube.space.v, r_in, r_out, length, base
     )
+    return CheartMesh(CheartMeshSpace(len(new_x), new_x), cube.top, cube.bnd)
+
+
+def merge_circ_ends(cube: CheartMesh):
+    if cube.bnd is None:
+        raise
+    node_map = gen_end_node_mapping(cube.bnd.v[3], cube.bnd.v[4])
     new_t = update_elems(cube.top.v, node_map)
     new_b: dict[int | str, CheartMeshPatch] = {
         n: update_boundary(cube.bnd.v[k], node_map, n)
-        for n, k in {1: 1, 2: 2, 3: 5, 4: 6}.items()
+        for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
     }
     for k in [1, 2, 3, 4]:
         new_b[k].tag = k
     mesh = CheartMesh(
-        CheartMeshSpace(len(new_x), new_x),
+        cube.space,
         CheartMeshTopology(len(new_t), new_t, VtkType.HexahedronLinear),
         CheartMeshBoundary(len(new_b), new_b, VtkType.QuadrilateralLinear),
     )
     return remove_dangling_nodes(mesh)
+
+
+def cylindrical_to_cartesian(g: CheartMesh) -> CheartMesh:
+    cart_space = np.zeros_like(g.space.v)
+    radius = g.space.v[:, 0]
+    theta = g.space.v[:, 1]
+    cart_space[:, 0] = radius * np.cos(theta)
+    cart_space[:, 1] = radius * np.sin(theta)
+    cart_space[:, 2] = g.space.v[:, 2]
+    return CheartMesh(CheartMeshSpace(g.space.n, cart_space), g.top, g.bnd)
+
+
+class CartesianDirection(enum.IntEnum):
+    x = 1
+    y = 2
+    z = 3
+
+
+def rotate_axis(g: CheartMesh, orientation: CartesianDirection) -> CheartMesh:
+    match orientation:
+        case CartesianDirection.x:
+            mat = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]]) @ np.array(
+                [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]
+            )
+        case CartesianDirection.y:
+            mat = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]) @ np.array(
+                [[1, 0, 0], [0, 0, 1], [0, -1, 0]]
+            )
+        case CartesianDirection.z:
+            return g
+    return CheartMesh(CheartMeshSpace(g.space.n, g.space.v @ mat.T), g.top, g.bnd)
 
 
 def create_cylinder_mesh(
@@ -81,7 +117,10 @@ def create_cylinder_mesh(
     base: float,
     dim: V3[int],
     axis: Literal["x", "y", "z"],
-    make_quad: bool = False,
 ):
     cube = create_hex_mesh(dim)
-    g = create_cylinder_geometry(cube, r_in, r_out, length, base)
+    g = convert_to_cylindrical(cube, r_in, r_out, length, base)
+    g = merge_circ_ends(g)
+    g = cylindrical_to_cartesian(g)
+    g = rotate_axis(g, CartesianDirection[axis])
+    return g

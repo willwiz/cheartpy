@@ -12,8 +12,8 @@ from ..meshing.core.interpolation_core import (
 from ..cheart_mesh.io import CHRead_d, CHWrite_d_utf
 from ..tools.progress_bar import ProgressBar
 from ..var_types import Mat, f64
-from .interpolation_core.parsing import interp_parser
-from .interpolation_core.interpolation import make_map
+from .interpolate.parsing import interp_parser
+from .interpolate.interpolation import make_map
 import argparse
 
 

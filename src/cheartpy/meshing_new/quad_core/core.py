@@ -60,7 +60,7 @@ def _create_boundary_side_x(
     elems = np.zeros((len(iy),), dtype=int)
     for j in iy:
         patch[j] = [node_index[ix, j + m] for m, *_ in VtkType.LineLinear.ref_order]
-        elems[j] = elem_index[ix, j]
+        elems[j] = elem_index[min(ix, len(elem_index) - 1), j]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
@@ -71,7 +71,7 @@ def _create_boundary_side_y(
     elems = np.zeros((len(ix),), dtype=int)
     for i in ix:
         patch[i] = [node_index[i + m, iy] for m, *_ in VtkType.LineLinear.ref_order]
-        elems[i] = elem_index[i, iy]
+        elems[i] = elem_index[i, min(iy, len(elem_index) - 1)]
     return CheartMeshPatch(tag, len(patch), elems, patch)
 
 
@@ -92,8 +92,8 @@ def _create_boundary_side(
 
 
 def _create_boundary(nx: int, ny: int, node_index: Mat[i32], elem_index: Mat[i32]):
-    ix = np.arange(nx + 1, dtype=int)
-    iy = np.arange(ny + 1, dtype=int)
+    ix = np.arange(nx, dtype=int)
+    iy = np.arange(ny, dtype=int)
     bnds: dict[str | int, CheartMeshPatch] = {
         1: _create_boundary_side(1, 0, iy, node_index, elem_index),
         2: _create_boundary_side(2, nx, iy, node_index, elem_index),
