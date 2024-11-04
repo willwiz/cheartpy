@@ -68,7 +68,7 @@ def merge_circ_ends(cube: CheartMesh):
     new_t = update_elems(cube.top.v, node_map)
     new_b: dict[int | str, CheartMeshPatch] = {
         n: update_boundary(cube.bnd.v[k], node_map, n)
-        for n, k in {1: 5, 2: 6, 3: 1, 4: 2}.items()
+        for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
     }
     mesh = CheartMesh(
         cube.space,

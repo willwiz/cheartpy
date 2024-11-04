@@ -112,7 +112,7 @@ def CHWrite_d_utf(file: str, data: Arr[tuple[int, int], f64]) -> None:
         f.write("{:12d}\n".format(dim[1]))
         for i in data:
             for j in i:
-                f.write("{:>24.12E}".format(j))
+                f.write("{:>24.16}".format(j))
             f.write("\n")
     return
 

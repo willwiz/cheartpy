@@ -11,7 +11,7 @@ def gen_quadtop_node_sets(map: L2QMAP, top: Vec[i32]) -> Mapping[int, frozenset[
 
 
 def create_quad_top_and_map(
-    t: CheartMeshTopology,
+    t: CheartMeshTopology, nn: int
 ) -> tuple[CheartMeshTopology, Mapping[frozenset[int], int]]:
     L2Q = L2QMAPDICT.get(t.TYPE)
     if L2Q is None:
@@ -19,9 +19,10 @@ def create_quad_top_and_map(
     QUAD_TYPE = L2QTYPEDICT.get(t.TYPE)
     if QUAD_TYPE is None:
         raise ValueError(f"topology to be interpolated must be linear")
-    quad_map: Mapping[frozenset[int], int] = dict()
+    # quad_map: Mapping[frozenset[int], int] = dict()
+    # nn = 0
+    quad_map: Mapping[frozenset[int], int] = {frozenset([i]): i for i in range(nn)}
     new_top = np.zeros((t.n, len(QUAD_TYPE.connectivity)), dtype=int)
-    nn = 0
     for i, elem in enumerate(t.v):
         for j, v in gen_quadtop_node_sets(L2Q, elem).items():
             if v not in quad_map:
@@ -96,14 +97,14 @@ def create_quad_space_cylindrical(
 
 
 def create_quad_mesh_from_lin(mesh: CheartMesh):
-    top, quad_map = create_quad_top_and_map(mesh.top)
+    top, quad_map = create_quad_top_and_map(mesh.top, mesh.space.n)
     boundary = create_quad_boundary(quad_map, mesh.bnd) if mesh.bnd else None
     space = create_quad_space_cartesian(quad_map, mesh.space)
     return CheartMesh(space, top, boundary)
 
 
 def create_quad_mesh_from_lin_cylindrical(mesh: CheartMesh):
-    top, quad_map = create_quad_top_and_map(mesh.top)
+    top, quad_map = create_quad_top_and_map(mesh.top, mesh.space.n)
     boundary = create_quad_boundary(quad_map, mesh.bnd) if mesh.bnd else None
     space = create_quad_space_cylindrical(quad_map, mesh.space)
     return CheartMesh(space, top, boundary)
