@@ -18,6 +18,7 @@ parser.add_argument(
     choices={"x", "y", "z"},
     help="Which cartesian axis should the central axis be in.",
 )
+parser.add_argument("--make-quad", action="store_true", help="auto make a quad mesh")
 parser.add_argument("rin", type=int, help="number of elements in r")
 parser.add_argument("rout", type=int, help="number of elements in r")
 parser.add_argument("rn", type=int, help="number of elements in r")
@@ -26,10 +27,29 @@ parser.add_argument("zn", type=int, help="number of elements in z")
 
 
 def main(args: argparse.Namespace):
-    mesh = create_cylinder_mesh(
-        args.rin, args.rout, args.l, args.b, (args.xn, args.yn, args.zn), args.axis
-    )
-    mesh.save(args.prefix)
+    if args.make_quad:
+        mesh, quad = create_cylinder_mesh(
+            args.rin,
+            args.rout,
+            args.l,
+            args.b,
+            (args.xn, args.yn, args.zn),
+            args.axis,
+            True,
+        )
+        mesh.save(args.prefix)
+        quad.save(args.prefix + "_quad")
+    else:
+        mesh = create_cylinder_mesh(
+            args.rin,
+            args.rout,
+            args.l,
+            args.b,
+            (args.xn, args.yn, args.zn),
+            args.axis,
+            False,
+        )
+        mesh.save(args.prefix)
 
 
 # ----  Here beging the main program  ---------------------------------------
