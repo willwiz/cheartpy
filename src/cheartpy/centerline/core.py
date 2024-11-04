@@ -162,7 +162,7 @@ def create_cheart_cl_nodal_meshes(
     inner_surf_id: int = 3,
     normal_check: Mat[f64] | None = None,
     LOG: BasicLogger | NullLogger = NullLogger(),
-):
+) -> Mapping[str, CheartMesh]:
     if mesh.bnd is None:
         raise ValueError("Mesh has not boundary")
     surf = mesh.bnd.v[inner_surf_id]

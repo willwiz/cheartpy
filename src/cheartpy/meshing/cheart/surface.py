@@ -74,4 +74,8 @@ def compute_mesh_normal_at_nodes(
     normals = np.zeros_like(mesh.space.v)
     for k, v in node_normal.items():
         normals[k] = sum(v) / len(v)
-    return normals
+    center = mesh.space.v.mean(axis=0)
+    disp = mesh.space.v - center[None, :]
+    outer = np.einsum("i...,i...", normals, disp)
+    normals = normals * np.sign(outer)
+    return normalize_by_row(normals)
