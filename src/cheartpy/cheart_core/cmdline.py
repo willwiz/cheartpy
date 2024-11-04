@@ -1,7 +1,7 @@
 import subprocess as sp
 
 
-def cheart_prep(pfile: str):
+def run_prep(pfile: str):
     sp.run(["cheartsolver.out", pfile, "--prep"])
 
 
