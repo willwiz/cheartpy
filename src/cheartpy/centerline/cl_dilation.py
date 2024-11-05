@@ -52,6 +52,7 @@ def create_dilation_problems(
     disp: _Variable,
     motion: _Variable,
     lms: Mapping[int, _Variable],
+    cl_normal: Mapping[int, _Variable],
     cl_part: CLTopology,
     cl_basis: CLBasisExpressions,
     cl_pos_expr: _Expression,

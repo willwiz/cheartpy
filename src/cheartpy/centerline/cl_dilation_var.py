@@ -1,4 +1,4 @@
-from typing import Literal, Mapping
+from typing import Literal, Mapping, Sequence
 from .types import CLTopology, CLBasisExpressions
 from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
@@ -18,7 +18,7 @@ def create_outward_normal_expr(
     return {"p": p_expr, "m": m_expr}
 
 
-def create_dilation_problem(
+def create_dilation_var_problem(
     name: str,
     top: _CheartTopology,
     space: _Variable,
@@ -27,16 +27,20 @@ def create_dilation_problem(
     lm: _Variable,
     zeros: _Expression,
     normal: Mapping[Literal["p", "m"], _Expression],
+    neighbours: Sequence[_Variable],
 ) -> FSCouplingProblem:
+    zero_1_expr = Expression(f"zero_1_expr", [0])
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(lm, FSExpr(disp, normal["p"]), FSExpr(motion, normal["m"]))
     fsbc.add_term(disp, FSExpr(lm, zeros))
-    fsbc.add_expr_deps(zeros, normal["p"], normal["m"])
+    for v in neighbours:
+        fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
+    fsbc.add_expr_deps(zeros, zero_1_expr, normal["p"], normal["m"])
     return fsbc
 
 
-def create_dilation_problems(
+def create_dilation_var_problems(
     tops: Mapping[int, _CheartTopology],
     space: _Variable,
     disp: _Variable,
@@ -47,7 +51,7 @@ def create_dilation_problems(
     cl_basis: CLBasisExpressions,
     cl_pos_expr: _Expression,
 ) -> dict[int, FSCouplingProblem]:
-    zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
+    zero_expr = Expression(f"zero_3_expr", [0 for _ in range(3)])
     normal_expr = {
         k: create_outward_normal_expr(
             f"{v}_normal_expr", cl_normal[k], cl_basis["pelem"][k]
@@ -55,7 +59,7 @@ def create_dilation_problems(
         for k, v in cl_part.node_prefix.items()
     }
     res = {
-        k: create_dilation_problem(
+        k: create_dilation_var_problem(
             f"PB_{v}_DL",
             tops[k],
             space,
@@ -64,6 +68,7 @@ def create_dilation_problems(
             lms[k],
             zero_expr,
             normal_expr[k],
+            [lms[n] for n in [k - 1, k + 1] if n in lms],
         )
         for k, v in cl_part.node_prefix.items()
     }

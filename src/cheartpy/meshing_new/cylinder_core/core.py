@@ -19,19 +19,9 @@ def gen_end_node_mapping(
     """
     node_map: dict[int, int] = dict()
     for i in range(left.n):
-        for j in range(4):
-            node_map[right.v[i, j]] = left.v[i, j]
+        for j, k in {0: 0, 1: 2, 2: 1, 3: 3}.items():
+            node_map[right.v[i, j]] = left.v[i, k]
     return node_map
-
-
-def convert_cartesian_space_to_cylindrical(
-    x: Mat[f64], r_in: float, r_out: float, length: float, base: float
-):
-    r = np.zeros_like(x)
-    r[:, 0] = (r_out - r_in) * x[:, 0] ** 0.707 + r_in
-    r[:, 1] = 2.0 * np.pi * x[:, 1]
-    r[:, 2] = length * x[:, 2] + base
-    return r
 
 
 def update_elems(elems: Mat[i32], map: Mapping[int, int]):
@@ -52,15 +42,6 @@ def update_boundary(patch: CheartMeshPatch, map: Mapping[int, int], tag: int):
     return CheartMeshPatch(tag, patch.n, patch.k, surf)
 
 
-def convert_to_cylindrical(
-    cube: CheartMesh, r_in: float, r_out: float, length: float, base: float
-):
-    new_x = convert_cartesian_space_to_cylindrical(
-        cube.space.v, r_in, r_out, length, base
-    )
-    return CheartMesh(CheartMeshSpace(len(new_x), new_x), cube.top, cube.bnd)
-
-
 def merge_circ_ends(cube: CheartMesh):
     if cube.bnd is None:
         raise
@@ -76,6 +57,25 @@ def merge_circ_ends(cube: CheartMesh):
         CheartMeshBoundary(len(new_b), new_b, VtkType.QuadrilateralLinear),
     )
     return remove_dangling_nodes(mesh)
+
+
+def convert_cartesian_space_to_cylindrical(
+    x: Mat[f64], r_in: float, r_out: float, length: float, base: float
+):
+    r = np.zeros_like(x)
+    r[:, 0] = (r_out - r_in) * x[:, 0] ** 0.707 + r_in
+    r[:, 1] = 2.0 * np.pi * x[:, 1]
+    r[:, 2] = length * x[:, 2] + base
+    return r
+
+
+def convert_to_cylindrical(
+    cube: CheartMesh, r_in: float, r_out: float, length: float, base: float
+):
+    new_x = convert_cartesian_space_to_cylindrical(
+        cube.space.v, r_in, r_out, length, base
+    )
+    return CheartMesh(CheartMeshSpace(len(new_x), new_x), cube.top, cube.bnd)
 
 
 def cylindrical_to_cartesian(g: CheartMesh) -> CheartMesh:

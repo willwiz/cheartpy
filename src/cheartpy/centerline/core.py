@@ -50,8 +50,20 @@ def LL_expr(
     return basis
 
 
-def check_normal(node_normals: Mat[f64], elem: Vec[i32], patch_normals: Vec[f64]):
-    return all([cast(bool, abs(node_normals[i] @ patch_normals) > 0.8) for i in elem])
+def check_normal(
+    node_normals: Mat[f64],
+    elem: Vec[i32],
+    patch_normals: Vec[f64],
+    LOG: _Logger = NullLogger(),
+):
+    check = all(
+        [cast(bool, abs(node_normals[i] @ patch_normals) > 0.707) for i in elem]
+    )
+    if not check:
+        LOG.debug(
+            f"Normal check failed for elem = {elem}, normals of \n{[print(node_normals[i], patch_normals) for i in elem]}"
+        )
+    return check
 
 
 def filter_mesh_normals(
@@ -66,7 +78,7 @@ def filter_mesh_normals(
         raise ValueError(f"Attempting to compute normal from a 1D mesh, not possible")
     normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems, LOG)
     elems = np.array(
-        [i for i, v in zip(elems, normals) if check_normal(normal_check, i, v)],
+        [i for i, v in zip(elems, normals) if check_normal(normal_check, i, v, LOG)],
         dtype=int,
     )
     LOG.debug(f"The number of elements in patch normal filtering is {len(elems)}")
@@ -125,7 +137,7 @@ def get_boundaryelems_in_clrange(
     map: PatchNode2ElemMap,
     domain: tuple[float, float] | Vec[f64],
 ) -> Vec[i32]:
-    nodes = map.i[((map.x - domain[0]) > 1.0e-10) & (domain[1] - map.x > 1.0e-10)]
+    nodes = map.i[((map.x - domain[0]) > 1.0e-8) & (domain[1] - map.x > 1.0e-8)]
     elems = np.fromiter(set([v for i in nodes for v in map.n2e_map[i]]), dtype=int)
     return elems
 
@@ -183,6 +195,7 @@ def create_cheart_cl_nodal_meshes(
         )
         for k, (l, c, r) in enumerate(cl_top.support)
     }
+    LOG.debug(f"Computing mesh outer normals at every node.")
     return {
         k: {
             "file": path(mesh_dir, v),

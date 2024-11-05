@@ -67,7 +67,6 @@ def create_radial_problem(
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(lm, FSExpr(cons_expr))
     fsbc.add_term(disp, FSExpr(lm, zeros))
-    print(neighbours)
     for v in neighbours:
         fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
     fsbc.add_expr_deps(zeros, cons_expr, zero_1_expr)
@@ -80,6 +79,7 @@ def create_radial_problems(
     disp: _Variable,
     motion: _Variable,
     lms: Mapping[int, _Variable],
+    cl_normal: Mapping[int, _Variable],
     cl_part: CLTopology,
     cl_basis: CLBasisExpressions,
     cl_pos_expr: _Expression,

@@ -8,8 +8,8 @@ def run_prep(pfile: str):
 def run_problem(
     pfile: str,
     pedantic: bool = False,
-    cores: int = 1,
     dump_matrix: bool = False,
+    cores: int = 1,
     log: str | None = None,
 ):
     cmd = ["cheartsolver.out", pfile]

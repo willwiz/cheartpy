@@ -1,9 +1,14 @@
 from collections import defaultdict
+from typing import cast
 import numpy as np
 from scipy.linalg import lstsq
 from ...var_types import *
 from ...tools.basiclogging import *
 from ...cheart_mesh import *
+
+
+def L2norm(x: Vec[f64]) -> float:
+    return cast(float, x @ x)
 
 
 def compute_normal_patch(
@@ -13,13 +18,42 @@ def compute_normal_patch(
     ref_space: Mat[f64],
     LOG: _Logger = NullLogger(),
 ) -> Vec[f64]:
+    # nodes = space[elem]
+    # F = np.identity(3)
+    # scaling = np.array(
+    #     [
+    #         [0.01, 0.0, 0.0],
+    #         [0.0, 0.01, 0.0],
+    #         [0.0, 0.0, 1.0],
+    #     ],
+    #     dtype=float,
+    # )
+    # for _ in range(1, 40):
+    #     scaling = np.diag([2, 2, 1]) @ scaling
+    #     nodes = nodes - ref_space @ scaling
+    #     F = np.array(
+    #         [[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)]
+    #     ) @ np.linalg.inv(scaling) + np.identity(3)
+    #     if np.abs(np.linalg.det(F)) > 0.5:
+    #         break
+    # else:
+    #     print("algorithm failed")
     nodes = space[elem] - ref_space
-    F = np.array(
-        [[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)]
-    ) + np.identity(3)
-    # print(f"{F=}")
+    U = np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)])
+    F = U + np.identity(3)
+    if np.linalg.det(F) < 0.01:
+        LOG.warn(f"Element node order is inverted.")
+        F = U - np.identity(3)
+    # if np.abs(np.linalg.det(F)) < 1e-6:
+    #     print(
+    #         np.linalg.det(F),
+    #         F,
+    #         np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)]),
+    #         basis,
+    #     )
+    #     print(space[elem])
+    # F = F / np.abs(np.linalg.det(F))
     res, *_ = lstsq(F.T, np.array([0, 0, 1], dtype=float), lapack_driver="gelsy")
-    # print(f"{res=}")
     return res
 
 
@@ -33,12 +67,11 @@ def compute_normal_surface_at_center(
 ):
     centroid = np.mean(kind.ref_nodes, axis=0)
     interp_basis = kind.shape_dfuncs(centroid)
-    LOG.debug(f"{interp_basis=}")
     normals = np.array(
         [compute_normal_patch(interp_basis, space, i, kind.ref_nodes) for i in elem],
         dtype=float,
     )
-    LOG.debug(f"{normals=}")
+    # LOG.debug(f"{normals=}")
     return normalize_by_row(normals)
 
 
@@ -59,7 +92,7 @@ def compute_normal_surface_at_nodes(
 
 def compute_mesh_normal_at_nodes(mesh: CheartMesh, LOG: _Logger = NullLogger()):
     KIND = mesh.top.TYPE
-    LOG.debug(f"{KIND=}")
+    LOG.debug(f"{KIND.name=}")
     interp_basis = {k: KIND.shape_dfuncs(v) for k, v in enumerate(KIND.ref_nodes)}
     node_normal: dict[int, list[Vec[f64]]] = defaultdict(list)
     for elem in mesh.top.v:
@@ -69,11 +102,16 @@ def compute_mesh_normal_at_nodes(mesh: CheartMesh, LOG: _Logger = NullLogger()):
                     interp_basis[i], mesh.space.v, elem, KIND.ref_nodes
                 )
             )
-    normals = np.zeros_like(mesh.space.v)
-    for k, v in node_normal.items():
-        normals[k] = sum(v) / len(v)
     center = mesh.space.v.mean(axis=0)
-    disp = mesh.space.v - center[None, :]
-    outer = np.einsum("i...,i...", normals, disp)
-    normals = normals * np.sign(outer)
+    disp = normalize_by_row(mesh.space.v - center[None, :])
+    normals = np.zeros_like(mesh.space.v)
+    for k, node in node_normal.items():
+        vals = [np.sign(v @ disp[k]) * v for v in node]
+        normals[k] = sum(vals) / len(vals)
+        norms = abs(normals[k] @ disp[k])
+        # if norms < 0.2:
+        #     print(k, norms, len(vals))
+        #     print(f"{node=}")
+    outer = np.einsum("...i,...i", normals, disp)
+    normals = normals * np.sign(outer)[:, None]
     return normalize_by_row(normals)

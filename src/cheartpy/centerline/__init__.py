@@ -8,6 +8,7 @@ from .core import (
 )
 from .types import CLTopology, PatchNode2ElemMap, CLBasisExpressions
 from .cl_constraint import create_cl_coupling_problems
+from .cl_dilation_var import create_dilation_var_problems
 from .cl_dilation import create_dilation_problems
 from .cl_radial import create_radial_problems
 from .cl_position import create_center_pos_expr, create_cl_position_problems

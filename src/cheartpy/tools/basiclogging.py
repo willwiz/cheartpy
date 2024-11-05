@@ -1,6 +1,7 @@
 __all__ = ["LogLevel", "BasicLogger", "NullLogger", "_Logger"]
 import abc
 import enum
+import os
 from typing import Any, Literal
 from datetime import datetime
 import traceback
@@ -60,7 +61,10 @@ class BasicLogger(_Logger):
 
     def print(self, msg: Any, level: LogLevel):
         frame = getframeinfo(stack()[2][0])
-        print(f"[{now()}][{level.name:5}]::{frame.function}-{frame.lineno}>>>\n{msg}\n")
+        file = os.path.join(*frame.filename.split(os.sep)[-3:])
+        print(
+            f"[{now()}|{level.name}][{file}:{frame.lineno}|{frame.function}]>>\n{msg}\n"
+        )
 
     def debug(self, msg: Any):
         if self.level >= LogLevel.DEBUG:

@@ -117,7 +117,7 @@ class VtkType(VtkElemInterface, enum.Enum):
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
         np.array([[0,0,0],[2,0,0],[0,2,0],[2,2,0],[1,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0]], dtype=float),  # fmt: skip
-        np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[1/2,0,0],[0,1/2,0],[1/2,1/2,0],[1,1/2,0],[1/2,1,0]], dtype=float),  # fmt: skip
+        np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0.5,1,0]], dtype=float),  # fmt: skip
         sf_quadrilateral_quadratic,
         dsf_quadrilateral_quadratic,
     )
