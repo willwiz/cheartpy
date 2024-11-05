@@ -1,6 +1,6 @@
+import numpy as np
 from collections import defaultdict
 from typing import cast
-import numpy as np
 from scipy.linalg import lstsq
 from ...var_types import *
 from ...tools.basiclogging import *
@@ -18,41 +18,12 @@ def compute_normal_patch(
     ref_space: Mat[f64],
     LOG: _Logger = NullLogger(),
 ) -> Vec[f64]:
-    # nodes = space[elem]
-    # F = np.identity(3)
-    # scaling = np.array(
-    #     [
-    #         [0.01, 0.0, 0.0],
-    #         [0.0, 0.01, 0.0],
-    #         [0.0, 0.0, 1.0],
-    #     ],
-    #     dtype=float,
-    # )
-    # for _ in range(1, 40):
-    #     scaling = np.diag([2, 2, 1]) @ scaling
-    #     nodes = nodes - ref_space @ scaling
-    #     F = np.array(
-    #         [[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)]
-    #     ) @ np.linalg.inv(scaling) + np.identity(3)
-    #     if np.abs(np.linalg.det(F)) > 0.5:
-    #         break
-    # else:
-    #     print("algorithm failed")
     nodes = space[elem] - ref_space
     U = np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)])
     F = U + np.identity(3)
     if np.linalg.det(F) < 0.01:
         LOG.warn(f"Element node order is inverted.")
         F = U - np.identity(3)
-    # if np.abs(np.linalg.det(F)) < 1e-6:
-    #     print(
-    #         np.linalg.det(F),
-    #         F,
-    #         np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)]),
-    #         basis,
-    #     )
-    #     print(space[elem])
-    # F = F / np.abs(np.linalg.det(F))
     res, *_ = lstsq(F.T, np.array([0, 0, 1], dtype=float), lapack_driver="gelsy")
     return res
 
@@ -71,7 +42,6 @@ def compute_normal_surface_at_center(
         [compute_normal_patch(interp_basis, space, i, kind.ref_nodes) for i in elem],
         dtype=float,
     )
-    # LOG.debug(f"{normals=}")
     return normalize_by_row(normals)
 
 
@@ -108,10 +78,6 @@ def compute_mesh_normal_at_nodes(mesh: CheartMesh, LOG: _Logger = NullLogger()):
     for k, node in node_normal.items():
         vals = [np.sign(v @ disp[k]) * v for v in node]
         normals[k] = sum(vals) / len(vals)
-        norms = abs(normals[k] @ disp[k])
-        # if norms < 0.2:
-        #     print(k, norms, len(vals))
-        #     print(f"{node=}")
     outer = np.einsum("...i,...i", normals, disp)
     normals = normals * np.sign(outer)[:, None]
     return normalize_by_row(normals)
