@@ -10,7 +10,7 @@ from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
 from ..meshing.cheart.surface import (
     compute_normal_surface_at_center,
-    compute_mesh_normal_at_nodes,
+    compute_mesh_outer_normal_at_nodes,
 )
 from ..var_types import *
 from ..tools.basiclogging import *
@@ -200,7 +200,7 @@ def create_cheart_cl_nodal_meshes(
         k: {
             "file": path(mesh_dir, v),
             "mesh": tops[k],
-            "n": compute_mesh_normal_at_nodes(tops[k], LOG),
+            "n": compute_mesh_outer_normal_at_nodes(tops[k], LOG),
         }
         for k, v in cl_top.node_prefix.items()
     }

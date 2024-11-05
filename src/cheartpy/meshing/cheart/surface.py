@@ -60,7 +60,7 @@ def compute_normal_surface_at_nodes(
     return {k: normalize_by_row(v) for k, v in normals.items()}
 
 
-def compute_mesh_normal_at_nodes(mesh: CheartMesh, LOG: _Logger = NullLogger()):
+def compute_mesh_outer_normal_at_nodes(mesh: CheartMesh, LOG: _Logger = NullLogger()):
     KIND = mesh.top.TYPE
     LOG.debug(f"{KIND.name=}")
     interp_basis = {k: KIND.shape_dfuncs(v) for k, v in enumerate(KIND.ref_nodes)}
