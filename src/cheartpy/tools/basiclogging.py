@@ -63,7 +63,7 @@ class BasicLogger(_Logger):
         frame = getframeinfo(stack()[2][0])
         file = os.path.join(*frame.filename.split(os.sep)[-3:])
         print(
-            f"[{now()}|{level.name}][{file}:{frame.lineno}|{frame.function}]>>\n{msg}\n"
+            f"\n[{now()}|{level.name}]({file}:{frame.lineno}|{frame.function})>>>\n{msg}"
         )
 
     def debug(self, msg: Any):
