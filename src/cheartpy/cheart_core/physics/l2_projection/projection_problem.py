@@ -29,8 +29,8 @@ class L2SolidProjection(_Problem):
 
     def get_prob_vars(self) -> Mapping[str, _Variable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
-        _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
-        return {**_self_vars_, **_vars_}
+        # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        return {**_self_vars_}
 
     def add_var_deps(self, *var: _Variable) -> None:
         for v in var:
@@ -42,7 +42,8 @@ class L2SolidProjection(_Problem):
 
     def get_var_deps(self) -> ValuesView[_Variable]:
         _vars_ = self.get_prob_vars()
-        return {**_vars_, **self.aux_vars}.values()
+        _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        return {**_vars_, **_b_vars_, **self.aux_vars}.values()
 
     def get_expr_deps(self) -> ValuesView[_Expression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}

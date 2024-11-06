@@ -87,9 +87,9 @@ class PFile:
     def AddProblem(self, *prob: _Problem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
-            self.AddVariable(*p.get_var_deps())
             self.AddExpression(*p.get_expr_deps())
             # self.AddVariable(*p.get_variables().values())
+            self.AddVariable(*p.get_var_deps())
             for patch in p.get_bc_patches():
                 self.AddVariable(*patch.get_var_deps())
                 self.AddExpression(*patch.get_expr_deps())

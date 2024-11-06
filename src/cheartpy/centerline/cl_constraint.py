@@ -28,6 +28,7 @@ def create_cl_coupling_problem(
         fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis))
     else:
         fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis), FSExpr(motion, m_basis))
+        fsbc.add_var_deps(motion)
     for v in neighbours:
         fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
     # fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis))

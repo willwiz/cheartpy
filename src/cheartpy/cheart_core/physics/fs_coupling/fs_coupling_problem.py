@@ -57,8 +57,8 @@ class FSCouplingProblem(_Problem):
             #         vars[str(t.var)] = t.var
             # if isinstance(t.expr, _Variable):
             #     vars[str(t.expr)] = t.expr
-        for v in self.bc.get_vars_deps():
-            vars[str(v)] = v
+        # for v in self.bc.get_vars_deps():
+        #     vars[str(v)] = v
         return vars
 
     def add_var_deps(self, *var: _Variable) -> None:
@@ -72,29 +72,28 @@ class FSCouplingProblem(_Problem):
                 self.aux_expr[str(v)] = v
 
     def get_var_deps(self) -> ValuesView[_Variable]:
-        vars = {str(v): v for v in self.bc.get_vars_deps()}
-        if str(self.space) not in vars:
-            vars[str(self.space)] = self.space
-        vars[str(self.lm.test_var)] = self.lm.test_var
+        _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        if str(self.space) not in _vars_:
+            _vars_[str(self.space)] = self.space
+        _vars_[str(self.lm.test_var)] = self.lm.test_var
         for t in self.lm.terms:
             if isinstance(t.var, _Variable):
-                if str(t.var) not in vars:
-                    vars[str(t.var)] = t.var
+                if str(t.var) not in _vars_:
+                    _vars_[str(t.var)] = t.var
             if isinstance(t.mult, _Variable):
-                if str(t.mult) not in vars:
-                    vars[str(t.mult)] = t.mult
+                if str(t.mult) not in _vars_:
+                    _vars_[str(t.mult)] = t.mult
         for k, v in self.m_terms.items():
-            if str(v.test_var) not in vars:
-                vars[str(v.test_var)] = v.test_var
+            if str(v.test_var) not in _vars_:
+                _vars_[str(v.test_var)] = v.test_var
             for t in v.terms:
                 if isinstance(t.var, _Variable):
-                    if str(t.var) not in vars:
-                        vars[str(t.var)] = t.var
+                    if str(t.var) not in _vars_:
+                        _vars_[str(t.var)] = t.var
                 if isinstance(t.mult, _Variable):
-                    if str(t.mult) not in vars:
-                        vars[str(t.mult)] = t.mult
-
-        return {**self.aux_vars, **vars}.values()
+                    if str(t.mult) not in _vars_:
+                        _vars_[str(t.mult)] = t.mult
+        return {**self.aux_vars, **_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[_Expression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
