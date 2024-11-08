@@ -1,3 +1,4 @@
+__all__ = ["INTERP_MAP", "make_l2qmap", "interp_var_l2q"]
 import numpy as np
 from typing import Mapping, Sequence
 from ...var_types import *
@@ -7,7 +8,7 @@ from .maps import L2QMAPDICT, L2QTYPEDICT
 type INTERP_MAP = Mapping[int, Sequence[int]]
 
 
-def make_map(lin_mesh: CheartMesh, quad_mesh: CheartMesh) -> INTERP_MAP:
+def make_l2qmap(lin_mesh: CheartMesh, quad_mesh: CheartMesh) -> INTERP_MAP:
     lin_top = lin_mesh.top
     quad_top = quad_mesh.top
     if not L2QTYPEDICT.get(lin_top.TYPE) is quad_top.TYPE:
@@ -27,7 +28,7 @@ def make_map(lin_mesh: CheartMesh, quad_mesh: CheartMesh) -> INTERP_MAP:
     return interp_map
 
 
-def intep_var_l2q(map: INTERP_MAP, lin: Mat[f64]):
+def interp_var_l2q(map: INTERP_MAP, lin: Mat[f64]):
     quad_data = np.zeros((len(map), lin.shape[1]), dtype=np.float64)
     for k, v in map.items():
         quad_data[k] = lin[v].mean(axis=0)

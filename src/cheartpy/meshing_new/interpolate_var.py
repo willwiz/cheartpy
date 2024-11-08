@@ -13,7 +13,7 @@ from ..cheart_mesh.io import CHRead_d, CHWrite_d_utf
 from ..tools.progress_bar import ProgressBar
 from ..var_types import Mat, f64
 from .interpolate.parsing import interp_parser
-from .interpolate.interpolation import make_map
+from .interpolate.interpolation import make_l2qmap
 import argparse
 
 
@@ -71,7 +71,7 @@ def main_interp_var(var: str, map: dict[int, list[int]], inp: InterpInputArgs):
 def main_interp(inp: InterpInputArgs):
     lin_mesh = import_cheart_mesh(inp.lin_mesh)
     quad_mesh = import_cheart_mesh(inp.quad_mesh)
-    L2Q = make_map(lin_mesh, quad_mesh)
+    L2Q = make_l2qmap(lin_mesh, quad_mesh)
 
 
 def main_cli(cmd_args: list[str] | None = None):

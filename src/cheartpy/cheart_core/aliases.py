@@ -167,9 +167,9 @@ class CheartBasisType(enum.StrEnum):
 
 CHEART_QUADRATURE_TYPE = Literal[
     "GAUSS_LEGENDRE",
-    "GAUSS_LEGENDRE",
+    "GL",
     "KEAST_LYNESS",
-    "KEAST_LYNESS",
+    "KL",
 ]
 
 
@@ -223,6 +223,7 @@ SOLVER_SUBGROUP_ALGORITHM = Literal["seq_fp_linesearch", "seq_fp", "SOLVER_SEQUE
 
 
 class SolverSubgroupAlgorithm(enum.StrEnum):
+    seq_fp = "seq_fp"
     seq_fp_linesearch = "seq_fp_linesearch"
     SOLVER_SEQUENTIAL = "SOLVER_SEQUENTIAL"
 

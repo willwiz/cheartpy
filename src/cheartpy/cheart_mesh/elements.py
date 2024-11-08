@@ -27,16 +27,16 @@ VTK_ELEM_TYPE = Literal[
 
 @dc.dataclass(slots=True)
 class VtkElemInterface:
-    elem: VTK_ELEM_TYPE
-    surf: VTK_ELEM_TYPE | None
+    elem: Final[VTK_ELEM_TYPE]
+    surf: Final[VTK_ELEM_TYPE | None]
     vtkelementid: Final[int]
     vtksurfaceid: Final[int | None]
     nodeordering: Final[tuple[int, ...]]
     connectivity: Final[tuple[int, ...]]
     ref_order: Final[Mat[i32]]
     ref_nodes: Final[Mat[f64]]
-    shape_funcs: Callable[[Vec[f64]], Vec[f64]]
-    shape_dfuncs: Callable[[Vec[f64]], Mat[f64]]
+    shape_funcs: Final[Callable[[Vec[f64]], Vec[f64]]]
+    shape_dfuncs: Final[Callable[[Vec[f64]], Mat[f64]]]
 
     def write(self, fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
@@ -128,8 +128,8 @@ class VtkType(VtkElemInterface, enum.Enum):
         5,
         (0, 1, 2, 3),
         (0, 1, 2, 3),
-        np.array([0], dtype=int),  # fmt: skip
-        np.array([0], dtype=float),  # fmt: skip
+        np.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1]], dtype=int),  # fmt: skip
+        np.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1]], dtype=float),  # fmt: skip
         sf_tetrahedron_linear,
         dsf_tetrahedron_linear,
     )
@@ -140,8 +140,8 @@ class VtkType(VtkElemInterface, enum.Enum):
         22,
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
-        np.array([0], dtype=int),  # fmt: skip
-        np.array([0], dtype=float),  # fmt: skip
+        np.array([[0,0,0],[2,0,0],[0,2,0],[0,0,2],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1]], dtype=int),  # fmt: skip
+        0.5*np.array([[0,0,0],[2,0,0],[0,2,0],[0,0,2],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1]], dtype=float),  # fmt: skip
         sf_tetrahedron_quadratic,
         dsf_tetrahedron_quadratic,
     )

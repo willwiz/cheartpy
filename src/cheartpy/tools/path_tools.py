@@ -3,11 +3,11 @@ from glob import glob
 from .basiclogging import _Logger, NullLogger
 
 
-def path(*v: str) -> str:
+def path(*v: str | None) -> str:
     """
     Joins args as a system path str
     """
-    return os.path.join(*v)
+    return os.path.join(*[s for s in v if s])
 
 
 def Clear_Dir(folder: str, *suffix: str, LOG: _Logger = NullLogger()) -> None:
