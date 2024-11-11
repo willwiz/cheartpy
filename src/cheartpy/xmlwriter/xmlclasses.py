@@ -1,19 +1,19 @@
 from __future__ import annotations
 import typing as tp
 from typing import Any
-from cheartpy.var_types import i32, f64, Arr
+from ..var_types import *
 
 WriterSigs = (
     tp.Callable[[tp.TextIO, int, int], None]
     | tp.Callable[[tp.TextIO, float, int], None]
-    | tp.Callable[[tp.TextIO, Arr[int, f64], int], None]
-    | tp.Callable[[tp.TextIO, Arr[int, i32], int], None]
+    | tp.Callable[[tp.TextIO, Vec[f64], int], None]
+    | tp.Callable[[tp.TextIO, Vec[i32], int], None]
 )
 
 
 class XMLWriters:
     @staticmethod
-    def PointWriter(fout: tp.TextIO, point: Arr[int, f64], level: int = 0) -> None:
+    def PointWriter(fout: tp.TextIO, point: Vec[f64], level: int = 0) -> None:
         fout.write(f'{" "*level}{point[0]: .16f} {point[1]: .16f} {point[2]: .16f}\n')
 
     @staticmethod
@@ -21,7 +21,7 @@ class XMLWriters:
         fout.write(f'{" "*level}{id:d}\n')
 
     @staticmethod
-    def FloatArrWriter(fout: tp.TextIO, arr: Arr[int, f64], level: int = 0) -> None:
+    def FloatArrWriter(fout: tp.TextIO, arr: Vec[f64], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for p in arr:
             fout.write(f" {p:< .16f}")

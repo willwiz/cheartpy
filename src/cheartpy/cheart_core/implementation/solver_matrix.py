@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+__all__ = ["SolverMatrix"]
 import dataclasses as dc
 from typing import TextIO, ValuesView
 from ..interface import *
@@ -7,10 +7,10 @@ from ..pytools import *
 
 
 @dc.dataclass(slots=True)
-class SolverMatrix(_SolverMatrix):
+class SolverMatrix(ISolverMatrix):
     name: str
     solver: MatrixSolverTypes
-    problem: dict[str, _Problem] = dc.field(default_factory=dict)
+    problem: dict[str, IProblem] = dc.field(default_factory=dict)
     _suppress_output: bool = dc.field(default=True)
     settings: dict[str, list[str]] = dc.field(default_factory=dict)
 
@@ -33,13 +33,13 @@ class SolverMatrix(_SolverMatrix):
     # def get_aux_var(self):
     #     return [v for p in self.problem.values() for v in p.get_var_deps()]
 
-    def get_problems(self) -> ValuesView[_Problem]:
+    def get_problems(self) -> ValuesView[IProblem]:
         return self.problem.values()
 
-    def AddSetting(self, opt, *val):
+    def AddSetting(self, opt: str, *val: Any):
         self.settings[opt] = list(val)
 
-    def AddProblem(self, *prob: _Problem):
+    def AddProblem(self, *prob: IProblem):
         for p in prob:
             self.problem[str(p)] = p
 

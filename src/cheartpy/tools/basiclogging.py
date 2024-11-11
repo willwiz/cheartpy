@@ -1,4 +1,4 @@
-__all__ = ["LogLevel", "BasicLogger", "NullLogger", "_Logger"]
+__all__ = ["LogLevel", "BLogger", "NullLogger", "ILogger"]
 import abc
 import enum
 import os
@@ -22,27 +22,29 @@ class LogLevel(enum.IntEnum):
     DEBUG = 6
 
 
-class _Logger(abc.ABC):
+class ILogger(abc.ABC):
     @property
     @abc.abstractmethod
     def mode(self) -> LogLevel: ...
     @abc.abstractmethod
-    def debug(self, msg: Any): ...
+    def disp(self, *msg: Any) -> None: ...
     @abc.abstractmethod
-    def info(self, msg: Any): ...
+    def debug(self, *msg: Any) -> None: ...
     @abc.abstractmethod
-    def brief(self, msg: Any): ...
+    def info(self, *msg: Any) -> None: ...
     @abc.abstractmethod
-    def warn(self, msg: Any): ...
+    def brief(self, *msg: Any) -> None: ...
     @abc.abstractmethod
-    def error(self, msg: Any): ...
+    def warn(self, *msg: Any) -> None: ...
     @abc.abstractmethod
-    def fatal(self, msg: Any): ...
+    def error(self, *msg: Any) -> None: ...
+    @abc.abstractmethod
+    def fatal(self, *msg: Any) -> None: ...
     @abc.abstractmethod
     def exception(self, e: Exception) -> Exception: ...
 
 
-class BasicLogger(_Logger):
+class BLogger(ILogger):
     __slots__ = ["level"]
     level: LogLevel
 
@@ -59,43 +61,49 @@ class BasicLogger(_Logger):
     def mode(self) -> LogLevel:
         return self.level
 
-    def print(self, msg: Any, level: LogLevel):
+    def print(self, *msg: Any, level: LogLevel):
+        if not msg:
+            return
         frame = getframeinfo(stack()[2][0])
         file = os.path.join(*frame.filename.split(os.sep)[-3:])
-        print(
-            f"\n[{now()}|{level.name}]({file}:{frame.lineno}|{frame.function})>>>\n{msg}"
-        )
+        print(f"\n[{now()}|{level.name}]({file}:{frame.lineno}|{frame.function})>>>")
+        for m in msg:
+            print(m)
 
-    def debug(self, msg: Any):
+    def debug(self, *msg: Any):
         if self.level >= LogLevel.DEBUG:
-            self.print(msg, LogLevel.DEBUG)
+            self.print(*msg, level=LogLevel.DEBUG)
 
-    def info(self, msg: Any):
+    def info(self, *msg: Any):
         if self.level >= LogLevel.INFO:
-            self.print(msg, LogLevel.INFO)
+            self.print(*msg, level=LogLevel.INFO)
 
-    def brief(self, msg: Any):
+    def disp(self, *msg: Any):
+        if self.level >= LogLevel.INFO:
+            print(*msg)
+
+    def brief(self, *msg: Any):
         if self.level >= LogLevel.BRIEF:
-            self.print(msg, LogLevel.BRIEF)
+            self.print(*msg, level=LogLevel.BRIEF)
 
-    def warn(self, msg: Any):
+    def warn(self, *msg: Any):
         if self.level >= LogLevel.WARN:
-            self.print(msg, LogLevel.WARN)
+            self.print(*msg, level=LogLevel.WARN)
 
-    def error(self, msg: Any):
+    def error(self, *msg: Any):
         if self.level >= LogLevel.ERROR:
-            self.print(msg, LogLevel.ERROR)
+            self.print(*msg, level=LogLevel.ERROR)
 
-    def fatal(self, msg: Any):
+    def fatal(self, *msg: Any):
         if self.level >= LogLevel.FATAL:
-            self.print(msg, LogLevel.FATAL)
+            self.print(*msg, level=LogLevel.FATAL)
 
     def exception(self, e: Exception):
         print(traceback.format_exc())
         return e
 
 
-class NullLogger(_Logger):
+class NullLogger(ILogger):
     __slots__ = ["level"]
     level: LogLevel
 
@@ -106,26 +114,29 @@ class NullLogger(_Logger):
     def mode(self) -> LogLevel:
         return self.level
 
-    def print(self, msg: Any, level: LogLevel):
+    def print(self, *msg: Any, level: LogLevel) -> None:
         pass
 
-    def debug(self, msg: Any):
+    def debug(self, *msg: Any) -> None:
         pass
 
-    def info(self, msg: Any):
+    def info(self, *msg: Any) -> None:
         pass
 
-    def brief(self, msg: Any):
+    def disp(self, *msg: Any) -> None:
         pass
 
-    def warn(self, msg: Any):
+    def brief(self, *msg: Any) -> None:
         pass
 
-    def error(self, msg: Any):
+    def warn(self, *msg: Any) -> None:
         pass
 
-    def fatal(self, msg: Any):
+    def error(self, *msg: Any) -> None:
         pass
 
-    def exception(self, e: Exception):
+    def fatal(self, *msg: Any) -> None:
+        pass
+
+    def exception(self, e: Exception) -> Exception:
         return e

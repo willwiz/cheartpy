@@ -1,12 +1,12 @@
 import abc
-from typing import TextIO, ValuesView
+from typing import Any, TextIO, ValuesView
 from ..aliases import *
 from .basis import *
 
-__all__ = ["_SolverMatrix"]
+__all__ = ["ISolverMatrix"]
 
 
-class _SolverMatrix(abc.ABC):
+class ISolverMatrix(abc.ABC):
     @abc.abstractmethod
     def __repr__(self) -> str: ...
     @property
@@ -19,10 +19,10 @@ class _SolverMatrix(abc.ABC):
     # @abc.abstractmethod
     # def get_aux_var(self) -> Sequence[_Variable]: ...
     @abc.abstractmethod
-    def get_problems(self) -> ValuesView[_Problem]: ...
+    def get_problems(self) -> ValuesView[IProblem]: ...
     @abc.abstractmethod
-    def AddSetting(self, opt, *val) -> None: ...
+    def AddSetting(self, opt: str, *val: Any) -> None: ...
     @abc.abstractmethod
-    def AddProblem(self, *prob: _Problem) -> None: ...
+    def AddProblem(self, *prob: IProblem) -> None: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...

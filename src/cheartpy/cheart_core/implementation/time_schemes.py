@@ -1,3 +1,4 @@
+__all__ = ["TimeScheme"]
 import dataclasses as dc
 from typing import TextIO
 from ..pytools import hline
@@ -5,7 +6,7 @@ from ..interface import *
 
 
 @dc.dataclass(slots=True)
-class TimeScheme(_TimeScheme):
+class TimeScheme(ITimeScheme):
     name: str
     start: int
     stop: int

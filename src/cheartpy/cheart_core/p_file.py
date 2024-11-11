@@ -1,5 +1,6 @@
+__all__ = ["PFile"]
 import dataclasses as dc
-from typing import TextIO
+from typing import Mapping, Collection, TextIO
 from .aliases import *
 from .interface import *
 from .pytools import header, hline, splicegen
@@ -9,53 +10,53 @@ from .pytools import header, hline, splicegen
 class PFile:
     h: str = ""
     output_path: str | None = None
-    times: dict[str, _TimeScheme] = dc.field(default_factory=dict)
-    dataPs: dict[str, _DataPointer] = dc.field(default_factory=dict)
-    bases: dict[str, _CheartBasis] = dc.field(default_factory=dict)
-    toplogies: dict[str, _CheartTopology] = dc.field(default_factory=dict)
-    interfaces: dict[str, _TopInterface] = dc.field(default_factory=dict)
-    variables: dict[str, _Variable] = dc.field(default_factory=dict)
-    exprs: dict[str, _Expression] = dc.field(default_factory=dict)
-    problems: dict[str, _Problem] = dc.field(default_factory=dict)
-    matrices: dict[str, _SolverMatrix] = dc.field(default_factory=dict)
-    solverGs: dict[str, _SolverGroup] = dc.field(default_factory=dict)
+    times: dict[str, ITimeScheme] = dc.field(default_factory=dict)
+    dataPs: dict[str, IDataPointer] = dc.field(default_factory=dict)
+    bases: dict[str, ICheartBasis] = dc.field(default_factory=dict)
+    toplogies: dict[str, ICheartTopology] = dc.field(default_factory=dict)
+    interfaces: dict[str, ITopInterface] = dc.field(default_factory=dict)
+    variables: dict[str, IVariable] = dc.field(default_factory=dict)
+    exprs: dict[str, IExpression] = dc.field(default_factory=dict)
+    problems: dict[str, IProblem] = dc.field(default_factory=dict)
+    matrices: dict[str, ISolverMatrix] = dc.field(default_factory=dict)
+    solverGs: dict[str, ISolverGroup] = dc.field(default_factory=dict)
 
-    def SetOutputPath(self, path):
+    def SetOutputPath(self, path: str):
         self.output_path = path
 
     # Add Time Scheme
-    def AddTimeScheme(self, *time: _TimeScheme) -> None:
+    def AddTimeScheme(self, *time: ITimeScheme) -> None:
         for t in time:
             if str(t) not in self.times:
                 self.times[str(t)] = t
 
     # Add Data Pointers
-    def AddDataPointer(self, *var: _DataPointer) -> None:
+    def AddDataPointer(self, *var: IDataPointer) -> None:
         for v in var:
             if str(v) not in self.dataPs:
                 self.dataPs[str(v)] = v
 
     # Add Basis
-    def AddBasis(self, *basis: _CheartBasis | None) -> None:
+    def AddBasis(self, *basis: ICheartBasis | None) -> None:
         for b in basis:
             if b is not None:
                 if str(b) not in self.bases:
                     self.bases[str(b)] = b
 
     # Add Topology
-    def AddTopology(self, *top: _CheartTopology) -> None:
+    def AddTopology(self, *top: ICheartTopology) -> None:
         for t in top:
             self.AddBasis(t.get_basis())
             if str(t) not in self.toplogies:
                 self.toplogies[str(t)] = t
 
-    def AddInterface(self, *interfaces: _TopInterface) -> None:
+    def AddInterface(self, *interfaces: ITopInterface) -> None:
         for item in interfaces:
             self.AddTopology(*item.get_tops())
             if str(item) not in self.interfaces:
                 self.interfaces[str(item)] = item
 
-    def AddVariable(self, *var: _Variable) -> None:
+    def AddVariable(self, *var: IVariable) -> None:
         for v in var:
             self.AddTopology(v.get_top())
             self.AddExpression(*v.get_expr_deps())
@@ -63,28 +64,28 @@ class PFile:
                 self.variables[str(v)] = v
 
     # Expression
-    def AddExpression(self, *expr: _Expression) -> None:
+    def AddExpression(self, *expr: IExpression) -> None:
         for v in expr:
             for x in v.get_values():
-                if isinstance(x, _DataInterp):
+                if isinstance(x, IDataInterp):
                     self.AddDataPointer(x.get_datapointer())
-                elif isinstance(x, _Variable):
+                elif isinstance(x, IVariable):
                     self.AddVariable(x)
-                elif isinstance(x, _Expression):
+                elif isinstance(x, IExpression):
                     self.AddExpression(x)
                 elif isinstance(x, tuple):
-                    if isinstance(x[0], _DataInterp):
+                    if isinstance(x[0], IDataInterp):
                         self.AddDataPointer(x[0].get_datapointer())
-                    elif isinstance(x[0], _Expression):
+                    elif isinstance(x[0], IExpression):
                         self.AddExpression(x[0])
-                    elif isinstance(x[0], _Variable):
+                    else:
                         self.AddVariable(x[0])
             self.AddVariable(*v.get_var_deps())
             self.AddExpression(*v.get_expr_deps())
             if str(v) not in self.exprs:
                 self.exprs[str(v)] = v
 
-    def AddProblem(self, *prob: _Problem) -> None:
+    def AddProblem(self, *prob: IProblem) -> None:
         """Internal automatically done through add solver group"""
         for p in prob:
             self.AddExpression(*p.get_expr_deps())
@@ -97,20 +98,20 @@ class PFile:
                 self.problems[str(p)] = p
 
     # Matrix
-    def AddMatrix(self, *mat: _SolverMatrix) -> None:
+    def AddMatrix(self, *mat: ISolverMatrix) -> None:
         for m in mat:
             self.AddProblem(*m.get_problems())
             if str(m) not in self.matrices:
                 self.matrices[str(m)] = m
 
-    def AddSolverSubGroup(self, *subgroup: _SolverSubGroup) -> None:
+    def AddSolverSubGroup(self, *subgroup: ISolverSubGroup) -> None:
         # PFile does not need this, SolverGroup will handle printing
         for sg in subgroup:
             self.AddProblem(*sg.get_problems())
             self.AddMatrix(*sg.get_matrices())
 
     # SolverGroup
-    def AddSolverGroup(self, *grp: _SolverGroup) -> None:
+    def AddSolverGroup(self, *grp: ISolverGroup) -> None:
         for g in grp:
             self.AddTimeScheme(g.get_time_scheme())
             self.AddSolverSubGroup(*g.get_subgroups())
@@ -162,13 +163,13 @@ class PFile:
     #     self.variables[name].AddSetting(task, val)
 
     # Set Export Frequency
-    def SetExportFrequency(self, *vars: _Variable, freq: int = 1):
+    def SetExportFrequency(self, *vars: IVariable, freq: int = 1):
         for v in vars:
             v.set_export_frequency(freq)
 
-    def get_variable_frequency_list(self):
+    def get_variable_frequency_list(self) -> Mapping[int, Collection[str]]:
         # pprint.pprint(self.vars)
-        exportfrequencies = dict()
+        exportfrequencies: dict[int, set[str]] = dict()
         for v in self.variables.values():
             if v.get_export_frequency() in exportfrequencies:
                 exportfrequencies[v.get_export_frequency()].update({str(v)})

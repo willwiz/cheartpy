@@ -1,3 +1,10 @@
+__all__ = [
+    "CheartTopology",
+    "NullTopology",
+    "TopInterface",
+    "OneToOneTopInterface",
+    "ManyToOneTopInterface",
+]
 import dataclasses as dc
 from typing import Sequence, TextIO
 from ..pytools import join_fields
@@ -6,17 +13,17 @@ from ..interface import *
 
 
 @dc.dataclass(slots=True)
-class CheartTopology(_CheartTopology):
+class CheartTopology(ICheartTopology):
     name: str
-    basis: _CheartBasis | None
+    basis: ICheartBasis | None
     _mesh: str
     fmt: VariableExportFormat = VariableExportFormat.TXT
-    embedded: "_CheartTopology | None" = None
+    embedded: "ICheartTopology | None" = None
     partitioning_weight: int | None = None
     in_partition: bool = False
     continuous: bool = True
     spatial_constant: bool = False
-    in_boundary: tuple["_CheartTopology", int | str] | None = None
+    in_boundary: tuple["ICheartTopology", int | str] | None = None
 
     def __repr__(self) -> str:
         return self.name
@@ -25,13 +32,13 @@ class CheartTopology(_CheartTopology):
     def mesh(self) -> str:
         return self._mesh
 
-    def get_basis(self) -> _CheartBasis | None:
+    def get_basis(self) -> ICheartBasis | None:
         return self.basis
 
     def AddSetting(
         self,
         task: CheartTopologySetting,
-        val: int | tuple[_CheartTopology, int] | None = None,
+        val: int | tuple[ICheartTopology, int] | None = None,
     ) -> None:
         match task, val:
             case _:
@@ -59,7 +66,7 @@ class CheartTopology(_CheartTopology):
 
 
 @dc.dataclass(slots=True)
-class NullTopology(_CheartTopology):
+class NullTopology(ICheartTopology):
     # method
     def __repr__(self) -> str:
         return "null_topology"
@@ -68,13 +75,13 @@ class NullTopology(_CheartTopology):
     def mesh(self) -> str | None:
         return None
 
-    def get_basis(self) -> _CheartBasis | None:
+    def get_basis(self) -> ICheartBasis | None:
         return None
 
     def AddSetting(
         self,
         task: CheartTopologySetting,
-        val: int | tuple[_CheartTopology, int] | None = None,
+        val: int | tuple[ICheartTopology, int] | None = None,
     ) -> None:
         raise ValueError("Cannot add setting to null topology")
 
@@ -83,10 +90,10 @@ class NullTopology(_CheartTopology):
 
 
 @dc.dataclass(slots=True)
-class TopInterface(_TopInterface):
+class TopInterface(ITopInterface):
     name: str
     method: TopologyInterfaceType
-    topologies: list[_CheartTopology] = dc.field(default_factory=list)
+    topologies: list[ICheartTopology] = dc.field(default_factory=list)
 
     def write(self, f: TextIO):
         string = join_fields(self.method, *self.topologies)
@@ -94,9 +101,9 @@ class TopInterface(_TopInterface):
 
 
 @dc.dataclass(slots=True)
-class OneToOneTopInterface(_TopInterface):
+class OneToOneTopInterface(ITopInterface):
     name: str
-    topologies: list[_CheartTopology] = dc.field(default_factory=list)
+    topologies: list[ICheartTopology] = dc.field(default_factory=list)
 
     def __repr__(self) -> str:
         return self.name
@@ -104,10 +111,10 @@ class OneToOneTopInterface(_TopInterface):
     def __hash__(self) -> int:
         return hash("_".join([str(s) for s in self.topologies]))
 
-    def get_master(self) -> _CheartTopology | None:
+    def get_master(self) -> ICheartTopology | None:
         return None
 
-    def get_tops(self) -> Sequence[_CheartTopology]:
+    def get_tops(self) -> Sequence[ICheartTopology]:
         return self.topologies
 
     def write(self, f: TextIO):
@@ -116,10 +123,10 @@ class OneToOneTopInterface(_TopInterface):
 
 
 @dc.dataclass(slots=True)
-class ManyToOneTopInterface(_TopInterface):
+class ManyToOneTopInterface(ITopInterface):
     name: str
-    topologies: list[_CheartTopology]
-    master_topology: _CheartTopology
+    topologies: list[ICheartTopology]
+    master_topology: ICheartTopology
     interface_file: str
     nested_in_boundary: int | None = None
 
@@ -133,10 +140,10 @@ class ManyToOneTopInterface(_TopInterface):
             + str(self.master_topology)
         )
 
-    def get_master(self) -> _CheartTopology | None:
+    def get_master(self) -> ICheartTopology | None:
         return self.master_topology
 
-    def get_tops(self) -> Sequence[_CheartTopology]:
+    def get_tops(self) -> Sequence[ICheartTopology]:
         return [self.master_topology, *self.topologies]
 
     def write(self, f: TextIO):

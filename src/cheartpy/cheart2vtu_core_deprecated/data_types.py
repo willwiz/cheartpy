@@ -2,9 +2,9 @@ import dataclasses as dc
 import enum
 import os
 import numpy as np
-from typing import Final, Literal
-from cheartpy.var_types import i32, f64, Arr
-from cheartpy.xmlwriter.vtk_elements import (
+from typing import Final, Literal, Type
+from ..var_types import *
+from ..xmlwriter.vtk_elements import (
     VtkBoundaryElement,
     VtkTopologyElement,
     get_element_type,
@@ -39,7 +39,7 @@ class CmdLineArgs:
     disp: Final[str | None]
     step: int | None = None
     index: tuple[int, int, int] | None = None
-    sub_index: tuple[int, int, int] | None = None
+    sub_index: tuple[int, int, int] | Type[AUTO] | None = None
     sub_auto: bool = False
 
 
@@ -123,11 +123,14 @@ class CheartTopology:
         # bilinear triangle
         self.vtkelementtype, self.vtksurfacetype = get_element_type(self.nc, bfile)
 
-    def __setitem__(self, index, data) -> None:
+    def __setitem__(self, index: int, data: Vec[i32]) -> None:
         self._ft[index] = data
 
-    def __getitem__(self, index) -> int | Arr[int, i32]:
+    def __getitem__(self, index: int) -> int | Vec[i32]:
         return self._ft[index]
+
+    def get_data(self) -> Mat[i32]:
+        return self._ft
 
 
 @dc.dataclass(slots=True)

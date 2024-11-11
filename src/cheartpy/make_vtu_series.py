@@ -9,13 +9,14 @@
 #     --time   / -t : indicate a time file to add
 #     --folder / -f : indicate a folder to work from
 #     --name   / -n : indicate a output filename
+import argparse
 import os.path
 import typing as tp
-from cheartpy.tools.progress_bar import ProgressBar
-from cheartpy.cheart2vtu_core.time_parser import parser, InputArgs
+from .tools.progress_bar import ProgressBar
+from .cheart2vtu_core.time_parser import parser, InputArgs
 
 
-def xml_write_header(f):
+def xml_write_header(f: tp.TextIO):
     f.write('<?xml version="1.0"?>\n')
     f.write('<VTKFile type="Collection" version="0.1"\n')
     f.write('         byte_order="LittleEndian"\n')
@@ -23,18 +24,18 @@ def xml_write_header(f):
     f.write("  <Collection>\n")
 
 
-def xml_write_footer(f):
+def xml_write_footer(f: tp.TextIO):
     f.write("  </Collection>\n")
     f.write("</VTKFile>\n")
 
 
-def xml_write_content(f, item, time):
+def xml_write_content(f: tp.TextIO, item: str, time: float):
     f.write('    <DataSet timestep="{}" group="" part="0"\n'.format(time))
     f.write('             file="{}"/>\n'.format(item))
 
 
 def import_time_data(file: str) -> tp.Tuple[int, tp.Dict[int, float]]:
-    arr = dict()
+    arr: dict[int, float] = dict()
     with open(file, "r") as f:
         try:
             n = int(f.readline().strip())
@@ -54,7 +55,7 @@ def import_time_data(file: str) -> tp.Tuple[int, tp.Dict[int, float]]:
     return len(arr), arr
 
 
-def check_args(args) -> InputArgs:
+def check_args(args: argparse.Namespace) -> InputArgs:
     inp = InputArgs(
         args.prefix, args.irange[0], args.irange[1], args.irange[2], args.outfolder
     )
@@ -89,8 +90,7 @@ def print_cmd_header(inp: InputArgs):
     )
     print("")
     print(
-        "<<< Output folder:                                   {}".format(
-            inp.outfolder)
+        "<<< Output folder:                                   {}".format(inp.outfolder)
     )
     print("<<< Input file name prefix:                          {}".format(inp.prefix))
     print(
@@ -110,14 +110,19 @@ def main():
     args = parser.parse_args()
     inp = check_args(args)
     print_cmd_header(inp)
-    bar = ProgressBar( max=inp.nt, prefix="Processing")
+    bar = ProgressBar(max=inp.nt, prefix="Processing")
     fout = os.path.join(inp.outfolder, inp.prefix + ".pvd")
     with open(fout, "w") as f:
         xml_write_header(f)
         for i in range(inp.i0, inp.it, inp.di):
             xml_write_content(
-                f, os.path.join(inp.outfolder, f"{
-                                inp.prefix}-{i}.vtu"), inp.time[i]
+                f,
+                os.path.join(
+                    inp.outfolder,
+                    f"{
+                                inp.prefix}-{i}.vtu",
+                ),
+                inp.time[i],
             )
             bar.next()
         xml_write_footer(f)

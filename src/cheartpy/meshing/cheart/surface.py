@@ -16,7 +16,7 @@ def compute_normal_patch(
     space: Mat[f64],
     elem: Vec[i32],
     ref_space: Mat[f64],
-    LOG: _Logger = NullLogger(),
+    LOG: ILogger = NullLogger(),
 ) -> Vec[f64]:
     nodes = space[elem] - ref_space
     U = np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)])
@@ -34,7 +34,7 @@ def normalize_by_row(vals: Mat[f64]) -> Mat[f64]:
 
 
 def compute_normal_surface_at_center(
-    kind: VtkType, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
+    kind: VtkType, space: Mat[f64], elem: Mat[i32], LOG: ILogger = NullLogger()
 ):
     centroid = np.mean(kind.ref_nodes, axis=0)
     interp_basis = kind.shape_dfuncs(centroid)
@@ -46,7 +46,7 @@ def compute_normal_surface_at_center(
 
 
 def compute_normal_surface_at_nodes(
-    kind: VtkType, space: Mat[f64], elem: Mat[i32], LOG: _Logger = NullLogger()
+    kind: VtkType, space: Mat[f64], elem: Mat[i32], LOG: ILogger = NullLogger()
 ):
     interp_basis = {k: kind.shape_dfuncs(v) for k, v in enumerate(kind.ref_nodes)}
     LOG.debug(f"{interp_basis=}")
@@ -60,7 +60,7 @@ def compute_normal_surface_at_nodes(
     return {k: normalize_by_row(v) for k, v in normals.items()}
 
 
-def compute_mesh_outer_normal_at_nodes(mesh: CheartMesh, LOG: _Logger = NullLogger()):
+def compute_mesh_outer_normal_at_nodes(mesh: CheartMesh, LOG: ILogger = NullLogger()):
     KIND = mesh.top.TYPE
     LOG.debug(f"{KIND.name=}")
     interp_basis = {k: KIND.shape_dfuncs(v) for k, v in enumerate(KIND.ref_nodes)}

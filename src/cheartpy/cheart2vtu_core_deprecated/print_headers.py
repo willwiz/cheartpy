@@ -1,9 +1,5 @@
-from cheartpy.cheart2vtu_core.data_types import CmdLineArgs
-from cheartpy.cheart2vtu_core.file_indexing import (
-    DFileAutoFinder,
-    DFileNoVariable,
-    IndexerList,
-)
+from .data_types import CmdLineArgs
+from .file_indexing import DFileAutoFinder, IndexerList
 
 
 def print_guard() -> None:

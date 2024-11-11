@@ -1,16 +1,15 @@
+__all__ = ["Expression"]
 import dataclasses as dc
 from typing import Sequence, TextIO, Self
-
-from cheartpy.cheart_core.interface.basis import _Expression, _Variable
 from ..interface import *
 
 
 @dc.dataclass(slots=True)
-class Expression(_Expression):
+class Expression(IExpression):
     name: str
     value: Sequence[EXPRESSION_VALUE_TYPES]
-    deps_var: dict[str, _Variable] = dc.field(default_factory=dict)
-    deps_expr: dict[str, _Expression] = dc.field(default_factory=dict)
+    deps_var: dict[str, IVariable] = dc.field(default_factory=dict)
+    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
@@ -18,14 +17,14 @@ class Expression(_Expression):
     def get_values(self):
         return self.value
 
-    def add_deps(self, *vars: _Expression | _Variable) -> None:
+    def add_deps(self, *vars: IExpression | IVariable) -> None:
         for v in vars:
-            if isinstance(v, _Expression):
+            if isinstance(v, IExpression):
                 self.add_expr_deps(v)
-            elif isinstance(v, _Variable):
+            else:
                 self.add_var_deps(v)
 
-    def add_expr_deps(self, *expr: _Expression):
+    def add_expr_deps(self, *expr: IExpression):
         for v in expr:
             if str(v) not in self.deps_expr:
                 self.deps_expr[str(v)] = v
@@ -33,7 +32,7 @@ class Expression(_Expression):
     def get_expr_deps(self):
         return self.deps_expr.values()
 
-    def add_var_deps(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
             if str(v) not in self.deps_var:
                 self.deps_var[str(v)] = v

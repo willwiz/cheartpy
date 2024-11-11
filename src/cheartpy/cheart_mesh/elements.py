@@ -38,7 +38,7 @@ class VtkElemInterface:
     shape_funcs: Final[Callable[[Vec[f64]], Vec[f64]]]
     shape_dfuncs: Final[Callable[[Vec[f64]], Mat[f64]]]
 
-    def write(self, fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(self, fout: TextIO, elem: Vec[i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in self.nodeordering:
             fout.write(f" {elem[j] - 1:d}")
@@ -213,24 +213,24 @@ VTK_ELEM: Mapping[VTK_ELEM_TYPE | None, VtkType | None] = {
 
 
 def guess_elem_type_from_dim(edim: int, bdim: int | None) -> tuple[VtkType, VtkType]:
-    match [edim, bdim]:
-        case [3, 2 | None]:
+    match edim, bdim:
+        case 3, 2 | None:
             return VtkType.TriangleLinear, VtkType.LineLinear
-        case [6, 3 | None]:
+        case 6, 3 | None:
             return VtkType.TriangleQuadratic, VtkType.LineQuadratic
-        case [4, 2]:
+        case 4, 2:
             return VtkType.QuadrilateralLinear, VtkType.LineLinear
-        case [9, 3 | None]:
+        case 9, 3 | None:
             return VtkType.QuadrilateralQuadratic, VtkType.LineQuadratic
-        case [4, 3]:
+        case 4, 3:
             return VtkType.TetrahedronLinear, VtkType.TriangleLinear
-        case [10, 6 | None]:
+        case 10, 6 | None:
             return VtkType.TetrahedronQuadratic, VtkType.TriangleQuadratic
-        case [8, 4 | None]:
+        case 8, 4 | None:
             return VtkType.HexahedronLinear, VtkType.QuadrilateralLinear
-        case [27, 9 | None]:
+        case 27, 9 | None:
             return VtkType.HexahedronQuadratic, VtkType.QuadrilateralQuadratic
-        case [4, None]:
+        case 4, None:
             raise ValueError(
                 "Cannot detect Bilinear quadrilateral/Trilinear tetrahedron, need boundary dim"
             )

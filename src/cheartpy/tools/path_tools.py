@@ -1,6 +1,6 @@
 import os
 from glob import glob
-from .basiclogging import _Logger, NullLogger
+from .basiclogging import ILogger, NullLogger
 
 
 def path(*v: str | None) -> str:
@@ -10,7 +10,7 @@ def path(*v: str | None) -> str:
     return os.path.join(*[s for s in v if s])
 
 
-def Clear_Dir(folder: str, *suffix: str, LOG: _Logger = NullLogger()) -> None:
+def Clear_Dir(folder: str, *suffix: str, LOG: ILogger = NullLogger()) -> None:
     """
     Remove all files in directory
     """

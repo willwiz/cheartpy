@@ -17,14 +17,14 @@ from .implementation import *
 from .pytools import get_enum
 
 
-def hash_tops(tops: list[_CheartTopology] | list[str]) -> str:
+def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
     names = [str(t) for t in tops]
     return "_".join(names)
 
 
 def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
-) -> _TimeScheme:
+) -> ITimeScheme:
     if isinstance(step, str):
         if not os.path.isfile(step):
             raise ValueError(f"Time step file {step} is not found!")
@@ -38,21 +38,17 @@ def create_basis(
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: int,
     gp: int,
-) -> _CheartBasis:
+) -> ICheartBasis:
     elem = get_enum(elem, CheartElementType)
     kind = get_enum(kind, CheartBasisType)
     quadrature = get_enum(quadrature, CheartQuadratureType)
     if 2 * gp == order:
         raise ValueError(f"For {name}, order {order} <= {2 * gp - 1}")
-    match quadrature, elem:
-        case CheartQuadratureType.GAUSS_LEGENDRE, _:
-            pass
-        case (
-            CheartQuadratureType.KEAST_LYNESS,
-            CheartElementType.TETRAHEDRAL_ELEMENT | CheartElementType.TRIANGLE_ELEMENT,
-        ):
-            pass
-        case CheartQuadratureType.KEAST_LYNESS, _:
+    if quadrature is CheartQuadratureType.KEAST_LYNESS:
+        if not elem in [
+            CheartElementType.TETRAHEDRAL_ELEMENT,
+            CheartElementType.TRIANGLE_ELEMENT,
+        ]:
             raise ValueError(
                 f"For {name} Basis, KEAST_LYNESS can only be used with tetrahydral or triangles"
             )
@@ -61,10 +57,10 @@ def create_basis(
 
 def create_topology(
     name: str,
-    basis: _CheartBasis | None,
+    basis: ICheartBasis | None,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-) -> _CheartTopology:
+) -> ICheartTopology:
     if basis is None:
         return NullTopology()
     fmt = get_enum(format, VariableExportFormat)
@@ -73,32 +69,32 @@ def create_topology(
 
 def create_embedded_topology(
     name: str,
-    embedded_top: _CheartTopology,
+    embedded_top: ICheartTopology,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-) -> _CheartTopology:
+) -> ICheartTopology:
     fmt = get_enum(format, VariableExportFormat)
     return CheartTopology(name, None, mesh, fmt, embedded=embedded_top)
 
 
 def create_variable(
     name: str,
-    top: _CheartTopology | None,
+    top: ICheartTopology | None,
     dim: int = 3,
     data: str | None = None,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
     freq: int = 1,
     loop_step: int | None = None,
-) -> _Variable:
+) -> IVariable:
     fmt = get_enum(format, VariableExportFormat)
     top = NullTopology() if top is None else top
     return Variable(name, top, dim, data, fmt, freq, loop_step)
 
 
 def create_solver_matrix(
-    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: _Problem
-) -> _SolverMatrix:
-    problems = dict()
+    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem
+) -> ISolverMatrix:
+    problems: dict[str, IProblem] = dict()
     for p in probs:
         problems[str(p)] = p
     method = get_enum(solver, MatrixSolverTypes)
@@ -106,9 +102,9 @@ def create_solver_matrix(
 
 
 def create_solver_group(
-    name: str, time: _TimeScheme, *solver_subgroup: _SolverSubGroup
-) -> _SolverGroup:
-    sub_group = list()
+    name: str, time: ITimeScheme, *solver_subgroup: ISolverSubGroup
+) -> ISolverGroup:
+    sub_group: list[ISolverSubGroup] = list()
     for sg in solver_subgroup:
         sub_group.append(sg)
     return SolverGroup(name, time, sub_group)
@@ -116,9 +112,9 @@ def create_solver_group(
 
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
-    *probs: _SolverMatrix | _Problem,
-) -> _SolverSubGroup:
-    problems = dict()
+    *probs: ISolverMatrix | IProblem,
+) -> ISolverSubGroup:
+    problems: dict[str, ISolverMatrix | IProblem] = dict()
     for p in probs:
         problems[str(p)] = p
     return SolverSubGroup(get_enum(method, SolverSubgroupAlgorithm), problems)
@@ -126,11 +122,11 @@ def create_solver_subgroup(
 
 def create_top_interface(
     method: Literal["OneToOne", "ManyToOne"],
-    topologies: list[_CheartTopology],
-    master_topology: _CheartTopology | None = None,
+    topologies: list[ICheartTopology],
+    master_topology: ICheartTopology | None = None,
     interface_file: str | None = None,
     nest_in_boundary: int | None = None,
-) -> _TopInterface:
+) -> ITopInterface:
     match method:
         case "OneToOne":
             name = hash_tops(topologies)

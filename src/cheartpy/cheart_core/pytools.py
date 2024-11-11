@@ -3,10 +3,6 @@ from typing import Any, Type
 import enum
 
 
-def VoS(x):
-    return str(x) if isinstance(x, (str, int, float)) else x.name
-
-
 def join_fields(*terms: Any, char: str = "|") -> str:
     vals = [str(v) for v in terms if v is not None]
     return char.join(vals)
@@ -20,7 +16,7 @@ def cline(s: str):
     return f"% {s}\n"
 
 
-def header(msg="Begin P file"):
+def header(msg: str = "Begin P file"):
     ls = f"% {'-'*88}\n"
     for s in msg.splitlines():
         ls = ls + cline(s)
@@ -28,7 +24,7 @@ def header(msg="Begin P file"):
     return ls
 
 
-def splicegen(maxchars, stringlist):
+def splicegen(maxchars: int, stringlist: list[str]):
     """
     Return a list of slices to print based on maxchars string-length boundary.
     """
@@ -48,7 +44,7 @@ def splicegen(maxchars, stringlist):
 class MissingArgument(Exception):
     """Raised when arguments are missing"""
 
-    def __init__(self, message="Missing arguments"):
+    def __init__(self, message: str = "Missing arguments"):
         self.message = message
         super().__init__(self.message)
 

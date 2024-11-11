@@ -1,7 +1,7 @@
 import subprocess as sp
 
 
-def run_prep(pfile: str):
+def run_prep(pfile: str) -> None:
     sp.run(["cheartsolver.out", pfile, "--prep"])
 
 
@@ -11,7 +11,7 @@ def run_problem(
     dump_matrix: bool = False,
     cores: int = 1,
     log: str | None = None,
-):
+) -> int:
     cmd = ["cheartsolver.out", pfile]
     if pedantic:
         cmd = cmd + ["--pedantic-printing"]

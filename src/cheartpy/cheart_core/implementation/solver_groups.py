@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
+__all__ = ["SolverSubGroup", "SolverGroup"]
 import dataclasses as dc
 from typing import Mapping, Sequence, TextIO, ValuesView
-
-from cheartpy.cheart_core.interface.basis import _Problem
-from cheartpy.cheart_core.interface.solver_matrix import _SolverMatrix
 from ..aliases import *
 from ..pytools import *
 from ..interface import *
@@ -51,15 +48,15 @@ PFile
 
 # Define Solver SubGroup
 @dc.dataclass(slots=True)
-class SolverSubGroup(_SolverSubGroup):
+class SolverSubGroup(ISolverSubGroup):
     method: SolverSubgroupAlgorithm
-    problems: dict[str, _SolverMatrix | _Problem] = dc.field(default_factory=dict)
+    problems: dict[str, ISolverMatrix | IProblem] = dc.field(default_factory=dict)
     _scale_first_residual: float | None = None
 
     def get_method(self) -> SolverSubgroupAlgorithm:
         return self.method
 
-    def get_all_vars(self) -> Mapping[str, _Variable]:
+    def get_all_vars(self) -> Mapping[str, IVariable]:
         _prob_vars = {str(v): v for p in self.get_problems() for v in p.get_var_deps()}
         _matrix_vars = {
             str(v): v
@@ -84,7 +81,7 @@ class SolverSubGroup(_SolverSubGroup):
             k: v for d in _all_vars_dicts_ + _all_exprs_dicts_ for k, v in d.items()
         }
 
-    def get_prob_vars(self) -> Mapping[str, _Variable]:
+    def get_prob_vars(self) -> Mapping[str, IVariable]:
         _prob_vars = {
             k: v for p in self.get_problems() for k, v in p.get_prob_vars().items()
         }
@@ -97,14 +94,14 @@ class SolverSubGroup(_SolverSubGroup):
         _all_vars = {**_prob_vars, **_matrix_vars}
         return _all_vars
 
-    def get_systems(self) -> ValuesView[_Problem | _SolverMatrix]:
+    def get_systems(self) -> ValuesView[IProblem | ISolverMatrix]:
         return self.problems.values()
 
-    def get_problems(self) -> Sequence[_Problem]:
-        return [v for v in self.problems.values() if isinstance(v, _Problem)]
+    def get_problems(self) -> Sequence[IProblem]:
+        return [v for v in self.problems.values() if isinstance(v, IProblem)]
 
-    def get_matrices(self) -> Sequence[_SolverMatrix]:
-        return [v for v in self.problems.values() if isinstance(v, _SolverMatrix)]
+    def get_matrices(self) -> Sequence[ISolverMatrix]:
+        return [v for v in self.problems.values() if isinstance(v, ISolverMatrix)]
 
     @property
     def scale_first_residual(self) -> float | None:
@@ -116,26 +113,26 @@ class SolverSubGroup(_SolverSubGroup):
 
 
 @dc.dataclass(slots=True)
-class SolverGroup(_SolverGroup):
+class SolverGroup(ISolverGroup):
     name: str
-    time: _TimeScheme
-    sub_groups: list[_SolverSubGroup] = dc.field(default_factory=list)
+    time: ITimeScheme
+    sub_groups: list[ISolverSubGroup] = dc.field(default_factory=list)
     settings: dict[
         TolSettings | IterationSettings | Literal["CatchSolverErrors"],
-        list[str | int | float | _Expression | _Variable],
+        list[str | int | float | IExpression | IVariable],
     ] = dc.field(default_factory=dict)
     export_initial_condition: bool = True
     use_dynamic_topologies: bool | float = False
-    _aux_vars: dict[str, _Variable] = dc.field(default_factory=dict)
-    _deps_vars: dict[str, _Variable] = dc.field(default_factory=dict)
+    _aux_vars: dict[str, IVariable] = dc.field(default_factory=dict)
+    _deps_vars: dict[str, IVariable] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
 
-    def get_time_scheme(self) -> _TimeScheme:
+    def get_time_scheme(self) -> ITimeScheme:
         return self.time
 
-    def get_aux_vars(self) -> ValuesView[_Variable]:
+    def get_aux_vars(self) -> ValuesView[IVariable]:
         _all_vars = {
             k: v for sg in self.sub_groups for k, v in sg.get_all_vars().items()
         }
@@ -150,7 +147,7 @@ class SolverGroup(_SolverGroup):
         _aux_vars = {k: v for k, v in _all_vars.items() if not k in _dep_vars}
         return _aux_vars.values()
 
-    def get_subgroups(self) -> Sequence[_SolverSubGroup]:
+    def get_subgroups(self) -> Sequence[ISolverSubGroup]:
         return self.sub_groups
 
     def set_convergence(
@@ -177,12 +174,12 @@ class SolverGroup(_SolverGroup):
     ) -> None:
         self.settings["CatchSolverErrors"] = [err, act, thresh]
 
-    def AddAuxVariable(self, *var: _Variable):
+    def AddAuxVariable(self, *var: IVariable):
         for v in var:
             if str(v) not in self._aux_vars:
                 self._aux_vars[str(v)] = v
 
-    def RemoveAuxVariable(self, *var: str | _Variable):
+    def RemoveAuxVariable(self, *var: str | IVariable):
         for v in var:
             if isinstance(v, str):
                 self._aux_vars.pop(v)
@@ -190,18 +187,18 @@ class SolverGroup(_SolverGroup):
                 self._aux_vars.pop(str(v))
 
     # SG
-    def AddSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
+    def AddSolverSubGroup(self, *sg: ISolverSubGroup) -> None:
         for v in sg:
             self.sub_groups.append(v)
 
-    def RemoveSolverSubGroup(self, *sg: _SolverSubGroup) -> None:
+    def RemoveSolverSubGroup(self, *sg: ISolverSubGroup) -> None:
         for v in sg:
             self.sub_groups.remove(v)
 
     def MakeSolverSubGroup(
         self,
         method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"],
-        *problems: _SolverMatrix | _Problem,
+        *problems: ISolverMatrix | IProblem,
     ) -> None:
         self.sub_groups.append(
             SolverSubGroup(

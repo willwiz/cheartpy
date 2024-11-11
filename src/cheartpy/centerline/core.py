@@ -1,10 +1,9 @@
-import os
 import numpy as np
 from typing import cast
 from collections import defaultdict
 from .types import *
 from ..tools.path_tools import path
-from ..cheart_core.interface import _Variable, _Expression
+from ..cheart_core.interface import IVariable, IExpression
 from ..cheart_core.implementation import Expression
 from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
@@ -38,8 +37,8 @@ def LL_interp(top: CLTopology, var: Mat[f64] | Vec[f64], cl: Vec[f64]) -> Mat[f6
 
 
 def LL_expr(
-    name: str, v: _Variable, b: tuple[float, float, float] | Vec[f64]
-) -> _Expression:
+    name: str, v: IVariable, b: tuple[float, float, float] | Vec[f64]
+) -> IExpression:
     basis = Expression(
         name,
         [
@@ -54,7 +53,7 @@ def check_normal(
     node_normals: Mat[f64],
     elem: Vec[i32],
     patch_normals: Vec[f64],
-    LOG: _Logger = NullLogger(),
+    LOG: ILogger = NullLogger(),
 ):
     check = all(
         [cast(bool, abs(node_normals[i] @ patch_normals) > 0.707) for i in elem]
@@ -70,7 +69,7 @@ def filter_mesh_normals(
     mesh: CheartMesh,
     elems: Mat[i32],
     normal_check: Mat[f64],
-    LOG: _Logger = NullLogger(),
+    LOG: ILogger = NullLogger(),
 ):
     LOG.debug(f"The number of elements in patch is {len(elems)}")
     surf_type = VTK_ELEM[mesh.top.TYPE.surf]
@@ -89,7 +88,7 @@ def create_cl_topology(
     ne: int,
     bc: tuple[float, float] = (0.0, 1.0),
     prefix: str = "CL",
-    LOG: _Logger = NullLogger(),
+    LOG: ILogger = NullLogger(),
 ) -> CLTopology:
     nn = ne + 1
     nodes = np.linspace(*bc, nn, dtype=float)
@@ -111,7 +110,7 @@ def create_cl_topology(
 
 
 def create_clbasis_expr(
-    var: _Variable,
+    var: IVariable,
     cl: CLTopology,
 ) -> CLBasisExpressions:
     pelem = {
@@ -148,7 +147,7 @@ def create_cheartmesh_in_clrange(
     bnd_map: PatchNode2ElemMap,
     domain: tuple[float, float] | Vec[f64],
     normal_check: Mat[f64] | None = None,
-    LOG: _Logger = NullLogger(),
+    LOG: ILogger = NullLogger(),
 ) -> CheartMesh:
     surf_type = VTK_ELEM[mesh.top.TYPE.surf]
     if surf_type is None:
@@ -181,9 +180,9 @@ def create_cheart_cl_nodal_meshes(
     mesh: CheartMesh,
     cl: Mat[f64],
     cl_top: CLTopology,
-    surf_id,
+    surf_id: int,
     normal_check: Mat[f64] | None = None,
-    LOG: _Logger = NullLogger(),
+    LOG: ILogger = NullLogger(),
 ) -> Mapping[int, CLNodalData]:
     if mesh.bnd is None:
         raise ValueError("Mesh has not boundary")
@@ -193,7 +192,7 @@ def create_cheart_cl_nodal_meshes(
         k: create_cheartmesh_in_clrange(
             mesh, surf, bnd_map, (l, r), normal_check=normal_check, LOG=LOG
         )
-        for k, (l, c, r) in enumerate(cl_top.support)
+        for k, (l, _, r) in enumerate(cl_top.support)
     }
     LOG.debug(f"Computing mesh outer normals at every node.")
     return {

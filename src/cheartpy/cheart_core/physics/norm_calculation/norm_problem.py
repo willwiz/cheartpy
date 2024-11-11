@@ -1,15 +1,16 @@
+__all__ = ["NormProblem"]
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 from ...pytools import join_fields
 from ...interface import *
 from ...implementation import BoundaryCondition, CheartTopology
 
 
-class NormProblem(_Problem):
+class NormProblem(IProblem):
     name: str
-    variables: dict[str, _Variable]
-    aux_vars: dict[str, _Variable]
-    aux_expr: dict[str, _Expression]
-    bc: _BoundaryCondition
+    variables: dict[str, IVariable]
+    aux_vars: dict[str, IVariable]
+    aux_expr: dict[str, IExpression]
+    bc: IBoundaryCondition
     root_top: CheartTopology | None = None
     boundary_normal: int | None = None
     scale_by_measure: bool = False
@@ -20,9 +21,9 @@ class NormProblem(_Problem):
     def __init__(
         self,
         name: str,
-        space: _Variable,
-        term1: _Variable,
-        term2: _Variable | None = None,
+        space: IVariable,
+        term1: IVariable,
+        term2: IVariable | None = None,
         boundary_n: int | None = None,
     ) -> None:
         self.name = name
@@ -40,36 +41,36 @@ class NormProblem(_Problem):
     def __repr__(self) -> str:
         return self.name
 
-    def get_prob_vars(self) -> Mapping[str, _Variable]:
+    def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
-    def add_var_deps(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
             self.aux_vars[str(v)] = v
 
-    def add_expr_deps(self, *expr: _Expression) -> None:
+    def add_expr_deps(self, *expr: IExpression) -> None:
         for v in expr:
             self.aux_expr[str(v)] = v
 
-    def get_var_deps(self) -> ValuesView[_Variable]:
+    def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_vars_, **_b_vars_, **self.aux_vars}.values()
 
-    def get_expr_deps(self) -> ValuesView[_Expression]:
+    def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         return {**_expr_, **self.aux_expr}.values()
 
-    def get_bc_patches(self) -> Sequence[_BCPatch]:
+    def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else patches
+        return list() if patches is None else list(patches)
 
     def AddVariable(
         self,
         req: Literal["Space", "Term1", "Term2", "ExportToVariable"],
-        var: _Variable,
+        var: IVariable,
     ) -> None:
         self.variables[req] = var
 

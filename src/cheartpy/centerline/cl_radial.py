@@ -4,15 +4,15 @@ from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
     FSExpr,
 )
-from ..cheart_core.interface import _Variable, _CheartTopology, _Expression
+from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation.expressions import Expression
 
 
 def create_radial_len_expr(
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    cl: _Expression,
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable,
+    cl: IExpression,
 ):
     v_disp = Expression("v_disp_expr", [f"{disp}.{i} - {cl}.{i}" for i in [1, 2, 3]])
     v_disp.add_deps(disp, cl)
@@ -34,9 +34,9 @@ def create_radial_len_expr(
 
 
 def create_radial_expr(
-    disp: _Expression,
-    motion: _Expression,
-    cl_basis: _Expression,
+    disp: IExpression,
+    motion: IExpression,
+    cl_basis: IExpression,
     k: int,
 ):
     cons_expr = Expression(f"DL{k}_cons_expr", [f"({disp} - {motion}) * {cl_basis}"])
@@ -45,7 +45,7 @@ def create_radial_expr(
 
 
 def create_radial_expr_terms(
-    disp: _Expression, motion: _Expression, cl_basis: CLBasisExpressions
+    disp: IExpression, motion: IExpression, cl_basis: CLBasisExpressions
 ):
     return {
         k: create_radial_expr(disp, motion, v, k) for k, v in cl_basis["pelem"].items()
@@ -54,13 +54,13 @@ def create_radial_expr_terms(
 
 def create_radial_problem(
     name: str,
-    top: _CheartTopology,
-    space: _Variable,
-    disp: _Variable,
-    lm: _Variable,
-    zeros: _Expression,
-    cons_expr: _Expression,
-    neighbours: Sequence[_Variable],
+    top: ICheartTopology,
+    space: IVariable,
+    disp: IVariable,
+    lm: IVariable,
+    zeros: IExpression,
+    cons_expr: IExpression,
+    neighbours: Sequence[IVariable],
 ) -> FSCouplingProblem:
     zero_1_expr = Expression(f"zero_1_expr", [0])
     fsbc = FSCouplingProblem(name, space, top)
@@ -74,15 +74,15 @@ def create_radial_problem(
 
 
 def create_radial_problems(
-    tops: Mapping[int, _CheartTopology],
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    lms: Mapping[int, _Variable],
-    cl_normal: Mapping[int, _Variable],
+    tops: Mapping[int, ICheartTopology],
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable,
+    lms: Mapping[int, IVariable],
+    cl_normal: Mapping[int, IVariable],
     cl_part: CLTopology,
     cl_basis: CLBasisExpressions,
-    cl_pos_expr: _Expression,
+    cl_pos_expr: IExpression,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
     r_disp_expr, r_motion_expr = create_radial_len_expr(

@@ -7,7 +7,7 @@ from ..pytools import join_fields
 
 
 @dc.dataclass(slots=True)
-class Basis(_Basis):
+class Basis(IBasis):
     name: CheartBasisType
     order: int
 
@@ -16,7 +16,7 @@ class Basis(_Basis):
 
 
 @dc.dataclass(slots=True)
-class Quadrature(_Quadrature):
+class Quadrature(IQuadrature):
     name: CheartQuadratureType
     gp: int
 
@@ -25,7 +25,7 @@ class Quadrature(_Quadrature):
 
 
 @dc.dataclass(slots=True)
-class CheartBasis(_CheartBasis):
+class CheartBasis(ICheartBasis):
     name: str
     elem: CheartElementType
     basis: Basis

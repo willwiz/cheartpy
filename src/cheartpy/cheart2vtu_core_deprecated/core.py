@@ -1,23 +1,18 @@
 import os
-from typing import Sequence
-import meshio
 import numpy as np
+from typing import Sequence
+from .third_party import compress_vtu
 from concurrent import futures
 from ..var_types import i32, f64, Arr
-from ..cheart_mesh import (
-    CHRead_d,
-    CHRead_d_utf,
-    CHRead_d_bin,
-    CHRead_b_utf,
-)
-from cheartpy.xmlwriter.xmlclasses import XMLElement, XMLWriters
-from cheartpy.cheart2vtu_core.print_headers import print_input_info
-from cheartpy.cheart2vtu_core.main_parser import get_cmdline_args
-from cheartpy.cheart2vtu_core.file_indexing import (
+from ..cheart_mesh.io import *
+from ..xmlwriter.xmlclasses import XMLElement, XMLWriters
+from ..cheart2vtu_core.print_headers import print_input_info
+from ..cheart2vtu_core.main_parser import get_cmdline_args
+from ..cheart2vtu_core.file_indexing import (
     IndexerList,
     get_file_name_indexer,
 )
-from cheartpy.cheart2vtu_core.data_types import (
+from ..cheart2vtu_core.data_types import (
     CheartMeshFormat,
     CheartVarFormat,
     CheartZipFormat,
@@ -26,18 +21,8 @@ from cheartpy.cheart2vtu_core.data_types import (
     VariableCache,
     CheartTopology,
 )
-from cheartpy.tools.progress_bar import ProgressBar
-
-
-def compress_vtu(name: str, verbose: bool = False) -> None:
-    if verbose:
-        size = os.stat(name).st_size
-        print("File size before: {:.2f} MB".format(size / 1024**2))
-    mesh = meshio._helpers.read(name, file_format="vtu")
-    meshio.vtu.write(name, mesh, binary=True, compression="zlib")
-    if verbose:
-        size = os.stat(name).st_size
-        print("File size after: {:.2f} MB".format(size / 1024**2))
+from ..tools.progress_bar import ProgressBar
+from ..tools.parallel_exec import *
 
 
 def parse_cmdline_args(
@@ -186,7 +171,7 @@ def create_XML_for_boundary(
     fx: Arr[tuple[int, int], f64],
     tp: CheartTopology,
     fb: Arr[tuple[int, int], i32],
-    fbid: Arr[int, i32],
+    fbid: Arr[tuple[int], i32],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
@@ -300,7 +285,7 @@ def create_XML_for_mesh(
     dataarr = cell.add_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii")
     )
-    dataarr.add_data(tp._ft, tp.vtkelementtype.write)
+    dataarr.add_data(tp.get_data(), tp.vtkelementtype.write)
     dataarr = cell.add_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii")
     )
@@ -378,15 +363,8 @@ def run_exports_in_parallel(
     inp: ProgramArgs, indexer: IndexerList, cache: VariableCache
 ) -> None:
     time_steps = indexer.get_generator()
-    jobs: dict[futures.Future, str] = dict()
-    bart = ProgressBar(indexer.size, "Exporting") if inp.progress_bar else None
+    args: PARALLELEXEC_ARGS = [
+        ([find_args_iter(inp, t, cache), inp, cache.top], dict()) for t in time_steps
+    ]
     with futures.ProcessPoolExecutor(inp.cores) as exec:
-        for t in time_steps:
-            args = find_args_iter(inp, t, cache)
-            jobs[exec.submit(export_mesh_iter, args, inp, cache.top)] = args.prefix
-        for future in futures.as_completed(jobs):
-            try:
-                future.result()
-                bart.next() if bart else print(f"<<< Completed {jobs[future]}")
-            except Exception as e:
-                raise e
+        parallel_exec(exec, export_mesh_iter, args, True)

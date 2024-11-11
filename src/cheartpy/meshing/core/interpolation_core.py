@@ -90,7 +90,7 @@ def load_map(name: str) -> dict[int, list[int]]:
     return map
 
 
-def intep_lin_to_quad(map: dict[int, list[int]], lin: Mat[f64]):
+def interp_lin_to_quad(map: dict[int, list[int]], lin: Mat[f64]):
     quad_data = np.zeros((len(map), lin.shape[1]), dtype=np.float64)
     for k, v in map.items():
         quad_data[k] = lin[v].mean(axis=0)

@@ -9,7 +9,7 @@ from .types import *
 
 
 def create_center_pos_expr(
-    prefix: str, cl_nodes: Mapping[int, _Variable], p_basis: Mapping[int, _Expression]
+    prefix: str, cl_nodes: Mapping[int, IVariable], p_basis: Mapping[int, IExpression]
 ):
     cl_pos_expr = Expression(
         prefix,
@@ -25,13 +25,13 @@ def create_center_pos_expr(
 
 def create_cl_position_problem(
     name: str,
-    top: _CheartTopology,
-    space: _Variable,
-    disp: _Variable,
-    cl_nodes: _Variable,
-    cl_pos_expr: _Expression,
-    neighbours: Sequence[_Variable],
-    p_basis: _Expression,
+    top: ICheartTopology,
+    space: IVariable,
+    disp: IVariable,
+    cl_nodes: IVariable,
+    cl_pos_expr: IExpression,
+    neighbours: Sequence[IVariable],
+    p_basis: IExpression,
 ) -> FSCouplingProblem:
     zero_expr = Expression(f"zero_1_expr", [0])
     cons = Expression(
@@ -54,12 +54,12 @@ def create_cl_position_problem(
 
 
 def create_cl_position_problems(
-    space: _Variable,
-    disp: _Variable,
-    cl_nodes: Mapping[int, _Variable],
-    tops: Mapping[int, _CheartTopology],
-    cl_pos_expr: _Expression,
-    p_basis: Mapping[int, _Expression],
+    space: IVariable,
+    disp: IVariable,
+    cl_nodes: Mapping[int, IVariable],
+    tops: Mapping[int, ICheartTopology],
+    cl_pos_expr: IExpression,
+    p_basis: Mapping[int, IExpression],
 ) -> Mapping[int, FSCouplingProblem]:
     return {
         k: create_cl_position_problem(

@@ -37,7 +37,8 @@ def main(args: argparse.Namespace):
         args.make_quad,
     )
     mesh.save(args.prefix)
-    quad.save(args.prefix + "_quad") if quad else ...
+    if quad is not None:
+        quad.save(args.prefix + "_quad") if quad else ...
 
 
 # ----  Here beging the main program  ---------------------------------------

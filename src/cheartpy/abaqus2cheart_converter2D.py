@@ -6,11 +6,11 @@ import sys
 from collections import defaultdict
 import argparse
 from argparse import RawTextHelpFormatter
-from typing import Any, Callable, TextIO, Self
+from typing import Any, Callable, Sequence, TextIO, Self
 import numpy as np
 import dataclasses as dc
 from concurrent import futures
-from cheartpy.var_types import Arr, i32, f64
+from .var_types import *
 from .cheart_mesh.io import (
     CHWrite_d_utf,
     CHWrite_t_utf,
@@ -137,24 +137,24 @@ class AbaqusElementType(enum.Enum):
 
 
 def get_abaqus_element(type: str, dim: int) -> AbaqusElementType:
-    match [type, dim]:
-        case ["T3D2", 2]:
+    match type, dim:
+        case "T3D2", 2:
             return AbaqusElementType.T3D2
-        case ["T3D3", 3]:
+        case "T3D3", 3:
             return AbaqusElementType.T3D3
-        case ["CPS3", 3]:
+        case "CPS3", 3:
             return AbaqusElementType.CPS3
-        case ["CPS4", 4]:
+        case "CPS4", 4:
             return AbaqusElementType.CPS4
-        case ["CPS4", 9]:
+        case "CPS4", 9:
             return AbaqusElementType.CPS4_3D
-        case ["C3D4", 4]:
+        case "C3D4", 4:
             return AbaqusElementType.C3D4
-        case ["S3R", 3]:
+        case "S3R", 3:
             return AbaqusElementType.S3R
-        case [_, 8]:
+        case _, 8:
             return AbaqusElementType.TetQuad3D
-        case [_, 4]:
+        case _, 4:
             return AbaqusElementType.Tet3D
         case _:
             raise ValueError(f"type = {type} with dim = {dim} not implemented")
@@ -186,12 +186,9 @@ class AbaqusMeshNode:
         row = line.strip().split(",")
         self.data[int(row[0])] = [float(i) for i in row[1:]]
 
-    def __eq__(self, other):
-        return self.data == other.data
-
-    def __ne__(self, other) -> bool:
-        if isinstance(other, AbaqusMeshNode):
-            return self.data != other.data
+    def __eq__(self, other: Any):
+        if isinstance(other, self.__class__):
+            return self.data == other.data
         return False
 
 
@@ -288,8 +285,10 @@ class CheartMesh(object):
     boundary: MeshTypeBoundary | None = None
 
 
-def get_results_from_futures(func: Callable, args: list[Any], cores: int = 2):
-    future_jobs = []
+def get_results_from_futures(
+    func: Callable[..., Any], args: list[Any], cores: int = 2
+) -> Sequence[Any]:
+    future_jobs: list[futures.Future[Any]] = []
     with futures.ProcessPoolExecutor(cores) as exec:
         for a in args:
             future_jobs.append(exec.submit(func, *a))
@@ -405,7 +404,7 @@ def import_topology(
     elmap: dict[int, int], elems: dict[str, AbaqusMeshElement], tops: list[str]
 ) -> MeshTypeTopology:
     n = 0
-    data = list()
+    data: list[list[int]] = list()
     for top in (elems[t] for t in tops):
         arraydim = len(next(iter(top.data.values())))
         el = get_abaqus_element(top.kind, arraydim)
@@ -417,7 +416,7 @@ def import_topology(
 
 
 def topology_hashmap(topology: MeshTypeTopology) -> dict[int, set[int]]:
-    hashmap = defaultdict(set)
+    hashmap: dict[int, set[int]] = defaultdict(set)
     for i, row in enumerate(topology.data, 1):
         for k in row:
             hashmap[k].add(i)
@@ -426,7 +425,7 @@ def topology_hashmap(topology: MeshTypeTopology) -> dict[int, set[int]]:
 
 def find_elem_from_hashmap(map: dict[int, set[int]], nodes: list[int]) -> int:
     elem_sets = [map[i] for i in nodes]
-    elements = set.intersection(*elem_sets)
+    elements: set[int] = elem_sets[0].intersection(*elem_sets)
     if len(elements) == 0:
         raise ValueError(f">>>ERROR: No element was found containing {nodes}")
     elif len(elements) > 1:
@@ -446,7 +445,7 @@ def make_boundary(
     arraydim = len(next(iter(elem.data.values())))
     elem_order = get_abaqus_element(elem.kind, arraydim)
     n = 0
-    data = set()
+    data: set[BoundaryElem] = set()
     for row in elem.data.values():
         patch = [elmap[row[j]] for j in elem_order.value]
         k = find_elem_from_hashmap(topmap, patch)
@@ -601,8 +600,8 @@ def check_args(args: argparse.Namespace) -> InputArgs:
     )
 
 
-def main(args=None) -> None:
-    args = parser.parse_args(args=args)
+def main(cmd_args: Sequence[str] | None = None) -> None:
+    args = parser.parse_args(args=cmd_args)
     inp = check_args(args)
     nodes, elems = read_abaqus_mesh_to_raw_elems(inp.inputs)
     check_element_names(elems, inp.topology, inp.boundary)

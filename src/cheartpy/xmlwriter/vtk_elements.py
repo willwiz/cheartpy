@@ -1,4 +1,4 @@
-from cheartpy.var_types import i32, Arr
+from ..var_types import i32, Arr
 from typing import TextIO, Protocol, ClassVar
 import abc
 
@@ -10,7 +10,7 @@ class _VtkElementInterface(Protocol):
 
     @staticmethod
     @abc.abstractmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None: ...
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None: ...
 
 
 class VtkLinearLine(_VtkElementInterface):
@@ -19,7 +19,7 @@ class VtkLinearLine(_VtkElementInterface):
     connectivity = (0, 1)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(2):
             fout.write(" %i" % (elem[j] - 1))
@@ -32,7 +32,7 @@ class VtkQuadraticLine(_VtkElementInterface):
     connectivity = (0, 1, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(3):
             fout.write(" %i" % (elem[j] - 1))
@@ -45,7 +45,7 @@ class VtkBilinearTriangle(_VtkElementInterface):
     connectivity = (0, 1, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(3):
             fout.write(" %i" % (elem[j] - 1))
@@ -58,7 +58,7 @@ class VtkBiquadraticTriangle(_VtkElementInterface):
     connectivity = (0, 1, 2, 3, 5, 4)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -74,7 +74,7 @@ class VtkBilinearQuadrilateral(_VtkElementInterface):
     vtksurfaceid = 3
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -88,7 +88,7 @@ class VtkTrilinearTetrahedron(_VtkElementInterface):
     vtksurfaceid = 5
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(4):
             fout.write(" %i" % (elem[j] - 1))
@@ -100,7 +100,7 @@ class VtkBiquadraticQuadrilateral(_VtkElementInterface):
     vtksurfaceid = 21
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -119,7 +119,7 @@ class VtkTriquadraticTetrahedron(_VtkElementInterface):
     vtksurfaceid = 22
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(10):
             if j == 6:
@@ -136,7 +136,7 @@ class VtkTrilinearHexahedron(_VtkElementInterface):
     vtksurfaceid = 9
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -154,7 +154,7 @@ class VtkTriquadraticHexahedron(_VtkElementInterface):
     vtksurfaceid = 28
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[int, i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -215,32 +215,27 @@ def get_element_type(
         with open(boundary, "r") as f:
             _ = f.readline()
             nbnd = len(f.readline().strip().split())
-    match [nnodes, nbnd]:
-        case [3, _]:
+    match nnodes:
+        case 3:
             return VtkBilinearTriangle, VtkLinearLine
-        case [6, _]:
+        case 6:
             return VtkBiquadraticTriangle, VtkQuadraticLine
-        case [4, 4]:
-            return VtkBilinearQuadrilateral, VtkLinearLine
-        case [9, _]:
+        case 4:
+            if nbnd == 4:
+                return VtkBilinearQuadrilateral, VtkLinearLine
+            elif nbnd == 5:
+                return VtkTrilinearTetrahedron, VtkBilinearTriangle
+            raise ValueError(
+                f"Bilinear quadrilateral / Trilinear tetrahedron detected but ambiguous"
+            )
+        case 9:
             return VtkBiquadraticQuadrilateral, VtkQuadraticLine
-        case [4, 5]:
-            return VtkTrilinearTetrahedron, VtkBilinearTriangle
-        case [10, _]:
+        case 10:
             return VtkTriquadraticTetrahedron, VtkBiquadraticTriangle
-        case [8, _]:
+        case 8:
             return VtkTrilinearHexahedron, VtkBilinearQuadrilateral
-        case [27, _]:
+        case 27:
             return VtkTriquadraticHexahedron, VtkBiquadraticQuadrilateral
-        case [4, None]:
-            raise ValueError(
-                "Bilinear quadrilateral / Trilinear tetrahedron detected, need boundary file"
-            )
-        case [4, _]:
-            raise ValueError(
-                f"Bilinear quadrilateral / {
-                    nbnd}, boundary file is incompatible"
-            )
         case _:
             raise ValueError(
                 f"Cannot determine element type from {nnodes} and {

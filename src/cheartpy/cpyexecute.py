@@ -4,7 +4,7 @@ import os
 import sys
 import subprocess as sp
 import argparse
-from cheartpy.cheart_core.p_file import PFile
+from .cheart_core.p_file import PFile
 
 
 def split_filename(f: str):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+__all__ = ["Variable"]
 import dataclasses as dc
 from typing import Self, TextIO, Literal, ValuesView, overload
 from ..aliases import *
@@ -7,16 +7,16 @@ from ..interface import *
 
 
 @dc.dataclass(slots=True)
-class Variable(_Variable):
+class Variable(IVariable):
     name: str
-    topology: _CheartTopology
+    topology: ICheartTopology
     dim: int
     data: str | None = None
     fmt: VariableExportFormat = VariableExportFormat.TXT
     freq: int = 1
     loop_step: int | None = None
-    setting: tuple[VariableUpdateSetting, str | _Expression] | None = None
-    deps_expr: dict[str, _Expression] = dc.field(default_factory=dict)
+    setting: tuple[VariableUpdateSetting, str | IExpression] | None = None
+    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
@@ -32,7 +32,7 @@ class Variable(_Variable):
 
     @overload
     def AddSetting(
-        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: _Expression
+        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: IExpression
     ) -> None: ...
 
     @overload
@@ -45,10 +45,10 @@ class Variable(_Variable):
     def AddSetting(
         self,
         task: VARIABLE_UPDATE_SETTING,
-        val: str | _Expression,
+        val: str | IExpression,
     ):
         match task, val:
-            case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", _Expression():
+            case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", IExpression():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
                 self.deps_expr[str(val)] = val
             case "TEMPORAL_UPDATE_FILE", str():
@@ -68,12 +68,12 @@ class Variable(_Variable):
     def get_data(self) -> str | None:
         return self.data
 
-    def get_top(self) -> _CheartTopology:
+    def get_top(self) -> ICheartTopology:
         return self.topology
 
     def get_expr_deps(
         self,
-    ) -> ValuesView[_Expression]:
+    ) -> ValuesView[IExpression]:
         return self.deps_expr.values()
 
     def set_export_frequency(self, v: int) -> None:
@@ -93,7 +93,7 @@ class Variable(_Variable):
         if self.setting:
             string = join_fields(self.name, self.setting[0], self.setting[1])
             f.write(f"  !SetVariablePointer={{{string}}}\n")
-        if self.fmt == VariableExportFormat.BINARY or self.fmt == "BINARY":
+        if self.fmt == VariableExportFormat.BINARY:
             f.write(f"  !SetVariablePointer={{{self.name}|ReadBinary}}\n")
-        elif self.fmt == VariableExportFormat.MMAP or self.fmt == "MMAP":
+        elif self.fmt == VariableExportFormat.MMAP:
             f.write(f"  !SetVariablePointer={{{self.name}|ReadMMap}}\n")

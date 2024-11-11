@@ -3,7 +3,7 @@ from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
     FSExpr,
 )
-from ..cheart_core.interface import _Variable, _CheartTopology, _Expression
+from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation import Expression
 
 ROT_CONS_CHOICE = Mapping[
@@ -13,9 +13,9 @@ ROT_CONS_CHOICE = Mapping[
 
 def create_rotation_operator_expr(
     name: str,
-    space: _Variable | _Expression,
+    space: IVariable | IExpression,
     choice: ROT_CONS_CHOICE,
-) -> Mapping[Literal["p", "m"], _Expression]:
+) -> Mapping[Literal["p", "m"], IExpression]:
     total_dof = sum(len(v) for v in choice.values())
     ROT_DOF: Mapping[
         Literal["translation", "rotation"],
@@ -43,10 +43,10 @@ def create_rotation_operator_expr(
 
 def create_rotation_constraint(
     prefix: str,
-    root: _CheartTopology,
-    space: _Variable,
-    disp: _Variable,
-    lm: _Variable,
+    root: ICheartTopology,
+    space: IVariable,
+    disp: IVariable,
+    lm: IVariable,
     choice: ROT_CONS_CHOICE,
 ):
     # rot_dof = Expression("RotMat", [0, f"{space}.3", f"-{space}.2"])

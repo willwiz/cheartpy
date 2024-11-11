@@ -7,19 +7,19 @@ from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
     FSExpr,
 )
-from ..cheart_core.interface import _Variable, _CheartTopology, _Expression
+from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 
 
 def create_cl_coupling_problem(
     name: str,
-    lm: _Variable,
-    top: _CheartTopology,
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable | None,
-    p_basis: _Expression,
-    m_basis: _Expression,
-    neighbours: Sequence[_Variable],
+    lm: IVariable,
+    top: ICheartTopology,
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable | None,
+    p_basis: IExpression,
+    m_basis: IExpression,
+    neighbours: Sequence[IVariable],
 ) -> FSCouplingProblem:
     zero_1_expr = Expression(f"zero_1_expr", [0])
     fsbc = FSCouplingProblem(f"PB_{name}", space, top)
@@ -38,11 +38,11 @@ def create_cl_coupling_problem(
 
 
 def create_cl_coupling_problems(
-    tops: Mapping[int, _CheartTopology],
-    lms: Mapping[int, _Variable],
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable | None,
+    tops: Mapping[int, ICheartTopology],
+    lms: Mapping[int, IVariable],
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable | None,
     cl_part: CLTopology,
     cl_top: CLBasisExpressions,
 ) -> Mapping[int, FSCouplingProblem]:

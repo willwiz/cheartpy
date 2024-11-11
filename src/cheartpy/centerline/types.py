@@ -1,6 +1,6 @@
 import dataclasses as dc
 from typing import Mapping, TypedDict
-from ..cheart_core.interface import _Expression
+from ..cheart_core.interface import IExpression
 from ..var_types import *
 
 
@@ -30,5 +30,5 @@ class PatchNode2ElemMap:
 
 
 class CLBasisExpressions(TypedDict):
-    pelem: Mapping[int, _Expression]
-    melem: Mapping[int, _Expression]
+    pelem: Mapping[int, IExpression]
+    melem: Mapping[int, IExpression]

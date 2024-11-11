@@ -1,2 +1,2 @@
-from .p_file import PFile
+from .p_file import *
 from .api import *

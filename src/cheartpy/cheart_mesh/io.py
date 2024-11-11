@@ -23,7 +23,7 @@ CHeart Read Array functions
 """
 
 
-def is_binary(filename):
+def is_binary(filename: str):
     try:
         # or codecs.open on Python <= 2.5
         # or io.open on Python > 2.5 and <= 2.7

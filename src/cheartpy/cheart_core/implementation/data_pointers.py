@@ -4,7 +4,7 @@ from ..interface.basis import *
 
 
 @dc.dataclass(slots=True)
-class DataPointer(_DataPointer):
+class DataPointer(IDataPointer):
     name: str
     file: str
     nt: int
@@ -21,11 +21,11 @@ class DataPointer(_DataPointer):
 
 
 @dc.dataclass(slots=True)
-class DataInterp(_DataInterp):
-    var: _DataPointer
+class DataInterp(IDataInterp):
+    var: IDataPointer
 
     def __repr__(self) -> str:
         return f"Interp({str(self.var)},t)"
 
-    def get_datapointer(self) -> _DataPointer:
+    def get_datapointer(self) -> IDataPointer:
         return self.var

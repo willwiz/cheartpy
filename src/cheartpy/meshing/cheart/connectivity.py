@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Mapping, Sequence
 from ...var_types import *
-from ...tools.basiclogging import _Logger, NullLogger
+from ...tools.basiclogging import ILogger, NullLogger
 
 
 def create_node2elem_map(top: Mat[i32]) -> Mapping[int, Sequence[int]]:
@@ -49,7 +49,7 @@ def get_connected_subset(
 
 
 def get_connected_subsets(
-    e2e_map: Mapping[int, Sequence[int]], LOG: _Logger = NullLogger()
+    e2e_map: Mapping[int, Sequence[int]], LOG: ILogger = NullLogger()
 ):
     subsets: list[set[int]] = list()
     current_set = set(e2e_map.keys())

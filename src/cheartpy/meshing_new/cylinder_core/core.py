@@ -1,7 +1,7 @@
 __all__ = ["create_cylinder_mesh"]
 import enum
 import numpy as np
-from typing import Literal, Mapping, overload
+from typing import Literal, Mapping
 from ...cheart_mesh import *
 from ...var_types import *
 from ..hex_core import create_hex_mesh
@@ -107,37 +107,6 @@ def rotate_axis(g: CheartMesh, orientation: CartesianDirection) -> CheartMesh:
         case CartesianDirection.z:
             return g
     return CheartMesh(CheartMeshSpace(g.space.n, g.space.v @ mat.T), g.top, g.bnd)
-
-
-@overload
-def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
-    dim: V3[int],
-    axis: Literal["x", "y", "z"],
-) -> tuple[CheartMesh, None]: ...
-@overload
-def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
-    dim: V3[int],
-    axis: Literal["x", "y", "z"],
-    make_quad: Literal[False],
-) -> tuple[CheartMesh, None]: ...
-@overload
-def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
-    dim: V3[int],
-    axis: Literal["x", "y", "z"],
-    make_quad: Literal[True],
-) -> tuple[CheartMesh, CheartMesh]: ...
 
 
 def create_cylinder_mesh(

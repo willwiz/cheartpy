@@ -4,7 +4,7 @@ import os
 import sys
 import subprocess as sp
 import argparse
-from cheartpy.cheart_core.p_file import PFile
+from .cheart_core.p_file import PFile
 
 
 def split_filename(f: str):
@@ -57,8 +57,7 @@ def run_script(args, rest):
     pkg = importlib.import_module(pack)
     p = pkg.get_PFile()
     fout = name + ".P"
-    run_cheartpy(p, fout, *rest, cores=args.cores,
-                 log=args.log, keep=args.keep)
+    run_cheartpy(p, fout, *rest, cores=args.cores, log=args.log, keep=args.keep)
 
 
 def run_pfile(args, rest):
@@ -66,8 +65,7 @@ def run_pfile(args, rest):
 
     fout = args.pfile
     if args.cores > 1:
-        cmd = ["mpiexec", "-n", f"{args.cores!s}",
-               "cheartsolver.out", fout, *rest]
+        cmd = ["mpiexec", "-n", f"{args.cores!s}", "cheartsolver.out", fout, *rest]
     else:
         cmd = ["cheartsolver.out", fout, *rest]
     print(" ".join(cmd))
@@ -136,9 +134,7 @@ parser = argparse.ArgumentParser(
 parser.set_defaults(main=self_default)
 
 subparsers = parser.add_subparsers()
-parser_help = subparsers.add_parser(
-    "help", description="call cheart --help=var"
-)
+parser_help = subparsers.add_parser("help", description="call cheart --help=var")
 parser_help.add_argument("string", type=str)
 parser_help.set_defaults(main=cheart_help)
 parser_gen = subparsers.add_parser(

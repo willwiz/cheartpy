@@ -1,3 +1,4 @@
+__all__ = ["L2SolidProjection"]
 import enum
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 from ...pytools import get_enum, join_fields
@@ -14,44 +15,44 @@ class L2SolidCalculationType(enum.StrEnum):
 L2_SOLID_CALCULATION_TYPE = Literal["cauchy_stress", "deformation_gradient"]
 
 
-class L2SolidProjection(_Problem):
+class L2SolidProjection(IProblem):
     name: str
     solid_prob: SolidProblem
     calculation: L2SolidCalculationType = L2SolidCalculationType.cauchy_stress
-    variables: dict[str, _Variable]
-    bc: _BoundaryCondition
-    aux_vars: dict[str, _Variable]
-    aux_expr: dict[str, _Expression]
+    variables: dict[str, IVariable]
+    bc: IBoundaryCondition
+    aux_vars: dict[str, IVariable]
+    aux_expr: dict[str, IExpression]
     problem: str = "l2solidprojection_problem"
 
     def __repr__(self) -> str:
         return self.name
 
-    def get_prob_vars(self) -> Mapping[str, _Variable]:
+    def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
-    def add_var_deps(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
             self.aux_vars[str(v)] = v
 
-    def add_expr_deps(self, *expr: _Expression) -> None:
+    def add_expr_deps(self, *expr: IExpression) -> None:
         for v in expr:
             self.aux_expr[str(v)] = v
 
-    def get_var_deps(self) -> ValuesView[_Variable]:
+    def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_vars_, **_b_vars_, **self.aux_vars}.values()
 
-    def get_expr_deps(self) -> ValuesView[_Expression]:
+    def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         return {**_expr_, **self.aux_expr}.values()
 
-    def get_bc_patches(self) -> Sequence[_BCPatch]:
+    def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else patches
+        return list() if patches is None else list(patches)
 
     def set_projection(
         self, calc: L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
@@ -61,8 +62,8 @@ class L2SolidProjection(_Problem):
     def __init__(
         self,
         name: str,
-        space: _Variable,
-        var: _Variable,
+        space: IVariable,
+        var: IVariable,
         solid_prob: SolidProblem,
         projected_var: (
             L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE

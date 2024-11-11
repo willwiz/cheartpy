@@ -4,11 +4,11 @@ from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
     FSExpr,
 )
-from ..cheart_core.interface import _Variable, _CheartTopology, _Expression
+from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation.expressions import Expression
 
 
-def create_outward_normal_expr(space: _Variable, cl: _Expression):
+def create_outward_normal_expr(space: IVariable, cl: IExpression):
     dist_expr = Expression(
         "Space_dl_disp_expr", [f"{space}.{i} - {cl}.{i}" for i in [1, 2, 3]]
     )
@@ -29,14 +29,14 @@ def create_outward_normal_expr(space: _Variable, cl: _Expression):
 
 def create_dilation_problem(
     name: str,
-    top: _CheartTopology,
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    lm: _Variable,
-    zeros: _Expression,
-    normal: _Expression,
-    mormal: _Expression,
+    top: ICheartTopology,
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable,
+    lm: IVariable,
+    zeros: IExpression,
+    normal: IExpression,
+    mormal: IExpression,
 ) -> FSCouplingProblem:
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
@@ -47,15 +47,15 @@ def create_dilation_problem(
 
 
 def create_dilation_problems(
-    tops: Mapping[int, _CheartTopology],
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    lms: Mapping[int, _Variable],
-    cl_normal: Mapping[int, _Variable],
+    tops: Mapping[int, ICheartTopology],
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable,
+    lms: Mapping[int, IVariable],
+    cl_normal: Mapping[int, IVariable],
     cl_part: CLTopology,
     cl_basis: CLBasisExpressions,
-    cl_pos_expr: _Expression,
+    cl_pos_expr: IExpression,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_expr", [0 for _ in range(3)])
     p_norm_expr, m_norm_expr = create_outward_normal_expr(space, cl_pos_expr)

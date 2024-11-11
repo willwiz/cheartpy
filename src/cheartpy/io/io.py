@@ -1,5 +1,5 @@
 import numpy as np
-from cheartpy.var_types import Arr, f64, i32, Any
+from ..var_types import *
 
 
 def read_array_int(name: str, skip: int = 0) -> Arr[Any, i32]:

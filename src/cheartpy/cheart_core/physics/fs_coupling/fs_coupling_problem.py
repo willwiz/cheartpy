@@ -1,3 +1,4 @@
+__all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
 from typing import Sequence, TextIO, ValuesView
 from ...pytools import join_fields
@@ -7,8 +8,8 @@ from ...implementation import BoundaryCondition
 
 @dc.dataclass(slots=True)
 class FSExpr:
-    var: _Variable | _Expression
-    mult: _Expression | _Variable | float = 1
+    var: IVariable | IExpression
+    mult: IExpression | IVariable | float = 1
     op: str | None = None
 
     def to_str(self) -> str:
@@ -17,39 +18,39 @@ class FSExpr:
 
 @dc.dataclass(slots=True)
 class FSCouplingTerm:
-    test_var: _Variable
+    test_var: IVariable
     terms: list[FSExpr]
 
 
-class FSCouplingProblem(_Problem):
+class FSCouplingProblem(IProblem):
     name: str
-    space: _Variable
-    root_topology: _CheartTopology | None
+    space: IVariable
+    root_topology: ICheartTopology | None
     lm: FSCouplingTerm
     m_terms: dict[str, FSCouplingTerm]
-    bc: _BoundaryCondition
-    aux_vars: dict[str, _Variable]
-    aux_expr: dict[str, _Expression]
+    bc: IBoundaryCondition
+    aux_vars: dict[str, IVariable]
+    aux_expr: dict[str, IExpression]
     problem: str = "fscoupling_problem"
     perturbation: bool = True
 
     def __repr__(self) -> str:
         return self.name
 
-    def set_lagrange_mult(self, var: _Variable, *expr: FSExpr) -> None:
+    def set_lagrange_mult(self, var: IVariable, *expr: FSExpr) -> None:
         self.lm = FSCouplingTerm(var, list(expr))
 
-    def add_term(self, var: _Variable, *expr: FSExpr) -> None:
+    def add_term(self, var: IVariable, *expr: FSExpr) -> None:
         self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
 
-    def get_prob_vars(self) -> dict[str, _Variable]:
-        vars: dict[str, _Variable] = {str(self.space): self.space}
+    def get_prob_vars(self) -> dict[str, IVariable]:
+        vars: dict[str, IVariable] = {str(self.space): self.space}
         vars[str(self.lm.test_var)] = self.lm.test_var
         # for t in self.lm.terms:
         #     if isinstance(t.var, _Variable):
         #         if str(t.var) not in vars:
         #             vars[str(t.var)] = t.var
-        for k, v in self.m_terms.items():
+        for _, v in self.m_terms.items():
             if str(v.test_var) not in vars:
                 vars[str(v.test_var)] = v.test_var
             # for t in v.terms:
@@ -61,68 +62,68 @@ class FSCouplingProblem(_Problem):
         #     vars[str(v)] = v
         return vars
 
-    def add_var_deps(self, *var: _Variable) -> None:
+    def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
             if str(v) not in self.aux_vars:
                 self.aux_vars[str(v)] = v
 
-    def add_expr_deps(self, *expr: _Expression) -> None:
+    def add_expr_deps(self, *expr: IExpression) -> None:
         for v in expr:
             if str(v) not in self.aux_expr:
                 self.aux_expr[str(v)] = v
 
-    def get_var_deps(self) -> ValuesView[_Variable]:
+    def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         if str(self.space) not in _vars_:
             _vars_[str(self.space)] = self.space
         _vars_[str(self.lm.test_var)] = self.lm.test_var
         for t in self.lm.terms:
-            if isinstance(t.var, _Variable):
+            if isinstance(t.var, IVariable):
                 if str(t.var) not in _vars_:
                     _vars_[str(t.var)] = t.var
-            if isinstance(t.mult, _Variable):
+            if isinstance(t.mult, IVariable):
                 if str(t.mult) not in _vars_:
                     _vars_[str(t.mult)] = t.mult
-        for k, v in self.m_terms.items():
+        for v in self.m_terms.values():
             if str(v.test_var) not in _vars_:
                 _vars_[str(v.test_var)] = v.test_var
             for t in v.terms:
-                if isinstance(t.var, _Variable):
+                if isinstance(t.var, IVariable):
                     if str(t.var) not in _vars_:
                         _vars_[str(t.var)] = t.var
-                if isinstance(t.mult, _Variable):
+                if isinstance(t.mult, IVariable):
                     if str(t.mult) not in _vars_:
                         _vars_[str(t.mult)] = t.mult
         return {**self.aux_vars, **_vars_}.values()
 
-    def get_expr_deps(self) -> ValuesView[_Expression]:
+    def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         for t in self.lm.terms:
-            if isinstance(t.var, _Expression):
+            if isinstance(t.var, IExpression):
                 if str(t.var) not in _expr_:
                     _expr_[str(t.var)] = t.var
-            if isinstance(t.mult, _Expression):
+            if isinstance(t.mult, IExpression):
                 if str(t.mult) not in _expr_:
                     _expr_[str(t.mult)] = t.mult
-        for k, v in self.m_terms.items():
+        for v in self.m_terms.values():
             for t in v.terms:
-                if isinstance(t.var, _Expression):
+                if isinstance(t.var, IExpression):
                     if str(t.var) not in _expr_:
                         _expr_[str(t.var)] = t.var
-                if isinstance(t.mult, _Expression):
+                if isinstance(t.mult, IExpression):
                     if str(t.mult) not in _expr_:
                         _expr_[str(t.mult)] = t.mult
         return {**self.aux_expr, **_expr_}.values()
 
-    def get_bc_patches(self) -> Sequence[_BCPatch]:
+    def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else patches
+        return list() if patches is None else list(patches)
 
     def __init__(
         self,
         name: str,
-        space: _Variable,
-        root_top: _CheartTopology | None = None,
+        space: IVariable,
+        root_top: ICheartTopology | None = None,
     ) -> None:
         self.name = name
         self.space = space

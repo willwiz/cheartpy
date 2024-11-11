@@ -5,7 +5,7 @@ from cheartpy.meshing.core.interpolation_core import (
     split_Dfile_name,
     gen_map,
     load_map,
-    intep_lin_to_quad,
+    interp_lin_to_quad,
     get_file_name_indexer,
 )
 from cheartpy.meshing.parsing.interpolation_parsing import interp_parser
@@ -42,7 +42,7 @@ def check_args_interp(args: argparse.Namespace) -> InterpInputArgs:
 
 
 def map_vals(map: dict[int, list[int]], lin: Mat[f64], prefix: str):
-    quad_data = intep_lin_to_quad(map, lin)
+    quad_data = interp_lin_to_quad(map, lin)
     CHWrite_d_utf(prefix, quad_data)
 
 

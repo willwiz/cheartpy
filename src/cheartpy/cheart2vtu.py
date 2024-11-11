@@ -1,30 +1,30 @@
 from typing import Sequence
-from cheartpy.cheart2vtu_core.core import (
-    export_boundary,
-    init_variable_cache,
-    parse_cmdline_args,
-    run_exports_in_series,
-    run_exports_in_parallel,
-)
-from cheartpy.cheart2vtu_core.print_headers import (
+from .tools.basiclogging import BLogger
+from ._cheart2vtu.parser_main import get_cmdline_args
+from ._cheart2vtu.print_headers import (
     print_guard,
     print_header,
     print_index_info,
 )
+from ._cheart2vtu import parse_cmdline_args, get_cmdline_args, init_variable_cache
 
 
-def main_cli(cmd_args: Sequence[str | int | float] | None = None) -> None:
+def main_cli(cmd_args: Sequence[str] | None = None) -> None:
     print_header()
+    args = get_cmdline_args(cmd_args)
+    LOG = BLogger(args.log)
+    LOG.debug(args)
     inp, indexer = parse_cmdline_args(cmd_args)
     print_index_info(indexer)
     print_guard()
     cache = init_variable_cache(inp, indexer)
-    export_boundary(inp, cache)
-    if inp.cores > 1:
-        run_exports_in_parallel(inp, indexer, cache)
-    else:
-        run_exports_in_series(inp, indexer, cache)
-    print_guard()
+    LOG.debug(cache)
+    # export_boundary(inp, cache)
+    # if inp.cores > 1:
+    #     run_exports_in_parallel(inp, indexer, cache)
+    # else:
+    #     run_exports_in_series(inp, indexer, cache)
+    # print_guard()
 
 
 if __name__ == "__main__":

@@ -2,21 +2,20 @@ import os
 import re
 from glob import glob
 from collections import defaultdict
-from typing import Final, Generator, Iterator
+from typing import Final, Generator
 import numpy as np
-from cheartpy.var_types import i32, char
-from cheartpy.cheart2vtu_core.data_types import CmdLineArgs, Arr, ProgramMode
-from .interfaces import *
+from ..var_types import *
+from .data_types import CmdLineArgs, ProgramMode
 
 
-class DFileNoVariable(IndexIterator):
+class DFileNoVariable:
     __slots__ = ["size"]
     size: Final[int]
 
     def __init__(self) -> None:
         self.size = 0
 
-    def __iter__(self) -> Iterator[str]:
+    def get_generator(self) -> Generator[str, None, None]:
         yield "0"
 
 
@@ -89,7 +88,7 @@ class DFileAutoFinder:
     __slots__ = ["step", "index", "size"]
 
     step: Final[int | None]
-    index: Final[Arr[int, char]]
+    index: Final[Vec[char]]
     size: Final[int]
 
     def __init__(

@@ -1,4 +1,4 @@
-from .solid_mechanics.solid_problems import SolidProblem
-from .fs_coupling.fs_coupling_problem import FSCouplingProblem, FSExpr
-from .l2_projection.projection_problem import L2SolidProjection
-from .norm_calculation.norm_problem import NormProblem
+from .solid_mechanics.solid_problems import *
+from .fs_coupling.fs_coupling_problem import *
+from .l2_projection.projection_problem import *
+from .norm_calculation.norm_problem import *

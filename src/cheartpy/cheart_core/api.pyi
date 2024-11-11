@@ -20,10 +20,10 @@ from .implementation.topologies import (
     OneToOneTopInterface,
 )
 
-def hash_tops(tops: list[_CheartTopology] | list[str]) -> str: ...
+def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
 def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
-) -> _TimeScheme: ...
+) -> ITimeScheme: ...
 def create_basis(
     name: str,
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
@@ -31,11 +31,11 @@ def create_basis(
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: int,
     gp: int,
-) -> _CheartBasis: ...
+) -> ICheartBasis: ...
 @overload
 def create_topology(
     name: str,
-    basis: _CheartBasis,
+    basis: ICheartBasis,
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> CheartTopology: ...
@@ -54,34 +54,34 @@ def create_embedded_topology(
 ) -> CheartTopology: ...
 def create_variable(
     name: str,
-    top: _CheartTopology | None,
+    top: ICheartTopology | None,
     dim: int = 3,
     data: str | None = None,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
     freq: int = 1,
     loop_step: int | None = None,
-) -> _Variable: ...
+) -> IVariable: ...
 def create_solver_matrix(
-    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: _Problem
-) -> _SolverMatrix: ...
+    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem
+) -> ISolverMatrix: ...
 def create_solver_group(
-    name: str, time: _TimeScheme, *solver_subgroup: _SolverSubGroup
-) -> _SolverGroup: ...
+    name: str, time: ITimeScheme, *solver_subgroup: ISolverSubGroup
+) -> ISolverGroup: ...
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
-    *probs: _SolverMatrix | _Problem,
-) -> _SolverSubGroup: ...
+    *probs: ISolverMatrix | IProblem,
+) -> ISolverSubGroup: ...
 @overload
 def create_top_interface(
     method: Literal["OneToOne"],
-    topologies: list[_CheartTopology],
+    topologies: list[ICheartTopology],
     nest_in_boundary: int | None = None,
 ) -> OneToOneTopInterface: ...
 @overload
 def create_top_interface(
     method: Literal["ManyToOne"],
-    topologies: list[_CheartTopology],
-    master_topology: _CheartTopology,
+    topologies: list[ICheartTopology],
+    master_topology: ICheartTopology,
     interface_file: str,
     nest_in_boundary: int | None = None,
 ) -> ManyToOneTopInterface: ...

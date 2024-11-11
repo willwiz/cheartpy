@@ -4,13 +4,13 @@ from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
     FSCouplingProblem,
     FSExpr,
 )
-from ..cheart_core.interface import _Variable, _CheartTopology, _Expression
+from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation.expressions import Expression
 
 
 def create_outward_normal_expr(
-    prefix: str, normal: _Variable, basis: _Expression
-) -> Mapping[Literal["p", "m"], _Expression]:
+    prefix: str, normal: IVariable, basis: IExpression
+) -> Mapping[Literal["p", "m"], IExpression]:
     p_expr = Expression(f"{prefix}_p", [f"{normal}.{i} * {basis}" for i in [1, 2, 3]])
     p_expr.add_deps(normal)
     m_expr = Expression(f"{prefix}_m", [f"-{normal}.{i} * {basis}" for i in [1, 2, 3]])
@@ -20,14 +20,14 @@ def create_outward_normal_expr(
 
 def create_dilation_var_problem(
     name: str,
-    top: _CheartTopology,
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    lm: _Variable,
-    zeros: _Expression,
-    normal: Mapping[Literal["p", "m"], _Expression],
-    neighbours: Sequence[_Variable],
+    top: ICheartTopology,
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable,
+    lm: IVariable,
+    zeros: IExpression,
+    normal: Mapping[Literal["p", "m"], IExpression],
+    neighbours: Sequence[IVariable],
 ) -> FSCouplingProblem:
     zero_1_expr = Expression(f"zero_1_expr", [0])
     fsbc = FSCouplingProblem(name, space, top)
@@ -41,15 +41,15 @@ def create_dilation_var_problem(
 
 
 def create_dilation_var_problems(
-    tops: Mapping[int, _CheartTopology],
-    space: _Variable,
-    disp: _Variable,
-    motion: _Variable,
-    lms: Mapping[int, _Variable],
-    cl_normal: Mapping[int, _Variable],
+    tops: Mapping[int, ICheartTopology],
+    space: IVariable,
+    disp: IVariable,
+    motion: IVariable,
+    lms: Mapping[int, IVariable],
+    cl_normal: Mapping[int, IVariable],
     cl_part: CLTopology,
     cl_basis: CLBasisExpressions,
-    cl_pos_expr: _Expression,
+    cl_pos_expr: IExpression,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_3_expr", [0 for _ in range(3)])
     normal_expr = {
