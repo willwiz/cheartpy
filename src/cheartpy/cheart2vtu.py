@@ -6,7 +6,14 @@ from ._cheart2vtu.print_headers import (
     print_header,
     print_index_info,
 )
-from ._cheart2vtu import parse_cmdline_args, get_cmdline_args, init_variable_cache
+from ._cheart2vtu import (
+    parse_cmdline_args,
+    get_cmdline_args,
+    init_variable_cache,
+    export_boundary,
+    run_exports_in_parallel,
+    run_exports_in_series,
+)
 
 
 def main_cli(cmd_args: Sequence[str] | None = None) -> None:
@@ -19,12 +26,12 @@ def main_cli(cmd_args: Sequence[str] | None = None) -> None:
     print_guard()
     cache = init_variable_cache(inp, indexer)
     LOG.debug(cache)
-    # export_boundary(inp, cache)
-    # if inp.cores > 1:
-    #     run_exports_in_parallel(inp, indexer, cache)
-    # else:
-    #     run_exports_in_series(inp, indexer, cache)
-    # print_guard()
+    export_boundary(inp, cache)
+    if inp.cores > 1:
+        run_exports_in_parallel(inp, indexer, cache, LOG)
+    else:
+        run_exports_in_series(inp, indexer, cache, LOG)
+    print_guard()
 
 
 if __name__ == "__main__":

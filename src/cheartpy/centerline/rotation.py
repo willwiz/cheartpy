@@ -1,8 +1,6 @@
+__all__ = ["create_rotation_constraint"]
 from typing import Literal, Mapping, Sequence
-from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
-    FSCouplingProblem,
-    FSExpr,
-)
+from ..cheart_core.physics import FSCouplingProblem, FSExpr
 from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation import Expression
 

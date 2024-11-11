@@ -56,7 +56,7 @@ class CmdLineArgs:
     subindex: tuple[int, int, int] | SearchMode = SearchMode.none
 
 
-@dc.dataclass(slots=True)
+@dc.dataclass(slots=True, frozen=True)
 class ProgramArgs:
     prefix: Final[str]
     input_folder: Final[str]
@@ -106,12 +106,15 @@ class CheartTopology:
 
 @dc.dataclass(slots=True)
 class VariableCache:
-    i0: Final[str | int]
     top: Final[CheartTopology]
-    nodes: Final[Arr[tuple[int, int], f64]]
-    space: str
-    disp: str | None
-    var: dict[str, str] = dc.field(default_factory=dict)
+    t: str | int
+    space_i: str
+    disp_i: str | None
+    space: Mat[f64]
+    disp: Mat[f64]
+    x: Mat[f64]
+    var_i: dict[str, str] = dc.field(default_factory=dict)
+    var: dict[str, Mat[f64]] = dc.field(default_factory=dict)
 
 
 @dc.dataclass(slots=True)

@@ -62,7 +62,7 @@ class BLogger(ILogger):
         return self.level
 
     def print(self, *msg: Any, level: LogLevel):
-        if not msg:
+        if len(msg) < 1:
             return
         frame = getframeinfo(stack()[2][0])
         file = os.path.join(*frame.filename.split(os.sep)[-3:])

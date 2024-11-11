@@ -117,7 +117,7 @@ def create_cylinder_mesh(
     dim: V3[int],
     axis: Literal["x", "y", "z"],
     make_quad: bool = False,
-):
+) -> tuple[CheartMesh, CheartMesh | None]:
     cube = create_hex_mesh(dim)
     cylinder = convert_to_cylindrical(cube, r_in, r_out, length, base)
     cylinder = merge_circ_ends(cylinder)

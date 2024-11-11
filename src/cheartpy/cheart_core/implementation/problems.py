@@ -18,8 +18,8 @@ class BCPatch(IBCPatch):
         return hash(
             (
                 self.id,
-                self.component[0],
-                self.component[1],
+                str(self.component[0]),
+                str(self.component[1]),
                 self.bctype.value,
                 *[str(v) for v in self.values],
                 *self.options,

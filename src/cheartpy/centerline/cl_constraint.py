@@ -1,13 +1,9 @@
-#!/usr/bin/env python3
+__all__ = ["create_cl_coupling_problems"]
 from typing import Mapping, Sequence
-
 from ..cheart_core.implementation import Expression
-from .types import CLTopology, CLBasisExpressions
-from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
-    FSCouplingProblem,
-    FSExpr,
-)
+from ..cheart_core.physics import FSCouplingProblem, FSExpr
 from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
+from .types import CLTopology, CLBasisExpressions
 
 
 def create_cl_coupling_problem(

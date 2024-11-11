@@ -363,7 +363,7 @@ def run_exports_in_parallel(
     inp: ProgramArgs, indexer: IndexerList, cache: VariableCache
 ) -> None:
     time_steps = indexer.get_generator()
-    args: PARALLELEXEC_ARGS = [
+    args: PEXEC_ARGS = [
         ([find_args_iter(inp, t, cache), inp, cache.top], dict()) for t in time_steps
     ]
     with futures.ProcessPoolExecutor(inp.cores) as exec:

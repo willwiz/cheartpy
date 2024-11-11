@@ -93,18 +93,18 @@ class RangeSubIndexer(IIndexIterator):
 
 
 class ListIndexer[T: (int, str)](IIndexIterator):
-    __slots__ = ["values"]
-    indices: list[T]
+    __slots__ = ["indices"]
+    values: list[T]
 
-    def __init__(self, indices: list[T]) -> None:
-        self.values = indices
+    def __init__(self, values: list[T]) -> None:
+        self.values = values
 
     def __iter__(self) -> Iterator[T]:
         for i in self.values:
             yield i
 
     def __len__(self) -> int:
-        return len(self.indices)
+        return len(self.values)
 
     @property
     def mode(self):
@@ -113,7 +113,7 @@ class ListIndexer[T: (int, str)](IIndexIterator):
 
 class ListSubIndexer(IIndexIterator):
     __slots__ = ["values", "si"]
-    indices: list[int]
+    values: list[int]
     si: tuple[int, int, int]
 
     def __init__(self, indices: list[int], sub_index: tuple[int, int, int]) -> None:
@@ -127,7 +127,7 @@ class ListSubIndexer(IIndexIterator):
                 yield f"{i}.{j}"
 
     def __len__(self) -> int:
-        return len(self.indices) * ((self.si[1] - self.si[0]) // self.si[2] + 2)
+        return len(self.values) * ((self.si[1] - self.si[0]) // self.si[2] + 2)
 
     @property
     def mode(self):
@@ -136,19 +136,19 @@ class ListSubIndexer(IIndexIterator):
 
 class TupleIndexer(IIndexIterator):
     __slots__ = ["values"]
-    indices: Mapping[int, list[int]]
+    values: Mapping[int, list[int]]
 
-    def __init__(self, indices: dict[int, list[int]]) -> None:
-        self.values = indices
+    def __init__(self, values: dict[int, list[int]]) -> None:
+        self.values = values
 
     def __iter__(self) -> Iterator[str]:
-        for k, vlist in self.indices.items():
+        for k, vlist in self.values.items():
             yield str(k)
             for v in vlist:
                 yield f"{k}.{v}"
 
     def __len__(self) -> int:
-        return sum([len(v) for v in self.indices.values()])
+        return sum([len(v) for v in self.values.values()])
 
     @property
     def mode(self):

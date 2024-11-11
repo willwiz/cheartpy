@@ -3,6 +3,11 @@ import os
 
 # import numpy as np
 from typing import Sequence
+
+import numpy as np
+
+from ..var_types import *
+from ..cheart_mesh.io import *
 from ..io.indexing import IIndexIterator, get_file_name_indexer
 from ..tools.basiclogging import BLogger, ILogger
 from .interfaces import *
@@ -58,7 +63,7 @@ def parse_cmdline_args(
     i0 = next(iter(indexer))
     space = None
     if os.path.isfile(args.xfile):
-        space = CheartMeshFormat(args.xfile)
+        space = CheartMeshFormat(None, args.xfile)
     elif os.path.isfile(f"{args.xfile}-{i0}.D"):
         space = CheartVarFormat(args.input_folder, args.xfile)
     elif os.path.isfile(f"{args.xfile}-{i0}.D.gz"):
@@ -67,7 +72,7 @@ def parse_cmdline_args(
     if args.disp is None:
         pass
     elif os.path.isfile(args.disp):
-        disp = CheartMeshFormat(args.disp)
+        disp = CheartMeshFormat(None, args.disp)
     elif os.path.isfile(f"{args.disp}-{i0}.D"):
         disp = CheartVarFormat(args.input_folder, args.disp)
     elif os.path.isfile(f"{args.disp}-{i0}.D.gz"):
@@ -113,13 +118,21 @@ def init_variable_cache(inp: ProgramArgs, indexer: IIndexIterator) -> VariableCa
     i0 = next(iter(indexer))
     top = CheartTopology(inp.tfile, inp.bfile)
     fx = inp.space[i0]
-    fd = None if inp.disp is None else inp.disp[i0]
-    nodes = get_space_data(fx, fd)
-    var: dict[str, str] = dict.fromkeys(inp.var.keys(), "")
-    for v, fn in inp.var.items():
+    space = CHRead_d(fx)
+    if inp.disp is None:
+        fd = None
+        disp = np.zeros_like(space)
+    else:
+        fd = inp.disp[i0]
+        disp = CHRead_d(fd)
+    x = space if disp is None else space + disp
+    fv: dict[str, str] = dict.fromkeys(inp.var.keys(), "")
+    var: dict[str, Mat[f64]] = dict()
+    for k, fn in inp.var.items():
         name = fn[i0]
         if os.path.isfile(name):
-            var[v] = name
+            fv[k] = name
         else:
-            raise ValueError(f"The initial value for {v} cannot be found")
-    return VariableCache(i0, top, nodes, fx, fd, var)
+            raise ValueError(f"The initial value for {k} cannot be found")
+        var[k] = CHRead_d(name)
+    return VariableCache(top, i0, fx, fd, space, disp, x, fv, var)

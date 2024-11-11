@@ -1,10 +1,9 @@
-__all__ = ["PARALLELEXEC_ARGS", "parallel_exec"]
+__all__ = ["PEXEC_ARGS", "parallel_exec"]
 from concurrent import futures
 from typing import Any, Callable, Collection
-
 from .progress_bar import ProgressBar
 
-PARALLELEXEC_ARGS = Collection[tuple[list[Any], dict[str, Any]]]
+PEXEC_ARGS = Collection[tuple[list[Any], dict[str, Any]]]
 
 
 def parallel_exec(

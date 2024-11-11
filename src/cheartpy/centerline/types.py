@@ -1,3 +1,8 @@
+__all__ = [
+    "CLTopology",
+    "PatchNode2ElemMap",
+    "CLBasisExpressions",
+]
 import dataclasses as dc
 from typing import Mapping, TypedDict
 from ..cheart_core.interface import IExpression

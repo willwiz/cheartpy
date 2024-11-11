@@ -1,11 +1,9 @@
+__all__ = ["create_dilation_problems"]
 from typing import Mapping
-from .types import CLTopology, CLBasisExpressions
-from ..cheart_core.physics.fs_coupling.fs_coupling_problem import (
-    FSCouplingProblem,
-    FSExpr,
-)
+from ..cheart_core.physics import FSCouplingProblem, FSExpr
 from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation.expressions import Expression
+from .types import CLTopology, CLBasisExpressions
 
 
 def create_outward_normal_expr(space: IVariable, cl: IExpression):

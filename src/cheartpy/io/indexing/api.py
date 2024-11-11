@@ -16,11 +16,10 @@ def find_common_index(
     root: str | None = None,
     LOG: ILogger = BLogger("WARN"),
 ):
-    indices = {v: set(find_var_index(v, root)) for v in var}
-    for k, v in indices.items():
-        LOG.warn(f"No files found for {k}\nNo variable outputed") if len(v) < 1 else ...
-    sets = indices[var[0]].intersection(*indices.values())
-    return sorted(sets)
+    indices = find_var_index(var[0], root)
+    if len(indices) < 1:
+        LOG.warn(f"No files found for {var[0]}\nNo variable outputed")
+    return indices
 
 
 def find_common_subindex(
@@ -29,19 +28,18 @@ def find_common_subindex(
     index: Sequence[int] | None = None,
     LOG: ILogger = BLogger("WARN"),
 ):
-    indices = {v: find_var_subindex(v, root) for v in var}
-    common_keys = set(indices[var[0]]).intersection(*indices.values())
+    indices = find_var_subindex(var[0], root)
+    # common_keys = set(indices).intersection(*indices.values())
+    # if index:
+    common_keys = sorted(set(indices) & set(index) if index else list(indices))
+    # common_index: dict[int, list[int]] = dict()
+    # for k in common_keys:
+    #     common_index[k] = sorted(
+    #         set(indices[var[0]]).intersection(*[indices[v] for v in var])
+    #     )
     if len(common_keys) < 1:
-        LOG.warn(f"No files found variable sharing common indices")
-    if index:
-        common_keys = common_keys & set(index)
-    common_index: dict[int, list[int]] = dict()
-    for k in common_keys:
-        common_index[k] = sorted(
-            set(indices[var[0]]).intersection(*[indices[v] for v in var])
-        )
-        LOG.warn(f"No files at time step {k}") if len(common_index[k]) < 1 else ...
-    return common_index
+        LOG.warn(f"No files found for {var[0]}\nNo variable outputed")
+    return {k: indices[k] for k in common_keys}
 
 
 def get_file_name_indexer(
@@ -51,6 +49,10 @@ def get_file_name_indexer(
     root: str | None = None,
     LOG: ILogger = BLogger("WARN"),
 ) -> IIndexIterator:
+    if (index is SearchMode.auto) or (subindex is SearchMode.auto):
+        LOG.info(
+            f"Variable index will be determined from the first variable, {vars[0]}"
+        )
     match index, subindex:
         case SearchMode.none, _:
             return ZeroIndexer()
