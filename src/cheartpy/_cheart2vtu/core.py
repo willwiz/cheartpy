@@ -1,71 +1,24 @@
 __all__ = [
-    "update_variable_cache",
     "export_boundary",
     "run_exports_in_series",
     "run_exports_in_parallel",
 ]
-from concurrent import futures
 import os
+from typing import Mapping
 
+import numpy as np
+from ..var_types import *
 from ..tools.parallel_exec import PEXEC_ARGS, parallel_exec
 from ..tools.progress_bar import ProgressBar
-import numpy as np
-from typing import TypeIs
-from ..var_types import *
 from ..io.indexing import IIndexIterator
 from ..tools.basiclogging import BLogger, ILogger
-from .interfaces import *
-from .variable_naming import *
-
-from .third_party import compress_vtu
-
-# from concurrent import futures
-# from ..var_types import i32, f64, Arr
 from ..cheart_mesh.io import *
-
 from ..xmlwriter.xmlclasses import XMLElement, XMLWriters
-
-# # from ..cheart2vtu_core.print_headers import print_input_info
-# # from ..cheart2vtu_core.main_parser import get_cmdline_args
-# # from ..cheart2vtu_core.file_indexing import (
-# #     IndexerList,
-# #     get_file_name_indexer,
-# # )
-# # from ..cheart2vtu_core.data_types import (
-# #     CheartMeshFormat,
-# #     CheartVarFormat,
-# #     CheartZipFormat,
-# #     InputArguments,
-# #     ProgramArgs,
-# #     VariableCache,
-# #     CheartTopology,
-# # )
-# from ..tools.progress_bar import ProgressBar
-# from ..tools.parallel_exec import *
-from .print_headers import *
+from .interfaces import *
+from .third_party import compress_vtu
 from .variable_naming import CheartVTUFormat
-
-
-# def find_space_filenames(
-#     inp: ProgramArgs, time: int | str, cache: VariableCache
-# ) -> tuple[Arr[tuple[int, int], f64] | str, None | str]:
-#     if isinstance(inp.space, CheartMeshFormat):
-#         fx = cache.nodes
-#     else:
-#         fx = inp.space.get_name(time)
-#         if os.path.isfile(fx):
-#             cache.space = fx
-#         else:
-#             fx = cache.space
-#     # if deformed space, then add displacement
-#     if inp.disp is None:
-#         return fx, None
-#     fd = inp.disp.get_name(time)
-#     if os.path.isfile(fd):
-#         cache.disp = fd
-#     else:
-#         fd = cache.disp
-#     return fx, fd
+from .fio import update_variable_cache
+from concurrent import futures
 
 
 def create_XML_for_boundary(
@@ -115,51 +68,6 @@ def create_XML_for_boundary(
     return vtkfile
 
 
-def not_none[T](var: T | None) -> TypeIs[T]:
-    return var is not None
-
-
-def update_variable_cache(
-    inp: ProgramArgs,
-    time: int | str,
-    cache: VariableCache,
-    LOG: ILogger = BLogger("NULL"),
-):
-    if time == cache.t:
-        LOG.debug(f"time point {time} did not change")
-        return cache
-    fx = inp.space[time]
-    update_space = fx != cache.space_i
-    if update_space:
-        LOG.debug(f"updating space to file {fx}")
-        cache.space = CHRead_d(fx)
-        cache.space_i = fx
-    if inp.disp is None:
-        update_disp = False
-    else:
-        fd = inp.disp[time]
-        update_disp = fd != cache.disp_i
-        if update_disp:
-            LOG.debug(f"updating disp to file {fd}")
-            cache.disp = CHRead_d(fd)
-            cache.disp_i = fd
-    match update_space, update_disp:
-        case False, False:
-            pass
-        case True, False:
-            cache.x = cache.space
-        case _, True:
-            cache.x = cache.space + cache.disp
-    for k, var in inp.var.items():
-        new_v = var[time]
-        LOG.debug(f"updating var {k} to file {new_v} from {cache.var_i[k]}")
-        if (cache.var_i[k] != new_v) and os.path.isfile(new_v):
-            LOG.debug(f"updating var {k} to file {new_v}")
-            cache.var[k] = CHRead_d(new_v)
-            cache.var_i[k] = new_v
-    return cache
-
-
 def export_boundary(
     inp: ProgramArgs, cache: VariableCache, LOG: ILogger = BLogger("INFO")
 ) -> None:
@@ -184,7 +92,7 @@ def create_XML_for_mesh(
     prefix: str,
     tp: CheartTopology,
     fx: Arr[tuple[int, int], f64],
-    var: dict[str, Mat[f64]],
+    var: Mapping[str, Mat[f64]],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
@@ -219,9 +127,7 @@ def create_XML_for_mesh(
     dataarr.add_data(
         np.full((tp.ne,), tp.vtkelementtype.vtkelementid), XMLWriters.IntegerWriter
     )
-
     points = piece.add_elem(XMLElement("PointData", Scalars="scalars"))
-
     for v, dv in var.items():
         dataarr = points.add_elem(
             XMLElement(
@@ -245,10 +151,10 @@ def export_mesh_iter(
 ) -> None:
 
     LOG.debug("<<< Working on", prefix)
-    cache = update_variable_cache(inp, t, cache, LOG)
+    x, vars = update_variable_cache(inp, t, cache, LOG)
     LOG.debug("<<< showing cache")
     LOG.debug(cache)
-    vtkXML = create_XML_for_mesh(inp.prefix, cache.top, cache.x, cache.var)
+    vtkXML = create_XML_for_mesh(inp.prefix, cache.top, x, vars)
     with open(prefix, "w") as fout:
         vtkXML.write(fout)
     if inp.compression:

@@ -18,7 +18,7 @@ def get_var_index(
 ) -> list[int]:
     p = re.compile(rf"{prefix}-(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]
-    return [int(m.group(1)) for m in matches if m]
+    return sorted([int(m.group(1)) for m in matches if m])
 
 
 def get_var_subindex(
@@ -28,7 +28,7 @@ def get_var_subindex(
 ) -> dict[int, list[int]]:
     p = re.compile(rf"{prefix}-(\d+)\.(\d+).{suffix}")
     matches = [p.fullmatch(s) for s in names]
-    matches = [m.groups() for m in matches if m]
+    matches = sorted([m.groups() for m in matches if m])
     index_lists: dict[int, list[int]] = defaultdict(list)
     for k, i in matches:
         index_lists[int(k)].append(int(i))

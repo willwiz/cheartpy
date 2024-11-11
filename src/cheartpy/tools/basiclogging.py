@@ -70,31 +70,31 @@ class BLogger(ILogger):
         for m in msg:
             print(m)
 
-    def debug(self, *msg: Any):
+    def debug(self, *msg: Any) -> None:
         if self.level >= LogLevel.DEBUG:
             self.print(*msg, level=LogLevel.DEBUG)
 
-    def info(self, *msg: Any):
+    def info(self, *msg: Any) -> None:
         if self.level >= LogLevel.INFO:
             self.print(*msg, level=LogLevel.INFO)
 
-    def disp(self, *msg: Any):
+    def disp(self, *msg: Any) -> None:
         if self.level >= LogLevel.INFO:
             print(*msg)
 
-    def brief(self, *msg: Any):
+    def brief(self, *msg: Any) -> None:
         if self.level >= LogLevel.BRIEF:
             self.print(*msg, level=LogLevel.BRIEF)
 
-    def warn(self, *msg: Any):
+    def warn(self, *msg: Any) -> None:
         if self.level >= LogLevel.WARN:
             self.print(*msg, level=LogLevel.WARN)
 
-    def error(self, *msg: Any):
+    def error(self, *msg: Any) -> None:
         if self.level >= LogLevel.ERROR:
             self.print(*msg, level=LogLevel.ERROR)
 
-    def fatal(self, *msg: Any):
+    def fatal(self, *msg: Any) -> None:
         if self.level >= LogLevel.FATAL:
             self.print(*msg, level=LogLevel.FATAL)
 
