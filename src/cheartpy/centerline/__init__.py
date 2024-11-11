@@ -5,4 +5,5 @@ from .cl_dilation_var import *
 from .cl_dilation import *
 from .cl_radial import *
 from .cl_position import *
+from .cl_fixedlm import *
 from .rotation import *
