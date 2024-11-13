@@ -14,11 +14,7 @@ from ..tools.basiclogging import LogLevel
 import numpy as np
 from typing import Final, Literal
 from ..var_types import *
-from ..xmlwriter.vtk_elements import (
-    VtkBoundaryElement,
-    VtkTopologyElement,
-    get_element_type,
-)
+from ..xmlwriter import IVtkElementInterface, get_element_type
 
 
 class ProgramMode(enum.StrEnum):
@@ -79,8 +75,8 @@ class CheartTopology:
     _ft: Arr[tuple[int, int], i32]
     ne: int
     nc: int
-    vtkelementtype: VtkTopologyElement
-    vtksurfacetype: VtkBoundaryElement
+    vtkelementtype: type[IVtkElementInterface]
+    vtksurfacetype: type[IVtkElementInterface]
 
     def __init__(self, tfile: str, bfile: str | None) -> None:
         ################################################################################################

@@ -1,21 +1,22 @@
-from ..var_types import i32, Arr
-from typing import TextIO, Protocol, ClassVar
+__all__ = ["IVtkElementInterface", "get_element_type"]
 import abc
+from typing import TextIO, Protocol, ClassVar
+from ..var_types import i32, Arr
 
 
-class _VtkElementInterface(Protocol):
+class IVtkElementInterface(Protocol):
     vtkelementid: ClassVar[int]
     vtksurfaceid: ClassVar[int | None]
-    connectivity: ClassVar[tuple[int, ...]]
+    # connectivity: ClassVar[tuple[int, ...]]
 
     @staticmethod
     @abc.abstractmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None: ...
 
 
-class VtkLinearLine(_VtkElementInterface):
-    vtkelementid = 3
-    vtksurfaceid = None
+class VtkLinearLine(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 3
+    vtksurfaceid: ClassVar[int | None] = None
     connectivity = (0, 1)
 
     @staticmethod
@@ -26,9 +27,9 @@ class VtkLinearLine(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkQuadraticLine(_VtkElementInterface):
-    vtkelementid = 21
-    vtksurfaceid = None
+class VtkQuadraticLine(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 21
+    vtksurfaceid: ClassVar[int | None] = None
     connectivity = (0, 1, 2)
 
     @staticmethod
@@ -39,9 +40,9 @@ class VtkQuadraticLine(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkBilinearTriangle(_VtkElementInterface):
-    vtkelementid = 5
-    vtksurfaceid = 3
+class VtkBilinearTriangle(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 5
+    vtksurfaceid: ClassVar[int | None] = 3
     connectivity = (0, 1, 2)
 
     @staticmethod
@@ -52,9 +53,9 @@ class VtkBilinearTriangle(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkBiquadraticTriangle(_VtkElementInterface):
-    vtkelementid = 22
-    vtksurfaceid = 21
+class VtkBiquadraticTriangle(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 22
+    vtksurfaceid: ClassVar[int | None] = 21
     connectivity = (0, 1, 2, 3, 5, 4)
 
     @staticmethod
@@ -69,9 +70,9 @@ class VtkBiquadraticTriangle(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkBilinearQuadrilateral(_VtkElementInterface):
-    vtkelementid = 9
-    vtksurfaceid = 3
+class VtkBilinearQuadrilateral(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 9
+    vtksurfaceid: ClassVar[int | None] = 3
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
@@ -83,9 +84,9 @@ class VtkBilinearQuadrilateral(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkTrilinearTetrahedron(_VtkElementInterface):
-    vtkelementid = 10
-    vtksurfaceid = 5
+class VtkTrilinearTetrahedron(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 10
+    vtksurfaceid: ClassVar[int | None] = 5
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
@@ -95,9 +96,9 @@ class VtkTrilinearTetrahedron(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkBiquadraticQuadrilateral(_VtkElementInterface):
-    vtkelementid = 28
-    vtksurfaceid = 21
+class VtkBiquadraticQuadrilateral(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 28
+    vtksurfaceid: ClassVar[int | None] = 21
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
@@ -114,9 +115,9 @@ class VtkBiquadraticQuadrilateral(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkTriquadraticTetrahedron(_VtkElementInterface):
-    vtkelementid = 24
-    vtksurfaceid = 22
+class VtkTriquadraticTetrahedron(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 24
+    vtksurfaceid: ClassVar[int | None] = 22
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
@@ -131,9 +132,9 @@ class VtkTriquadraticTetrahedron(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkTrilinearHexahedron(_VtkElementInterface):
-    vtkelementid = 12
-    vtksurfaceid = 9
+class VtkTrilinearHexahedron(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 12
+    vtksurfaceid: ClassVar[int | None] = 9
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
@@ -149,9 +150,9 @@ class VtkTrilinearHexahedron(_VtkElementInterface):
         fout.write("\n")
 
 
-class VtkTriquadraticHexahedron(_VtkElementInterface):
-    vtkelementid = 29
-    vtksurfaceid = 28
+class VtkTriquadraticHexahedron(IVtkElementInterface):
+    vtkelementid: ClassVar[int] = 29
+    vtksurfaceid: ClassVar[int | None] = 28
 
     @staticmethod
     def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
@@ -208,7 +209,7 @@ VtkBoundaryElement = (
 
 def get_element_type(
     nnodes: int, boundary: str | None
-) -> tuple[VtkTopologyElement, VtkBoundaryElement]:
+) -> tuple[type[IVtkElementInterface], type[IVtkElementInterface]]:
     if boundary is None:
         nbnd = None
     else:

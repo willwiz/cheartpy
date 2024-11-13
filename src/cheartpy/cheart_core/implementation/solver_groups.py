@@ -210,24 +210,23 @@ class SolverGroup(ISolverGroup):
     # WRITE
     def write(self, f: TextIO) -> None:
         f.write(hline("Solver Groups"))
-        f.write(f"!DefSolverGroup={{{self.name}|{self.time}}}\n")
+        f.write(f"!DefSolverGroup={{{self}|{self.time}}}\n")
         # Handle Additional Vars
         vars = [str(v) for v in self.get_aux_vars()]
         for l in splicegen(45, vars):
             if l:
                 f.write(
-                    f'  !SetSolverGroup={{{
-                        self.name}|AddVariables|{"|".join(l)}}}\n'
+                    f'  !SetSolverGroup={{{join_fields(self, "AddVariables", *l)}}}\n'
                 )
         # Print export init setting
         if self.export_initial_condition:
-            f.write(f"  !SetSolverGroup={{{self.name}|export_initial_condition}}\n")
+            f.write(f"  !SetSolverGroup={{{self}|export_initial_condition}}\n")
         # Print Conv Settings
         for k, v in self.settings.items():
-            string = join_fields(self.name, k, *v)
+            string = join_fields(self, k, *v)
             f.write(f"  !SetSolverGroup={{{string}}}\n")
         if self.use_dynamic_topologies:
-            f.write(f"  !SetSolverGroup={{{self.name}|UsingDynamicTopologies}}\n")
+            f.write(f"  !SetSolverGroup={{{self}|UsingDynamicTopologies}}\n")
         for g in self.sub_groups:
             _scale_res = (
                 None

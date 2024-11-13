@@ -4,7 +4,11 @@ import enum
 
 
 def join_fields(*terms: Any, char: str = "|") -> str:
-    vals = [str(v) for v in terms if v is not None]
+    vals = [
+        f"{v[0]}.{v[1]}" if isinstance(v, tuple) else str(v)
+        for v in terms
+        if v is not None
+    ]
     return char.join(vals)
 
 

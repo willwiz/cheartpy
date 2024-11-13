@@ -11,7 +11,7 @@ class BCPatch(IBCPatch):
     id: int | str
     component: tuple[IVariable, int | None]
     bctype: BoundaryType
-    values: list[IExpression | IVariable | str | int | float]
+    values: list[IExpression | IVariable | str | int | float | tuple[IVariable, int]]
     options: list[str | int | float]
 
     def __hash__(self) -> int:
@@ -31,7 +31,7 @@ class BCPatch(IBCPatch):
         i: int,
         component: IVariable | tuple[IVariable, int | None],
         bctype: BOUNDARY_TYPE | BoundaryType,
-        *val: IExpression | IVariable | str | int | float,
+        *val: IExpression | IVariable | str | int | float | tuple[IVariable, int],
     ) -> None:
         self.id = i
         if isinstance(component, tuple):
@@ -45,6 +45,9 @@ class BCPatch(IBCPatch):
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         vars = {str(v): v for v in self.values if isinstance(v, IVariable)}
+        for v in self.values:
+            if isinstance(v, tuple):
+                vars[str(v[0])] = v[0]
         return vars.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:

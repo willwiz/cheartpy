@@ -107,7 +107,7 @@ class NullLogger(ILogger):
     __slots__ = ["level"]
     level: LogLevel
 
-    def __init__(self, level: LogLevel = LogLevel.NULL) -> None:
+    def __init__(self) -> None:
         self.level = LogLevel.NULL
 
     @property

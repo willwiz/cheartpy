@@ -85,7 +85,7 @@ def export_boundary(
         vtkXML.write(fout)
     if inp.compression:
         compress_vtu(foutfile, LOG=LOG)
-    LOG.info("<<< Exported the boundary to", foutfile)
+    LOG.disp(f"<<< Exported the boundary to {foutfile}")
 
 
 def create_XML_for_mesh(

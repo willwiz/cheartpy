@@ -1,5 +1,7 @@
 import dataclasses as dc
 from typing import TextIO
+
+from ..pytools import join_fields
 from ..interface.basis import *
 
 
@@ -15,8 +17,7 @@ class DataPointer(IDataPointer):
 
     def write(self, f: TextIO):
         f.write(
-            f"!DefDataPointer={{{self.name}|{
-                self.file}|{self.dim}|{self.nt}}}\n"
+            f"!DefDataPointer={{{join_fields(self.name,self.file,self.dim,self.nt)}}}\n"
         )
 
 
