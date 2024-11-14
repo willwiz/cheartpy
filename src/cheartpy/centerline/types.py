@@ -18,10 +18,12 @@ class CenterLinePartition:
 
 @dc.dataclass(slots=True)
 class CLTopology:
+    prefix: str
+    in_surf: int
     nn: int
     ne: int
-    node_prefix: Mapping[int, str]
-    elem_prefix: Mapping[int, str]
+    n_prefix: Mapping[int, str]
+    e_prefix: Mapping[int, str]
     node: Vec[f64]
     elem: Mat[i32]
     support: Mat[f64]

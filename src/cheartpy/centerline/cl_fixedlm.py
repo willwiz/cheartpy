@@ -51,6 +51,6 @@ def create_clfixed_coupling_problems(
             cl_top["melem"][i],
             [lms[n] for n in [i - 1, i + 1] if n in lms],
         )
-        for i, s in cl_part.node_prefix.items()
+        for i, s in cl_part.n_prefix.items()
     }
     return res

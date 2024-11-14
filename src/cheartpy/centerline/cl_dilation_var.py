@@ -47,14 +47,13 @@ def create_dilation_var_problems(
     cl_normal: Mapping[int, IVariable],
     cl_part: CLTopology,
     cl_basis: CLBasisExpressions,
-    cl_pos_expr: IExpression,
 ) -> dict[int, FSCouplingProblem]:
     zero_expr = Expression(f"zero_3_expr", [0 for _ in range(3)])
     normal_expr = {
         k: create_outward_normal_expr(
             f"{v}_normal_expr", cl_normal[k], cl_basis["pelem"][k]
         )
-        for k, v in cl_part.node_prefix.items()
+        for k, v in cl_part.n_prefix.items()
     }
     res = {
         k: create_dilation_var_problem(
@@ -68,6 +67,6 @@ def create_dilation_var_problems(
             normal_expr[k],
             [lms[n] for n in [k - 1, k + 1] if n in lms],
         )
-        for k, v in cl_part.node_prefix.items()
+        for k, v in cl_part.n_prefix.items()
     }
     return res

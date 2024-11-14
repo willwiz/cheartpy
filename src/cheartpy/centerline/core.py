@@ -93,9 +93,10 @@ def filter_mesh_normals(
 
 
 def create_cl_topology(
+    prefix: str,
+    in_surf: int,
     ne: int,
     bc: tuple[float, float] = (0.0, 1.0),
-    prefix: str = "CL",
     LOG: ILogger = NullLogger(),
 ) -> CLTopology:
     nn = ne + 1
@@ -114,19 +115,17 @@ def create_cl_topology(
     elem_prefix = {i: s for i, s in enumerate([f"{prefix}{k}E" for k in range(ne)])}
     LOG.debug(f"{node_prefix=}")
     LOG.debug(f"{elem_prefix=}")
-    return CLTopology(nn, ne, node_prefix, elem_prefix, nodes, elems, support)
+    return CLTopology(
+        prefix, in_surf, nn, ne, node_prefix, elem_prefix, nodes, elems, support
+    )
 
 
 def create_clbasis_expr(
     var: IVariable,
     cl: CLTopology,
 ) -> CLBasisExpressions:
-    pelem = {
-        i: LL_expr(f"{s}B_p", var, cl.support[i]) for i, s in cl.node_prefix.items()
-    }
-    melem = {
-        i: Expression(f"{s}B_m", [f"-{pelem[i]}"]) for i, s in cl.node_prefix.items()
-    }
+    pelem = {i: LL_expr(f"{s}B_p", var, cl.support[i]) for i, s in cl.n_prefix.items()}
+    melem = {i: Expression(f"{s}B_m", [f"-{pelem[i]}"]) for i, s in cl.n_prefix.items()}
     [m.add_deps(pelem[k]) for k, m in melem.items()]
     return {"pelem": pelem, "melem": melem}
 
@@ -209,5 +208,5 @@ def create_cheart_cl_nodal_meshes(
             "mesh": tops[k],
             "n": compute_mesh_outer_normal_at_nodes(tops[k], LOG),
         }
-        for k, v in cl_top.node_prefix.items()
+        for k, v in cl_top.n_prefix.items()
     }

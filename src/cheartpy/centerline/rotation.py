@@ -4,9 +4,7 @@ from ..cheart_core.physics import FSCouplingProblem, FSExpr
 from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
 from ..cheart_core.implementation import Expression
 
-ROT_CONS_CHOICE = Mapping[
-    Literal["translation", "rotation"], Sequence[Literal["x", "y", "z"]]
-]
+ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Sequence[Literal["x", "y", "z"]]]
 
 
 def create_rotation_operator_expr(
@@ -16,18 +14,18 @@ def create_rotation_operator_expr(
 ) -> Mapping[Literal["p", "m"], IExpression]:
     total_dof = sum(len(v) for v in choice.values())
     ROT_DOF: Mapping[
-        Literal["translation", "rotation"],
+        Literal["T", "R"],
         Mapping[Literal["x", "y", "z"], Sequence[str | float]],
     ] = {
-        "translation": {"x": [1, 0, 0], "y": [0, 1, 0], "z": [0, 0, 1]},
-        "rotation": {
+        "T": {"x": [1, 0, 0], "y": [0, 1, 0], "z": [0, 0, 1]},
+        "R": {
             "x": [0, f"{space}.3", f"-{space}.2"],
             "y": [f"-{space}.3", 0, f"{space}.1"],
             "z": [f"{space}.2", f"-{space}.1", 0],
         },
     }
     dof = [j for k, v in choice.items() for i in v for j in ROT_DOF[k][i]]
-    if "rotation" not in choice:
+    if "R" not in choice:
         return {"p": Expression(name, dof), "m": Expression(name, dof)}
     if total_dof == 1:
         return {"p": Expression(name, dof), "m": Expression(name, dof)}

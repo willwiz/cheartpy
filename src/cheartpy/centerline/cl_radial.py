@@ -98,7 +98,7 @@ def create_radial_problems(
             cons_exprs[k],
             [lms[n] for n in [k - 1, k + 1] if n in lms],
         )
-        for k, v in cl_part.node_prefix.items()
+        for k, v in cl_part.n_prefix.items()
     }
     # if dirichlet_bc:
     #     keys = sorted(res.keys())

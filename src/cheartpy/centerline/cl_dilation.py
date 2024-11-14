@@ -69,6 +69,6 @@ def create_dilation_problems(
             p_norm_expr,
             m_norm_expr,
         )
-        for i, s in cl_part.node_prefix.items()
+        for i, s in cl_part.n_prefix.items()
     }
     return res
