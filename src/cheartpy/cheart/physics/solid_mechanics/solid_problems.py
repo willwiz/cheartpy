@@ -2,8 +2,8 @@ __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
 from typing import Any, Literal, Mapping, Sequence, TextIO, ValuesView
 from ...aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from ...pytools import get_enum, join_fields
-from ...implementation.problems import BoundaryCondition
-from ...interface import *
+from ...impl.problems import BoundaryCondition
+from ...trait import *
 from .matlaws import ILaw
 
 

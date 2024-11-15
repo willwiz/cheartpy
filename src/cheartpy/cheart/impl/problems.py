@@ -3,7 +3,7 @@ import dataclasses as dc
 from typing import TextIO, ValuesView
 from ..pytools import get_enum, join_fields
 from ..aliases import *
-from ..interface import *
+from ..trait import *
 
 
 @dc.dataclass(init=False, slots=True)

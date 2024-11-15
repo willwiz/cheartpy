@@ -1,8 +1,8 @@
 __all__ = ["create_center_pos_expr", "create_cl_position_problems"]
 from typing import Mapping, Sequence
-from ..cheart_core.interface import *
-from ..cheart_core.implementation import Expression
-from ..cheart_core.physics import FSCouplingProblem, FSExpr
+from ..cheart.trait import *
+from ..cheart.impl import Expression
+from ..cheart.physics import FSCouplingProblem, FSExpr
 from .types import *
 
 

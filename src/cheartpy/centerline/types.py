@@ -1,11 +1,11 @@
 __all__ = [
-    "CLTopology",
+    "CLPartition",
     "PatchNode2ElemMap",
     "CLBasisExpressions",
 ]
 import dataclasses as dc
 from typing import Mapping, TypedDict
-from ..cheart_core.interface import IExpression
+from ..cheart.trait import IExpression
 from ..var_types import *
 
 
@@ -17,7 +17,7 @@ class CenterLinePartition:
 
 
 @dc.dataclass(slots=True)
-class CLTopology:
+class CLPartition:
     prefix: str
     in_surf: int
     nn: int
@@ -37,5 +37,5 @@ class PatchNode2ElemMap:
 
 
 class CLBasisExpressions(TypedDict):
-    pelem: Mapping[int, IExpression]
-    melem: Mapping[int, IExpression]
+    p: Mapping[int, IExpression]
+    m: Mapping[int, IExpression]

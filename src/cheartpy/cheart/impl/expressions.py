@@ -1,7 +1,7 @@
 __all__ = ["Expression"]
 import dataclasses as dc
 from typing import Sequence, TextIO, Self
-from ..interface import *
+from ..trait import *
 
 
 @dc.dataclass(slots=True)
@@ -13,6 +13,12 @@ class Expression(IExpression):
 
     def __repr__(self) -> str:
         return self.name
+
+    def __len__(self) -> int:
+        return len(self.value)
+
+    def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
+        return (self, key)
 
     def get_values(self):
         return self.value
@@ -39,9 +45,6 @@ class Expression(IExpression):
 
     def get_var_deps(self):
         return self.deps_var.values()
-
-    def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
-        return (self, key)
 
     def idx(self, key: int) -> str:
         return f"{self.name}.{key}"

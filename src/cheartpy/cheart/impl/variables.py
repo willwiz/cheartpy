@@ -3,7 +3,7 @@ import dataclasses as dc
 from typing import Self, TextIO, Literal, ValuesView, overload
 from ..aliases import *
 from ..pytools import get_enum, join_fields
-from ..interface import *
+from ..trait import *
 
 
 @dc.dataclass(slots=True)
@@ -23,6 +23,10 @@ class Variable(IVariable):
 
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)
+
+    @property
+    def order(self):
+        return self.topology.order
 
     def idx(self, key: int) -> str:
         return f"{self.name}.{key}"

@@ -1,9 +1,9 @@
 __all__ = ["create_clfixed_coupling_problems"]
 from typing import Mapping, Sequence
-from ..cheart_core.implementation import Expression
-from ..cheart_core.physics import FSCouplingProblem, FSExpr
-from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
-from .types import CLTopology, CLBasisExpressions
+from ..cheart.impl import Expression
+from ..cheart.physics import FSCouplingProblem, FSExpr
+from ..cheart.trait import IVariable, ICheartTopology, IExpression
+from .types import CLPartition, CLBasisExpressions
 
 
 def create_clfixed_coupling_problem(
@@ -36,7 +36,7 @@ def create_clfixed_coupling_problems(
     space: IVariable,
     disp: IVariable,
     lm_fixed: Mapping[int, IVariable],
-    cl_part: CLTopology,
+    cl_part: CLPartition,
     cl_top: CLBasisExpressions,
 ) -> Mapping[int, FSCouplingProblem]:
     res = {

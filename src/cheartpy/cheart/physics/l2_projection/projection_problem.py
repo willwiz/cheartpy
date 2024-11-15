@@ -2,8 +2,8 @@ __all__ = ["L2SolidProjection"]
 import enum
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 from ...pytools import get_enum, join_fields
-from ...interface import *
-from ...implementation import BoundaryCondition
+from ...trait import *
+from ...impl import BoundaryCondition
 from ..solid_mechanics.solid_problems import SolidProblem
 
 

@@ -1,8 +1,8 @@
 __all__ = ["create_rotation_constraint"]
 from typing import Literal, Mapping, Sequence
-from ..cheart_core.physics import FSCouplingProblem, FSExpr
-from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
-from ..cheart_core.implementation import Expression
+from ..cheart.physics import FSCouplingProblem, FSExpr
+from ..cheart.trait import IVariable, ICheartTopology, IExpression
+from ..cheart.impl import Expression
 
 ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Sequence[Literal["x", "y", "z"]]]
 

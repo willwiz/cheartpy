@@ -2,6 +2,7 @@ __all__ = [
     "hash_tops",
     "create_time_scheme",
     "create_basis",
+    "create_boundary_basis",
     "create_topology",
     "create_embedded_topology",
     "create_variable",
@@ -12,8 +13,8 @@ __all__ = [
 ]
 from typing import overload
 from .aliases import *
-from .interface import *
-from .implementation.topologies import (
+from .trait import *
+from .impl.topologies import (
     ManyToOneTopInterface,
     NullTopology,
     CheartTopology,
@@ -29,9 +30,10 @@ def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
     kind: CHEART_BASES_TYPE | CheartBasisType,
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
-    order: int,
+    order: Literal[1, 2],
     gp: int,
 ) -> ICheartBasis: ...
+def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis: ...
 @overload
 def create_topology(
     name: str,

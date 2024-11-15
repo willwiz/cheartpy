@@ -115,17 +115,17 @@ class BoundaryType(enum.StrEnum):
 
 CHEART_ELEMENT_TYPE = Literal[
     "POINT_ELEMENT",
-    "POINT_ELEMENT",
+    "point",
     "ONED_ELEMENT",
-    "ONED_ELEMENT",
-    "QUADRILATERAL_ELEMENT",
-    "QUADRILATERAL_ELEMENT",
+    "line",
     "TRIANGLE_ELEMENT",
-    "TRIANGLE_ELEMENT",
-    "HEXAHEDRAL_ELEMENT",
-    "HEXAHEDRAL_ELEMENT",
+    "tri",
+    "QUADRILATERAL_ELEMENT",
+    "quad",
     "TETRAHEDRAL_ELEMENT",
-    "TETRAHEDRAL_ELEMENT",
+    "tet",
+    "HEXAHEDRAL_ELEMENT",
+    "hex",
 ]
 
 

@@ -1,9 +1,9 @@
 __all__ = ["create_radial_problems"]
 from typing import Mapping, Sequence
-from ..cheart_core.physics import FSCouplingProblem, FSExpr
-from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
-from ..cheart_core.implementation.expressions import Expression
-from .types import CLTopology, CLBasisExpressions
+from ..cheart.physics import FSCouplingProblem, FSExpr
+from ..cheart.trait import IVariable, ICheartTopology, IExpression
+from ..cheart.impl.expressions import Expression
+from .types import CLPartition, CLBasisExpressions
 
 
 def create_radial_len_expr(
@@ -78,7 +78,7 @@ def create_radial_problems(
     motion: IVariable,
     lms: Mapping[int, IVariable],
     cl_normal: Mapping[int, IVariable],
-    cl_part: CLTopology,
+    cl_part: CLPartition,
     cl_basis: CLBasisExpressions,
     cl_pos_expr: IExpression,
 ) -> dict[int, FSCouplingProblem]:

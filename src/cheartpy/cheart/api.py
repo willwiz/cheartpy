@@ -2,6 +2,7 @@ __all__ = [
     "hash_tops",
     "create_time_scheme",
     "create_basis",
+    "create_boundary_basis",
     "create_topology",
     "create_embedded_topology",
     "create_variable",
@@ -12,8 +13,8 @@ __all__ = [
 ]
 import os
 from .aliases import *
-from .interface import *
-from .implementation import *
+from .trait import *
+from .impl import *
 from .pytools import get_enum
 
 
@@ -36,7 +37,7 @@ def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
     kind: CHEART_BASES_TYPE | CheartBasisType,
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
-    order: int,
+    order: Literal[1, 2],
     gp: int,
 ) -> ICheartBasis:
     elem = get_enum(elem, CheartElementType)
@@ -53,6 +54,23 @@ def create_basis(
                 f"For {name} Basis, KEAST_LYNESS can only be used with tetrahydral or triangles"
             )
     return CheartBasis(name, elem, Basis(kind, order), Quadrature(quadrature, gp))
+
+
+def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
+    match vol.elem:
+        case CheartElementType.HEXAHEDRAL_ELEMENT | CheartElementType.hex:
+            elem = CheartElementType.QUADRILATERAL_ELEMENT
+        case CheartElementType.TETRAHEDRAL_ELEMENT | CheartElementType.tet:
+            elem = CheartElementType.TRIANGLE_ELEMENT
+        case CheartElementType.QUADRILATERAL_ELEMENT | CheartElementType.quad:
+            elem = CheartElementType.ONED_ELEMENT
+        case CheartElementType.TRIANGLE_ELEMENT | CheartElementType.tri:
+            elem = CheartElementType.ONED_ELEMENT
+        case CheartElementType.ONED_ELEMENT | CheartElementType.line:
+            elem = CheartElementType.POINT_ELEMENT
+        case CheartElementType.POINT_ELEMENT | CheartElementType.point:
+            raise ValueError(f"No such thing as boundary for point elements")
+    return CheartBasis(f"{vol}_surf", elem, vol.basis, vol.quadrature)
 
 
 def create_topology(

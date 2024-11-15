@@ -3,7 +3,7 @@ import dataclasses as dc
 from typing import Mapping, Sequence, TextIO, ValuesView
 from ..aliases import *
 from ..pytools import *
-from ..interface import *
+from ..trait import *
 from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
 
 """

@@ -1,5 +1,5 @@
 from typing import Mapping
-from ..interface import *
+from ..trait import *
 
 
 def recurse_get_var_list_var(var: IVariable) -> Mapping[str, IVariable]:

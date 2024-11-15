@@ -1,8 +1,8 @@
 __all__ = ["NormProblem"]
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 from ...pytools import join_fields
-from ...interface import *
-from ...implementation import BoundaryCondition, CheartTopology
+from ...trait import *
+from ...impl import BoundaryCondition, CheartTopology
 
 
 class NormProblem(IProblem):

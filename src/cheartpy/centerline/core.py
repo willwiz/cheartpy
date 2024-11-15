@@ -11,8 +11,8 @@ from typing import Mapping, TypedDict, cast
 from collections import defaultdict
 from .types import *
 from ..tools.path_tools import path
-from ..cheart_core.interface import IVariable, IExpression
-from ..cheart_core.implementation import Expression
+from ..cheart.trait import IVariable, IExpression
+from ..cheart.impl import Expression
 from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
 from ..meshing.cheart.surface import (
@@ -37,7 +37,7 @@ def LL_basis(
     return {k: var[k] * v[:, None] for k, v in basis_func.items()}
 
 
-def LL_interp(top: CLTopology, var: Mat[f64] | Vec[f64], cl: Vec[f64]) -> Mat[f64]:
+def LL_interp(top: CLPartition, var: Mat[f64] | Vec[f64], cl: Vec[f64]) -> Mat[f64]:
     x_bar = [
         v for elem in top.elem for v in LL_basis(var[elem], top.node[elem], cl).values()
     ]
@@ -98,7 +98,7 @@ def create_cl_topology(
     ne: int,
     bc: tuple[float, float] = (0.0, 1.0),
     LOG: ILogger = NullLogger(),
-) -> CLTopology:
+) -> CLPartition:
     nn = ne + 1
     nodes = np.linspace(*bc, nn, dtype=float)
     elems = np.array([[i, i + 1] for i in range(ne)], dtype=int)
@@ -115,19 +115,19 @@ def create_cl_topology(
     elem_prefix = {i: s for i, s in enumerate([f"{prefix}{k}E" for k in range(ne)])}
     LOG.debug(f"{node_prefix=}")
     LOG.debug(f"{elem_prefix=}")
-    return CLTopology(
+    return CLPartition(
         prefix, in_surf, nn, ne, node_prefix, elem_prefix, nodes, elems, support
     )
 
 
 def create_clbasis_expr(
     var: IVariable,
-    cl: CLTopology,
+    cl: CLPartition,
 ) -> CLBasisExpressions:
     pelem = {i: LL_expr(f"{s}B_p", var, cl.support[i]) for i, s in cl.n_prefix.items()}
     melem = {i: Expression(f"{s}B_m", [f"-{pelem[i]}"]) for i, s in cl.n_prefix.items()}
     [m.add_deps(pelem[k]) for k, m in melem.items()]
-    return {"pelem": pelem, "melem": melem}
+    return {"p": pelem, "m": melem}
 
 
 def create_boundarynode_map(cl: Mat[f64], b: CheartMeshPatch) -> PatchNode2ElemMap:
@@ -186,7 +186,7 @@ def create_cheart_cl_nodal_meshes(
     mesh_dir: str,
     mesh: CheartMesh,
     cl: Mat[f64],
-    cl_top: CLTopology,
+    cl_top: CLPartition,
     surf_id: int,
     normal_check: Mat[f64] | None = None,
     LOG: ILogger = NullLogger(),

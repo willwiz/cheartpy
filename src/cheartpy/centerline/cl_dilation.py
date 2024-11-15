@@ -1,9 +1,9 @@
 __all__ = ["create_dilation_problems"]
 from typing import Mapping
-from ..cheart_core.physics import FSCouplingProblem, FSExpr
-from ..cheart_core.interface import IVariable, ICheartTopology, IExpression
-from ..cheart_core.implementation.expressions import Expression
-from .types import CLTopology, CLBasisExpressions
+from ..cheart.physics import FSCouplingProblem, FSExpr
+from ..cheart.trait import IVariable, ICheartTopology, IExpression
+from ..cheart.impl.expressions import Expression
+from .types import CLPartition, CLBasisExpressions
 
 
 def create_outward_normal_expr(space: IVariable, cl: IExpression):
@@ -51,7 +51,7 @@ def create_dilation_problems(
     motion: IVariable,
     lms: Mapping[int, IVariable],
     cl_normal: Mapping[int, IVariable],
-    cl_part: CLTopology,
+    cl_part: CLPartition,
     cl_basis: CLBasisExpressions,
     cl_pos_expr: IExpression,
 ) -> dict[int, FSCouplingProblem]:

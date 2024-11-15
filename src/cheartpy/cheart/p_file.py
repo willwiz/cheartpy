@@ -2,7 +2,7 @@ __all__ = ["PFile"]
 import dataclasses as dc
 from typing import Mapping, Collection, TextIO
 from .aliases import *
-from .interface import *
+from .trait import *
 from .pytools import header, hline, splicegen
 
 

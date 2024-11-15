@@ -9,7 +9,7 @@ import dataclasses as dc
 from typing import Sequence, TextIO
 from ..pytools import join_fields
 from ..aliases import *
-from ..interface import *
+from ..trait import *
 
 
 @dc.dataclass(slots=True)
@@ -32,6 +32,12 @@ class CheartTopology(ICheartTopology):
     def mesh(self) -> str:
         return self._mesh
 
+    @property
+    def order(self) -> Literal[1, 2, None]:
+        if self.basis is None:
+            return None
+        return self.basis.order
+
     def get_basis(self) -> ICheartBasis | None:
         return self.basis
 
@@ -47,7 +53,7 @@ class CheartTopology(ICheartTopology):
                                  task} does not have a match value type"
                 )
 
-    def create_in_boundary(self, top: "CheartTopology", surf: int | str) -> None:
+    def create_in_boundary(self, top: ICheartTopology, surf: int | str) -> None:
         self.in_boundary = (top, surf)
 
     def write(self, f: TextIO):
@@ -73,6 +79,10 @@ class NullTopology(ICheartTopology):
 
     @property
     def mesh(self) -> str | None:
+        return None
+
+    @property
+    def order(self) -> None:
         return None
 
     def get_basis(self) -> ICheartBasis | None:
