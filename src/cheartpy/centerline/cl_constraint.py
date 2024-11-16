@@ -1,4 +1,4 @@
-__all__ = ["create_cl_coupling_problems"]
+__all__ = ["create_cl_coupling_problem", "create_cl_coupling_problems"]
 from typing import Mapping
 from ..cheart.impl import Expression
 from ..cheart.physics import FSCouplingProblem, FSExpr

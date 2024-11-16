@@ -1,12 +1,17 @@
 __all__ = [
+    "CLBasis",
+    "CLTopology",
+    "CL_LM_TYPE",
     "CLPartition",
     "PatchNode2ElemMap",
     "CLBasisExpressions",
 ]
 import dataclasses as dc
 from typing import Mapping, TypedDict
-from ..cheart.trait import IExpression
+from ..cheart.trait import IExpression, IVariable, ICheartTopology
 from ..var_types import *
+
+CL_LM_TYPE = Mapping[int, IVariable]
 
 
 @dc.dataclass(slots=True)
@@ -39,3 +44,25 @@ class PatchNode2ElemMap:
 class CLBasisExpressions(TypedDict):
     p: Mapping[int, IExpression]
     m: Mapping[int, IExpression]
+
+
+@dc.dataclass(slots=True)
+class CLBasis:
+    k: str
+    t: ICheartTopology
+    x: IVariable
+    p: IExpression
+    m: IExpression
+    n_p: IExpression
+    n_m: IExpression
+
+
+@dc.dataclass(slots=True)
+class CLTopology:
+    prefix: str
+    in_surf: int
+    nn: int
+    ne: int
+    field: IVariable
+    top: ICheartTopology
+    N: Mapping[int, CLBasis]

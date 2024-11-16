@@ -1,4 +1,4 @@
-__all__ = ["create_dilation_var_problems"]
+__all__ = ["create_dilation_var_problem", "create_dilation_var_problems"]
 from typing import Literal, Mapping
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression

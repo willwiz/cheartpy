@@ -5,6 +5,7 @@ __all__ = [
     "create_cl_topology",
     "create_clbasis_expr",
     "create_cheart_cl_nodal_meshes",
+    "create_lms_on_cl",
 ]
 import numpy as np
 from typing import Mapping, TypedDict, cast
@@ -13,6 +14,7 @@ from .types import *
 from ..tools.path_tools import path
 from ..cheart.trait import IVariable, IExpression
 from ..cheart.impl import Expression
+from ..cheart.api import create_variable
 from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
 from ..meshing.cheart.surface import (
@@ -210,3 +212,19 @@ def create_cheart_cl_nodal_meshes(
         }
         for k, v in cl_top.n_prefix.items()
     }
+
+
+def create_lms_on_cl(
+    prefix: str, cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool
+) -> Mapping[int, IVariable]:
+    if cl is None:
+        return {}
+    lms = {
+        k: create_variable(f"{v.k}{prefix}", None, dim, freq=ex_freq)
+        for k, v in cl.N.items()
+    }
+    if set_bc:
+        keys = sorted(lms.keys())
+        lms[keys[0]] = lms[keys[1]]
+        lms[keys[-1]] = lms[keys[-2]]
+    return lms
