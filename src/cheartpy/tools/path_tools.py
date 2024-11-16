@@ -16,7 +16,7 @@ def Clear_Dir(folder: str, *suffix: str, LOG: ILogger = NullLogger()) -> None:
     """
     if not os.path.isdir(folder):
         LOG.warn(f"Dir {folder} was not found.")
-        return
+        os.makedirs(folder, exist_ok=True)
     if len(suffix) == 0:
         [os.remove(v) for v in glob(f"{folder}/*") if os.path.isfile(v)]
         return

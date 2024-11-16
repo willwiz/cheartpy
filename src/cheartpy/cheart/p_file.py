@@ -9,7 +9,7 @@ from .pytools import header, hline, splicegen
 @dc.dataclass(slots=True)
 class PFile:
     h: str = ""
-    output_path: str | None = None
+    output_dir: str | None = None
     times: dict[str, ITimeScheme] = dc.field(default_factory=dict)
     dataPs: dict[str, IDataPointer] = dc.field(default_factory=dict)
     bases: dict[str, ICheartBasis] = dc.field(default_factory=dict)
@@ -22,7 +22,7 @@ class PFile:
     solverGs: dict[str, ISolverGroup] = dc.field(default_factory=dict)
 
     def SetOutputPath(self, path: str):
-        self.output_path = path
+        self.output_dir = path
 
     # Add Time Scheme
     def AddTimeScheme(self, *time: ITimeScheme) -> None:
@@ -190,8 +190,8 @@ class PFile:
         self.resolve()
         f.write(header(self.h))
         f.write(hline("New Output Path"))
-        if self.output_path is not None:
-            f.write(f"!SetOutputPath={{{self.output_path}}}\n")
+        if self.output_dir is not None:
+            f.write(f"!SetOutputPath={{{self.output_dir}}}\n")
         for t in self.times.values():
             t.write(f)
         for v in self.solverGs.values():

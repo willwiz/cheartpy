@@ -16,7 +16,7 @@ class Basis(IBasis):
 
     @property
     def order(self) -> Literal[1, 2]:
-        return self.order
+        return self._order
 
 
 @dc.dataclass(slots=True)
@@ -31,29 +31,29 @@ class Quadrature(IQuadrature):
 @dc.dataclass(slots=True)
 class CheartBasis(ICheartBasis):
     name: str
-    elem: CheartElementType
-    basis: IBasis
-    quadrature: IQuadrature
+    _elem: CheartElementType
+    _basis: IBasis
+    _quadrature: IQuadrature
 
     def __repr__(self) -> str:
         return self.name
 
     @property
     def elem(self) -> CheartElementType:
-        return self.elem
+        return self._elem
 
     @property
     def basis(self) -> IBasis:
-        return self.basis
+        return self._basis
 
     @property
     def quadrature(self) -> IQuadrature:
-        return self.quadrature
+        return self._quadrature
 
     @property
     def order(self) -> Literal[1, 2]:
-        return self.basis.order
+        return self._basis.order
 
     def write(self, f: TextIO):
-        string = join_fields(self.name, self.elem, self.basis, self.quadrature)
+        string = join_fields(self.name, self._elem, self._basis, self._quadrature)
         f.write(f"!UseBasis={{{string}}}\n")

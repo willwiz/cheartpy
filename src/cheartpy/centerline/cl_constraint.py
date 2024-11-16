@@ -17,7 +17,7 @@ def create_cl_coupling_problem(
     m_basis: IExpression,
 ) -> FSCouplingProblem:
     zero_1_expr = Expression(f"zero_1_expr", [0])
-    fsbc = FSCouplingProblem(f"PB_{name}", space, top)
+    fsbc = FSCouplingProblem(f"PB{name}_CL", space, top)
     fsbc.perturbation = True
     if motion is None:
         fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis))

@@ -66,6 +66,9 @@ class Variable(IVariable):
                     f"Setting for variable {self.name} does not match correct type"
                 )
 
+    def SetFormat(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None:
+        self.fmt = VariableExportFormat[fmt]
+
     def add_data(self, data: str | None) -> None:
         self.data = data
 
@@ -94,10 +97,10 @@ class Variable(IVariable):
             self.dim,
         )
         f.write(f"!DefVariablePointer={{{string}}}\n")
-        if self.setting:
-            string = join_fields(self.name, self.setting[0], self.setting[1])
-            f.write(f"  !SetVariablePointer={{{string}}}\n")
         if self.fmt == VariableExportFormat.BINARY:
             f.write(f"  !SetVariablePointer={{{self.name}|ReadBinary}}\n")
         elif self.fmt == VariableExportFormat.MMAP:
             f.write(f"  !SetVariablePointer={{{self.name}|ReadMMap}}\n")
+        if self.setting:
+            string = join_fields(self.name, self.setting[0], self.setting[1])
+            f.write(f"  !SetVariablePointer={{{string}}}\n")

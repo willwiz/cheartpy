@@ -45,14 +45,6 @@ def splicegen(maxchars: int, stringlist: list[str]):
     yield (tmpslice)
 
 
-class MissingArgument(Exception):
-    """Raised when arguments are missing"""
-
-    def __init__(self, message: str = "Missing arguments"):
-        self.message = message
-        super().__init__(self.message)
-
-
 def get_enum[T: enum.Enum](v: str | T, e: Type[T]) -> T:
     if not isinstance(v, str):
         return v

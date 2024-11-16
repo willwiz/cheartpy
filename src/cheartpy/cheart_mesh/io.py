@@ -50,11 +50,12 @@ def fix_suffix(prefix: str, suffix: str = "_FE.") -> str:
     return prefix + suffix
 
 
-def check_for_meshes(*names: str) -> bool:
+def check_for_meshes(*names: str, bc: bool = True) -> bool:
     """
     Returns True if all X, T, B files are found for prefix
     """
-    meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in ["X", "T", "B"]]]
+    sfx = ["X", "T", "B"] if bc else ["X", "T"]
+    meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in sfx]]
     return all(os.path.isfile(s) for s in meshes)
 
 

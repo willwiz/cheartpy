@@ -27,14 +27,14 @@ def create_dilation_var_problem(
     normal_p: IExpression,
     normal_m: IExpression,
 ) -> FSCouplingProblem:
-    zero_1_expr = Expression(f"zero_1_expr", [0])
+    # zero_1_expr = Expression(f"zero_1_expr", [0])
     fsbc = FSCouplingProblem(name, space, top)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(lm, FSExpr(disp, normal_p), FSExpr(motion, normal_m))
     fsbc.add_term(disp, FSExpr(lm, zeros))
     # for v in neighbours:
     #     fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
-    fsbc.add_expr_deps(zeros, zero_1_expr, normal_p, normal_m)
+    fsbc.add_expr_deps(zeros, normal_p, normal_m)
     return fsbc
 
 
@@ -57,7 +57,7 @@ def create_dilation_var_problems(
     }
     res = {
         k: create_dilation_var_problem(
-            f"PB_{v}_DL",
+            f"PB{v}_DL",
             tops[k],
             space,
             disp,
