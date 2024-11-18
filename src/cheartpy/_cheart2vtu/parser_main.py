@@ -163,6 +163,14 @@ parser_find.add_argument(
     help="OPTIONAL: supply a prefix for the mesh files",
 )
 parser_find.add_argument(
+    "--space",
+    dest="space",
+    action="store",
+    default=None,
+    type=str,
+    help="OPTIONAL: supply a prefix for the mesh files",
+)
+parser_find.add_argument(
     "--index",
     "-i",
     nargs=3,
@@ -217,6 +225,8 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
             space, top, bnd, disp = parse_indexmode_args(nsp)
         case _:
             raise ValueError(f"No subprogram called, cannot proceed.")
+    if nsp.space is not None:
+        space = nsp.space
     if nsp.prefix:
         prefix = nsp.prefix
     else:

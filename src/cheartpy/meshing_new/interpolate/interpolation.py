@@ -20,7 +20,7 @@ def make_l2qmap(lin_mesh: CheartMesh, quad_mesh: CheartMesh) -> INTERP_MAP:
             f"The number of elements in the linear mesh ({lin_top.n}) and quad mesh ({quad_top.n}) does not match "
         )
     L2Q = L2QMAPDICT[lin_top.TYPE]
-    interp_map = dict()
+    interp_map: INTERP_MAP = dict()
     for i in range(lin_top.n):
         for j, e in enumerate(L2Q):
             if quad_top.v[i, j] not in interp_map:

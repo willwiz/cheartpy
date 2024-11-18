@@ -75,7 +75,7 @@ def export_boundary(
     if inp.bfile is None:
         LOG.info(">>> NOTICE: No boundary file given, export is skipped")
         return
-    dx = cache.disp
+    dx = cache.space
     raw = CHRead_b_utf(inp.bfile)
     db = raw[:, 1:-1]
     dbid = raw[:, -1]

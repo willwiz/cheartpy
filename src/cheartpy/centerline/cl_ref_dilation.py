@@ -1,9 +1,8 @@
-__all__ = ["create_dilation_var_problem", "create_dilation_var_problems"]
+__all__ = ["create_dilation_ref_problem"]
 from typing import Literal, Mapping
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression
 from ..cheart.impl.expressions import Expression
-from .types import CLPartition, CLBasisExpressions
 
 
 def create_outward_normal_expr(
@@ -16,12 +15,13 @@ def create_outward_normal_expr(
     return {"p": p_expr, "m": m_expr}
 
 
-def create_dilation_var_problem(
+def create_dilation_ref_problem(
     sfx: str,
     node: str,
     top: ICheartTopology,
     space: IVariable,
-    disp: IVariable,
+    ref_disp: IVariable,
+    cur_disp: IVariable,
     motion: IVariable,
     lm: IVariable,
     normal_p: IExpression,
@@ -31,43 +31,16 @@ def create_dilation_var_problem(
     zero_3_expr = Expression(f"zero_3_expr", [0 for _ in range(3)])
     fsbc = FSCouplingProblem(f"P{node}{sfx}", space, top)
     fsbc.perturbation = True
-    fsbc.set_lagrange_mult(lm, FSExpr(disp, normal_p), FSExpr(motion, normal_m))
-    fsbc.add_term(disp, FSExpr(lm, zero_3_expr))
+    fsbc.set_lagrange_mult(
+        lm,
+        FSExpr(cur_disp, normal_p),
+        # FSExpr(ref_disp, normal_m),
+        FSExpr(motion, normal_m),
+    )
+    fsbc.add_term(cur_disp, FSExpr(cur_disp, 0))
+    fsbc.add_term(ref_disp, FSExpr(ref_disp, 0))
+    # fsbc.add_term(space, FSExpr(lm, zero_3_expr))
     # for v in neighbours:
     #     fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
     fsbc.add_expr_deps(zero_3_expr, normal_p, normal_m)
     return fsbc
-
-
-def create_dilation_var_problems(
-    space: IVariable,
-    disp: IVariable,
-    motion: IVariable,
-    cl_part: CLPartition,
-    cl_basis: CLBasisExpressions,
-    tops: Mapping[int, ICheartTopology],
-    lms: Mapping[int, IVariable],
-    cl_normal: Mapping[int, IVariable],
-) -> dict[int, FSCouplingProblem]:
-    normal_expr = {
-        k: create_outward_normal_expr(
-            f"{v}_normal_expr", cl_normal[k], cl_basis["p"][k]
-        )
-        for k, v in cl_part.n_prefix.items()
-    }
-    res = {
-        k: create_dilation_var_problem(
-            "DL",
-            v,
-            tops[k],
-            space,
-            disp,
-            motion,
-            lms[k],
-            normal_expr[k]["p"],
-            normal_expr[k]["m"],
-            # [lms[n] for n in [k - 1, k + 1] if n in lms],
-        )
-        for k, v in cl_part.n_prefix.items()
-    }
-    return res

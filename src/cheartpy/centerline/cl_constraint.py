@@ -1,23 +1,22 @@
 __all__ = ["create_cl_coupling_problem", "create_cl_coupling_problems"]
 from typing import Mapping
-from ..cheart.impl import Expression
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression
 from .types import CLPartition, CLBasisExpressions
 
 
 def create_cl_coupling_problem(
-    name: str,
-    lm: IVariable,
+    suffix: str,
+    node: str,
     top: ICheartTopology,
     space: IVariable,
     disp: IVariable,
     motion: IVariable | None,
+    lm: IVariable,
     p_basis: IExpression,
     m_basis: IExpression,
 ) -> FSCouplingProblem:
-    zero_1_expr = Expression(f"zero_1_expr", [0])
-    fsbc = FSCouplingProblem(f"PB{name}_CL", space, top)
+    fsbc = FSCouplingProblem(f"P{node}{suffix}", space, top)
     fsbc.perturbation = True
     if motion is None:
         fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis))
@@ -28,7 +27,7 @@ def create_cl_coupling_problem(
     #     fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
     # fsbc.set_lagrange_mult(lm, FSExpr(disp, p_basis))
     fsbc.add_term(disp, FSExpr(lm, p_basis))
-    fsbc.add_expr_deps(zero_1_expr, p_basis, m_basis)
+    fsbc.add_expr_deps(p_basis, m_basis)
     return fsbc
 
 
@@ -43,12 +42,13 @@ def create_cl_coupling_problems(
 ) -> Mapping[int, FSCouplingProblem]:
     res = {
         i: create_cl_coupling_problem(
+            "LM",
             s,
-            lms[i],
             tops[i],
             space,
             disp,
             motion,
+            lms[i],
             cl_top["p"][i],
             cl_top["m"][i],
             # [lms[n] for n in [i - 1, i + 1] if n in lms],

@@ -1,7 +1,9 @@
-__all__ = ["LogLevel", "BLogger", "NullLogger", "ILogger"]
+__all__ = ["LOG_LEVEL", "LogLevel", "BLogger", "NullLogger", "ILogger"]
 import abc
 import enum
 from typing import Any, Literal
+
+LOG_LEVEL = Literal["NULL", "FATAL", "ERROR", "WARN", "BRIEF", "INFO", "DEBUG"]
 
 class LogLevel(enum.IntEnum):
     NULL = 0

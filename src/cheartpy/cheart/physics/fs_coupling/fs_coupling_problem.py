@@ -3,17 +3,20 @@ import dataclasses as dc
 from typing import Sequence, TextIO, ValuesView
 from ...pytools import join_fields
 from ...trait import *
-from ...impl import BoundaryCondition
+from ...impl import BoundaryCondition, Expression
 
 
 @dc.dataclass(slots=True)
 class FSExpr:
     var: IVariable | IExpression
-    mult: IExpression | IVariable | float = 1
+    mult: IExpression | IVariable | float | None = None
     op: str | None = None
 
     def to_str(self) -> str:
-        return f"{self.var}[{join_fields(self.mult, self.op, char=";")}]"
+        mult = join_fields(self.mult, self.op, char=";")
+        if mult == "":
+            mult = "1"
+        return f"{self.var}[{mult}]"
 
 
 @dc.dataclass(slots=True)
@@ -42,6 +45,12 @@ class FSCouplingProblem(IProblem):
 
     def add_term(self, var: IVariable, *expr: FSExpr) -> None:
         self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
+
+    def add_state_variable(self, var: IVariable) -> None:
+        dim = var.get_dim() * self.lm.test_var.get_dim()
+        zeros = Expression(f"zeros_{dim}_expr", [0 for _ in range(dim)])
+        self.m_terms[str(var)] = FSCouplingTerm(var, [FSExpr(self.lm.test_var, zeros)])
+        self.add_expr_deps(zeros)
 
     def get_prob_vars(self) -> dict[str, IVariable]:
         vars: dict[str, IVariable] = {str(self.space): self.space}

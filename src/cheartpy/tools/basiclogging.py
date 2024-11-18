@@ -1,4 +1,4 @@
-__all__ = ["LogLevel", "BLogger", "NullLogger", "ILogger"]
+__all__ = ["LOG_LEVEL", "LogLevel", "BLogger", "NullLogger", "ILogger"]
 import abc
 import enum
 import os
@@ -10,6 +10,9 @@ from inspect import getframeinfo, stack
 
 def now() -> str:
     return datetime.now().strftime("%H:%M:%S")
+
+
+LOG_LEVEL = Literal["NULL", "FATAL", "ERROR", "WARN", "BRIEF", "INFO", "DEBUG"]
 
 
 class LogLevel(enum.IntEnum):
