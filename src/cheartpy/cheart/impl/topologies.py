@@ -28,6 +28,9 @@ class CheartTopology(ICheartTopology):
     def __repr__(self) -> str:
         return self.name
 
+    def __bool__(self) -> bool:
+        return True
+
     @property
     def mesh(self) -> str:
         return self._mesh
@@ -76,6 +79,9 @@ class NullTopology(ICheartTopology):
     # method
     def __repr__(self) -> str:
         return "null_topology"
+
+    def __bool__(self) -> bool:
+        return True
 
     @property
     def mesh(self) -> str | None:

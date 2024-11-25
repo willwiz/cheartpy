@@ -109,7 +109,7 @@ class NormProblem(IProblem):
         if self.root_top is not None:
             f.write(f"  !SetRootTopology={{{str(self.root_top)}}}\n")
         if self._buffering == False:
-            f.write(f"  !NoBuffering\n")
+            f.write(f"  !No-buffering\n")
         if self.output_filename is not None:
             f.write(f"  !Output-filename={{{self.output_filename}}}\n")
         self.bc.write(f)

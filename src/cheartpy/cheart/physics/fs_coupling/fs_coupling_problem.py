@@ -28,8 +28,8 @@ class FSCouplingTerm:
 class FSCouplingProblem(IProblem):
     name: str
     space: IVariable
-    lm: FSCouplingTerm
     root_topology: ICheartTopology | None
+    lm: FSCouplingTerm | None
     m_terms: dict[str, FSCouplingTerm]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
@@ -45,13 +45,12 @@ class FSCouplingProblem(IProblem):
         self,
         name: str,
         space: IVariable,
-        lm: FSCouplingTerm,
         root_top: ICheartTopology | None = None,
     ) -> None:
         self.name = name
         self.space = space
-        self.lm = lm
-        self.root_topology = None if root_top is None else root_top
+        self.root_topology = root_top if root_top else None
+        self.lm = None
         self.m_terms = dict()
         self.aux_vars = dict()
         self.aux_expr = dict()
@@ -73,28 +72,15 @@ class FSCouplingProblem(IProblem):
         self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
 
     def add_state_variable(self, var: IVariable) -> None:
-        # dim = var.get_dim() * self.lm.test_var.get_dim()
-        # zeros = Expression(f"zeros_{dim}_expr", [0 for _ in range(dim)])
         self.m_terms[str(var)] = FSCouplingTerm(var, [FSExpr(var, 0)])
-        # self.add_expr_deps(zeros)
 
     def get_prob_vars(self) -> dict[str, IVariable]:
         vars: dict[str, IVariable] = {str(self.space): self.space}
-        vars[str(self.lm.test_var)] = self.lm.test_var
-        # for t in self.lm.terms:
-        #     if isinstance(t.var, _Variable):
-        #         if str(t.var) not in vars:
-        #             vars[str(t.var)] = t.var
+        if self.lm is not None:
+            vars[str(self.lm.test_var)] = self.lm.test_var
         for _, v in self.m_terms.items():
             if str(v.test_var) not in vars:
                 vars[str(v.test_var)] = v.test_var
-            # for t in v.terms:
-            #     if isinstance(t.var, _Variable):
-            #         vars[str(t.var)] = t.var
-            # if isinstance(t.expr, _Variable):
-            #     vars[str(t.expr)] = t.expr
-        # for v in self.bc.get_vars_deps():
-        #     vars[str(v)] = v
         return vars
 
     def add_var_deps(self, *var: IVariable) -> None:
@@ -111,14 +97,15 @@ class FSCouplingProblem(IProblem):
         _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         if str(self.space) not in _vars_:
             _vars_[str(self.space)] = self.space
-        _vars_[str(self.lm.test_var)] = self.lm.test_var
-        for t in self.lm.terms:
-            if isinstance(t.var, IVariable):
-                if str(t.var) not in _vars_:
-                    _vars_[str(t.var)] = t.var
-            if isinstance(t.mult, IVariable):
-                if str(t.mult) not in _vars_:
-                    _vars_[str(t.mult)] = t.mult
+        if self.lm is not None:
+            _vars_[str(self.lm.test_var)] = self.lm.test_var
+            for t in self.lm.terms:
+                if isinstance(t.var, IVariable):
+                    if str(t.var) not in _vars_:
+                        _vars_[str(t.var)] = t.var
+                if isinstance(t.mult, IVariable):
+                    if str(t.mult) not in _vars_:
+                        _vars_[str(t.mult)] = t.mult
         for v in self.m_terms.values():
             if str(v.test_var) not in _vars_:
                 _vars_[str(v.test_var)] = v.test_var
@@ -133,13 +120,14 @@ class FSCouplingProblem(IProblem):
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
-        for t in self.lm.terms:
-            if isinstance(t.var, IExpression):
-                if str(t.var) not in _expr_:
-                    _expr_[str(t.var)] = t.var
-            if isinstance(t.mult, IExpression):
-                if str(t.mult) not in _expr_:
-                    _expr_[str(t.mult)] = t.mult
+        if self.lm is not None:
+            for t in self.lm.terms:
+                if isinstance(t.var, IExpression):
+                    if str(t.var) not in _expr_:
+                        _expr_[str(t.var)] = t.var
+                if isinstance(t.mult, IExpression):
+                    if str(t.mult) not in _expr_:
+                        _expr_[str(t.mult)] = t.mult
         for v in self.m_terms.values():
             for t in v.terms:
                 if isinstance(t.var, IExpression):
@@ -161,13 +149,14 @@ class FSCouplingProblem(IProblem):
             f.write(
                 f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.terms])}}}\n"
             )
-        f.write(
-            f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.terms])}}}\n"
-        )
+        if self.lm is not None:
+            f.write(
+                f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.terms])}}}\n"
+            )
         if self.perturbation:
             f.write(f"  !SetPerturbationBuild\n")
         if self._buffering is False:
-            f.write(f"  !SetNoBuffering\n")
+            f.write(f"  !No-buffering\n")
         if self.root_topology is not None:
             f.write(f"  !SetRootTopology={{{self.root_topology}}}\n")
         self.bc.write(f)

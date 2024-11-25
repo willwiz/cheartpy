@@ -95,5 +95,5 @@ class L2SolidProjection(IProblem):
         f.write(f"  !Mechanical-Problem={{{self.solid_prob}}}\n")
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
         if self._buffering == False:
-            f.write(f"  !No-Bufferring\n")
+            f.write(f"  !No-buffering\n")
         self.bc.write(f)
