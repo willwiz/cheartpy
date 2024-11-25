@@ -3,7 +3,7 @@ import dataclasses as dc
 from typing import Sequence, TextIO, ValuesView
 from ...pytools import join_fields
 from ...trait import *
-from ...impl import BoundaryCondition, Expression
+from ...impl import BoundaryCondition
 
 
 @dc.dataclass(slots=True)
@@ -28,17 +28,43 @@ class FSCouplingTerm:
 class FSCouplingProblem(IProblem):
     name: str
     space: IVariable
-    root_topology: ICheartTopology | None
     lm: FSCouplingTerm
+    root_topology: ICheartTopology | None
     m_terms: dict[str, FSCouplingTerm]
-    bc: IBoundaryCondition
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
-    problem: str = "fscoupling_problem"
+    bc: IBoundaryCondition
     perturbation: bool = True
+    _buffering: bool = True
+    _problem_name: str = "fscoupling_problem"
 
     def __repr__(self) -> str:
         return self.name
+
+    def __init__(
+        self,
+        name: str,
+        space: IVariable,
+        lm: FSCouplingTerm,
+        root_top: ICheartTopology | None = None,
+    ) -> None:
+        self.name = name
+        self.space = space
+        self.lm = lm
+        self.root_topology = None if root_top is None else root_top
+        self.m_terms = dict()
+        self.aux_vars = dict()
+        self.aux_expr = dict()
+        self.bc = BoundaryCondition()
+        self._buffering = True
+
+    @property
+    def buffering(self) -> bool:
+        return self._buffering
+
+    @buffering.setter
+    def buffering(self, val: bool) -> None:
+        self._buffering = val
 
     def set_lagrange_mult(self, var: IVariable, *expr: FSExpr) -> None:
         self.lm = FSCouplingTerm(var, list(expr))
@@ -47,10 +73,10 @@ class FSCouplingProblem(IProblem):
         self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
 
     def add_state_variable(self, var: IVariable) -> None:
-        dim = var.get_dim() * self.lm.test_var.get_dim()
-        zeros = Expression(f"zeros_{dim}_expr", [0 for _ in range(dim)])
-        self.m_terms[str(var)] = FSCouplingTerm(var, [FSExpr(self.lm.test_var, zeros)])
-        self.add_expr_deps(zeros)
+        # dim = var.get_dim() * self.lm.test_var.get_dim()
+        # zeros = Expression(f"zeros_{dim}_expr", [0 for _ in range(dim)])
+        self.m_terms[str(var)] = FSCouplingTerm(var, [FSExpr(var, 0)])
+        # self.add_expr_deps(zeros)
 
     def get_prob_vars(self) -> dict[str, IVariable]:
         vars: dict[str, IVariable] = {str(self.space): self.space}
@@ -128,22 +154,8 @@ class FSCouplingProblem(IProblem):
         patches = self.bc.get_patches()
         return list() if patches is None else list(patches)
 
-    def __init__(
-        self,
-        name: str,
-        space: IVariable,
-        root_top: ICheartTopology | None = None,
-    ) -> None:
-        self.name = name
-        self.space = space
-        self.root_topology = None if root_top is None else root_top
-        self.aux_vars = dict()
-        self.aux_expr = dict()
-        self.m_terms = dict()
-        self.bc = BoundaryCondition()
-
     def write(self, f: TextIO):
-        f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
+        f.write(f"!DefProblem={{{self.name}|{self._problem_name}}}\n")
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
         for t in self.m_terms.values():
             f.write(
@@ -154,6 +166,8 @@ class FSCouplingProblem(IProblem):
         )
         if self.perturbation:
             f.write(f"  !SetPerturbationBuild\n")
+        if self._buffering is False:
+            f.write(f"  !SetNoBuffering\n")
         if self.root_topology is not None:
             f.write(f"  !SetRootTopology={{{self.root_topology}}}\n")
         self.bc.write(f)

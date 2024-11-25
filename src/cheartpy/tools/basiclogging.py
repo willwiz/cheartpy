@@ -25,6 +25,18 @@ class LogLevel(enum.IntEnum):
     DEBUG = 6
 
 
+class bcolors(enum.StrEnum):
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARN = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+
+
 class ILogger(abc.ABC):
     @property
     @abc.abstractmethod

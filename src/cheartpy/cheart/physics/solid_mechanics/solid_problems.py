@@ -34,10 +34,43 @@ class SolidProblem(IProblem):
     state_vars: dict[str, IVariable]
     options: dict[str, list[Any]]
     flags: dict[str, bool]
+    _buffering: bool
     bc: IBoundaryCondition
 
     def __repr__(self) -> str:
         return self.name
+
+    def __init__(
+        self,
+        name: str,
+        problem: SolidProblemType,
+        space: IVariable,
+        disp: IVariable,
+        vel: IVariable | None = None,
+        pres: IVariable | None = None,
+        matlaws: list[ILaw] | None = None,
+    ) -> None:
+        self.name = name
+        self.problem = problem
+        self.variables = {"Space": space, "Displacement": disp}
+        if problem is SolidProblemType.TRANSIENT and vel is None:
+            raise ValueError(f"{name}: Transient problem must have velocity")
+        if vel:
+            self.variables["Velocity"] = vel
+        if pres:
+            if pres.get_dim() != 1:
+                raise ValueError(
+                    ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1"
+                )
+            self.variables["Pressure"] = pres
+        self.matlaws = list() if matlaws is None else matlaws
+        self.aux_vars = dict()
+        self.aux_expr = dict()
+        self.state_vars = dict()
+        self.options = dict()
+        self.flags = dict()
+        self._buffering = True
+        self.bc = BoundaryCondition()
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
@@ -69,37 +102,6 @@ class SolidProblem(IProblem):
         patches = self.bc.get_patches()
         return list() if patches is None else list(patches)
 
-    def __init__(
-        self,
-        name: str,
-        problem: SolidProblemType,
-        space: IVariable,
-        disp: IVariable,
-        vel: IVariable | None = None,
-        pres: IVariable | None = None,
-        matlaws: list[ILaw] | None = None,
-    ) -> None:
-        self.name = name
-        self.problem = problem
-        self.variables = {"Space": space, "Displacement": disp}
-        if problem is SolidProblemType.TRANSIENT and vel is None:
-            raise ValueError(f"{name}: Transient problem must have velocity")
-        if vel:
-            self.variables["Velocity"] = vel
-        if pres:
-            if pres.get_dim() != 1:
-                raise ValueError(
-                    ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1"
-                )
-            self.variables["Pressure"] = pres
-        self.matlaws = list() if matlaws is None else matlaws
-        self.aux_vars = dict()
-        self.aux_expr = dict()
-        self.state_vars = dict()
-        self.options = dict()
-        self.flags = dict()
-        self.bc = BoundaryCondition()
-
     def AddMatlaw(self, *law: ILaw):
         for w in law:
             self.matlaws.append(w)
@@ -114,11 +116,24 @@ class SolidProblem(IProblem):
             self.state_vars[str(v)] = v
             self.aux_vars[str(v)] = v
 
+    @property
+    def buffering(self) -> bool:
+        return self._buffering
+
+    @buffering.setter
+    def buffering(self, val: bool) -> None:
+        self._buffering = val
+
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
         self.options[opt] = list([val, *sub_val])
 
-    def UseStabilization(self, val: float, order: int) -> None:
-        self.options["UseStabilization"] = [f"{val} {order}"]
+    def Stabilize(
+        self,
+        mode: Literal["UseStabilization", "Nearly-incompressible"],
+        val: float,
+        *order: Any,
+    ) -> None:
+        self.options[mode] = [val, *order]
 
     def SetFlags(self, flag: SOLID_FLAGS) -> None:
         self.flags[flag] = True
@@ -132,12 +147,14 @@ class SolidProblem(IProblem):
                 f"  !Add-State-Variables={{{join_fields(*self.state_vars.values())}}}\n"
             )
         for k, v in self.options.items():
-            if k == "UseStabilization":
-                f.write(f"  !{k}\n")
-                f.write(f"    {" ".join(v)}\n")
-            else:
-                string = join_fields(*v)
-                f.write(f"  !{k}={{{string}}}\n")
+            # if k == "UseStabilization":
+            #     f.write(f"  !{k}\n")
+            #     f.write(f"    {" ".join(v)}\n")
+            # else:
+            string = join_fields(*v)
+            f.write(f"  !{k}={{{string}}}\n")
+        if self._buffering == False:
+            f.write(f"  !No-buffering\n")
         for k, v in self.flags.items():
             if v:
                 f.write(f"  !{k}\n")

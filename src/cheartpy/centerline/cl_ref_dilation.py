@@ -28,19 +28,20 @@ def create_dilation_ref_problem(
     normal_m: IExpression,
 ) -> FSCouplingProblem:
     # zero_1_expr = Expression(f"zero_1_expr", [0])
-    zero_3_expr = Expression(f"zero_3_expr", [0 for _ in range(3)])
+    # zero_3_expr = Expression(f"zero_3_expr", [0 for _ in range(3)])
     fsbc = FSCouplingProblem(f"P{node}{sfx}", space, top)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(
         lm,
-        FSExpr(cur_disp, normal_p),
-        # FSExpr(ref_disp, normal_m),
-        FSExpr(motion, normal_m),
+        FSExpr(cur_disp, normal_p, "trace"),
+        # FSExpr(ref_disp, normal_m, "trace"),
+        FSExpr(motion, normal_m, "trace"),
     )
     fsbc.add_term(cur_disp, FSExpr(cur_disp, 0))
-    fsbc.add_term(ref_disp, FSExpr(ref_disp, 0))
+    # fsbc.add_term(ref_disp, FSExpr(ref_disp, 0))
+    fsbc.add_term(space, FSExpr(space, 0))
     # fsbc.add_term(space, FSExpr(lm, zero_3_expr))
     # for v in neighbours:
     #     fsbc.add_term(v, FSExpr(lm, zero_1_expr)) if str(v) != str(lm) else ...
-    fsbc.add_expr_deps(zero_3_expr, normal_p, normal_m)
+    fsbc.add_expr_deps(normal_p, normal_m)
     return fsbc

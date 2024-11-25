@@ -16,7 +16,11 @@ class NormProblem(IProblem):
     scale_by_measure: bool = False
     absolute_value: bool = False
     output_filename: str | None = None
-    problem: str = "norm_calculation"
+    _buffering: bool = False
+    _problem_name: str = "norm_calculation"
+
+    def __repr__(self) -> str:
+        return self.name
 
     def __init__(
         self,
@@ -37,9 +41,21 @@ class NormProblem(IProblem):
         self.aux_vars = dict()
         self.aux_expr = dict()
         self.bc = BoundaryCondition()
+        self.root_top = None
+        self.boundary_normal = None
+        self.scale_by_measure = False
+        self.absolute_value = False
+        self.output_filename = None
+        self._buffering = True
+        self._problem_name = "norm_calculation"
 
-    def __repr__(self) -> str:
-        return self.name
+    @property
+    def buffering(self) -> bool:
+        return self._buffering
+
+    @buffering.setter
+    def buffering(self, val: bool) -> None:
+        self._buffering = val
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
@@ -81,7 +97,7 @@ class NormProblem(IProblem):
         self.output_filename = name
 
     def write(self, f: TextIO):
-        f.write(f"!DefProblem={{{join_fields(self, self.problem)}}}\n")
+        f.write(f"!DefProblem={{{join_fields(self, self._problem_name)}}}\n")
         for k, v in self.variables.items():
             f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
         if self.boundary_normal is not None:
@@ -92,6 +108,8 @@ class NormProblem(IProblem):
             f.write(f"  !Absolute-value\n")
         if self.root_top is not None:
             f.write(f"  !SetRootTopology={{{str(self.root_top)}}}\n")
+        if self._buffering == False:
+            f.write(f"  !NoBuffering\n")
         if self.output_filename is not None:
             f.write(f"  !Output-filename={{{self.output_filename}}}\n")
         self.bc.write(f)

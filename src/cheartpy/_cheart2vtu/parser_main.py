@@ -226,7 +226,11 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
         case _:
             raise ValueError(f"No subprogram called, cannot proceed.")
     if nsp.space is not None:
-        space = nsp.space
+        name = nsp.space.split("+")
+        if len(name) == 2:
+            space, disp = name
+        else:
+            space, disp = nsp.space, None
     if nsp.prefix:
         prefix = nsp.prefix
     else:

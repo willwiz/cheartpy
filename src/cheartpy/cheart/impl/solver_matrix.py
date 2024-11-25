@@ -45,7 +45,12 @@ class SolverMatrix(ISolverMatrix):
 
     def write(self, f: TextIO):
         string = join_fields(self.name, self.solver, *self.problem.values())
-        f.write(f"!DefSolverMatrix={{{string}}}\n")
+        if len(string) > 45:
+            f.write(f"!DefSolverMatrix={{{join_fields(self.name, self.solver)}}}\n")
+            for v in self.problem.values():
+                f.write(f"    {v}\n")
+        else:
+            f.write(f"!DefSolverMatrix={{{string}}}\n")
         if self.suppress_output:
             f.write(f"  !SetSolverMatrix={{{self.name}|SuppressOutput}}\n")
         for k, v in self.settings.items():

@@ -20,13 +20,41 @@ class L2SolidProjection(IProblem):
     solid_prob: SolidProblem
     calculation: L2SolidCalculationType = L2SolidCalculationType.cauchy_stress
     variables: dict[str, IVariable]
-    bc: IBoundaryCondition
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
-    problem: str = "l2solidprojection_problem"
+    bc: IBoundaryCondition
+    _buffering: bool = False
+    _problem: str = "l2solidprojection_problem"
 
     def __repr__(self) -> str:
         return self.name
+
+    def __init__(
+        self,
+        name: str,
+        space: IVariable,
+        var: IVariable,
+        solid_prob: SolidProblem,
+        projected_var: (
+            L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
+        ) = L2SolidCalculationType.cauchy_stress,
+    ) -> None:
+        self.name = name
+        self.solid_prob = solid_prob
+        self.variables = {"Space": space, "Variable": var}
+        self.calculation = get_enum(projected_var, L2SolidCalculationType)
+        self.aux_vars = dict()
+        self.aux_expr = dict()
+        self.bc = BoundaryCondition()
+        self._buffering = True
+
+    @property
+    def buffering(self) -> bool:
+        return self._buffering
+
+    @buffering.setter
+    def buffering(self, val: bool) -> None:
+        self._buffering = val
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
@@ -59,28 +87,13 @@ class L2SolidProjection(IProblem):
     ) -> None:
         self.calculation = get_enum(calc, L2SolidCalculationType)
 
-    def __init__(
-        self,
-        name: str,
-        space: IVariable,
-        var: IVariable,
-        solid_prob: SolidProblem,
-        projected_var: (
-            L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
-        ) = L2SolidCalculationType.cauchy_stress,
-    ) -> None:
-        self.name = name
-        self.solid_prob = solid_prob
-        self.variables = {"Space": space, "Variable": var}
-        self.calculation = get_enum(projected_var, L2SolidCalculationType)
-        self.aux_vars = dict()
-        self.bc = BoundaryCondition()
-
     def write(self, f: TextIO):
-        f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
+        f.write(f"!DefProblem={{{self.name}|{self._problem}}}\n")
         for k, v in self.variables.items():
             f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
 
         f.write(f"  !Mechanical-Problem={{{self.solid_prob}}}\n")
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
+        if self._buffering == False:
+            f.write(f"  !No-Bufferring\n")
         self.bc.write(f)
