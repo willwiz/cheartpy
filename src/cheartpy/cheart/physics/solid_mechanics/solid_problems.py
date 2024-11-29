@@ -72,10 +72,25 @@ class SolidProblem(IProblem):
         self._buffering = True
         self.bc = BoundaryCondition()
 
+    @property
+    def buffering(self) -> bool:
+        return self._buffering
+
+    @buffering.setter
+    def buffering(self, val: bool) -> None:
+        self._buffering = val
+
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
+
+    def add_deps(self, *vars: IVariable | IExpression) -> None:
+        for v in vars:
+            if isinstance(v, IVariable):
+                self.add_var_deps(v)
+            else:
+                self.add_expr_deps(v)
 
     def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
@@ -115,14 +130,6 @@ class SolidProblem(IProblem):
         for v in var:
             self.state_vars[str(v)] = v
             self.aux_vars[str(v)] = v
-
-    @property
-    def buffering(self) -> bool:
-        return self._buffering
-
-    @buffering.setter
-    def buffering(self, val: bool) -> None:
-        self._buffering = val
 
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
         self.options[opt] = list([val, *sub_val])

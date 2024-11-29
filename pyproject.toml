@@ -18,8 +18,7 @@ classifiers = [
 dependencies = ["numpy", "meshio", "scipy", "matplotlib", "pandas"]
 
 [project.scripts]
-cpyexec = "cheartpy.cpyexecute:main_cli"
-cheart2vtu = "cheartpy.cheart2vtu:main_cli"
-makemesh = "cheartpy.makemesh:main_cli"
 abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"
-interpDfiles = "cheartpy.interpDfiles:main_cli"
+cheart2vtu = "cheartpy.cli_cheart2vtu:main_cli"
+makemesh = "cheartpy.cli_mesh:main_cli"
+maketimeseries = "cheartpy.cli_vtu_series:main_cli"

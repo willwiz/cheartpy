@@ -85,7 +85,7 @@ def CHRead_d(file: str) -> Arr[tuple[int, int], f64]:
     return CHRead_d_utf(file)
 
 
-def CHRead_t_utf(file: str) -> Arr[tuple[int, int], i32]:
+def CHRead_t_utf(file: str) -> Arr[tuple[int, int], int_t]:
     return np.loadtxt(file, skiprows=1, dtype=np.int32, ndmin=2)
 
 
@@ -97,7 +97,7 @@ def CHRead_header_utf(file: str) -> tuple[int, int]:
     return nelem, nnode
 
 
-def CHRead_b_utf(file: str) -> Arr[tuple[int, int], i32]:
+def CHRead_b_utf(file: str) -> Arr[tuple[int, int], int_t]:
     return np.loadtxt(file, skiprows=1, dtype=int, ndmin=2)
 
 
@@ -107,6 +107,13 @@ CHeart Write Array functions
 
 
 def CHWrite_d_utf(file: str, data: Arr[tuple[int, int], f64]) -> None:
+    match data.ndim:
+        case 1:
+            data = data.reshape(-1, 1)
+        case 2:
+            pass
+        case _:
+            raise ValueError("Data must be 1D or 2D")
     dim = data.shape
     with open(file, "w") as f:
         f.write("{:12d}".format(dim[0]))
@@ -129,7 +136,11 @@ def CHWrite_d_binary(file: str, arr: Arr[tuple[int, int], f64]) -> None:
     return
 
 
-def CHWrite_t_utf(file: str, data: Arr[tuple[int, int], i32], ne: int, nn: int) -> None:
+def CHWrite_t_utf(file: str, data: Mat[int_t], nn: int | None = None) -> None:
+    ne = len(data)
+    nn = data.max() if nn is None else nn
+    if data.ndim != 2:
+        raise ValueError("Topology must be 2D array of integers")
     with open(file, "w") as f:
         f.write(f"{ne:12d}")
         f.write(f"{nn:12d}\n")
@@ -140,7 +151,7 @@ def CHWrite_t_utf(file: str, data: Arr[tuple[int, int], i32], ne: int, nn: int) 
     return
 
 
-def CHWrite_iarr_utf(file: str, data: Arr[tuple[int, int], i32]) -> None:
+def CHWrite_iarr_utf(file: str, data: Arr[tuple[int, int], int_t]) -> None:
     dim = data.shape
     with open(file, "w") as f:
         f.write(f"{dim[0]:12d}\n")

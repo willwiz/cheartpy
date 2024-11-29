@@ -1,5 +1,7 @@
 __all__ = ["NormProblem"]
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
+
+from ...trait.basis import IExpression, IVariable
 from ...pytools import join_fields
 from ...trait import *
 from ...impl import BoundaryCondition, CheartTopology
@@ -61,6 +63,13 @@ class NormProblem(IProblem):
         _self_vars_ = {str(v): v for v in self.variables.values()}
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
+
+    def add_deps(self, *vars: IVariable | IExpression) -> None:
+        for v in vars:
+            if isinstance(v, IVariable):
+                self.add_var_deps(v)
+            else:
+                self.add_expr_deps(v)
 
     def add_var_deps(self, *var: IVariable) -> None:
         for v in var:

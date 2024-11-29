@@ -8,7 +8,7 @@ WRITERSIGS = (
     Callable[[TextIO, int, int], None]
     | Callable[[TextIO, float, int], None]
     | Callable[[TextIO, Vec[f64], int], None]
-    | Callable[[TextIO, Vec[i32], int], None]
+    | Callable[[TextIO, Vec[int_t], int], None]
 )
 
 

@@ -14,7 +14,7 @@ DFILE_TEMP = re.compile(r"(^.*)-(\d+|\d+\.\d+)\.(D|D\.gz)")
 
 
 def get_var_index(
-    names: list[str], prefix: str, suffix: Literal[r"D", r"D\.gz"] = r"D"
+    names: list[str], prefix: str, suffix: Literal[r"D", r"D\.gz", r"vtu"] = r"D"
 ) -> list[int]:
     p = re.compile(rf"{prefix}-(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]

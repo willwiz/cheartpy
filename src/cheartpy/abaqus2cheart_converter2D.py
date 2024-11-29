@@ -206,13 +206,13 @@ class MeshTypeSpace:
 @dc.dataclass(slots=True)
 class MeshTypeTopology:
     n: int
-    data: Arr[tuple[int, int], i32]
+    data: Arr[tuple[int, int], int_t]
 
 
 @dc.dataclass(slots=True)
 class MeshTypeBoundary:
     n: int
-    data: Arr[tuple[int, int], i32]
+    data: Arr[tuple[int, int], int_t]
 
 
 @dc.dataclass(slots=True)
@@ -516,12 +516,12 @@ def export_cheart_mesh(
     if g.space is not None:
         CHWrite_d_utf(inp.prefix + "_FE.X", g.space.data)
     if g.topology is not None and g.space is not None:
-        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data, g.topology.n, g.space.n)
+        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data, g.space.n)
     if g.boundary is not None:
         CHWrite_iarr_utf(inp.prefix + "_FE.B", g.boundary.data)
     if inp.topology is None and inp.boundary is None:
         for k, v in elems.items():
-            CHWrite_t_utf(f"{inp.prefix}_{k}_FE.T", v.to_numpy(), v.n, nodes.n)
+            CHWrite_t_utf(f"{inp.prefix}_{k}_FE.T", v.to_numpy(), nodes.n)
 
 
 def split_argslist_to_nameddict(

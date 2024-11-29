@@ -9,7 +9,7 @@ __all__ = [
 import dataclasses as dc
 from typing import Mapping
 import numpy as np
-from ..var_types import Mat, Vec, f64, i32
+from ..var_types import Mat, Vec, f64, int_t
 from .elements import VtkType
 from .io import *
 
@@ -26,21 +26,21 @@ class CheartMeshSpace:
 @dc.dataclass(slots=True)
 class CheartMeshTopology:
     n: int
-    v: Mat[i32]
+    v: Mat[int_t]
     TYPE: VtkType
 
     def save(self, name: str) -> None:
-        CHWrite_t_utf(name, self.v + 1, self.n, self.v.max() + 1)
+        CHWrite_t_utf(name, self.v + 1, self.v.max() + 1)
 
 
 @dc.dataclass(slots=True)
 class CheartMeshPatch:
     tag: int
     n: int
-    k: Vec[i32]
-    v: Mat[i32]
+    k: Vec[int_t]
+    v: Mat[int_t]
 
-    def to_array(self) -> Mat[i32]:
+    def to_array(self) -> Mat[int_t]:
         res = np.pad(self.v + 1, ((0, 0), (1, 1)))
         res[:, 0] = self.k + 1
         res[:, -1] = self.tag
@@ -74,7 +74,7 @@ class CheartMesh:
             self.bnd.save(f"{prefix}B")
 
 
-def create_bnd_surf(v: Mat[i32], tag: int) -> CheartMeshPatch:
+def create_bnd_surf(v: Mat[int_t], tag: int) -> CheartMeshPatch:
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1

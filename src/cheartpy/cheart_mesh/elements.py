@@ -33,16 +33,19 @@ class VtkElemInterface:
     vtksurfaceid: Final[int | None]
     nodeordering: Final[tuple[int, ...]]
     connectivity: Final[tuple[int, ...]]
-    ref_order: Final[Mat[i32]]
+    ref_order: Final[Mat[int_t]]
     ref_nodes: Final[Mat[f64]]
     shape_funcs: Final[Callable[[Vec[f64]], Vec[f64]]]
     shape_dfuncs: Final[Callable[[Vec[f64]], Mat[f64]]]
 
-    def write(self, fout: TextIO, elem: Vec[i32], level: int = 0) -> None:
+    def write(self, fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in self.nodeordering:
             fout.write(f" {elem[j] - 1:d}")
         fout.write("\n")
+
+    def __bool__(self) -> bool:
+        return True
 
     def __hash__(self) -> int:
         return hash(self.elem)
@@ -197,8 +200,7 @@ class VtkType(VtkElemInterface, enum.Enum):
     #     return super(VtkType, cls).__new__(VtkElemInterface)
 
 
-VTK_ELEM: Mapping[VTK_ELEM_TYPE | None, VtkType | None] = {
-    None: None,
+VTK_ELEM: Mapping[VTK_ELEM_TYPE, VtkType] = {
     "VtkLineLinear": VtkType.LineLinear,
     "VtkLineQuadratic": VtkType.LineQuadratic,
     "VtkTriangleLinear": VtkType.TriangleLinear,

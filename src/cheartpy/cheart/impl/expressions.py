@@ -23,11 +23,11 @@ class Expression(IExpression):
     def get_values(self):
         return self.value
 
-    def add_deps(self, *vars: IExpression | IVariable) -> None:
+    def add_deps(self, *vars: IExpression | IVariable | None) -> None:
         for v in vars:
             if isinstance(v, IExpression):
                 self.add_expr_deps(v)
-            else:
+            elif isinstance(v, IVariable):
                 self.add_var_deps(v)
 
     def add_expr_deps(self, *expr: IExpression):

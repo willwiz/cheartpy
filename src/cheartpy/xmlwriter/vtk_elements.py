@@ -1,7 +1,7 @@
 __all__ = ["IVtkElementInterface", "get_element_type"]
 import abc
 from typing import TextIO, Protocol, ClassVar
-from ..var_types import i32, Arr
+from ..var_types import int_t, Arr
 
 
 class IVtkElementInterface(Protocol):
@@ -11,7 +11,7 @@ class IVtkElementInterface(Protocol):
 
     @staticmethod
     @abc.abstractmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None: ...
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None: ...
 
 
 class VtkLinearLine(IVtkElementInterface):
@@ -20,7 +20,7 @@ class VtkLinearLine(IVtkElementInterface):
     connectivity = (0, 1)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(2):
             fout.write(" %i" % (elem[j] - 1))
@@ -33,7 +33,7 @@ class VtkQuadraticLine(IVtkElementInterface):
     connectivity = (0, 1, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(3):
             fout.write(" %i" % (elem[j] - 1))
@@ -46,7 +46,7 @@ class VtkBilinearTriangle(IVtkElementInterface):
     connectivity = (0, 1, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(3):
             fout.write(" %i" % (elem[j] - 1))
@@ -59,7 +59,7 @@ class VtkBiquadraticTriangle(IVtkElementInterface):
     connectivity = (0, 1, 2, 3, 5, 4)
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -75,7 +75,7 @@ class VtkBilinearQuadrilateral(IVtkElementInterface):
     vtksurfaceid: ClassVar[int | None] = 3
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -89,7 +89,7 @@ class VtkTrilinearTetrahedron(IVtkElementInterface):
     vtksurfaceid: ClassVar[int | None] = 5
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(4):
             fout.write(" %i" % (elem[j] - 1))
@@ -101,7 +101,7 @@ class VtkBiquadraticQuadrilateral(IVtkElementInterface):
     vtksurfaceid: ClassVar[int | None] = 21
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -120,7 +120,7 @@ class VtkTriquadraticTetrahedron(IVtkElementInterface):
     vtksurfaceid: ClassVar[int | None] = 22
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         for j in range(10):
             if j == 6:
@@ -137,7 +137,7 @@ class VtkTrilinearHexahedron(IVtkElementInterface):
     vtksurfaceid: ClassVar[int | None] = 9
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))
@@ -155,7 +155,7 @@ class VtkTriquadraticHexahedron(IVtkElementInterface):
     vtksurfaceid: ClassVar[int | None] = 28
 
     @staticmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], i32], level: int = 0) -> None:
+    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
         fout.write(" %i" % (elem[0] - 1))
         fout.write(" %i" % (elem[1] - 1))

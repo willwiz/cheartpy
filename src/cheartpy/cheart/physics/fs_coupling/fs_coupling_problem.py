@@ -1,6 +1,7 @@
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
-from typing import Sequence, TextIO, ValuesView
+from typing import Literal, Sequence, TextIO, ValuesView
+from ...trait.basis import IExpression, IVariable
 from ...pytools import join_fields
 from ...trait import *
 from ...impl import BoundaryCondition
@@ -10,7 +11,7 @@ from ...impl import BoundaryCondition
 class FSExpr:
     var: IVariable | IExpression
     mult: IExpression | IVariable | float | None = None
-    op: str | None = None
+    op: Literal["trace", "dt"] | None = None
 
     def to_str(self) -> str:
         mult = join_fields(self.mult, self.op, char=";")
@@ -83,6 +84,13 @@ class FSCouplingProblem(IProblem):
                 vars[str(v.test_var)] = v.test_var
         return vars
 
+    def add_deps(self, *vars: IVariable | IExpression) -> None:
+        for v in vars:
+            if isinstance(v, IVariable):
+                self.add_var_deps(v)
+            else:
+                self.add_expr_deps(v)
+
     def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
             if str(v) not in self.aux_vars:
@@ -143,7 +151,7 @@ class FSCouplingProblem(IProblem):
         return list() if patches is None else list(patches)
 
     def write(self, f: TextIO):
-        f.write(f"!DefProblem={{{self.name}|{self._problem_name}}}\n")
+        f.write(f"!DefProblem={{{self}|{self._problem_name}}}\n")
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
         for t in self.m_terms.values():
             f.write(
@@ -153,6 +161,8 @@ class FSCouplingProblem(IProblem):
             f.write(
                 f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.terms])}}}\n"
             )
+        else:
+            raise ValueError(f"Lagrange multiplier not set for {self}")
         if self.perturbation:
             f.write(f"  !SetPerturbationBuild\n")
         if self._buffering is False:
