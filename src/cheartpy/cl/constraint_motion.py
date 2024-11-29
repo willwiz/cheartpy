@@ -4,7 +4,7 @@ from typing import Mapping
 from ..cheart.impl.expressions import Expression
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression
-from .types import CLPartition, CLBasisExpressions
+from .data import CLPartition, CLBasisExpressions
 
 
 def create_cl_coupling_problem(

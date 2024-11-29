@@ -1,3 +1,9 @@
+__all__ = [
+    "normalize_by_row",
+    "compute_normal_surface_at_center",
+    "compute_normal_surface_at_nodes",
+    "compute_mesh_outer_normal_at_nodes",
+]
 import numpy as np
 from collections import defaultdict
 from typing import cast
@@ -5,10 +11,6 @@ from scipy.linalg import lstsq  # type: ignore
 from ...var_types import *
 from ...tools.basiclogging import *
 from ...cheart_mesh import *
-
-
-def L2norm(x: Vec[f64]) -> float:
-    return cast(float, x @ x)
 
 
 def compute_normal_patch(

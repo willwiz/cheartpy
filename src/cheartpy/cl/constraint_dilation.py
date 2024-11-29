@@ -3,7 +3,7 @@ from typing import Mapping
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression
 from ..cheart.impl.expressions import Expression
-from .types import CLPartition, CLBasisExpressions
+from .data import CLPartition, CLBasisExpressions
 
 
 def create_dilation_var_problem(

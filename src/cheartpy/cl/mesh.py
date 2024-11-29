@@ -1,62 +1,21 @@
 __all__ = [
-    "LL_interp",
-    "L2norm",
     "filter_mesh_normals",
-    "create_cl_topology",
-    "create_clbasis_expr",
+    "create_cl_partition",
     "create_cheart_cl_nodal_meshes",
-    "create_lms_on_cl",
 ]
 import numpy as np
-from typing import Mapping, TypedDict, cast
+from typing import Mapping, cast
 from collections import defaultdict
-from .types import *
 from ..tools.path_tools import path
-from ..cheart.trait import IVariable, IExpression
-from ..cheart.impl import Expression
-from ..cheart.api import create_variable
 from ..cheart_mesh import VTK_ELEM
 from ..cheart_mesh.data import *
-from ..mesh.surface_core.surface import (
+from ..mesh.surface_core import (
     compute_normal_surface_at_center,
     compute_mesh_outer_normal_at_nodes,
 )
 from ..var_types import *
 from ..tools.basiclogging import *
-
-
-def L2norm(x: Vec[f64]) -> float:
-    return cast(float, x @ x)
-
-
-def LL_basis(
-    var: Mat[f64] | Vec[f64], nodes: Vec[f64], x: Vec[f64]
-) -> Mapping[int, Mat[f64]]:
-    basis_func = {i: np.zeros_like(x) for i in range(2)}
-    in_domain = (nodes[0] <= x) & (x <= nodes[1])
-    basis_func[0][in_domain] = 1 - (x[in_domain] - nodes[0]) / (nodes[1] - nodes[0])
-    basis_func[1][in_domain] = (x[in_domain] - nodes[0]) / (nodes[1] - nodes[0])
-    return {k: var[k] * v[:, None] for k, v in basis_func.items()}
-
-
-def LL_interp(top: CLPartition, var: Mat[f64] | Vec[f64], cl: Vec[f64]) -> Mat[f64]:
-    x_bar = [
-        v for elem in top.elem for v in LL_basis(var[elem], top.node[elem], cl).values()
-    ]
-    return cast(Mat[f64], sum(x_bar))
-
-
-def LL_expr(
-    name: str, v: IVariable, b: tuple[float, float, float] | Vec[f64]
-) -> IExpression:
-    basis = Expression(
-        name,
-        [
-            f"max(min(({v}{-b[0]:+.8g})/({b[1] - b[0]:.8g}),({b[2]:.8g}-{v})/({b[2] - b[1]:.8g})), 0)"
-        ],
-    )
-    basis.add_deps(v)
-    return basis
+from .data import *
 
 
 def check_normal(
@@ -94,7 +53,7 @@ def filter_mesh_normals(
     return elems
 
 
-def create_cl_topology(
+def create_cl_partition(
     prefix: str,
     in_surf: int,
     ne: int,
@@ -120,16 +79,6 @@ def create_cl_topology(
     return CLPartition(
         prefix, in_surf, nn, ne, node_prefix, elem_prefix, nodes, elems, support
     )
-
-
-def create_clbasis_expr(
-    var: IVariable,
-    cl: CLPartition,
-) -> CLBasisExpressions:
-    pelem = {i: LL_expr(f"{s}B_p", var, cl.support[i]) for i, s in cl.n_prefix.items()}
-    melem = {i: Expression(f"{s}B_m", [f"-{pelem[i]}"]) for i, s in cl.n_prefix.items()}
-    [m.add_deps(pelem[k]) for k, m in melem.items()]
-    return {"p": pelem, "m": melem}
 
 
 def create_boundarynode_map(cl: Mat[f64], b: CheartMeshPatch) -> PatchNode2ElemMap:
@@ -178,10 +127,7 @@ def create_cheartmesh_in_clrange(
     return CheartMesh(space, top, None)
 
 
-class CLNodalData(TypedDict):
-    file: str
-    mesh: CheartMesh
-    n: Mat[f64]
+NODAL_MESHES = Mapping[int, CLNodalData]
 
 
 def create_cheart_cl_nodal_meshes(
@@ -192,7 +138,7 @@ def create_cheart_cl_nodal_meshes(
     surf_id: int,
     normal_check: Mat[f64] | None = None,
     LOG: ILogger = NullLogger(),
-) -> Mapping[int, CLNodalData]:
+) -> NODAL_MESHES:
     if mesh.bnd is None:
         raise ValueError("Mesh has not boundary")
     surf = mesh.bnd.v[surf_id]
@@ -214,17 +160,65 @@ def create_cheart_cl_nodal_meshes(
     }
 
 
-def create_lms_on_cl(
-    prefix: str, cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool
-) -> Mapping[int, IVariable]:
-    if cl is None:
-        return {}
-    lms = {
-        k: create_variable(f"{v.k}{prefix}", None, dim, freq=ex_freq)
-        for k, v in cl.N.items()
-    }
-    if set_bc:
-        keys = sorted(lms.keys())
-        lms[keys[0]] = lms[keys[1]]
-        lms[keys[-1]] = lms[keys[-2]]
-    return lms
+def assemble_linear_cl_mesh(
+    nodal_meshes: NODAL_MESHES, node_offset: Vec[int_t]
+) -> CheartMesh:
+    cl_1_x = np.vstack([x["mesh"].space.v for x in nodal_meshes.values()], dtype=float)
+    cl_1_t = np.vstack(
+        [x["mesh"].top.v + i for x, i in zip(nodal_meshes.values(), node_offset)],
+        dtype=int,
+    )
+    return CheartMesh(
+        CheartMeshSpace(len(cl_1_x), cl_1_x),
+        CheartMeshTopology(len(cl_1_t), cl_1_t, nodal_meshes[0]["mesh"].top.TYPE),
+        None,
+    )
+
+
+def assemble_const_cl_mesh(linear_mesh: CheartMesh) -> CheartMesh:
+    cl_0_x = np.ascontiguousarray(
+        [linear_mesh.space.v[k].mean(axis=0) for k in linear_mesh.top.v], dtype=float
+    )
+    cl_0_t = np.arange(0, linear_mesh.top.v.shape[0], dtype=int).reshape(-1, 1)
+    return CheartMesh(
+        CheartMeshSpace(len(cl_0_x), cl_0_x),
+        CheartMeshTopology(len(cl_0_t), cl_0_t, linear_mesh.top.TYPE),
+        None,
+    )
+
+
+def assemble_interface_cl_mesh(
+    cl_top: CLPartition, const_mesh: CheartMesh
+) -> CheartMesh:
+    cl_i_x = np.ascontiguousarray(
+        [[c, 0, 0] for _, c, _ in cl_top.support], dtype=float
+    )
+    return CheartMesh(CheartMeshSpace(len(cl_i_x), cl_i_x), const_mesh.top, None)
+
+
+def create_cheart_cl_topology_meshes(
+    mesh_dir: str,
+    mesh: CheartMesh,
+    cl: Mat[f64],
+    cl_top: CLPartition,
+    surf_id: int,
+    normal_check: Mat[f64] | None = None,
+    LOG: ILogger = NullLogger(),
+):
+    nodal_meshes = create_cheart_cl_nodal_meshes(
+        mesh_dir, mesh, cl, cl_top, surf_id, normal_check, LOG
+    )
+    node_offset = (lambda x: np.add.accumulate(x) - x[0])(
+        [len(x["mesh"].space.v) for x in nodal_meshes.values()]
+    )
+    linear_mesh = assemble_linear_cl_mesh(nodal_meshes, node_offset)
+    const_mesh = assemble_const_cl_mesh(linear_mesh)
+    interface_mesh = assemble_interface_cl_mesh(cl_top, const_mesh)
+    return linear_mesh, const_mesh, interface_mesh
+
+
+def create_cheart_cl_topology_data(cl_top: CLPartition):
+    vals = np.ascontiguousarray(list(cl_top.n_prefix.keys()))
+    return np.ascontiguousarray(
+        [vals == i for i in cl_top.n_prefix.keys()], dtype=float
+    )

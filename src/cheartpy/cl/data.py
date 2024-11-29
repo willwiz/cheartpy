@@ -3,22 +3,17 @@ __all__ = [
     "CLTopology",
     "CL_LM_TYPE",
     "CLPartition",
+    "CLNodalData",
     "PatchNode2ElemMap",
     "CLBasisExpressions",
 ]
 import dataclasses as dc
 from typing import Mapping, TypedDict
 from ..cheart.trait import IExpression, IVariable, ICheartTopology
+from ..cheart_mesh.data import CheartMesh
 from ..var_types import *
 
 CL_LM_TYPE = Mapping[int, IVariable]
-
-
-@dc.dataclass(slots=True)
-class CenterLinePartition:
-    n: int
-    prefix: Mapping[int, str]
-    basis: Mapping[int, tuple[float, float, float]]
 
 
 @dc.dataclass(slots=True)
@@ -64,3 +59,9 @@ class CLTopology:
     field: IVariable
     top: ICheartTopology
     N: Mapping[int, CLBasis]
+
+
+class CLNodalData(TypedDict):
+    file: str
+    mesh: CheartMesh
+    n: Mat[f64]

@@ -7,7 +7,7 @@ __all__ = [
 import enum
 import numpy as np
 import dataclasses as dc
-from typing import Callable, Final, Literal, Mapping, TextIO
+from typing import Callable, Final, Mapping, TextIO, Literal
 from ..var_types import *
 from .shape_functions import *
 

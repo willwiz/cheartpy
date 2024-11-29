@@ -7,8 +7,8 @@ __all__ = [
     "Vec",
     "Mat",
     "MatV",
-    "V2",
-    "V3",
+    "T2",
+    "T3",
 ]
 import numpy as np
 from typing import Any
@@ -22,8 +22,8 @@ bool_ = np.dtype[np.bool_]
 type Vec[T: (int_t, f64, char, bool_)] = np.ndarray[tuple[int], T]
 type Mat[T: (int_t, f64, char, bool_)] = np.ndarray[tuple[int, int], T]
 type MatV[T: (int_t, f64, char, bool_)] = np.ndarray[tuple[int, int, int], T]
-type V2[T: (float, int)] = tuple[T, T]
-type V3[T: (float, int)] = tuple[T, T, T]
+type T2[T: (float, int)] = tuple[T, T]
+type T3[T: (float, int)] = tuple[T, T, T]
 
 # class _SENTINEL(enum.StrEnum):
 #     AUTO = "AUTO"
