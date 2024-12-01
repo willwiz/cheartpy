@@ -1,6 +1,7 @@
 __all__ = [
     "CLBasis",
     "CLTopology",
+    "CLTopologies",
     "CL_LM_TYPE",
     "CLPartition",
     "CLNodalData",
@@ -27,6 +28,15 @@ class CLPartition:
     node: Vec[f64]
     elem: Mat[int_t]
     support: Mat[f64]
+
+    def __repr__(self) -> str:
+        return self.prefix
+
+
+class CLNodalData(TypedDict):
+    file: str
+    mesh: CheartMesh
+    n: Mat[f64]
 
 
 @dc.dataclass(slots=True)
@@ -56,12 +66,27 @@ class CLTopology:
     in_surf: int
     nn: int
     ne: int
+    top: ICheartTopology
+    top_const: ICheartTopology
+    top_interface: ICheartTopology
+    field: IVariable
+    support: IVariable
+    elem: IVariable
+    basis: IExpression
+
+    def __repr__(self) -> str:
+        return self.prefix
+
+
+@dc.dataclass(slots=True)
+class CLTopologies:
+    prefix: str
+    in_surf: int
+    nn: int
+    ne: int
     field: IVariable
     top: ICheartTopology
     N: Mapping[int, CLBasis]
 
-
-class CLNodalData(TypedDict):
-    file: str
-    mesh: CheartMesh
-    n: Mat[f64]
+    def __repr__(self) -> str:
+        return self.prefix

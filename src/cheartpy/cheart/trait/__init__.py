@@ -1,4 +1,4 @@
-from .basis import *
+from .basic import *
 from .solver_matrix import *
 from .solver_group import *
 

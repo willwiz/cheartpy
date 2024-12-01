@@ -126,10 +126,11 @@ class SolidProblem(IProblem):
     def AddVariable(self, name: SOLID_VARIABLES, var: IVariable) -> None:
         self.variables[name] = var
 
-    def AddStateVariable(self, *var: IVariable) -> None:
+    def AddStateVariable(self, *var: IVariable | None) -> None:
         for v in var:
-            self.state_vars[str(v)] = v
-            self.aux_vars[str(v)] = v
+            if v is not None:
+                self.state_vars[str(v)] = v
+                self.aux_vars[str(v)] = v
 
     def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
         self.options[opt] = list([val, *sub_val])

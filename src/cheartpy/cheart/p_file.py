@@ -206,7 +206,11 @@ class PFile:
         for t in self.toplogies.values():
             t.write(f)
         for i in self.interfaces.values():
-            i.write(f)
+            if i.method == "OneToOne":
+                i.write(f)
+        for i in self.interfaces.values():
+            if i.method == "ManyToOne":
+                i.write(f)
         f.write(hline("Variables"))
         for v in self.variables.values():
             v.write(f)

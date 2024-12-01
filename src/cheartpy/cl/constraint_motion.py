@@ -17,9 +17,14 @@ def create_cl_coupling_problem(
     top: ICheartTopology | None = None,
 ) -> FSCouplingProblem:
     if motion is None:
-        integral_expr = Expression(f"{prefix}_expr", [f"{disp}"])
+        integral_expr = Expression(
+            f"{prefix}_expr", [f"{disp}.{i + 1}" for i in range(disp.get_dim())]
+        )
     else:
-        integral_expr = Expression(f"{prefix}_expr", [f"{disp} - {motion}"])
+        integral_expr = Expression(
+            f"{prefix}_expr",
+            [f"{disp}.{i + 1} - {motion}.{i+1}" for i in range(disp.get_dim())],
+        )
         integral_expr.add_deps(motion)
     fsbc = FSCouplingProblem(f"P{prefix}", space, top)
     fsbc.perturbation = True

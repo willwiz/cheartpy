@@ -26,11 +26,10 @@ def create_time_scheme(
     name: str, start: int, stop: int, step: float | str
 ) -> ITimeScheme: ...
 def create_basis(
-    name: str,
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
     kind: CHEART_BASES_TYPE | CheartBasisType,
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
-    order: Literal[1, 2],
+    order: Literal[0, 1, 2],
     gp: int,
 ) -> ICheartBasis: ...
 def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis: ...
@@ -64,7 +63,7 @@ def create_variable(
     loop_step: int | None = None,
 ) -> IVariable: ...
 def create_solver_matrix(
-    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem
+    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem | None
 ) -> ISolverMatrix: ...
 def create_solver_group(
     name: str, time: ITimeScheme, *solver_subgroup: ISolverSubGroup

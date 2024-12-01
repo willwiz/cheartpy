@@ -1,7 +1,7 @@
 __all__ = ["NormProblem"]
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 
-from ...trait.basis import IExpression, IVariable
+from ...trait.basic import IExpression, IVariable
 from ...pytools import join_fields
 from ...trait import *
 from ...impl import BoundaryCondition, CheartTopology

@@ -9,23 +9,35 @@ from ..pytools import join_fields
 @dc.dataclass(slots=True)
 class Basis(IBasis):
     name: CheartBasisType
-    _order: Literal[1, 2]
+    _order: Literal[0, 1, 2]
 
     def __repr__(self):
-        return self.name + str(self._order)
+        return f"{self.name}{self._order}"
 
     @property
-    def order(self) -> Literal[1, 2]:
+    def order(self) -> Literal[0, 1, 2]:
         return self._order
+
+    @property
+    def kind(self) -> CheartBasisType:
+        return self.name
 
 
 @dc.dataclass(slots=True)
 class Quadrature(IQuadrature):
     name: CheartQuadratureType
-    gp: int
+    _gp: int
 
     def __repr__(self):
-        return self.name + str(self.gp)
+        return self.name + str(self._gp)
+
+    @property
+    def gp(self) -> int:
+        return self._gp
+
+    @property
+    def kind(self) -> CheartQuadratureType:
+        return self.name
 
 
 @dc.dataclass(slots=True)
@@ -51,8 +63,12 @@ class CheartBasis(ICheartBasis):
         return self._quadrature
 
     @property
-    def order(self) -> Literal[1, 2]:
+    def order(self) -> Literal[0, 1, 2]:
         return self._basis.order
+
+    @property
+    def gp(self) -> int:
+        return self._quadrature.gp
 
     def write(self, f: TextIO):
         string = join_fields(self.name, self._elem, self._basis, self._quadrature)

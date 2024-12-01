@@ -1,7 +1,7 @@
 import abc
 from typing import Any, TextIO, ValuesView
 from ..aliases import *
-from .basis import *
+from .basic import *
 
 __all__ = ["ISolverMatrix"]
 

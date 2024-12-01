@@ -24,6 +24,7 @@ class CheartTopology(ICheartTopology):
     continuous: bool = True
     spatial_constant: bool = False
     in_boundary: tuple["ICheartTopology", int | str] | None = None
+    _discontinuous: bool = False
 
     def __repr__(self) -> str:
         return self.name
@@ -36,10 +37,18 @@ class CheartTopology(ICheartTopology):
         return self._mesh
 
     @property
-    def order(self) -> Literal[1, 2, None]:
+    def order(self) -> Literal[0, 1, 2, None]:
         if self.basis is None:
             return None
         return self.basis.order
+
+    @property
+    def discontinuous(self) -> bool:
+        return self._discontinuous
+
+    @discontinuous.setter
+    def discontinuous(self, val: bool) -> None:
+        self._discontinuous = val
 
     def get_basis(self) -> ICheartBasis | None:
         return self.basis
@@ -52,26 +61,23 @@ class CheartTopology(ICheartTopology):
         match task, val:
             case _:
                 raise ValueError(
-                    f"Setting for topology {self.name} {
-                                 task} does not have a match value type"
+                    f"Setting for topology {self} {task} does not have a match value type"
                 )
 
     def create_in_boundary(self, top: ICheartTopology, surf: int | str) -> None:
         self.in_boundary = (top, surf)
 
     def write(self, f: TextIO):
-        string = join_fields(
-            self.name, self._mesh, self.basis if self.basis else "none"
-        )
+        string = join_fields(self, self._mesh, self.basis if self.basis else "none")
         f.write(f"!DefTopology={{{string}}}\n")
         if self.embedded is not None:
-            f.write(
-                f"  !SetTopology={{{self.name}|EmbeddedInTopology|{self.embedded}}}\n"
-            )
+            f.write(f"  !SetTopology={{{self}|EmbeddedInTopology|{self.embedded}}}\n")
         if self.in_boundary is not None:
             f.write(
-                f"  !SetTopology={{{self.name}|CreateInBoundary|[{self.in_boundary[0]};{self.in_boundary[1]}]}}\n"
+                f"  !SetTopology={{{self}|CreateInBoundary|[{self.in_boundary[0]};{self.in_boundary[1]}]}}\n"
             )
+        if self._discontinuous:
+            f.write(f"  !SetTopology={{{self}|MakeDiscontinuous}}\n")
 
 
 @dc.dataclass(slots=True)
@@ -91,6 +97,14 @@ class NullTopology(ICheartTopology):
     def order(self) -> None:
         return None
 
+    @property
+    def discontinuous(self) -> bool:
+        return self._discontinuous
+
+    @discontinuous.setter
+    def discontinuous(self, val: bool) -> None:
+        self._discontinuous = val
+
     def get_basis(self) -> ICheartBasis | None:
         return None
 
@@ -108,11 +122,11 @@ class NullTopology(ICheartTopology):
 @dc.dataclass(slots=True)
 class TopInterface(ITopInterface):
     name: str
-    method: TopologyInterfaceType
+    _method: TopologyInterfaceType
     topologies: list[ICheartTopology] = dc.field(default_factory=list)
 
     def write(self, f: TextIO):
-        string = join_fields(self.method, *self.topologies)
+        string = join_fields(self._method, *self.topologies)
         f.write(f"!DefInterface={{{string}}}\n")
 
 
@@ -126,6 +140,10 @@ class OneToOneTopInterface(ITopInterface):
 
     def __hash__(self) -> int:
         return hash("_".join([str(s) for s in self.topologies]))
+
+    @property
+    def method(self) -> Literal["OneToOne"]:
+        return "OneToOne"
 
     def get_master(self) -> ICheartTopology | None:
         return None
@@ -155,6 +173,10 @@ class ManyToOneTopInterface(ITopInterface):
             + ":"
             + str(self.master_topology)
         )
+
+    @property
+    def method(self) -> Literal["ManyToOne"]:
+        return "ManyToOne"
 
     def get_master(self) -> ICheartTopology | None:
         return self.master_topology

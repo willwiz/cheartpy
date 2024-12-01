@@ -188,12 +188,19 @@ def assemble_const_cl_mesh(linear_mesh: CheartMesh) -> CheartMesh:
 
 
 def assemble_interface_cl_mesh(
-    cl_top: CLPartition, const_mesh: CheartMesh
+    cl_top: CLPartition, const_mesh: CheartMesh, node_count: Vec[int_t]
 ) -> CheartMesh:
     cl_i_x = np.ascontiguousarray(
         [[c, 0, 0] for _, c, _ in cl_top.support], dtype=float
     )
-    return CheartMesh(CheartMeshSpace(len(cl_i_x), cl_i_x), const_mesh.top, None)
+    cl_i_t = np.vstack(
+        [np.full((x, 1), i) for i, x in enumerate(node_count)], dtype=int
+    )
+    return CheartMesh(
+        CheartMeshSpace(len(cl_i_x), cl_i_x),
+        CheartMeshTopology(len(cl_i_t), cl_i_t, const_mesh.top.TYPE),
+        None,
+    )
 
 
 def create_cheart_cl_topology_meshes(
@@ -208,12 +215,12 @@ def create_cheart_cl_topology_meshes(
     nodal_meshes = create_cheart_cl_nodal_meshes(
         mesh_dir, mesh, cl, cl_top, surf_id, normal_check, LOG
     )
-    node_offset = (lambda x: np.add.accumulate(x) - x[0])(
-        [len(x["mesh"].space.v) for x in nodal_meshes.values()]
-    )
+    node_count = [len(x["mesh"].space.v) for x in nodal_meshes.values()]
+    node_offset = (lambda x: np.add.accumulate(x))(np.insert(node_count, 0, 0))
+    elem_count = np.array([x["mesh"].top.n for x in nodal_meshes.values()])
     linear_mesh = assemble_linear_cl_mesh(nodal_meshes, node_offset)
     const_mesh = assemble_const_cl_mesh(linear_mesh)
-    interface_mesh = assemble_interface_cl_mesh(cl_top, const_mesh)
+    interface_mesh = assemble_interface_cl_mesh(cl_top, const_mesh, elem_count)
     return linear_mesh, const_mesh, interface_mesh
 
 

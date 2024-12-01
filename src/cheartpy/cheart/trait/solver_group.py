@@ -1,7 +1,7 @@
 import abc
 from typing import Mapping, Sequence, TextIO, ValuesView
 from ..aliases import *
-from .basis import *
+from .basic import *
 from .solver_matrix import *
 
 __all__ = ["ISolverSubGroup", "ISolverGroup"]

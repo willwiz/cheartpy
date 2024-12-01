@@ -2,7 +2,7 @@ import dataclasses as dc
 from typing import TextIO
 
 from ..pytools import join_fields
-from ..trait.basis import *
+from ..trait.basic import *
 
 
 @dc.dataclass(slots=True)

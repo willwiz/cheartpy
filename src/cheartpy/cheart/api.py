@@ -32,19 +32,44 @@ def create_time_scheme(
     return TimeScheme(name, start, stop, step)
 
 
+_ORDER = {
+    0: "Z",
+    1: "L",
+    2: "Q",
+    3: "C",
+    4: "A",
+    5: "U",
+}
+
+_ELEM = {
+    CheartElementType.POINT_ELEMENT: "Point",
+    CheartElementType.point: "Point",
+    CheartElementType.ONED_ELEMENT: "Line",
+    CheartElementType.line: "Line",
+    CheartElementType.TRIANGLE_ELEMENT: "Tri",
+    CheartElementType.tri: "Tri",
+    CheartElementType.QUADRILATERAL_ELEMENT: "Quad",
+    CheartElementType.quad: "Quad",
+    CheartElementType.TETRAHEDRAL_ELEMENT: "Tet",
+    CheartElementType.tet: "Tet",
+    CheartElementType.HEXAHEDRAL_ELEMENT: "Hex",
+    CheartElementType.hex: "Hex",
+}
+
+
 def create_basis(
-    name: str,
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
     kind: CHEART_BASES_TYPE | CheartBasisType,
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
-    order: Literal[1, 2],
+    order: Literal[0, 1, 2],
     gp: int,
 ) -> ICheartBasis:
     elem = get_enum(elem, CheartElementType)
     kind = get_enum(kind, CheartBasisType)
     quadrature = get_enum(quadrature, CheartQuadratureType)
-    if 2 * gp == order:
-        raise ValueError(f"For {name}, order {order} <= {2 * gp - 1}")
+    name = f"{_ORDER[order]}{_ELEM[elem]}"
+    if 2 * gp < order + 1:
+        raise ValueError(f"For {name}, order {2*gp} < {order + 1}")
     if quadrature is CheartQuadratureType.KEAST_LYNESS:
         if not elem in [
             CheartElementType.TETRAHEDRAL_ELEMENT,
@@ -110,11 +135,12 @@ def create_variable(
 
 
 def create_solver_matrix(
-    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem
+    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem | None
 ) -> ISolverMatrix:
     problems: dict[str, IProblem] = dict()
     for p in probs:
-        problems[str(p)] = p
+        if p is not None:
+            problems[str(p)] = p
     method = get_enum(solver, MatrixSolverTypes)
     return SolverMatrix(name, method, problems)
 

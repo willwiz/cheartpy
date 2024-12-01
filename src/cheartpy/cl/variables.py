@@ -1,14 +1,14 @@
-__all__ = ["create_lms_on_cl", "L2norm", "LL_interp"]
+__all__ = ["create_lm_on_cl", "create_lms_on_cl", "L2norm", "LL_interp"]
 import numpy as np
 from typing import cast, Mapping
 from ..var_types import *
 from ..cheart.trait import IVariable
 from ..cheart.api import create_variable
-from .data import CLTopology, CLPartition
+from .data import CLTopology, CLTopologies, CLPartition
 
 
 def create_lms_on_cl(
-    prefix: str, cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool
+    prefix: str, cl: CLTopologies | None, dim: int, ex_freq: int, set_bc: bool
 ) -> Mapping[int, IVariable]:
     if cl is None:
         return {}
@@ -21,6 +21,17 @@ def create_lms_on_cl(
         lms[keys[0]] = lms[keys[1]]
         lms[keys[-1]] = lms[keys[-2]]
     return lms
+
+
+def create_lm_on_cl(
+    prefix: str, cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool
+) -> IVariable | None:
+    if cl is None:
+        return None
+    lm = create_variable(f"{cl}{prefix}", cl.top_interface, dim, freq=ex_freq)
+    if set_bc:
+        print("Cannot set boundary conditions for a single variable")
+    return lm
 
 
 def L2norm(x: Vec[f64]) -> float:

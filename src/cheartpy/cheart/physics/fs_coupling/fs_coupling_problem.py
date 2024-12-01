@@ -1,7 +1,7 @@
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
 from typing import Literal, Sequence, TextIO, ValuesView
-from ...trait.basis import IExpression, IVariable
+from ...trait.basic import IExpression, IVariable
 from ...pytools import join_fields
 from ...trait import *
 from ...impl import BoundaryCondition
