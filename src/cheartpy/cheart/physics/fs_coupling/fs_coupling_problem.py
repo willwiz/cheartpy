@@ -72,8 +72,12 @@ class FSCouplingProblem(IProblem):
     def add_term(self, var: IVariable, *expr: FSExpr) -> None:
         self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
 
-    def add_state_variable(self, var: IVariable) -> None:
-        self.m_terms[str(var)] = FSCouplingTerm(var, [FSExpr(var, 0)])
+    def add_state_variable(self, *var: IVariable | None) -> None:
+        for v in var:
+            if v is None:
+                continue
+            if str(v) not in self.m_terms:
+                self.m_terms[str(v)] = FSCouplingTerm(v, [FSExpr(v, 0)])
 
     def get_prob_vars(self) -> dict[str, IVariable]:
         vars: dict[str, IVariable] = {str(self.space): self.space}
@@ -84,20 +88,24 @@ class FSCouplingProblem(IProblem):
                 vars[str(v.test_var)] = v.test_var
         return vars
 
-    def add_deps(self, *vars: IVariable | IExpression) -> None:
+    def add_deps(self, *vars: IVariable | IExpression | None) -> None:
         for v in vars:
             if isinstance(v, IVariable):
                 self.add_var_deps(v)
             else:
                 self.add_expr_deps(v)
 
-    def add_var_deps(self, *var: IVariable) -> None:
+    def add_var_deps(self, *var: IVariable | None) -> None:
         for v in var:
+            if v is None:
+                continue
             if str(v) not in self.aux_vars:
                 self.aux_vars[str(v)] = v
 
-    def add_expr_deps(self, *expr: IExpression) -> None:
+    def add_expr_deps(self, *expr: IExpression | None) -> None:
         for v in expr:
+            if v is None:
+                continue
             if str(v) not in self.aux_expr:
                 self.aux_expr[str(v)] = v
 

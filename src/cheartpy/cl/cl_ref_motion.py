@@ -1,30 +1,34 @@
 __all__ = ["create_cl_refcoupling_problem", "create_cl_curcoupling_problem"]
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression
+from ..cheart.impl.expressions import Expression
 
 
 def create_cl_refcoupling_problem(
-    suffix: str,
-    node: str,
-    top: ICheartTopology,
+    prefix: str,
     space: IVariable,
-    motion: IVariable | None,
-    U0: IVariable,
-    Ut: IVariable,
-    lm_ref: IVariable,
-    lm_cur: IVariable,
-    p_basis: IExpression,
-    m_basis: IExpression,
+    basis: IExpression,
+    lm: IVariable,
+    disp: IVariable,
+    ref: IVariable | None = None,
+    motion: IVariable | None = None,
+    top: ICheartTopology | None = None,
 ) -> FSCouplingProblem:
-    fsbc = FSCouplingProblem(f"P{node}{suffix}", space, top)
+    var: list[IVariable | None] = [disp, ref, motion]
+    integral_expr = Expression(
+        f"{prefix}_expr",
+        [
+            " - ".join([f"{v}.{i + 1}" for v in var if v is not None])
+            for i in range(disp.get_dim())
+        ],
+    )
+    integral_expr.add_deps(disp, ref, motion)
+    fsbc = FSCouplingProblem(f"P{prefix}", space, top)
     fsbc.perturbation = True
-    if motion is None:
-        fsbc.set_lagrange_mult(lm_ref, FSExpr(U0, p_basis))
-    else:
-        fsbc.set_lagrange_mult(lm_ref, FSExpr(U0, p_basis))
-        fsbc.add_var_deps(motion)
-    fsbc.add_term(U0, FSExpr(lm_ref, p_basis))
-    fsbc.add_expr_deps(p_basis, m_basis)
+    fsbc.set_lagrange_mult(lm, FSExpr(integral_expr, basis))
+    fsbc.add_term(disp, FSExpr(lm, basis))
+    fsbc.add_state_variable(ref)
+    fsbc.add_deps(basis, integral_expr)
     return fsbc
 
 

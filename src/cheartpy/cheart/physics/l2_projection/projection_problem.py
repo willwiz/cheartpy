@@ -61,20 +61,26 @@ class L2SolidProjection(IProblem):
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
-    def add_deps(self, *vars: IVariable | IExpression) -> None:
+    def add_deps(self, *vars: IVariable | IExpression | None) -> None:
         for v in vars:
             if isinstance(v, IVariable):
                 self.add_var_deps(v)
             else:
                 self.add_expr_deps(v)
 
-    def add_var_deps(self, *var: IVariable) -> None:
+    def add_var_deps(self, *var: IVariable | None) -> None:
         for v in var:
-            self.aux_vars[str(v)] = v
+            if v is None:
+                continue
+            if str(v) not in self.aux_vars:
+                self.aux_vars[str(v)] = v
 
-    def add_expr_deps(self, *expr: IExpression) -> None:
+    def add_expr_deps(self, *expr: IExpression | None) -> None:
         for v in expr:
-            self.aux_expr[str(v)] = v
+            if v is None:
+                continue
+            if str(v) not in self.aux_expr:
+                self.aux_expr[str(v)] = v
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()

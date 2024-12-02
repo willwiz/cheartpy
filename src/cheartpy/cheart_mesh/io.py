@@ -106,26 +106,20 @@ CHeart Write Array functions
 """
 
 
-def CHWrite_d_utf(file: str, data: Arr[tuple[int, int], f64]) -> None:
-    match data.ndim:
-        case 1:
-            data = data.reshape(-1, 1)
-        case 2:
-            pass
-        case _:
-            raise ValueError("Data must be 1D or 2D")
-    dim = data.shape
-    with open(file, "w") as f:
-        f.write("{:12d}".format(dim[0]))
-        f.write("{:12d}\n".format(dim[1]))
-        for i in data:
-            for j in i:
-                f.write("{:>24.16}".format(j))
-            f.write("\n")
-    return
+def CHWrite_d_utf(file: str, data: Mat[f64]) -> None:
+    ne, nn = data.shape
+    np.savetxt(
+        file,
+        data,
+        fmt="%24.16e",
+        delimiter=" ",
+        newline="\n",
+        header=f"{ne:12d}{nn:12d}",
+        comments="",  # Avoids the default '# ' comment prefix
+    )
 
 
-def CHWrite_d_binary(file: str, arr: Arr[tuple[int, int], f64]) -> None:
+def CHWrite_d_binary(file: str, arr: Mat[f64]) -> None:
     dim = arr.shape
     with open(file, "wb") as f:
         f.write(struct.pack("i", dim[0]))

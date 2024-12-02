@@ -217,15 +217,8 @@ def create_cheart_cl_topology_meshes(
     )
     node_count = [len(x["mesh"].space.v) for x in nodal_meshes.values()]
     node_offset = (lambda x: np.add.accumulate(x))(np.insert(node_count, 0, 0))
-    elem_count = np.array([x["mesh"].top.n for x in nodal_meshes.values()])
     linear_mesh = assemble_linear_cl_mesh(nodal_meshes, node_offset)
-    const_mesh = assemble_const_cl_mesh(linear_mesh)
-    interface_mesh = assemble_interface_cl_mesh(cl_top, const_mesh, elem_count)
-    return linear_mesh, const_mesh, interface_mesh
-
-
-def create_cheart_cl_topology_data(cl_top: CLPartition):
-    vals = np.ascontiguousarray(list(cl_top.n_prefix.keys()))
-    return np.ascontiguousarray(
-        [vals == i for i in cl_top.n_prefix.keys()], dtype=float
-    )
+    # const_mesh = assemble_const_cl_mesh(linear_mesh)
+    elem_count = np.array([x["mesh"].top.n for x in nodal_meshes.values()])
+    interface_mesh = assemble_interface_cl_mesh(cl_top, linear_mesh, elem_count)
+    return linear_mesh, interface_mesh

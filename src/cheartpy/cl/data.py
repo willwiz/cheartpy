@@ -2,7 +2,7 @@ __all__ = [
     "CLBasis",
     "CLTopology",
     "CLTopologies",
-    "CL_LM_TYPE",
+    "CL_NODAL_LM_TYPE",
     "CLPartition",
     "CLNodalData",
     "PatchNode2ElemMap",
@@ -14,7 +14,7 @@ from ..cheart.trait import IExpression, IVariable, ICheartTopology
 from ..cheart_mesh.data import CheartMesh
 from ..var_types import *
 
-CL_LM_TYPE = Mapping[int, IVariable]
+CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 
 
 @dc.dataclass(slots=True)
@@ -66,13 +66,13 @@ class CLTopology:
     in_surf: int
     nn: int
     ne: int
-    top: ICheartTopology
-    top_const: ICheartTopology
-    top_interface: ICheartTopology
+    top_i: ICheartTopology
+    top_lm: ICheartTopology
     field: IVariable
     support: IVariable
     elem: IVariable
     basis: IExpression
+    b_vec: IExpression
 
     def __repr__(self) -> str:
         return self.prefix
