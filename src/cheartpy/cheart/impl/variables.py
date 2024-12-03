@@ -24,6 +24,9 @@ class Variable(IVariable):
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)
 
+    def __bool__(self) -> Literal[True]:
+        return True
+
     @property
     def order(self):
         return self.topology.order

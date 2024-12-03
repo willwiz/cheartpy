@@ -1,59 +1,29 @@
-__all__ = ["create_cl_coupling_problem", "create_cl_coupling_problems"]
-from typing import Mapping
-
+__all__ = ["create_cl_motion_constraint_problem"]
+from .data import CLTopology
 from ..cheart.impl.expressions import Expression
 from ..cheart.physics import FSCouplingProblem, FSExpr
-from ..cheart.trait import IVariable, ICheartTopology, IExpression
-from .data import CLPartition, CLBasisExpressions
+from ..cheart.trait import IVariable
 
 
-def create_cl_coupling_problem(
+def create_cl_motion_constraint_problem(
     prefix: str,
+    cl: CLTopology | None,
     space: IVariable,
-    basis: IExpression,
-    lm: IVariable,
+    lm: IVariable | None,
     disp: IVariable,
-    motion: IVariable | IExpression | None = None,
-    top: ICheartTopology | None = None,
-) -> FSCouplingProblem:
-    if motion is None:
-        integral_expr = Expression(
-            f"{prefix}_expr", [f"{disp}.{i + 1}" for i in range(disp.get_dim())]
-        )
-    else:
-        integral_expr = Expression(
-            f"{prefix}_expr",
-            [f"{disp}.{i + 1} - {motion}.{i+1}" for i in range(disp.get_dim())],
-        )
-        integral_expr.add_deps(motion)
-    fsbc = FSCouplingProblem(f"P{prefix}", space, top)
+    *motion: IVariable | None,
+) -> FSCouplingProblem | None:
+    if cl is None or lm is None:
+        return None
+    var: list[IVariable | None] = [disp, *motion]
+    integral_expr = Expression(
+        f"{prefix}_expr",
+        [" - ".join([f"{v}.{i + 1}" for v in var if v]) for i in range(disp.get_dim())],
+    )
+    integral_expr.add_deps(disp, *motion)
+    fsbc = FSCouplingProblem(f"P{prefix}", space, cl.top_i)
     fsbc.perturbation = True
-    fsbc.set_lagrange_mult(lm, FSExpr(integral_expr, basis))
-    fsbc.add_term(disp, FSExpr(lm, basis))
-    fsbc.add_expr_deps(basis, integral_expr)
+    fsbc.set_lagrange_mult(lm, FSExpr(integral_expr, cl.basis))
+    fsbc.add_term(disp, FSExpr(lm, cl.basis))
+    fsbc.add_deps(cl.basis, integral_expr)
     return fsbc
-
-
-def create_cl_coupling_problems(
-    tops: Mapping[int, ICheartTopology],
-    lms: Mapping[int, IVariable],
-    space: IVariable,
-    disp: IVariable,
-    motion: IVariable | None,
-    cl_part: CLPartition,
-    cl_top: CLBasisExpressions,
-) -> Mapping[int, FSCouplingProblem]:
-    res = {
-        i: create_cl_coupling_problem(
-            f"{s}LM",
-            space,
-            cl_top["p"][i],
-            lms[i],
-            disp,
-            motion,
-            tops[i],
-            # [lms[n] for n in [i - 1, i + 1] if n in lms],
-        )
-        for i, s in cl_part.n_prefix.items()
-    }
-    return res

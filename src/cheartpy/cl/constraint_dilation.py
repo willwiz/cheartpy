@@ -1,51 +1,33 @@
-__all__ = ["create_dilation_var_problem", "create_dilation_var_problems"]
-from typing import Mapping
+__all__ = ["create_cl_dilation_constraint_problem"]
+from .data import CLTopology
 from ..cheart.physics import FSCouplingProblem, FSExpr
-from ..cheart.trait import IVariable, ICheartTopology, IExpression
+from ..cheart.trait import IVariable
 from ..cheart.impl.expressions import Expression
-from .data import CLPartition, CLBasisExpressions
 
 
-def create_dilation_var_problem(
+def create_cl_dilation_constraint_problem(
     prefix: str,
+    cl: CLTopology | None,
     space: IVariable,
-    basis: IExpression,
-    lm: IVariable,
+    lm: IVariable | None,
     disp: IVariable,
-    motion: IVariable | IExpression | None = None,
-    top: ICheartTopology | None = None,
-) -> FSCouplingProblem:
-    if motion is None:
-        integral_expr = Expression(f"{prefix}_expr", [f"{disp}"])
-    else:
-        integral_expr = Expression(f"{prefix}_expr", [f"{disp} - {motion}"])
-        integral_expr.add_deps(motion)
-    fsbc = FSCouplingProblem(f"P{prefix}", space, top)
+    *motion: IVariable | None,
+) -> FSCouplingProblem | None:
+    if cl is None or lm is None:
+        return None
+    var: list[IVariable | None] = [disp, *motion]
+    integral_expr = Expression(
+        f"{prefix}_expr",
+        [
+            f"{cl.elem}.{k + 1} * {cl.basis} * ({" - ".join([f"{v}.{i + 1}" for v in var if v])})"
+            for k in range(cl.nn)
+            for i in range(disp.get_dim())
+        ],
+    )
+    integral_expr.add_deps(cl.elem, cl.basis, disp, *motion)
+    fsbc = FSCouplingProblem(f"P{prefix}", space, cl.top_i)
     fsbc.perturbation = True
-    fsbc.set_lagrange_mult(lm, FSExpr(integral_expr, basis, "trace"))
-    fsbc.add_deps(integral_expr)
+    fsbc.set_lagrange_mult(lm, FSExpr(integral_expr, op="trace"))
+    fsbc.add_state_variable(space, disp)
+    fsbc.add_expr_deps(integral_expr)
     return fsbc
-
-
-def create_dilation_var_problems(
-    space: IVariable,
-    disp: IVariable,
-    motion: IVariable,
-    cl_part: CLPartition,
-    cl_basis: CLBasisExpressions,
-    tops: Mapping[int, ICheartTopology],
-    lms: Mapping[int, IVariable],
-) -> dict[int, FSCouplingProblem]:
-    res = {
-        k: create_dilation_var_problem(
-            f"{v}DL",
-            space,
-            cl_basis["p"][k],
-            lms[k],
-            disp,
-            motion,
-            tops[k],
-        )
-        for k, v in cl_part.n_prefix.items()
-    }
-    return res

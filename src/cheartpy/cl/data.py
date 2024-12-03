@@ -6,7 +6,6 @@ __all__ = [
     "CLPartition",
     "CLNodalData",
     "PatchNode2ElemMap",
-    "CLBasisExpressions",
 ]
 import dataclasses as dc
 from typing import Mapping, TypedDict
@@ -44,11 +43,6 @@ class PatchNode2ElemMap:
     i: Vec[int_t]  # global index of nodes in surface
     x: Vec[f64]  # cl value of nodes in surface
     n2e_map: Mapping[int, list[int]]
-
-
-class CLBasisExpressions(TypedDict):
-    p: Mapping[int, IExpression]
-    m: Mapping[int, IExpression]
 
 
 @dc.dataclass(slots=True)
