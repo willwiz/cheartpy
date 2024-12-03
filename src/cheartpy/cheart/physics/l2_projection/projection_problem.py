@@ -3,7 +3,7 @@ import enum
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
 from ...pytools import get_enum, join_fields
 from ...trait import *
-from ...impl import BoundaryCondition
+from ...api import create_bc
 from ..solid_mechanics.solid_problems import SolidProblem
 
 
@@ -45,7 +45,7 @@ class L2SolidProjection(IProblem):
         self.calculation = get_enum(projected_var, L2SolidCalculationType)
         self.aux_vars = dict()
         self.aux_expr = dict()
-        self.bc = BoundaryCondition()
+        self.bc = create_bc()
         self._buffering = True
 
     @property

@@ -1,8 +1,8 @@
 __all__ = ["create_rotation_constraint"]
 from typing import Literal, Mapping, Sequence
-from ..cheart.physics import FSCouplingProblem, FSExpr
+from ..cheart.api import create_expr
 from ..cheart.trait import IVariable, ICheartTopology, IExpression
-from ..cheart.impl import Expression
+from ..cheart.physics import FSCouplingProblem, FSExpr
 
 ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Sequence[Literal["x", "y", "z"]]]
 
@@ -26,12 +26,12 @@ def create_rotation_operator_expr(
     }
     dof = [j for k, v in choice.items() for i in v for j in ROT_DOF[k][i]]
     if "R" not in choice:
-        return {"p": Expression(name, dof), "m": Expression(name, dof)}
+        return {"p": create_expr(name, dof), "m": create_expr(name, dof)}
     if total_dof == 1:
-        return {"p": Expression(name, dof), "m": Expression(name, dof)}
+        return {"p": create_expr(name, dof), "m": create_expr(name, dof)}
     return {
-        "p": Expression(name, dof),
-        "m": Expression(
+        "p": create_expr(name, dof),
+        "m": create_expr(
             name + "_T", [dof[3 * i + j] for j in range(3) for i in range(total_dof)]
         ),
     }

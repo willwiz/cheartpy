@@ -3,7 +3,8 @@ from .solver_matrix import *
 from .solver_group import *
 
 __all__ = [
-    "EXPRESSION_VALUE_TYPES",
+    "EXPRESSION_VALUE",
+    "BC_VALUE",
     "ITimeScheme",
     "IDataPointer",
     "IDataInterp",

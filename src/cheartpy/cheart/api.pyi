@@ -5,20 +5,23 @@ __all__ = [
     "create_boundary_basis",
     "create_topology",
     "create_embedded_topology",
-    "create_variable",
     "create_solver_matrix",
     "create_solver_subgroup",
     "create_solver_group",
     "create_top_interface",
+    "create_bcpatch",
+    "create_bc",
+    "create_variable",
+    "create_expr",
 ]
-from typing import overload
+from typing import Sequence, overload
 from .aliases import *
 from .trait import *
-from .impl.topologies import (
-    ManyToOneTopInterface,
+from .impl import (
     NullTopology,
     CheartTopology,
     OneToOneTopInterface,
+    ManyToOneTopInterface,
 )
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
@@ -53,15 +56,6 @@ def create_embedded_topology(
     mesh: str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> CheartTopology: ...
-def create_variable(
-    name: str,
-    top: ICheartTopology | None,
-    dim: int = 3,
-    data: str | None = None,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-    freq: int = 1,
-    loop_step: int | None = None,
-) -> IVariable: ...
 def create_solver_matrix(
     name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem | None
 ) -> ISolverMatrix: ...
@@ -86,3 +80,20 @@ def create_top_interface(
     interface_file: str,
     nest_in_boundary: int | None = None,
 ) -> ManyToOneTopInterface: ...
+def create_bcpatch(
+    label: int,
+    var: IVariable | tuple[IVariable, int | None],
+    kind: BOUNDARY_TYPE | BoundaryType,
+    *val: BC_VALUE,
+) -> IBCPatch: ...
+def create_bc(*val: IBCPatch) -> IBoundaryCondition: ...
+def create_variable(
+    name: str,
+    top: ICheartTopology | None,
+    dim: int = 3,
+    data: str | None = None,
+    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    freq: int = 1,
+    loop_step: int | None = None,
+) -> IVariable: ...
+def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression: ...

@@ -1,6 +1,6 @@
 __all__ = ["BCPatch", "BoundaryCondition"]
 import dataclasses as dc
-from typing import TextIO, ValuesView
+from typing import Sequence, TextIO, ValuesView
 from ..pytools import get_enum, join_fields
 from ..aliases import *
 from ..trait import *
@@ -11,7 +11,7 @@ class BCPatch(IBCPatch):
     id: int | str
     component: tuple[IVariable, int | None]
     bctype: BoundaryType
-    values: list[IExpression | IVariable | str | int | float | tuple[IVariable, int]]
+    values: list[BC_VALUE]
     options: list[str | int | float]
 
     def __hash__(self) -> int:
@@ -31,7 +31,7 @@ class BCPatch(IBCPatch):
         i: int,
         component: IVariable | tuple[IVariable, int | None],
         bctype: BOUNDARY_TYPE | BoundaryType,
-        *val: IExpression | IVariable | str | int | float | tuple[IVariable, int],
+        *val: BC_VALUE,
     ) -> None:
         self.id = i
         if isinstance(component, tuple):
@@ -70,13 +70,15 @@ class BoundaryCondition(IBoundaryCondition):
     __slots__ = ["patches"]
     patches: dict[int, IBCPatch] | None
 
-    def __init__(self, patch: list[IBCPatch] | None = None) -> None:
+    def __init__(self, patch: Sequence[IBCPatch] | None = None) -> None:
         if patch is None:
             self.patches = None
             return
         self.patches = dict()
         for p in patch:
-            self.patches[hash(p)] = p
+            p_hash = hash(p)
+            if p_hash not in self.patches:
+                self.patches[p_hash] = p
 
     def get_vars_deps(self):
         if self.patches is None:
@@ -108,7 +110,7 @@ class BoundaryCondition(IBoundaryCondition):
             self.patches[hash(p)] = p
 
     def write(self, f: TextIO):
-        if self.patches is None:
+        if self.patches is None or len(self.patches) == 0:
             f.write(f"  !Boundary-conditions-not-required\n\n")
         else:
             f.write(f"  !Boundary-patch-definitions\n")

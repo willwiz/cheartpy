@@ -5,13 +5,18 @@ __all__ = [
     "create_boundary_basis",
     "create_topology",
     "create_embedded_topology",
-    "create_variable",
     "create_solver_matrix",
     "create_solver_subgroup",
     "create_solver_group",
     "create_top_interface",
+    "create_bcpatch",
+    "create_bc",
+    "create_variable",
+    "create_expr",
 ]
 import os
+from typing import Sequence
+
 from .aliases import *
 from .trait import *
 from .impl import *
@@ -120,20 +125,6 @@ def create_embedded_topology(
     return CheartTopology(name, None, mesh, fmt, embedded=embedded_top)
 
 
-def create_variable(
-    name: str,
-    top: ICheartTopology | None,
-    dim: int = 3,
-    data: str | None = None,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-    freq: int = 1,
-    loop_step: int | None = None,
-) -> IVariable:
-    fmt = get_enum(format, VariableExportFormat)
-    top = NullTopology() if top is None else top
-    return Variable(name, top, dim, data, fmt, freq, loop_step)
-
-
 def create_solver_matrix(
     name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem | None
 ) -> ISolverMatrix:
@@ -184,3 +175,36 @@ def create_top_interface(
             return ManyToOneTopInterface(
                 name, topologies, master_topology, interface_file, nest_in_boundary
             )
+
+
+def create_bcpatch(
+    label: int,
+    var: IVariable | tuple[IVariable, int | None],
+    kind: BOUNDARY_TYPE | BoundaryType,
+    *val: BC_VALUE,
+) -> IBCPatch:
+    return BCPatch(label, var, get_enum(kind, BoundaryType), *val)
+
+
+def create_bc(*val: IBCPatch) -> IBoundaryCondition:
+    if len(val) > 0:
+        return BoundaryCondition(val)
+    return BoundaryCondition()
+
+
+def create_variable(
+    name: str,
+    top: ICheartTopology | None,
+    dim: int = 3,
+    data: str | None = None,
+    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    freq: int = 1,
+    loop_step: int | None = None,
+) -> IVariable:
+    fmt = get_enum(format, VariableExportFormat)
+    top = NullTopology() if top is None else top
+    return Variable(name, top, dim, data, fmt, freq, loop_step)
+
+
+def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression:
+    return Expression(name, value)

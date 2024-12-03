@@ -1,8 +1,9 @@
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
 from typing import Any, Literal, Mapping, Sequence, TextIO, ValuesView
+
+from ...api import create_bc
 from ...aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from ...pytools import get_enum, join_fields
-from ...impl.problems import BoundaryCondition
 from ...trait import *
 from .matlaws import ILaw
 
@@ -70,7 +71,7 @@ class SolidProblem(IProblem):
         self.options = dict()
         self.flags = dict()
         self._buffering = True
-        self.bc = BoundaryCondition()
+        self.bc = create_bc()
 
     @property
     def buffering(self) -> bool:
@@ -82,7 +83,6 @@ class SolidProblem(IProblem):
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
-        # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
     def add_deps(self, *vars: IVariable | IExpression | None) -> None:
@@ -159,10 +159,6 @@ class SolidProblem(IProblem):
                 f"  !Add-State-Variables={{{join_fields(*self.state_vars.values())}}}\n"
             )
         for k, v in self.options.items():
-            # if k == "UseStabilization":
-            #     f.write(f"  !{k}\n")
-            #     f.write(f"    {" ".join(v)}\n")
-            # else:
             string = join_fields(*v)
             f.write(f"  !{k}={{{string}}}\n")
         if self._buffering == False:
@@ -173,21 +169,6 @@ class SolidProblem(IProblem):
         for v in self.matlaws:
             f.write(v.string())
         self.bc.write(f)
-
-    # vars: dict[str, Variable] = dc.field(default_factory=dict)
-    # aux_vars: dict[str, Variable] = dc.field(default_factory=dict)
-    # options: dict[str, list[str]] = dc.field(default_factory=dict)
-    # flags: list[str] = dc.field(default_factory=list)
-    # BC: BoundaryCondition = dc.field(default_factory=BoundaryCondition)
-
-    # def UseVariable(self, req: str, var: Variable) -> None:
-    #     self.vars[req] = var
-
-    # def UseOption(self, opt: str, *val: str) -> None:
-    #     if val:
-    #         self.options[opt] = list(val)
-    #     else:
-    #         self.flags.append(opt)
 
 
 def create_solid_mechanics_problem(

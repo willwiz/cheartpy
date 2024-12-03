@@ -1,7 +1,6 @@
 __all__ = ["PFile"]
 import dataclasses as dc
 from typing import Mapping, Collection, TextIO
-from .aliases import *
 from .trait import *
 from .pytools import header, hline, splicegen
 
@@ -89,7 +88,6 @@ class PFile:
         """Internal automatically done through add solver group"""
         for p in prob:
             self.AddExpression(*p.get_expr_deps())
-            # self.AddVariable(*p.get_variables().values())
             self.AddVariable(*p.get_var_deps())
             for patch in p.get_bc_patches():
                 self.AddVariable(*patch.get_var_deps())
@@ -115,60 +113,15 @@ class PFile:
         for g in grp:
             self.AddTimeScheme(g.get_time_scheme())
             self.AddSolverSubGroup(*g.get_subgroups())
-            # self.AddVariable(*g.get_aux_vars())
-            # for sg in g.get_subgroups():
-            # for p in sg.get_problems():
-            #     if isinstance(p, _SolverMatrix):
-            #         self.AddMatrix(p)
-            #     elif isinstance(p, _Problem):
-            #         self.AddProblem(p)
-            # if sg.get_aux_vars():
-            #     self.AddVariable(*sg.get_aux_vars().values())
             if str(g) not in self.solverGs:
                 self.solverGs[str(g)] = g
 
-    # Problem
-
-    # def SetTopology(self, name, task, val) -> None:
-    #     self.toplogies[name].AddSetting(task, val)
-
-    # Add Variables
-    # @overload
-    # def SetVariable(
-    #     self,
-    #     name: str,
-    #     task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
-    #     val: _Expression,
-    # ) -> None: ...
-
-    # @overload
-    # def SetVariable(
-    #     self,
-    #     name: str,
-    #     task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
-    #     val: str,
-    # ) -> None: ...
-
-    # def SetVariable(
-    #     self,
-    #     name: str,
-    #     task: Literal[
-    #         "INIT_EXPR",
-    #         "TEMPORAL_UPDATE_EXPR",
-    #         "TEMPORAL_UPDATE_FILE",
-    #         "TEMPORAL_UPDATE_FILE_LOOP",
-    #     ],
-    #     val: str | _Expression,
-    # ):
-    #     self.variables[name].AddSetting(task, val)
-
     # Set Export Frequency
-    def SetExportFrequency(self, *vars: IVariable, freq: int = 1):
+    def SetExportFrequency(self, *vars: IVariable, freq: int = 1) -> None:
         for v in vars:
             v.set_export_frequency(freq)
 
     def get_variable_frequency_list(self) -> Mapping[int, Collection[str]]:
-        # pprint.pprint(self.vars)
         exportfrequencies: dict[int, set[str]] = dict()
         for v in self.variables.values():
             if v.get_export_frequency() in exportfrequencies:

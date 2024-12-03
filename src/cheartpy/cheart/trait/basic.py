@@ -3,7 +3,8 @@ from typing import Mapping, Sequence, TextIO, Self, ValuesView
 from ..aliases import *
 
 __all__ = [
-    "EXPRESSION_VALUE_TYPES",
+    "EXPRESSION_VALUE",
+    "BC_VALUE",
     "ITimeScheme",
     "IDataPointer",
     "IDataInterp",
@@ -20,7 +21,9 @@ __all__ = [
     "ILaw",
 ]
 
-type EXPRESSION_VALUE_TYPES = "int|str|float|IVariable|IExpression|IDataInterp|tuple[IVariable, int]|tuple[IExpression, int]|tuple[IDataInterp, int]"
+type EXPRESSION_VALUE = "int|str|float|IVariable|IExpression|IDataInterp|tuple[IVariable, int]|tuple[IExpression, int]|tuple[IDataInterp, int]"
+
+type BC_VALUE = "IExpression | IVariable | str | int | float | tuple[IVariable, int]"
 
 
 class ITimeScheme(abc.ABC):
@@ -56,7 +59,7 @@ class IExpression(abc.ABC):
     @abc.abstractmethod
     def get_values(
         self,
-    ) -> Sequence[EXPRESSION_VALUE_TYPES]: ...
+    ) -> Sequence[EXPRESSION_VALUE]: ...
     @abc.abstractmethod
     def add_deps(self, *vars: "IExpression|IVariable|None") -> None: ...
     @abc.abstractmethod

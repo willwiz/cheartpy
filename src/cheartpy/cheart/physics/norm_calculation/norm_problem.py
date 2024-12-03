@@ -1,10 +1,9 @@
 __all__ = ["NormProblem"]
 from typing import Literal, Mapping, Sequence, TextIO, ValuesView
-
 from ...trait.basic import IExpression, IVariable
 from ...pytools import join_fields
 from ...trait import *
-from ...impl import BoundaryCondition, CheartTopology
+from ...api import create_bc
 
 
 class NormProblem(IProblem):
@@ -13,7 +12,7 @@ class NormProblem(IProblem):
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     bc: IBoundaryCondition
-    root_top: CheartTopology | None = None
+    root_top: ICheartTopology | None = None
     boundary_normal: int | None = None
     scale_by_measure: bool = False
     absolute_value: bool = False
@@ -42,7 +41,7 @@ class NormProblem(IProblem):
             raise ValueError(f"One of Term2 or Boundary normal must be None")
         self.aux_vars = dict()
         self.aux_expr = dict()
-        self.bc = BoundaryCondition()
+        self.bc = create_bc()
         self.root_top = None
         self.boundary_normal = None
         self.scale_by_measure = False
@@ -105,7 +104,7 @@ class NormProblem(IProblem):
     ) -> None:
         self.variables[req] = var
 
-    def set_root_topology(self, top: CheartTopology) -> None:
+    def set_root_topology(self, top: ICheartTopology) -> None:
         self.root_top = top
 
     def export_to_file(self, name: str) -> None:

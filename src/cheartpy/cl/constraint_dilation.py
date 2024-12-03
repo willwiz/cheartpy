@@ -2,7 +2,7 @@ __all__ = ["create_cl_dilation_constraint_problem"]
 from .data import CLTopology
 from ..cheart.physics import FSCouplingProblem, FSExpr
 from ..cheart.trait import IVariable
-from ..cheart.impl.expressions import Expression
+from ..cheart.api import create_expr
 
 
 def create_cl_dilation_constraint_problem(
@@ -16,7 +16,7 @@ def create_cl_dilation_constraint_problem(
     if cl is None or lm is None:
         return None
     var: list[IVariable | None] = [disp, *motion]
-    integral_expr = Expression(
+    integral_expr = create_expr(
         f"{prefix}_expr",
         [
             f"{cl.elem}.{k + 1} * {cl.basis} * ({" - ".join([f"{v}.{i + 1}" for v in var if v])})"

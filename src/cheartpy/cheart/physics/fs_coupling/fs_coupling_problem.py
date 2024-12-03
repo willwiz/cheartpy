@@ -1,10 +1,10 @@
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
 from typing import Literal, Sequence, TextIO, ValuesView
-from ...trait.basic import IExpression, IVariable
+
 from ...pytools import join_fields
 from ...trait import *
-from ...impl import BoundaryCondition
+from ...api import create_bc
 
 
 @dc.dataclass(slots=True)
@@ -55,7 +55,7 @@ class FSCouplingProblem(IProblem):
         self.m_terms = dict()
         self.aux_vars = dict()
         self.aux_expr = dict()
-        self.bc = BoundaryCondition()
+        self.bc = create_bc()
         self._buffering = True
 
     @property

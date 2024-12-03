@@ -7,7 +7,7 @@ from ..trait import *
 @dc.dataclass(slots=True)
 class Expression(IExpression):
     name: str
-    value: Sequence[EXPRESSION_VALUE_TYPES]
+    value: Sequence[EXPRESSION_VALUE]
     deps_var: dict[str, IVariable] = dc.field(default_factory=dict)
     deps_expr: dict[str, IExpression] = dc.field(default_factory=dict)
 
