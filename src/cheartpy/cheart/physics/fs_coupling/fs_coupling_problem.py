@@ -72,9 +72,11 @@ class FSCouplingProblem(IProblem):
     def add_term(self, var: IVariable, *expr: FSExpr) -> None:
         self.m_terms[str(var)] = FSCouplingTerm(var, list(expr))
 
-    def add_state_variable(self, *var: IVariable | None) -> None:
+    def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
         for v in var:
             if v is None:
+                continue
+            if not isinstance(v, IVariable):
                 continue
             if str(v) not in self.m_terms:
                 self.m_terms[str(v)] = FSCouplingTerm(v, [FSExpr(v, 0)])

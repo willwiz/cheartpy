@@ -1,4 +1,5 @@
 __all__ = ["INTERP_MAP", "make_l2qmap", "interp_var_l2q"]
+from ...tools.basiclogging import ILogger, NullLogger
 import numpy as np
 from typing import Mapping, Sequence
 from ...var_types import *
@@ -36,7 +37,12 @@ def interp_var_l2q(map: INTERP_MAP, lin: Mat[f64]):
     return quad_data
 
 
-def interpolate_var_on_lin_topology(l2qmap: INTERP_MAP, lin_var: str, quad_var: str):
+def interpolate_var_on_lin_topology(
+    l2qmap: INTERP_MAP, lin_var: str, quad_var: str, LOG: ILogger = NullLogger()
+):
     lin = CHRead_d(lin_var)
+    if len(lin) == len(l2qmap):
+        LOG.debug(f"Variable {lin_var} already interpolated")
+        return
     quad = interp_var_l2q(l2qmap, lin)
     CHWrite_d_utf(quad_var, quad)

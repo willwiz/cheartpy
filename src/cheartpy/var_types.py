@@ -1,15 +1,4 @@
-__all__ = [
-    "Arr",
-    "Any",
-    "f64",
-    "int_t",
-    "char",
-    "Vec",
-    "Mat",
-    "MatV",
-    "T2",
-    "T3",
-]
+__all__ = ["Arr", "Any", "f64", "int_t", "char", "Vec", "Mat", "MatV", "T2", "T3"]
 import numpy as np
 from typing import Any
 

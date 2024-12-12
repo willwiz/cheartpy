@@ -79,7 +79,7 @@ def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
     return arr
 
 
-def CHRead_d(file: str) -> Arr[tuple[int, int], f64]:
+def CHRead_d(file: str) -> Mat[f64]:
     if is_binary(file):
         return CHRead_d_bin(file)
     return CHRead_d_utf(file)
@@ -106,8 +106,19 @@ CHeart Write Array functions
 """
 
 
-def CHWrite_d_utf(file: str, data: Mat[f64]) -> None:
-    ne, nn = data.shape
+def CHWrite_d_utf(file: str, data: Vec[f64] | Mat[f64]) -> None:
+    match data.shape:
+        case int(),:
+            ne = data.size
+            nn = 1
+        case int(), int():
+            ne, nn = data.shape
+        # case _:
+        #     raise ValueError("Data must be 1D or 2D array")
+    # if data.ndim == 1:
+    #     data = cast(Mat[f64], data[:, None])
+    # elif data.ndim > 2:
+    # ne, nn = data.shape
     np.savetxt(
         file,
         data,

@@ -62,7 +62,6 @@ class CLTopology:
     ne: int
     top_i: ICheartTopology
     top_lm: ICheartTopology
-    field: IVariable
     support: IVariable
     elem: IVariable
     basis: IExpression

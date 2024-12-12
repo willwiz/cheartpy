@@ -5,3 +5,4 @@ from .constraint_dilation import *
 from .rotation import *
 from .variables import *
 from .cl_expressions import *
+from .noise import *

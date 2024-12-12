@@ -1,8 +1,8 @@
-__all__ = ["LOG_LEVEL", "LogLevel", "BLogger", "NullLogger", "ILogger"]
+__all__ = ["LOG_LEVEL", "LogLevel", "BLogger", "NullLogger", "ILogger", "bcolors"]
 import abc
 import enum
 import os
-from typing import Any, Literal
+from typing import Any, Literal, Mapping
 from datetime import datetime
 import traceback
 from inspect import getframeinfo, stack
@@ -35,6 +35,27 @@ class bcolors(enum.StrEnum):
     ENDC = "\033[0m"
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
+
+
+LB: Mapping[LogLevel, str] = {
+    LogLevel.NULL: "",
+    LogLevel.FATAL: bcolors.FAIL,
+    LogLevel.ERROR: bcolors.FAIL,
+    LogLevel.WARN: bcolors.WARN,
+    LogLevel.BRIEF: bcolors.OKCYAN,
+    LogLevel.INFO: bcolors.OKGREEN,
+    LogLevel.DEBUG: bcolors.OKBLUE,
+}
+
+RB: Mapping[LogLevel, str] = {
+    LogLevel.NULL: "",
+    LogLevel.FATAL: bcolors.ENDC,
+    LogLevel.ERROR: bcolors.ENDC,
+    LogLevel.WARN: bcolors.ENDC,
+    LogLevel.BRIEF: bcolors.ENDC,
+    LogLevel.INFO: bcolors.ENDC,
+    LogLevel.DEBUG: bcolors.ENDC,
+}
 
 
 class ILogger(abc.ABC):
@@ -81,7 +102,9 @@ class BLogger(ILogger):
             return
         frame = getframeinfo(stack()[2][0])
         file = os.path.join(*frame.filename.split(os.sep)[-3:])
-        print(f"\n[{now()}|{level.name}]({file}:{frame.lineno}|{frame.function})>>>")
+        print(
+            f"\n[{now()}|{LB[level]}{level.name}{RB[level]}]({file}:{frame.lineno}|{frame.function})>>>"
+        )
         for m in msg:
             print(m)
 
@@ -106,6 +129,7 @@ class BLogger(ILogger):
             self.print(*msg, level=LogLevel.WARN)
 
     def error(self, *msg: Any) -> None:
+        print("Call Error")
         if self.level >= LogLevel.ERROR:
             self.print(*msg, level=LogLevel.ERROR)
 

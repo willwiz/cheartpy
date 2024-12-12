@@ -28,6 +28,6 @@ def create_cl_dilation_constraint_problem(
     fsbc = FSCouplingProblem(f"P{prefix}", space, cl.top_i)
     fsbc.perturbation = True
     fsbc.set_lagrange_mult(lm, FSExpr(integral_expr, op="trace"))
-    fsbc.add_state_variable(space, disp)
+    fsbc.add_state_variable(disp)
     fsbc.add_expr_deps(integral_expr)
     return fsbc
