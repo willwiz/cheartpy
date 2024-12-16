@@ -31,18 +31,18 @@ def create_lms_on_cl(
 
 @overload
 def create_lm_on_cl(
-    prefix: str, cl: None, dim: int, ex_freq: int, set_bc: bool
+    cl: None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "LM"
 ) -> None: ...
 @overload
 def create_lm_on_cl(
-    prefix: str, cl: CLTopology, dim: int, ex_freq: int, set_bc: bool
+    cl: CLTopology, dim: int, ex_freq: int, set_bc: bool, sfx: str = "LM"
 ) -> IVariable: ...
 def create_lm_on_cl(
-    prefix: str, cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool
+    cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "LM"
 ) -> IVariable | None:
     if cl is None:
         return None
-    lm = create_variable(f"{cl}{prefix}", cl.top_lm, dim, freq=ex_freq)
+    lm = create_variable(f"{cl}{sfx}", cl.top_lm, dim, freq=ex_freq)
     if set_bc:
         print("Cannot set boundary conditions for a single variable")
     return lm
@@ -50,18 +50,18 @@ def create_lm_on_cl(
 
 @overload
 def create_dm_on_cl(
-    prefix: str, cl: None, dim: int, ex_freq: int, set_bc: bool
+    cl: None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "DM"
 ) -> None: ...
 @overload
 def create_dm_on_cl(
-    prefix: str, cl: CLTopology, dim: int, ex_freq: int, set_bc: bool
+    cl: CLTopology, dim: int, ex_freq: int, set_bc: bool, sfx: str = "DM"
 ) -> IVariable: ...
 def create_dm_on_cl(
-    prefix: str, cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool
+    cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "DM"
 ) -> IVariable | None:
     if cl is None:
         return None
-    lm = create_variable(f"{cl}{prefix}", None, dim, freq=ex_freq)
+    lm = create_variable(f"{cl}{sfx}", None, dim, freq=ex_freq)
     if set_bc:
         print("Cannot set boundary conditions for a single variable")
     return lm

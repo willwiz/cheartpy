@@ -6,28 +6,28 @@ from ..cheart.trait import IVariable
 
 @overload
 def create_cl_dilation_constraint_problem(
-    prefix: str,
     cl: None,
     space: IVariable,
     lm: IVariable | None,
     disp: IVariable,
     *motion: IVariable | None,
+    sfx: str = "DM",
 ) -> None: ...
 @overload
 def create_cl_dilation_constraint_problem(
-    prefix: str,
     cl: CLTopology | None,
     space: IVariable,
     lm: None,
     disp: IVariable,
     *motion: IVariable | None,
+    sfx: str = "DM",
 ) -> None: ...
 @overload
 def create_cl_dilation_constraint_problem(
-    prefix: str,
     cl: CLTopology,
     space: IVariable,
     lm: IVariable,
     disp: IVariable,
     *motion: IVariable | None,
+    sfx: str = "DM",
 ) -> FSCouplingProblem: ...
