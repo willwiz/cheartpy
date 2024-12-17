@@ -15,7 +15,7 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["numpy", "meshio", "scipy", "matplotlib", "pandas"]
+dependencies = ["numpy", "meshio", "matplotlib"]
 
 [project.scripts]
 abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"

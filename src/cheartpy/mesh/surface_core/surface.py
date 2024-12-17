@@ -7,7 +7,7 @@ __all__ = [
 import numpy as np
 from collections import defaultdict
 from typing import cast
-from scipy.linalg import lstsq  # type: ignore
+from numpy.linalg import lstsq  # type: ignore
 from ...var_types import *
 from ...tools.basiclogging import *
 from ...cheart_mesh import *
@@ -26,7 +26,7 @@ def compute_normal_patch(
     if np.linalg.det(tF) < 0.01:
         LOG.warn(f"Element node order is inverted.")
         tF = U - np.identity(3)
-    res, *_ = lstsq(tF.T, np.array([0, 0, 1], dtype=float), lapack_driver="gelsy")  # type: ignore
+    res, *_ = lstsq(tF.T, np.array([0, 0, 1], dtype=float))  # type: ignore
     return cast(Vec[f64], res)
 
 
