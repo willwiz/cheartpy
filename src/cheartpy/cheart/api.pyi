@@ -13,6 +13,7 @@ __all__ = [
     "create_bc",
     "create_variable",
     "create_expr",
+    "AddStateVar",
 ]
 from typing import Sequence, overload
 from .aliases import *
@@ -97,3 +98,4 @@ def create_variable(
     loop_step: int | None = None,
 ) -> IVariable: ...
 def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression: ...
+def AddStateVar(p: IProblem | None, *vars: IVariable | IExpression | None) -> None: ...

@@ -208,3 +208,10 @@ def create_variable(
 
 def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression:
     return Expression(name, value)
+
+
+def AddStateVar(p: IProblem | None, *vars: IVariable | IExpression | None) -> None:
+    if p is None:
+        return
+    for v in vars:
+        p.add_state_variable(v)

@@ -130,9 +130,9 @@ class SolidProblem(IProblem):
     def AddVariable(self, name: SOLID_VARIABLES, var: IVariable) -> None:
         self.variables[name] = var
 
-    def AddStateVariable(self, *var: IVariable | None) -> None:
+    def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
         for v in var:
-            if v is not None:
+            if isinstance(v, IVariable):
                 self.state_vars[str(v)] = v
                 self.aux_vars[str(v)] = v
 

@@ -1,7 +1,7 @@
 __all__ = [
     "create_lm_on_cl",
-    "create_lms_on_cl",
     "create_dm_on_cl",
+    "Set_CLVAR_IC",
     "L2norm",
     "LL_interp",
 ]
@@ -10,23 +10,7 @@ from typing import cast, Mapping, overload
 from ..var_types import *
 from ..cheart.trait import IVariable
 from ..cheart.api import create_variable
-from .data import CLTopology, CLTopologies, CLPartition
-
-
-def create_lms_on_cl(
-    prefix: str, cl: CLTopologies | None, dim: int, ex_freq: int, set_bc: bool
-) -> Mapping[int, IVariable]:
-    if cl is None:
-        return {}
-    lms = {
-        k: create_variable(f"{v.k}{prefix}", None, dim, freq=ex_freq)
-        for k, v in cl.N.items()
-    }
-    if set_bc:
-        keys = sorted(lms.keys())
-        lms[keys[0]] = lms[keys[1]]
-        lms[keys[-1]] = lms[keys[-2]]
-    return lms
+from .data import CLTopology, CLPartition
 
 
 @overload
@@ -65,6 +49,12 @@ def create_dm_on_cl(
     if set_bc:
         print("Cannot set boundary conditions for a single variable")
     return lm
+
+
+def Set_CLVAR_IC(var: IVariable | None, file: str) -> None:
+    if var is None:
+        return
+    var.add_data(file)
 
 
 def L2norm(x: Vec[f64]) -> float:

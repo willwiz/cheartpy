@@ -97,6 +97,9 @@ class NormProblem(IProblem):
         patches = self.bc.get_patches()
         return list() if patches is None else list(patches)
 
+    def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
+        return
+
     def AddVariable(
         self,
         req: Literal["Space", "Term1", "Term2", "ExportToVariable"],

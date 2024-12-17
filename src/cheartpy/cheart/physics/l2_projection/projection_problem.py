@@ -91,6 +91,9 @@ class L2SolidProjection(IProblem):
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         return {**_expr_, **self.aux_expr}.values()
 
+    def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
+        return
+
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
         return list() if patches is None else list(patches)

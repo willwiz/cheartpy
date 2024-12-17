@@ -121,13 +121,21 @@ class SolverGroup(ISolverGroup):
         TolSettings | IterationSettings | Literal["CatchSolverErrors"],
         list[str | int | float | IExpression | IVariable],
     ] = dc.field(default_factory=dict)
-    export_initial_condition: bool = True
+    _export_initial_condition: bool = True
     use_dynamic_topologies: bool | float = False
     _aux_vars: dict[str, IVariable] = dc.field(default_factory=dict)
     _deps_vars: dict[str, IVariable] = dc.field(default_factory=dict)
 
     def __repr__(self) -> str:
         return self.name
+
+    @property
+    def export_initial_condition(self) -> bool:
+        return self._export_initial_condition
+
+    @export_initial_condition.setter
+    def export_initial_condition(self, value: bool):
+        self._export_initial_condition = value
 
     def get_time_scheme(self) -> ITimeScheme:
         return self.time
@@ -219,7 +227,7 @@ class SolverGroup(ISolverGroup):
                     f'  !SetSolverGroup={{{join_fields(self, "AddVariables", *l)}}}\n'
                 )
         # Print export init setting
-        if self.export_initial_condition:
+        if self._export_initial_condition:
             f.write(f"  !SetSolverGroup={{{self}|export_initial_condition}}\n")
         # Print Conv Settings
         for k, v in self.settings.items():
