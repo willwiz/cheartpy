@@ -12,7 +12,7 @@ import enum
 from ..io.indexing import SearchMode
 from ..tools.basiclogging import LogLevel
 import numpy as np
-from typing import Final, Literal
+from typing import Final
 from ..var_types import *
 from ..xmlwriter import IVtkElementInterface, get_element_type
 
@@ -33,20 +33,17 @@ class IFormattedName(abc.ABC):
 
 @dc.dataclass(slots=True)
 class CmdLineArgs:
-    cmd: Literal["find", "index"]
+    mesh: Final[str | tuple[str, str, str]]
     var: Final[list[str]]
-    prefix: Final[str]
-    input_folder: Final[str]
-    output_folder: Final[str]
-    time_series: Final[str | None]
-    progress_bar: Final[bool]
-    log: Final[LogLevel]
-    binary: Final[bool]
-    compression: Final[bool]
-    xfile: Final[str]
-    tfile: Final[str]
-    bfile: Final[str | None]
-    disp: Final[str | None]
+    space: Final[str | None] = None
+    prefix: Final[str | None] = None
+    input_dir: Final[str] = ""
+    output_dir: Final[str] = ""
+    time_series: Final[str | None] = None
+    progress_bar: Final[bool] = True
+    log: Final[LogLevel] = LogLevel.INFO
+    binary: Final[bool] = False
+    compression: Final[bool] = True
     cores: Final[int] = 1
     index: tuple[int, int, int] | SearchMode = SearchMode.none
     subindex: tuple[int, int, int] | SearchMode = SearchMode.none
@@ -72,7 +69,7 @@ class ProgramArgs:
 class CheartTopology:
     __slots__ = ["_ft", "ne", "nc", "vtkelementtype", "vtksurfacetype"]
 
-    _ft: Arr[tuple[int, int], int_t]
+    _ft: Mat[int_t]
     ne: int
     nc: int
     vtkelementtype: type[IVtkElementInterface]
