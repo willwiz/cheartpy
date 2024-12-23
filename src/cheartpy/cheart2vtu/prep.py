@@ -1,11 +1,6 @@
 __all__ = ["parse_cmdline_args", "init_variable_cache"]
 import os
-
-# import numpy as np
-from typing import Sequence
-
 import numpy as np
-
 from ..var_types import *
 from ..cheart_mesh.io import *
 from ..io.indexing import IIndexIterator, get_file_name_indexer
@@ -13,75 +8,99 @@ from ..tools.basiclogging import BLogger, ILogger
 from .interfaces import *
 from .variable_naming import *
 from .fio import *
-from .parser_main import get_cmdline_args
 from .print_headers import *
+from .parser_main import parse_findmode_args, parse_indexmode_args
 
 
 def parse_cmdline_args(
-    cmd_args: Sequence[str | float | int] | None = None, LOG: ILogger = BLogger("INFO")
+    args: CmdLineArgs, LOG: ILogger = BLogger("INFO")
 ) -> tuple[ProgramArgs, IIndexIterator]:
     err: bool = False
-    args = get_cmdline_args([str(v) for v in cmd_args] if cmd_args else None)
     print_input_info(args)
-    if not args.input_folder:
+    # Set the prefix
+    if not args.prefix:
+        prefix = args.output_dir.replace("_vtu", "") if args.output_dir else "paraview"
+    else:
+        prefix = args.prefix
+    match args.mesh:
+        case str():
+            x, top, bnd, u = parse_findmode_args(args.mesh)
+        case x, t, b:
+            x, top, bnd, u = parse_indexmode_args(x, t, b)
+    if bnd is not None:
+        LOG.disp(f"Looking for boundary file: {bnd}")
+        if os.path.isfile(bnd):
+            LOG.disp(f"<<< Output file name (boundary): {prefix}_boundary.vtu")
+        else:
+            LOG.error(f"Boundary file = {bnd} not found.")
+            err = True
+    else:
+        LOG.disp("<<< No boundary file specified. Skipping boundary export.")
+    if args.space is not None:
+        name = args.space.split("+")
+        if len(name) == 2:
+            x, u = name
+        else:
+            x, u = args.space, None
+    # Check if the input and output directory exists
+    if not args.input_dir:
         pass
-    elif not os.path.isdir(args.input_folder):
-        LOG.error(f"Input folder = {args.input_folder} does not exist")
+    elif not os.path.isdir(args.input_dir):
+        LOG.error(f"Input folder = {args.input_dir} does not exist")
         err = True
-    if args.output_folder:
-        os.makedirs(args.output_folder, exist_ok=True)
-    indexer = get_file_name_indexer(
-        args.index, args.subindex, args.var, args.input_folder
-    )
-    if not os.path.isfile(args.tfile):
-        LOG.error(f"ERROR: Topology = {args.tfile} not found.")
+    if args.output_dir:
+        os.makedirs(args.output_dir, exist_ok=True)
+    # Get the indexer for the variable files
+    indexer = get_file_name_indexer(args.index, args.subindex, args.var, args.input_dir)
+    if not os.path.isfile(top):
+        LOG.error(f"ERROR: Topology = {top} not found.")
         err = True
     i0 = next(iter(indexer))
-    space = None
-    if os.path.isfile(args.xfile):
-        space = CheartMeshFormat(None, args.xfile)
-    elif os.path.isfile(f"{args.xfile}-{i0}.D"):
-        space = CheartVarFormat(args.input_folder, args.xfile)
-    elif os.path.isfile(f"{args.xfile}-{i0}.D.gz"):
-        space = CheartZipFormat(args.input_folder, args.xfile)
-    disp = None
-    if args.disp is None:
-        pass
-    elif os.path.isfile(args.disp):
-        disp = CheartMeshFormat(None, args.disp)
-    elif os.path.isfile(f"{args.disp}-{i0}.D"):
-        disp = CheartVarFormat(args.input_folder, args.disp)
-    elif os.path.isfile(f"{args.disp}-{i0}.D.gz"):
-        disp = CheartZipFormat(args.input_folder, args.disp)
+    if os.path.isfile(x):
+        space = CheartMeshFormat(None, x)
+    elif os.path.isfile(f"{x}-{i0}.D"):
+        space = CheartVarFormat(args.input_dir, x)
+    elif os.path.isfile(f"{x}-{i0}.D.gz"):
+        space = CheartZipFormat(args.input_dir, x)
     else:
-        LOG.error(f"Disp = {args.disp} not recognized as mesh, var, or zip")
-        err = True
+        space = None
+    if u is None:
+        disp = None
+    elif os.path.isfile(u):
+        disp = CheartMeshFormat(None, u)
+    elif os.path.isfile(f"{u}-{i0}.D"):
+        disp = CheartVarFormat(args.input_dir, u)
+    elif os.path.isfile(f"{u}-{i0}.D.gz"):
+        disp = CheartZipFormat(args.input_dir, u)
+    else:
+        LOG.error(f"Disp = {u} not recognized as mesh, var, or zip")
+        raise
     var: dict[str, IFormattedName] = dict()
     for v in args.var:
-        if os.path.isfile(os.path.join(args.input_folder, f"{v}-{i0}.D")):
-            var[v] = CheartVarFormat(args.input_folder, v)
-        elif os.path.isfile(os.path.join(args.input_folder, f"{v}-{i0}.D.gz")):
-            var[v] = CheartZipFormat(args.input_folder, v)
+        if os.path.isfile(os.path.join(args.input_dir, f"{v}-{i0}.D")):
+            var[v] = CheartVarFormat(args.input_dir, v)
+        elif os.path.isfile(os.path.join(args.input_dir, f"{v}-{i0}.D.gz")):
+            var[v] = CheartZipFormat(args.input_dir, v)
         else:
-            print(f">>>ERROR: Type of {v} cannot be identified.")
+            LOG.error(f">>>ERROR: Type of {v} cannot be identified.")
             err = True
     if err:
         raise ValueError("At least one error was triggered.")
     if space is None:
-        LOG.error(f"Space = {args.xfile} not recognized as mesh, var, or zip")
+        LOG.error(f"Space = {space} not recognized as mesh, var, or zip")
         raise
     return (
         ProgramArgs(
-            args.prefix,
-            args.input_folder,
-            args.output_folder,
+            prefix,
+            args.input_dir,
+            args.output_dir,
             args.time_series,
             args.progress_bar,
             args.binary,
             args.compression,
             args.cores,
-            args.tfile,
-            args.bfile,
+            top,
+            bnd,
             space,
             disp,
             var,

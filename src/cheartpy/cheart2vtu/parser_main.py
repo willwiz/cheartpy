@@ -1,7 +1,7 @@
-__all__ = ["get_cmdline_args"]
+__all__ = ["main_parser", "get_api_args", "get_cmdline_args"]
 import os
 import argparse
-from typing import Sequence
+from typing import Literal, Sequence
 from ..io.indexing import SearchMode
 from ..tools.basiclogging import LogLevel
 from ..cheart_mesh import fix_suffix
@@ -164,6 +164,7 @@ parser_find.add_argument(
 )
 parser_find.add_argument(
     "--space",
+    "-x",
     dest="space",
     action="store",
     default=None,
@@ -200,8 +201,8 @@ sub_index_fin.add_argument(
 parser_find.set_defaults(subindex="none")
 
 
-def parse_findmode_args(nsp: argparse.Namespace):
-    subs: str = fix_suffix(nsp.mesh)
+def parse_findmode_args(mesh: str):
+    subs: str = fix_suffix(mesh)
     space = subs + "X"
     topology = subs + "T"
     boundary = subs + "B"
@@ -209,65 +210,77 @@ def parse_findmode_args(nsp: argparse.Namespace):
     return space, topology, boundary, None
 
 
-def parse_indexmode_args(nsp: argparse.Namespace):
-    spacename: list[str] = nsp.xfile.split("+")
+def parse_indexmode_args(x: str, t: str, b: str):
+    spacename: list[str] = x.split("+")
     space = spacename[0]
     disp = spacename[1] if len(spacename) == 2 else None
-    return space, nsp.tfile, nsp.bfile, disp
+    return space, t, b, disp
+
+
+def get_api_args(
+    prefix: str | None = None,
+    index: tuple[int, int, int] | None = None,
+    subindex: tuple[int, int, int] | Literal["auto", "none"] | None = "none",
+    vars: list[str] = list(),
+    input_dir: str = "",
+    output_dir: str = "",
+    mesh: str | tuple[str, str, str] = "mesh",
+    space: str | None = None,
+    time_series: str | None = None,
+    binary: bool = False,
+    compression: bool = True,
+    progress_bar: bool = True,
+    cores: int = 1,
+    log: LogLevel = LogLevel.INFO,
+) -> CmdLineArgs:
+    args = CmdLineArgs(
+        mesh,
+        vars,
+        space,
+        prefix,
+        input_dir,
+        output_dir,
+        time_series,
+        False if (log == LogLevel.DEBUG) else progress_bar,
+        log,
+        binary,
+        compression,
+        cores,
+    )
+    if len(args.var) == 0:
+        return args
+    match mesh:
+        case str(), str(), str():
+            args.index = SearchMode.none if index is None else index
+        case str():
+            args.index = SearchMode.auto if index is None else index
+    subindex = "none" if subindex is None else subindex
+    args.subindex = SearchMode[subindex] if isinstance(subindex, str) else subindex
+    return args
 
 
 def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
     nsp = main_parser.parse_args(args=cmd_args)
     match nsp.cmd:
         case "find":
-            space, top, bnd, disp = parse_findmode_args(nsp)
+            mesh = nsp.mesh
         case "index":
-            space, top, bnd, disp = parse_indexmode_args(nsp)
+            mesh = (nsp.xfile, nsp.tfile, nsp.bfile)
         case _:
             raise ValueError(f"No subprogram called, cannot proceed.")
-    if nsp.space is not None:
-        name = nsp.space.split("+")
-        if len(name) == 2:
-            space, disp = name
-        else:
-            space, disp = nsp.space, None
-    if nsp.prefix:
-        prefix = nsp.prefix
-    else:
-        prefix = nsp.outfolder.replace("_vtu", "") if nsp.outfolder else "paraview"
-    args = CmdLineArgs(
-        nsp.cmd,
-        nsp.var,
-        prefix,
-        nsp.infolder,
-        nsp.outfolder,
-        nsp.time_series,
-        False if (nsp.log == "DEBUG") else nsp.progress_bar,
-        LogLevel[nsp.log],
-        nsp.binary,
-        nsp.compression,
-        space,
-        top,
-        bnd,
-        disp,
-        nsp.cores,
+    return get_api_args(
+        prefix=nsp.prefix,
+        index=nsp.index,
+        subindex=nsp.subindex,
+        vars=nsp.var,
+        input_dir=nsp.infolder,
+        output_dir=nsp.outfolder,
+        mesh=mesh,
+        space=nsp.xfile,
+        time_series=nsp.time_series,
+        binary=nsp.binary,
+        compression=nsp.compression,
+        progress_bar=nsp.progress_bar,
+        cores=nsp.cores,
+        log=LogLevel[nsp.log],
     )
-    if len(args.var) == 0:
-        pass
-    else:
-        match args.cmd:
-            case "index":
-                args.index = nsp.index
-                args.subindex = nsp.subindex if nsp.subindex else SearchMode.none
-                print(bool(nsp.subindex))
-            case "find":
-                args.index = SearchMode.auto if nsp.index is None else nsp.index
-                if isinstance(nsp.subindex, str):
-                    args.subindex = SearchMode[nsp.subindex]
-                else:
-                    args.subindex = (
-                        int(nsp.subindex[0]),
-                        int(nsp.subindex[1]),
-                        int(nsp.subindex[2]),
-                    )
-    return args

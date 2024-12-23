@@ -19,7 +19,7 @@ dependencies = ["numpy", "meshio", "matplotlib"]
 
 [project.scripts]
 abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"
-cheart2vtu = "cheartpy.cli_cheart2vtu:main_cli"
+cheart2vtu = "cheartpy.cheart2vtu.api:cheart2vtu_cli"
 makemesh = "cheartpy.cli_mesh:main_cli"
 maketimeseries = "cheartpy.cli_vtu_series:main_cli"
 varcomp = "cheartpy.cmd_tools:main"

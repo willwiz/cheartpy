@@ -23,10 +23,10 @@ from concurrent import futures
 
 def create_XML_for_boundary(
     prefix: str,
-    fx: Arr[tuple[int, int], f64],
+    fx: Mat[f64],
     tp: CheartTopology,
-    fb: Arr[tuple[int, int], int_t],
-    fbid: Arr[tuple[int], int_t],
+    fb: Mat[int_t],
+    fbid: Vec[int_t],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
@@ -91,7 +91,7 @@ def export_boundary(
 def create_XML_for_mesh(
     prefix: str,
     tp: CheartTopology,
-    fx: Arr[tuple[int, int], f64],
+    fx: Mat[f64],
     var: Mapping[str, Mat[f64]],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")

@@ -1,3 +1,4 @@
+from ..cheart_mesh.io import fix_suffix
 from ..tools.basiclogging import BLogger, ILogger
 from .interfaces import CmdLineArgs
 from ..io.indexing import SearchMode, IIndexIterator
@@ -23,14 +24,17 @@ def print_header(LOG: ILogger = BLogger("INFO")) -> None:
 
 
 def print_input_info(inp: CmdLineArgs, LOG: ILogger = BLogger("INFO")) -> None:
-    LOG.disp(f"<<< Running Program with Mode: {inp.cmd}")
-    LOG.disp(f"The retrieving data from ", inp.input_folder)
-    LOG.disp(f"The space file to use is ", inp.xfile)
-    LOG.disp(f"The topology file to use is ", inp.tfile)
-    LOG.disp(f"The boundary file to use is ", inp.bfile)
-    if inp.bfile is not None:
-        LOG.disp(f"<<< Output file name (boundary): {inp.prefix}_boundary.vtu")
-    LOG.disp(f"The varibles to add are: ")
+    LOG.disp(f"The retrieving data from ", inp.input_dir)
+    match inp.mesh:
+        case str():
+            LOG.disp(f"<<< Running Program with Mode: find")
+            LOG.disp(f"The prefix for the mesh to use is", fix_suffix(inp.mesh))
+        case (x, t, b):
+            LOG.disp(f"<<< Running Program with Mode: index")
+            LOG.disp(f"The space file to use is ", x)
+            LOG.disp(f"The topology file to use is ", t)
+            LOG.disp(f"The boundary file to use is ", b)
+    LOG.disp(f"<<< The varibles to add are: ")
     LOG.disp(inp.var)
     match inp.index:
         case SearchMode.none:
@@ -47,7 +51,7 @@ def print_input_info(inp: CmdLineArgs, LOG: ILogger = BLogger("INFO")) -> None:
         case (i, j, k):
             LOG.disp(f"<<< Sub iterations: From {i} to {j} in steps of {k}")
     LOG.disp(f"<<< Output file name prefix: {inp.prefix}")
-    LOG.disp(f"<<< Output folder:           {inp.output_folder}")
+    LOG.disp(f"<<< Output folder:           {inp.output_dir}")
     LOG.disp(f"<<< Compress VTU:            {inp.compression}")
     LOG.disp(f"<<< Import data as binary:   {inp.binary}")
     if inp.time_series is not None:

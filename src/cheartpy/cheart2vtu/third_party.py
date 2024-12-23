@@ -10,11 +10,11 @@ def compress_vtu(name: str, LOG: ILogger = BLogger("NULL")) -> None:
     """
     Reads the name of a file and compresses it in vtu format
     """
-    if LOG.mode > LogLevel.INFO:
+    if LOG.level > LogLevel.INFO:
         size = os.stat(name).st_size
         LOG.debug("File size before: {:.2f} MB".format(size / 1024**2))
     mesh = meshio._helpers.read(name, file_format="vtu")
     meshio.vtu.write(name, mesh, binary=True, compression="zlib")
-    if LOG.mode > LogLevel.INFO:
+    if LOG.level > LogLevel.INFO:
         size = os.stat(name).st_size
         LOG.debug("File size after: {:.2f} MB".format(size / 1024**2))
