@@ -2,7 +2,8 @@ __all__ = ["LOG_LEVEL", "LogLevel", "BLogger", "NullLogger", "ILogger", "bcolors
 import abc
 import enum
 import os
-from typing import Any, Literal, Mapping
+import re
+from typing import Any, Literal, Mapping, TypeIs
 from datetime import datetime
 import traceback
 from inspect import getframeinfo, stack
@@ -179,3 +180,58 @@ class NullLogger(ILogger):
 
     def exception(self, e: Exception) -> Exception:
         return e
+
+
+# 7-bit and 8-bit C1 ANSI sequences
+ANSI_ESCAPE_8BIT = re.compile(
+    r"""
+    (?: # either 7-bit C1, two bytes, ESC Fe (omitting CSI)
+        \x1B
+        [@-Z\\-_]
+    |   # or a single 8-bit byte Fe (omitting CSI)
+        [\x80-\x9A\x9C-\x9F]
+    |   # or CSI + control codes
+        (?: # 7-bit CSI, ESC [
+            \x1B\[
+        |   # 8-bit CSI, 9B
+            \x9B
+        )
+        [0-?]*  # Parameter bytes
+        [ -/]*  # Intermediate bytes
+        [@-~]   # Final byte
+    )
+""",
+    re.VERBOSE,
+)
+
+# 7-bit and 8-bit C1 ANSI sequences
+ANSI_ESCAPE_8BITB = re.compile(
+    rb"""
+    (?: # either 7-bit C1, two bytes, ESC Fe (omitting CSI)
+        \x1B
+        [@-Z\\-_]
+    |   # or a single 8-bit byte Fe (omitting CSI)
+        [\x80-\x9A\x9C-\x9F]
+    |   # or CSI + control codes
+        (?: # 7-bit CSI, ESC [
+            \x1B\[
+        |   # 8-bit CSI, 9B
+            \x9B
+        )
+        [0-?]*  # Parameter bytes
+        [ -/]*  # Intermediate bytes
+        [@-~]   # Final byte
+    )
+""",
+    re.VERBOSE,
+)
+
+
+def filter_ansi[T: (str, bytes)](text: T) -> T:
+    match text:
+        case str():
+            return ANSI_ESCAPE_8BIT.sub("", text)
+        case bytes():
+            return ANSI_ESCAPE_8BITB.sub(b"", text)
+        case _:
+            raise TypeError("text must be str or bytes")
