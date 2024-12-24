@@ -17,7 +17,7 @@ def print_header(LOG: ILogger = BLogger("INFO")) -> None:
     LOG.disp("    Program for converting CHeart data to vtk unstructured grid format")
     LOG.disp("    author: Andreas Hessenthaler")
     LOG.disp("    modified by: Will Zhang")
-    LOG.disp("    data: 10/17/2023")
+    LOG.disp("    data: 12/24/2024")
     LOG.disp(
         "################################################################################################\n"
     )

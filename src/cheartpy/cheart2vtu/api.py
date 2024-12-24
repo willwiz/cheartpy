@@ -1,5 +1,5 @@
 from typing import Literal, Sequence
-from ..tools.basiclogging import BLogger, LogLevel
+from ..tools.basiclogging import LOG_LEVEL, BLogger, LogLevel
 from .interfaces import CmdLineArgs
 from .parser_main import *
 from .print_headers import (
@@ -41,7 +41,7 @@ def cheart2vtu_api(
     compression: bool = True,
     progress_bar: bool = True,
     cores: int = 1,
-    log: LogLevel = LogLevel.INFO,
+    log: LOG_LEVEL = "INFO",
 ) -> None:
     args = get_api_args(
         prefix=prefix,
@@ -57,7 +57,7 @@ def cheart2vtu_api(
         compression=compression,
         progress_bar=progress_bar,
         cores=cores,
-        log=log,
+        log=LogLevel[log],
     )
     cheart2vtu(args)
 
