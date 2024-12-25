@@ -1,3 +1,4 @@
+__all__ = ["IVtkElementInterface", "get_element_type", "XMLWriters", "XMLElement"]
 import abc
 from typing import Any, TextIO, Protocol, ClassVar
 from ..var_types import *
@@ -8,7 +9,7 @@ class IVtkElementInterface(Protocol):
     vtksurfaceid: ClassVar[int | None]
     @staticmethod
     @abc.abstractmethod
-    def write(fout: TextIO, elem: Arr[tuple[int], int_t], level: int = 0) -> None: ...
+    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None: ...
 
 def get_element_type(
     nnodes: int, boundary: str | None
@@ -27,7 +28,7 @@ class XMLElement:
     def add_elem(self, elem: XMLElement) -> XMLElement: ...
     def add_data(
         self,
-        arr: Arr[Any, Any],
+        arr: Mat[Any],
         writer: WRITERSIGS = XMLWriters.PointWriter,
     ) -> None: ...
     def write(self, fout: TextIO, level: int = 0) -> None: ...

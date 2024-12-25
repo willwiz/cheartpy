@@ -30,7 +30,7 @@ class XMLWriters:
 
 
 class XMLElement:
-    data: Arr[Any, Any] | None
+    data: Mat[Any] | None
     datawriter: WRITERSIGS
     attribs: str
     subelems: list[XMLElement]

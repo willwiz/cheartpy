@@ -2,6 +2,7 @@ __all__ = ["LOG_LEVEL", "LogLevel", "BLogger", "NullLogger", "ILogger", "bcolors
 import abc
 import enum
 import os
+import re
 from typing import Any, Literal, Mapping
 from datetime import datetime
 import traceback
@@ -61,7 +62,7 @@ RB: Mapping[LogLevel, str] = {
 class ILogger(abc.ABC):
     @property
     @abc.abstractmethod
-    def mode(self) -> LogLevel: ...
+    def level(self) -> LogLevel: ...
     @abc.abstractmethod
     def disp(self, *msg: Any) -> None: ...
     @abc.abstractmethod
@@ -81,8 +82,8 @@ class ILogger(abc.ABC):
 
 
 class BLogger(ILogger):
-    __slots__ = ["level"]
-    level: LogLevel
+    __slots__ = ["_level"]
+    _level: LogLevel
 
     def __init__(
         self,
@@ -91,11 +92,11 @@ class BLogger(ILogger):
             | Literal["NULL", "FATAL", "ERROR", "WARN", "BRIEF", "INFO", "DEBUG"]
         ),
     ) -> None:
-        self.level = level if isinstance(level, LogLevel) else LogLevel[level]
+        self._level = level if isinstance(level, LogLevel) else LogLevel[level]
 
     @property
-    def mode(self) -> LogLevel:
-        return self.level
+    def level(self) -> LogLevel:
+        return self._level
 
     def print(self, *msg: Any, level: LogLevel):
         if len(msg) < 1:
@@ -109,32 +110,32 @@ class BLogger(ILogger):
             print(m)
 
     def debug(self, *msg: Any) -> None:
-        if self.level >= LogLevel.DEBUG:
+        if self._level >= LogLevel.DEBUG:
             self.print(*msg, level=LogLevel.DEBUG)
 
     def info(self, *msg: Any) -> None:
-        if self.level >= LogLevel.INFO:
+        if self._level >= LogLevel.INFO:
             self.print(*msg, level=LogLevel.INFO)
 
     def disp(self, *msg: Any) -> None:
-        if self.level >= LogLevel.INFO:
+        if self._level >= LogLevel.INFO:
             print(*msg)
 
     def brief(self, *msg: Any) -> None:
-        if self.level >= LogLevel.BRIEF:
+        if self._level >= LogLevel.BRIEF:
             self.print(*msg, level=LogLevel.BRIEF)
 
     def warn(self, *msg: Any) -> None:
-        if self.level >= LogLevel.WARN:
+        if self._level >= LogLevel.WARN:
             self.print(*msg, level=LogLevel.WARN)
 
     def error(self, *msg: Any) -> None:
         print("Call Error")
-        if self.level >= LogLevel.ERROR:
+        if self._level >= LogLevel.ERROR:
             self.print(*msg, level=LogLevel.ERROR)
 
     def fatal(self, *msg: Any) -> None:
-        if self.level >= LogLevel.FATAL:
+        if self._level >= LogLevel.FATAL:
             self.print(*msg, level=LogLevel.FATAL)
 
     def exception(self, e: Exception):
@@ -143,15 +144,15 @@ class BLogger(ILogger):
 
 
 class NullLogger(ILogger):
-    __slots__ = ["level"]
-    level: LogLevel
+    __slots__ = ["_level"]
+    _level: LogLevel
 
     def __init__(self) -> None:
-        self.level = LogLevel.NULL
+        self._level = LogLevel.NULL
 
     @property
-    def mode(self) -> LogLevel:
-        return self.level
+    def level(self) -> LogLevel:
+        return self._level
 
     def print(self, *msg: Any, level: LogLevel) -> None:
         pass
@@ -179,3 +180,58 @@ class NullLogger(ILogger):
 
     def exception(self, e: Exception) -> Exception:
         return e
+
+
+# 7-bit and 8-bit C1 ANSI sequences
+ANSI_ESCAPE_8BIT = re.compile(
+    r"""
+    (?: # either 7-bit C1, two bytes, ESC Fe (omitting CSI)
+        \x1B
+        [@-Z\\-_]
+    |   # or a single 8-bit byte Fe (omitting CSI)
+        [\x80-\x9A\x9C-\x9F]
+    |   # or CSI + control codes
+        (?: # 7-bit CSI, ESC [
+            \x1B\[
+        |   # 8-bit CSI, 9B
+            \x9B
+        )
+        [0-?]*  # Parameter bytes
+        [ -/]*  # Intermediate bytes
+        [@-~]   # Final byte
+    )
+""",
+    re.VERBOSE,
+)
+
+# 7-bit and 8-bit C1 ANSI sequences
+ANSI_ESCAPE_8BITB = re.compile(
+    rb"""
+    (?: # either 7-bit C1, two bytes, ESC Fe (omitting CSI)
+        \x1B
+        [@-Z\\-_]
+    |   # or a single 8-bit byte Fe (omitting CSI)
+        [\x80-\x9A\x9C-\x9F]
+    |   # or CSI + control codes
+        (?: # 7-bit CSI, ESC [
+        \x1B\[
+    |   # 8-bit CSI, 9B
+        \x9B
+        )
+        [0-?]*  # Parameter bytes
+        [ -/]*  # Intermediate bytes
+        [@-~]   # Final byte
+    )
+""",
+    re.VERBOSE,
+)
+
+
+def filter_ansi[T: (str, bytes)](text: T) -> T:
+    match text:
+        case str():
+            return ANSI_ESCAPE_8BIT.sub("", text)
+        case bytes():
+            return ANSI_ESCAPE_8BITB.sub(b"", text)
+        case _:
+            raise TypeError("text must be str or bytes")
