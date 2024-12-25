@@ -3,7 +3,7 @@ import abc
 import enum
 import os
 import re
-from typing import Any, Literal, Mapping, TypeIs
+from typing import Any, Literal, Mapping
 from datetime import datetime
 import traceback
 from inspect import getframeinfo, stack
@@ -214,9 +214,9 @@ ANSI_ESCAPE_8BITB = re.compile(
         [\x80-\x9A\x9C-\x9F]
     |   # or CSI + control codes
         (?: # 7-bit CSI, ESC [
-            \x1B\[
-        |   # 8-bit CSI, 9B
-            \x9B
+        \x1B\[
+    |   # 8-bit CSI, 9B
+        \x9B
         )
         [0-?]*  # Parameter bytes
         [ -/]*  # Intermediate bytes
