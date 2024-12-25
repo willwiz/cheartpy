@@ -234,7 +234,11 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
     if nsp.prefix:
         prefix = nsp.prefix
     else:
-        prefix = nsp.outfolder.replace("_vtu", "") if nsp.outfolder else "paraview"
+        prefix = (
+            os.path.basename(nsp.outfolder).replace("_vtu", "")
+            if nsp.outfolder
+            else "paraview"
+        )
     args = CmdLineArgs(
         nsp.cmd,
         nsp.var,
