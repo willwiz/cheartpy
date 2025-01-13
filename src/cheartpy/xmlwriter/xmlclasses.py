@@ -51,7 +51,7 @@ class XMLElement:
 
     def add_data(
         self,
-        arr: Arr[Any, Any],
+        arr: Mat[f64] | Mat[int_t],
         writer: WRITERSIGS = XMLWriters.PointWriter,
     ) -> None:
         self.data = arr

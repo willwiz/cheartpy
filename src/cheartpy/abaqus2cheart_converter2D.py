@@ -200,19 +200,19 @@ class ReaderPrint:
 @dc.dataclass(slots=True)
 class MeshTypeSpace:
     n: int
-    data: Arr[tuple[int, int], f64]
+    data: Mat[f64]
 
 
 @dc.dataclass(slots=True)
 class MeshTypeTopology:
     n: int
-    data: Arr[tuple[int, int], int_t]
+    data: Mat[int_t]
 
 
 @dc.dataclass(slots=True)
 class MeshTypeBoundary:
     n: int
-    data: Arr[tuple[int, int], int_t]
+    data: Mat[int_t]
 
 
 @dc.dataclass(slots=True)

@@ -59,11 +59,11 @@ def check_for_meshes(*names: str, bc: bool = True) -> bool:
     return all(os.path.isfile(s) for s in meshes)
 
 
-def CHRead_d_utf(file: str) -> Arr[tuple[int, int], f64]:
+def CHRead_d_utf(file: str) -> Mat[f64]:
     return np.loadtxt(file, skiprows=1, dtype=float, ndmin=2)
 
 
-def CHRead_d_bin(file: str) -> Arr[tuple[int, int], f64]:
+def CHRead_d_bin(file: str) -> Mat[f64]:
     with open(file, mode="rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
@@ -85,8 +85,8 @@ def CHRead_d(file: str) -> Mat[f64]:
     return CHRead_d_utf(file)
 
 
-def CHRead_t_utf(file: str) -> Arr[tuple[int, int], int_t]:
-    return np.loadtxt(file, skiprows=1, dtype=np.int32, ndmin=2)
+def CHRead_t_utf(file: str) -> Mat[int_t]:
+    return np.loadtxt(file, skiprows=1, dtype=int_t, ndmin=2)
 
 
 def CHRead_header_utf(file: str) -> tuple[int, int]:
@@ -97,7 +97,7 @@ def CHRead_header_utf(file: str) -> tuple[int, int]:
     return nelem, nnode
 
 
-def CHRead_b_utf(file: str) -> Arr[tuple[int, int], int_t]:
+def CHRead_b_utf(file: str) -> Mat[int_t]:
     return np.loadtxt(file, skiprows=1, dtype=int, ndmin=2)
 
 
@@ -113,6 +113,8 @@ def CHWrite_d_utf(file: str, data: Vec[f64] | Mat[f64]) -> None:
             nn = 1
         case int(), int():
             ne, nn = data.shape
+        case _:
+            raise ValueError("Data must be 1D or 2D array")
         # case _:
         #     raise ValueError("Data must be 1D or 2D array")
     # if data.ndim == 1:
@@ -156,7 +158,7 @@ def CHWrite_t_utf(file: str, data: Mat[int_t], nn: int | None = None) -> None:
     return
 
 
-def CHWrite_iarr_utf(file: str, data: Arr[tuple[int, int], int_t]) -> None:
+def CHWrite_iarr_utf(file: str, data: Mat[int_t]) -> None:
     dim = data.shape
     with open(file, "w") as f:
         f.write(f"{dim[0]:12d}\n")
@@ -167,7 +169,7 @@ def CHWrite_iarr_utf(file: str, data: Arr[tuple[int, int], int_t]) -> None:
     return
 
 
-def CHWrite_Str_utf(file: str, data: Arr[tuple[int, int], char]) -> None:
+def CHWrite_Str_utf(file: str, data: Mat[char]) -> None:
     with open(file, "w") as f:
         f.write("{:>12}".format(data.shape[0]))
         f.write("{:>12}\n".format(data.shape[1]))

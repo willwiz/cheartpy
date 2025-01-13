@@ -8,7 +8,7 @@ def cheart2vtu_api(
     prefix: str | None = None,
     index: tuple[int, int, int] | None = None,
     subindex: tuple[int, int, int] | Literal["auto", "none"] | None = "none",
-    vars: list[str] = list(),
+    vars: Sequence[str] = list(),
     input_dir: str = "",
     output_dir: str = "",
     mesh: str | tuple[str, str, str] = "mesh",

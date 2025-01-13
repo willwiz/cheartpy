@@ -12,7 +12,7 @@ import enum
 from ..io.indexing import SearchMode
 from ..tools.basiclogging import LogLevel
 import numpy as np
-from typing import Final
+from typing import Final, Sequence
 from ..var_types import *
 from ..xmlwriter import IVtkElementInterface, get_element_type
 
@@ -34,7 +34,7 @@ class IFormattedName(abc.ABC):
 @dc.dataclass(slots=True)
 class CmdLineArgs:
     mesh: Final[str | tuple[str, str, str]]
-    var: Final[list[str]]
+    var: Final[Sequence[str]]
     space: Final[str | None] = None
     prefix: Final[str | None] = None
     input_dir: Final[str] = ""
@@ -112,7 +112,7 @@ class VariableCache:
 
 @dc.dataclass(slots=True)
 class InputArguments:
-    space: str | Arr[tuple[int, int], f64]
+    space: str | Mat[f64]
     disp: str | None
     var: dict[str, str]
     prefix: str

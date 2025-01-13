@@ -6,7 +6,7 @@ __all__ = [
     "LL_interp",
 ]
 import numpy as np
-from typing import cast, Mapping, overload
+from typing import cast, overload
 from ..var_types import *
 from ..cheart.trait import IVariable
 from ..cheart.api import create_variable
@@ -63,16 +63,17 @@ def L2norm(x: Vec[f64]) -> float:
 
 def LL_basis(
     var: Mat[f64] | Vec[f64], nodes: Vec[f64], x: Vec[f64]
-) -> Mapping[int, Mat[f64]]:
-    basis_func = {i: np.zeros_like(x) for i in range(2)}
-    in_domain = (nodes[0] <= x) & (x <= nodes[1])
-    basis_func[0][in_domain] = 1 - (x[in_domain] - nodes[0]) / (nodes[1] - nodes[0])
-    basis_func[1][in_domain] = (x[in_domain] - nodes[0]) / (nodes[1] - nodes[0])
-    return {k: var[k] * v[:, None] for k, v in basis_func.items()}
+) -> tuple[Vec[int_t], Mat[f64]]:
+    basis = {i: np.zeros_like(x) for i in range(2)}
+    domain = (nodes[0] <= x) & (x <= nodes[1])
+    basis[0][domain] = 1 - (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
+    basis[1][domain] = (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
+    return (domain, var[0] * basis[0][domain, None] + var[1] * basis[1][domain, None])
 
 
-def LL_interp(top: CLPartition, var: Mat[f64] | Vec[f64], cl: Vec[f64]) -> Mat[f64]:
-    x_bar = [
-        v for elem in top.elem for v in LL_basis(var[elem], top.node[elem], cl).values()
-    ]
-    return cast(Mat[f64], sum(x_bar))
+def LL_interp(top: CLPartition, var: Mat[f64], cl: Vec[f64]) -> Mat[f64]:
+    x_bar = [LL_basis(var[elem], top.node[elem], cl) for elem in top.elem]
+    res = np.zeros((len(cl), var.shape[1]), dtype=float)
+    for k, v in x_bar:
+        res[k] = v
+    return res
