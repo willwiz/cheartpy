@@ -166,7 +166,7 @@ parser_find.add_argument(
 parser_find.add_argument(
     "--space",
     "-x",
-    dest="space",
+    dest="xfile",
     action="store",
     default=None,
     type=str,
