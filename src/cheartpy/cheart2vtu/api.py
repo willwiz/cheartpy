@@ -31,7 +31,7 @@ def cheart2vtu_api(
     prefix: str | None = None,
     mesh: str | tuple[str, str, str] = "mesh",
     space: str | None = None,
-    vars: list[str] = list(),
+    vars: Sequence[str] = list(),
     input_dir: str = "",
     output_dir: str = "",
     index: tuple[int, int, int] | None = None,

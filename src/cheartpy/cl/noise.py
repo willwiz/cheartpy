@@ -8,7 +8,7 @@ from scipy.interpolate import interpn  # type: ignore
 from ..var_types import *
 
 
-def unbias[T: (tuple[int], T2[int], T3[int])](vals: Arr[T, f64]) -> Arr[T, f64]:
+def unbias[T: (Vec[f64], Mat[f64], MatV[f64])](vals: T) -> T:
     return vals - np.mean(vals)
 
 

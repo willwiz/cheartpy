@@ -2,15 +2,15 @@ import numpy as np
 from ..var_types import *
 
 
-def read_array_int(name: str, skip: int = 0) -> Arr[Any, int_t]:
+def read_array_int(name: str, skip: int = 0) -> Mat[int_t]:
     return np.loadtxt(name, skiprows=skip, dtype=int)
 
 
-def read_array_float(name: str, skip: int = 0) -> Arr[Any, f64]:
+def read_array_float(name: str, skip: int = 0) -> Mat[f64]:
     return np.loadtxt(name, skiprows=skip, dtype=float)
 
 
-def write_array_int(name: str, arr: Arr[Any, int_t]) -> None:
+def write_array_int(name: str, arr: Mat[int_t]) -> None:
     with open(name, "w") as f:
         for i in arr:
             for j in i:
@@ -18,7 +18,7 @@ def write_array_int(name: str, arr: Arr[Any, int_t]) -> None:
             f.write("\n")
 
 
-def write_array_float(name: str, arr: Arr[Any, f64]) -> None:
+def write_array_float(name: str, arr: Mat[f64]) -> None:
     with open(name, "w") as f:
         for i in arr:
             for j in i:
