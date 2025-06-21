@@ -2,7 +2,7 @@
 
 import argparse
 
-from .hex_core import create_hex_mesh
+from .hex_core.api import create_hex_mesh
 
 parser = argparse.ArgumentParser("block", description="Make a cube")
 parser.add_argument(

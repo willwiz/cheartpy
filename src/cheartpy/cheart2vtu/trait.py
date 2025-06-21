@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 __all__ = [
     "CheartTopology",
     "CmdLineArgs",
@@ -13,11 +17,12 @@ from collections.abc import Sequence
 from typing import Final
 
 import numpy as np
+from arraystubs import Arr1, Arr2
+from pytools.logging.trait import LogLevel
 
-from ..io.indexing import SearchMode
-from ..tools.basiclogging import LogLevel
-from ..var_types import *
-from ..xmlwriter import IVtkElementInterface, get_element_type
+from cheartpy.io.indexing.interfaces import SearchMode
+from cheartpy.vtk.api import guess_elem_type_from_dim
+from cheartpy.vtk.trait import VtkType
 
 
 class ProgramMode(enum.StrEnum):
@@ -31,7 +36,7 @@ class ProgramMode(enum.StrEnum):
 
 class IFormattedName(abc.ABC):
     @abc.abstractmethod
-    def __getitem__(self, i: str | int) -> str: ...
+    def __getitem__(self, i: str | int) -> Path: ...
 
 
 @dc.dataclass(slots=True)
@@ -69,14 +74,14 @@ class ProgramArgs:
     var: Final[dict[str, IFormattedName]]
 
 
-class CheartTopology:
+class CheartTopology[I: np.integer]:
     __slots__ = ["_ft", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
 
-    _ft: Mat[int_t]
+    _ft: Arr2[I]
     ne: int
     nc: int
-    vtkelementtype: type[IVtkElementInterface]
-    vtksurfacetype: type[IVtkElementInterface]
+    vtkelementtype: VtkType
+    vtksurfacetype: VtkType | None
 
     def __init__(self, tfile: str, bfile: str | None) -> None:
         ################################################################################################
@@ -88,34 +93,35 @@ class CheartTopology:
         self.nc = self._ft.shape[1]
         # guess the VTK element type
         # bilinear triangle
-        self.vtkelementtype, self.vtksurfacetype = get_element_type(self.nc, bfile)
+        vtk = guess_elem_type_from_dim(self.nc, bfile)
+        self.vtkelementtype, self.vtksurfacetype = vtk.elem, vtk.surf
 
-    def __setitem__(self, index: int, data: Vec[int_t]) -> None:
+    def __setitem__(self, index: int, data: Arr1[I]) -> None:
         self._ft[index] = data
 
-    def __getitem__(self, index: int) -> int | Vec[int_t]:
+    def __getitem__(self, index: int) -> int | Arr1[I]:
         return self._ft[index]
 
-    def get_data(self) -> Mat[int_t]:
+    def get_data(self) -> Arr2[I]:
         return self._ft
 
 
 @dc.dataclass(slots=True)
-class VariableCache:
-    top: Final[CheartTopology]
+class VariableCache[F: np.floating, I: np.integer]:
+    top: Final[CheartTopology[I]]
     t: str | int
     space_i: str
     disp_i: str | None
-    space: Mat[f64]
-    disp: Mat[f64]
-    x: Mat[f64]
-    var_i: dict[str, str] = dc.field(default_factory=dict)
-    var: dict[str, Mat[f64]] = dc.field(default_factory=dict)
+    space: Arr2[F]
+    disp: Arr2[F]
+    x: Arr2[F]
+    var_i: dict[str, Path] = dc.field(default_factory=dict[str, Path])
+    var: dict[str, Arr2[F]] = dc.field(default_factory=dict[str, Arr2[F]])
 
 
 @dc.dataclass(slots=True)
 class InputArguments:
-    space: str | Mat[f64]
+    space: str | Arr2[np.float64]
     disp: str | None
     var: dict[str, str]
     prefix: str
