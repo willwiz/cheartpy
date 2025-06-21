@@ -1,20 +1,24 @@
-# type: ignore
-# meshio does not have properly implemented stubs, strict type checking will fail
+# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
+from __future__ import annotations
+
+from pathlib import Path
+
 __all__ = ["compress_vtu"]
-import os
-from ..tools.basiclogging import BLogger, ILogger, LogLevel
+
+from typing import TYPE_CHECKING
+
 import meshio
+from pytools.logging.api import BLogger
+
+if TYPE_CHECKING:
+    from pytools.logging.trait import ILogger
 
 
-def compress_vtu(name: str, LOG: ILogger = BLogger("NULL")) -> None:
-    """
-    Reads the name of a file and compresses it in vtu format
-    """
-    if LOG.level > LogLevel.INFO:
-        size = os.stat(name).st_size
-        LOG.debug("File size before: {:.2f} MB".format(size / 1024**2))
-    mesh = meshio._helpers.read(name, file_format="vtu")
+def compress_vtu(name: Path | str, log: ILogger | None = None) -> None:
+    """Read the name of a file and compresses it in vtu format."""
+    if log is None:
+        log = BLogger("DEBUG")
+    log.debug(f"File size before: {Path(name).stat().st_size / 1024**2:.2f} MB")
+    mesh = meshio.read(name, file_format="vtu")
     meshio.vtu.write(name, mesh, binary=True, compression="zlib")
-    if LOG.level > LogLevel.INFO:
-        size = os.stat(name).st_size
-        LOG.debug("File size after: {:.2f} MB".format(size / 1024**2))
+    log.debug(f"File size after: {Path(name).stat().st_size / 1024**2:.2f} MB")

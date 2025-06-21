@@ -4,7 +4,7 @@ from typing import Literal
 
 from pytools.logging.trait import LogLevel
 
-from .trait import CmdLineArgs
+from .struct import CmdLineArgs
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None: ...
 def cheart2vtu_api(

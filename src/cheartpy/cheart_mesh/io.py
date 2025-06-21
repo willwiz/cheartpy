@@ -17,11 +17,13 @@ __all__ = [
 ]
 import struct
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr, Arr2
 
-# from ..var_types import *
+if TYPE_CHECKING:
+    from arraystubs import Arr, Arr2
+
 
 """
 CHeart Read Array functions

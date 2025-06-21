@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "dsf_hexahedron_linear",
     "dsf_hexahedron_quadratic",
@@ -22,7 +24,6 @@ __all__ = [
 ]
 import numpy as np
 
-from ..var_types import *
 from ..vtk.lagrange_shape_funcs import dlagrange_2, lagrange_2
 
 

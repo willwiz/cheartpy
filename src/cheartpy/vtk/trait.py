@@ -4,11 +4,12 @@ import dataclasses as dc
 
 __all__ = ["VtkElem", "VtkType"]
 import enum
-from typing import TYPE_CHECKING, Callable, Literal, NamedTuple
-
-import numpy as np
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import numpy as np
     from arraystubs import Arr1, Arr2
 
 

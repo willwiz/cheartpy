@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 __all__ = ["create_square_mesh"]
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import T2, Arr1, Arr2
 
 from cheartpy.cheart_mesh.data import (
     CheartMesh,
@@ -11,6 +14,9 @@ from cheartpy.cheart_mesh.data import (
 )
 from cheartpy.vtk.impl import VTKLINE1, VTKQUADRILATERAL1
 from cheartpy.vtk.trait import VtkType
+
+if TYPE_CHECKING:
+    from arraystubs import T2, Arr1, Arr2
 
 
 def create_square_nodal_index(nx: int, ny: int) -> Arr2[np.intc]:

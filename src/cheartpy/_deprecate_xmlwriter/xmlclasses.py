@@ -6,7 +6,6 @@ __all__ = ["XMLElement", "XMLWriters"]
 from collections.abc import Callable
 from typing import TextIO
 
-# from ..var_types import *
 from arraystubs import Arr1, Arr2
 
 type WRITERSIGS = Callable[[TextIO, Arr1[np.generic], int], None]

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "convert_cartesian_space_to_cylindrical",
     "convert_to_cylindrical",
@@ -8,10 +10,10 @@ __all__ = [
     "update_boundary",
     "update_elems",
 ]
-from collections.abc import Mapping
+
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr2
 
 from cheartpy.cheart_mesh.data import (
     CheartMesh,
@@ -24,6 +26,11 @@ from cheartpy.cheart_mesh.validation import remove_dangling_nodes
 from cheartpy.vtk.trait import VtkType
 
 from .data import CartesianDirection
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from arraystubs import Arr2
 
 
 def gen_end_node_mapping[I: np.integer](
