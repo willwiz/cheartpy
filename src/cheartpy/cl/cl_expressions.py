@@ -1,5 +1,6 @@
 __all__ = ["LL_str"]
 import numpy as np
+
 from ..cheart.trait import IVariable
 from ..var_types import *
 

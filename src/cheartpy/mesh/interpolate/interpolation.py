@@ -1,16 +1,21 @@
+from __future__ import annotations
+
 __all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]
 from collections.abc import Mapping
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from arraystubs import Arr1, Arr2
 from pytools.logging.api import NULL_LOGGER
-from pytools.logging.trait import ILogger
 
-from cheartpy.cheart_mesh.data import CheartMesh
 from cheartpy.cheart_mesh.io import chread_d, chwrite_d_utf
 
 from .maps import L2QMAPDICT, L2QTYPEDICT
+
+if TYPE_CHECKING:
+    from pytools.logging.trait import ILogger
+
+    from cheartpy.cheart_mesh.data import CheartMesh
 
 type INTERP_MAP[T: np.integer] = Mapping[int, Arr1[T]]
 

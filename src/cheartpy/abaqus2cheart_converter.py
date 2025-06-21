@@ -7,13 +7,11 @@ import enum
 import sys
 from argparse import RawTextHelpFormatter
 from collections import defaultdict
-from collections.abc import Callable, Sequence
 from concurrent import futures
 from pathlib import Path
-from typing import Any, NamedTuple, Self, TextIO
+from typing import TYPE_CHECKING, Any, NamedTuple, Self, TextIO
 
 import numpy as np
-from arraystubs import Arr2
 
 from .cheart_mesh.io import (
     chwrite_d_utf,
@@ -22,7 +20,10 @@ from .cheart_mesh.io import (
     chwrite_t_utf,
 )
 
-# from .var_types import *
+if TYPE_CHECKING:
+    from collections.abc import Callable, Sequence
+
+    from arraystubs import Arr2
 
 ################################################################################################
 # Check if multiprocessing is available

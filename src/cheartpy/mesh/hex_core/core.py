@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "create_boundary",
     "create_space",
@@ -5,8 +7,9 @@ __all__ = [
     "create_square_nodal_index",
     "create_topology",
 ]
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import T3, Arr1, Arr3
 
 from cheartpy.cheart_mesh.data import (
     CheartMeshBoundary,
@@ -16,6 +19,9 @@ from cheartpy.cheart_mesh.data import (
 )
 from cheartpy.vtk.impl import VTKHEXAHEDRON1, VTKQUADRILATERAL1
 from cheartpy.vtk.trait import VtkType
+
+if TYPE_CHECKING:
+    from arraystubs import T3, Arr1, Arr3
 
 
 def create_square_nodal_index(nx: int, ny: int, nz: int) -> Arr3[np.intc]:

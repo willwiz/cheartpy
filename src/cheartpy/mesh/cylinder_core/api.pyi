@@ -8,29 +8,20 @@ from cheartpy.cheart_mesh.data import CheartMesh
 
 @overload
 def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
+    shape: tuple[float, float, float, float],
     dim: T3[int],
     axis: Literal["x", "y", "z"],
 ) -> tuple[CheartMesh[np.float64, np.intc], None]: ...
 @overload
 def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
+    shape: tuple[float, float, float, float],
     dim: T3[int],
     axis: Literal["x", "y", "z"],
     make_quad: Literal[False],
 ) -> tuple[CheartMesh[np.float64, np.intc], None]: ...
 @overload
 def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
+    shape: tuple[float, float, float, float],
     dim: T3[int],
     axis: Literal["x", "y", "z"],
     make_quad: Literal[True],

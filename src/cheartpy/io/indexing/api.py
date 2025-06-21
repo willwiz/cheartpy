@@ -22,13 +22,14 @@ from .search import find_var_index, find_var_subindex
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+    from pathlib import Path
 
     from pytools.logging.trait import ILogger
 
 
 def find_common_index(
-    var: list[str],
-    root: str | None = None,
+    var: Sequence[str],
+    root: Path | str | None = None,
     log: ILogger | None = None,
 ) -> Sequence[int]:
     if log is None:
@@ -40,8 +41,8 @@ def find_common_index(
 
 
 def find_common_subindex(
-    var: list[str],
-    root: str | None = None,
+    var: Sequence[str],
+    root: Path | str | None = None,
     index: Sequence[int] | None = None,
     log: ILogger | None = None,
 ) -> Mapping[int, Sequence[int]]:
@@ -57,8 +58,8 @@ def find_common_subindex(
 def get_file_name_indexer(
     index: tuple[int, int, int] | SearchMode,
     subindex: tuple[int, int, int] | SearchMode,
-    variables: list[str],
-    root: str | None = None,
+    variables: Sequence[str],
+    root: Path | str | None = None,
     log: ILogger | None = None,
 ) -> IIndexIterator:
     if log is None:

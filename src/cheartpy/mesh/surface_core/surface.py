@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
     "compute_normal_surface_at_center",
@@ -5,17 +7,20 @@ __all__ = [
     "normalize_by_row",
 ]
 from collections import defaultdict
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from numpy.linalg import lstsq
 from pytools.logging.api import NULL_LOGGER
-from pytools.logging.trait import ILogger
 
-from cheartpy.cheart_mesh.data import CheartMesh
 from cheartpy.vtk.api import get_vtk_elem
-from cheartpy.vtk.trait import VtkElem
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1, Arr2
+    from pytools.logging.trait import ILogger
+
+    from cheartpy.cheart_mesh.data import CheartMesh
+    from cheartpy.vtk.trait import VtkElem
 
 _REGRESS_TOL = 0.01
 _DBL_TOL = 1.0e-14
@@ -48,7 +53,7 @@ def compute_normal_surface_at_center[F: np.floating, I: np.integer](
     kind: VtkElem,
     space: Arr2[F],
     elem: Arr2[I],
-    log: ILogger = NULL_LOGGER,
+    _log: ILogger = NULL_LOGGER,
 ) -> Arr2[F]:
     centroid = np.mean(kind.ref, axis=0)
     interp_basis = kind.shape_dfunc(centroid)

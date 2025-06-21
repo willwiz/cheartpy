@@ -1,7 +1,9 @@
 #!/usr/bin/python3
+from __future__ import annotations
+
 import argparse
 
-from .quad_core import create_square_mesh
+from .quad_core.core import create_square_mesh
 
 parser = argparse.ArgumentParser("square", description="Make a square")
 parser.add_argument(

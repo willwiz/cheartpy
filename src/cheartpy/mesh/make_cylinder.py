@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+from __future__ import annotations
 
 import argparse
 from typing import cast
@@ -33,10 +34,7 @@ parser.add_argument("zn", type=int, help="number of elements in z")
 
 def main(args: argparse.Namespace) -> None:
     mesh, quad = create_cylinder_mesh(
-        args.rin,
-        args.rout,
-        args.l,
-        args.b,
+        (args.rin, args.rout, args.l, args.b),
         (args.xn, args.yn, args.zn),
         args.axis,
         cast("bool", args.make_quad),

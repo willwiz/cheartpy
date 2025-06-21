@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr, Arr2
+
+if TYPE_CHECKING:
+    from arraystubs import Arr, Arr2
 
 
 def read_array_int(name: Path | str, skip: int = 0) -> Arr[tuple[int, ...], np.intc]:

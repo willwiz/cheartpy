@@ -2,12 +2,17 @@ from __future__ import annotations
 
 __all__ = ["get_vtk_elem"]
 
+
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import Arr1, Arr2
 
 from cheartpy.vtk.lagrange_shape_funcs import dlagrange_2, lagrange_2
 
 from .trait import VTK_TYPE, VtkElem, VtkType
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1, Arr2
 
 
 def _shape_line_1[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:
@@ -70,33 +75,69 @@ VTKLINE2 = VtkElem(
 )
 
 
+def _shape_triangle_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
+        return np.zeros((3,), dtype=np.float64)
+    return np.array(
+        [[1.0 - pos[0] - pos[1], pos[0], pos[1]]],
+        dtype=np.float64,
+    )
+
+
+def _shape_triangle_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
+        return np.zeros((3, 3), dtype=np.float64)
+    return np.array(
+        [
+            [-1.0, -1.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+        ],
+        dtype=np.float64,
+    )
+
+
 VTKTRIANGLE1 = VtkElem(
     VtkType.LinTriangle,
     VtkType.LinTriangle,
     (0, 1, 2),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float64),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0),
-        np.zeros(3, dtype=pos.dtype),
-        np.array(
-            [[1.0 - pos[0] - pos[1], pos[0], pos[1]]],
-            dtype=pos.dtype,
-        ).T,
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0),
-        np.zeros((3, 3), dtype=pos.dtype),
-        np.array(
-            [
-                [-1.0, -1.0, 0.0],
-                [1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_triangle_1,
+    _shape_triangle_1_deriv,
 )
+
+
+def _shape_triangle_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
+        return np.zeros(6, dtype=np.float64)
+    return np.array(
+        [
+            (1 - pos[0] - pos[1]) * (1 - 2 * pos[0] - 2 * pos[1]),
+            pos[0] * (2 * pos[0] - 1),
+            pos[1] * (2 * pos[1] - 1),
+            4 * pos[0] * (1 - pos[0] - pos[1]),
+            4 * pos[1] * (1 - pos[0] - pos[1]),
+            4 * pos[0] * pos[1],
+        ],
+        dtype=np.float64,
+    )
+
+
+def _shape_triangle_2_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
+        return np.zeros((6, 3), dtype=np.float64)
+    return np.array(
+        [
+            [-3.0 + 4.0 * pos[0] + 4.0 * pos[1], -3.0 + 4.0 * pos[0] + 4.0 * pos[1], 0.0],
+            [-1 + 4.0 * pos[0], 0.0, 0.0],
+            [0.0, -1 + 4.0 * pos[1], 0.0],
+            [4.0 * pos[0] * (-1 + 2 * pos[0] + pos[1]), 4.0 * pos[0], 0.0],
+            [4.0 * pos[1], 4.0 * pos[1] * (-1 + 2 * pos[0] + pos[1]), 0.0],
+            [4.0 * pos[1], 4.0 * pos[0], 0.0],
+        ],
+        dtype=np.float64,
+    )
 
 
 VTKTRIANGLE2 = VtkElem(
@@ -108,49 +149,37 @@ VTKTRIANGLE2 = VtkElem(
         [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0.5, 0, 0], [0, 0.5, 0], [0.5, 0.5, 0]],
         dtype=np.float64,
     ),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0),
-        np.zeros(6, dtype=pos.dtype),
-        np.array(
-            [
-                (1 - pos[0] - pos[1]) * (1 - 2 * pos[0] - 2 * pos[1]),
-                pos[0] * (2 * pos[0] - 1),
-                pos[1] * (2 * pos[1] - 1),
-                4 * pos[0] * (1 - pos[0] - pos[1]),
-                4 * pos[1] * (1 - pos[0] - pos[1]),
-                4 * pos[0] * pos[1],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0),
-        np.zeros((6, 3), dtype=pos.dtype),
-        np.array(
-            [
-                [
-                    -3.0 + 4.0 * pos[0] + 4.0 * pos[1],
-                    -3.0 + 4.0 * pos[0] + 4.0 * pos[1],
-                    0.0,
-                ],
-                [-1 + 4.0 * pos[0], 0.0, 0.0],
-                [0.0, -1 + 4.0 * pos[1], 0.0],
-                [
-                    4.0 * pos[0] * (-1 + 2 * pos[0] + pos[1]),
-                    4.0 * pos[0],
-                    0.0,
-                ],
-                [
-                    4.0 * pos[1],
-                    4.0 * pos[1] * (-1 + 2 * pos[0] + pos[1]),
-                    0.0,
-                ],
-                [4.0 * pos[1], 4.0 * pos[0], 0.0],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_triangle_2,
+    _shape_triangle_2_deriv,
 )
+
+
+def _shape_quad_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] > 1.0) | (pos[1] > 1.0):
+        return np.zeros((4,), dtype=np.float64)
+    return np.array(
+        [
+            (1.0 - pos[0]) * (1.0 - pos[1]),
+            pos[0] * (1.0 - pos[1]),
+            (1.0 - pos[0]) * pos[1],
+            pos[0] * pos[1],
+        ],
+        dtype=np.float64,
+    )
+
+
+def _shape_quad_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] > 1.0) | (pos[1] > 1.0):
+        return np.zeros((4, 3), dtype=np.float64)
+    return np.array(
+        [
+            [-1.0 + pos[1], -1.0 + pos[0], 0.0],
+            [1.0 - pos[1], -pos[0], 0.0],
+            [-pos[1], 1.0 - pos[0], 0.0],
+            [pos[1], pos[0], 0.0],
+        ],
+        dtype=np.float64,
+    )
 
 
 VTKQUADRILATERAL1 = VtkElem(
@@ -159,32 +188,8 @@ VTKQUADRILATERAL1 = VtkElem(
     (0, 1, 3, 2),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.float64),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] > 1.0) | (pos[1] > 1.0),
-        np.zeros(4, dtype=pos.dtype),
-        np.array(
-            [
-                (1.0 - pos[0]) * (1.0 - pos[1]),
-                pos[0] * (1.0 - pos[1]),
-                (1.0 - pos[0]) * pos[1],
-                pos[0] * pos[1],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] > 1.0) | (pos[1] > 1.0),
-        np.zeros((4, 3), dtype=pos.dtype),
-        np.array(
-            [
-                [-1.0 + pos[1], -1.0 + pos[0], 0.0],
-                [1.0 - pos[1], -pos[0], 0.0],
-                [-pos[1], 1.0 - pos[0], 0.0],
-                [pos[1], pos[0], 0.0],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_quad_1,
+    _shape_quad_1_deriv,
 )
 
 
@@ -243,7 +248,7 @@ def _shape_quad_2_deriv[T: np.floating](pos: Arr1[T]) -> Arr2[np.float64]:
             [0.0] * 9,
         ],
         dtype=np.float64,
-    )
+    ).T
 
 
 VTKQUADRILATERAL2 = VtkElem(
@@ -282,37 +287,42 @@ VTKQUADRILATERAL2 = VtkElem(
     _shape_quad_2_deriv,
 )
 
-# NOTE: NOT IMPLEMENTED
+
+def _shape_tetrahedron_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[0] + pos[1] + pos[2] > 1.0):
+        return np.zeros((4,), dtype=np.float64)
+    raise NotImplementedError
+
+
+def _shape_tetrahedron_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[0] + pos[1] + pos[2] > 1.0):
+        return np.zeros((4, 4), dtype=np.float64)
+    raise NotImplementedError
+
+
 VTKTETRAHEDRON1 = VtkElem(
     VtkType.LinTetrahedron,
     VtkType.LinTriangle,
     (0, 1, 2, 3),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float64),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[0] + pos[1] + pos[2] > 1.0),
-        np.zeros(4, dtype=pos.dtype),
-        np.array(
-            [[1.0 - pos[0] - pos[1] - pos[2], pos[0], pos[1], pos[2]]],
-            dtype=pos.dtype,
-        ).T,
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[0] + pos[1] + pos[2] > 1.0),
-        np.zeros((4, 4), dtype=pos.dtype),
-        np.array(
-            [
-                [-1.0, -1.0, -1.0, 3.0],
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0],
-                [0.0, 0.0, 1.0, 3.5],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_tetrahedron_1,
+    _shape_tetrahedron_1_deriv,
 )
 
-# NOTE: NOT IMPLEMENTED
+
+def _shape_tetrahedron_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
+        return np.zeros((10,), dtype=np.float64)
+    raise NotImplementedError
+
+
+def _shape_tetrahedron_2_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
+        return np.zeros((10, 4), dtype=np.float64)
+    raise NotImplementedError
+
+
 VTKTETRAHEDRON2 = VtkElem(
     VtkType.QuadTetrahedron,
     VtkType.QuadTriangle,
@@ -347,87 +357,23 @@ VTKTETRAHEDRON2 = VtkElem(
         ],
         dtype=np.float64,
     ),
-    lambda pos: np.where(
-        (pos[0] < 0.0)
-        | (pos[1] < 0.0)
-        | (pos[2] < 0.0)
-        | (pos[3] < 0.0)
-        | (pos[4] + pos[5] + pos[6] > pos[7]),
-        np.zeros(9, dtype=pos.dtype),
-        np.array(
-            [
-                (1 - pos[4]) * (1 - pos[5]) * (1 - pos[6]),
-                pos[4] * (2 * pos[4] - pos[7]),
-                pos[5] * (2 * pos[5] - pos[8]),
-                pos[6] * (2 * pos[6] - pos[9]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (1 - pos[4]) * (1 - pos[5]) * (1 - pos[6]),
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0)
-        | (pos[1] < 0.0)
-        | (pos[2] < 0.0)
-        | (pos[3] < 0.0)
-        | (pos[4] + pos[5] + pos[6] > pos[7]),
-        np.zeros((4, 9), dtype=pos.dtype),
-        np.array(
-            [
-                [
-                    -3.0 + 4.0 * pos[4],
-                    -3.0 + 4.0 * pos[5],
-                    -3.0 + 4.0 * pos[6],
-                    4.0 * pos[7] - 1.0,
-                    4.0 * pos[8] - 1.0,
-                    4.0 * pos[9] - 1.0,
-                    4.0 * pos[10] - 1.0,
-                    4.0 * pos[11] - 1.0,
-                    4.0 * pos[12] - 1.0,
-                ],
-                [
-                    4.0 * pos[7] - 1.0,
-                    4.0 * pos[8],
-                    4.0 - 8.0 * pos[8],
-                    -2 + 8 * pos[8],
-                    -2 + 8 * pos[9],
-                    -2 + 8 * pos[10],
-                    -2 + 8 * pos[11],
-                    -2 + 8 * pos[12],
-                    -2 + 8 * pos[13],
-                ],
-                [
-                    4.0 - 8.0 * pos[4],
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    4.0 - 8.0 * pos[5],
-                ],
-                [
-                    4.0 - 8.0 * pos[6],
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    4.0 - 8.0 * pos[7],
-                ],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_tetrahedron_2,
+    _shape_tetrahedron_2_deriv,
 )
-# NOTE: NOT IMPLEMENTED
+
+
+def _shape_hexahedron_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
+        return np.zeros((8,), dtype=np.float64)
+    raise NotImplementedError
+
+
+def _shape_hexahedron_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
+        return np.zeros((8, 4), dtype=np.float64)
+    raise NotImplementedError
+
+
 VTKHEXAHEDRON1 = VtkElem(
     VtkType.LinHexahedron,
     VtkType.LinQuadrilateral,
@@ -458,75 +404,23 @@ VTKHEXAHEDRON1 = VtkElem(
         ],
         dtype=np.float64,
     ),
-    lambda pos: np.where(
-        (pos[0] < 0.0)
-        | (pos[1] < 0.0)
-        | (pos[2] < 0.0)
-        | (pos[3] < 0.0)
-        | (pos[4] > pos[5])
-        | (pos[6] > pos[7]),
-        np.zeros(8, dtype=pos.dtype),
-        np.array(
-            [
-                (1 - pos[4]) * (1 - pos[5]) * (1 - pos[6]) * (1 - pos[7]),
-                pos[4] * (2 * pos[4] - pos[8]),
-                pos[5] * (2 * pos[5] - pos[9]),
-                pos[6] * (2 * pos[6] - pos[10]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-                (pos[4] + pos[5]) * (pos[6] + pos[7]),
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0)
-        | (pos[1] < 0.0)
-        | (pos[2] < 0.0)
-        | (pos[3] < 0.0)
-        | (pos[4] > pos[5])
-        | (pos[6] > pos[7]),
-        np.zeros((3, 8), dtype=pos.dtype),
-        np.array(
-            [
-                [
-                    -3.0 + 4.0 * pos[4],
-                    -3.0 + 4.0 * pos[5],
-                    -3.0 + 4.0 * pos[6],
-                    -3.0 + 4.0 * pos[7],
-                    4.0 * pos[8] - 1.0,
-                    4.0 * pos[9] - 1.0,
-                    4.0 * pos[10] - 1.0,
-                    4.0 * pos[11] - 1.0,
-                ],
-                [
-                    4.0 * pos[8] - 1.0,
-                    4.0 * pos[9],
-                    4.0 - 8.0 * pos[9],
-                    -2 + 8 * pos[9],
-                    -2 + 8 * pos[10],
-                    -2 + 8 * pos[11],
-                    -2 + 8 * pos[12],
-                    -2 + 8 * pos[13],
-                ],
-                [
-                    4.0 - 8.0 * pos[4],
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    4.0 - 8.0 * pos[5],
-                    4.0 - 8.0 * pos[6],
-                ],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_hexahedron_1,
+    _shape_hexahedron_1_deriv,
 )
 
-# NOTE: NOT IMPLEMENTED
+
+def _shape_hexahedron_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
+        return np.zeros((16,), dtype=np.float64)
+    raise NotImplementedError
+
+
+def _shape_hexahedron_2_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+    if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
+        return np.zeros((16, 4), dtype=np.float64)
+    raise NotImplementedError
+
+
 VTKHEXAHEDRON2 = VtkElem(
     VtkType.QuadHexahedron,
     VtkType.QuadQuadrilateral,
@@ -599,72 +493,8 @@ VTKHEXAHEDRON2 = VtkElem(
         ],
         dtype=np.float64,
     ),
-    lambda pos: np.where(
-        (pos[0] < 0.0)
-        | (pos[1] < 0.0)
-        | (pos[2] < 0.0)
-        | (pos[3] < 0.0)
-        | (pos[4] > pos[5])
-        | (pos[6] > pos[7]),
-        np.zeros(16, dtype=pos.dtype),
-        np.array(
-            [
-                (1 - pos[8]) * (1 - pos[9]) * (1 - pos[10]) * (1 - pos[11]),
-                pos[12] * (2 * pos[12] - pos[13]),
-                pos[14] * (2 * pos[14] - pos[15]),
-                pos[16] * (2 * pos[16] - pos[17]),
-                (pos[18] + pos[19]) * (pos[20] + pos[21]),
-                (pos[22] + pos[23]) * (pos[24] + pos[25]),
-                (pos[26] + pos[27]) * (pos[28] + pos[29]),
-                (pos[30] + pos[31]) * (pos[32] + pos[33]),
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
-    lambda pos: np.where(
-        (pos[0] < 0.0)
-        | (pos[1] < 0.0)
-        | (pos[2] < 0.0)
-        | (pos[3] < 0.0)
-        | (pos[4] > pos[5])
-        | (pos[6] > pos[7]),
-        np.zeros((3, 16), dtype=pos.dtype),
-        np.array(
-            [
-                [
-                    -3.0 + 4.0 * pos[8],
-                    -3.0 + 4.0 * pos[9],
-                    -3.0 + 4.0 * pos[10],
-                    -3.0 + 4.0 * pos[11],
-                    4.0 * pos[12] - 1.0,
-                    4.0 * pos[13] - 1.0,
-                    4.0 * pos[14] - 1.0,
-                    4.0 * pos[15] - 1.0,
-                ],
-                [
-                    4.0 * pos[16] - 1.0,
-                    4.0 * pos[17],
-                    4.0 - 8.0 * pos[17],
-                    -2 + 8 * pos[17],
-                    -2 + 8 * pos[18],
-                    -2 + 8 * pos[19],
-                    -2 + 8 * pos[20],
-                    -2 + 8 * pos[21],
-                ],
-                [
-                    4.0 - 8.0 * pos[22],
-                    0.0,
-                    0.0,
-                    0.0,
-                    0.0,
-                    4.0 - 8.0 * pos[23],
-                    4.0 - 8.0 * pos[24],
-                    4.0 - 8.0 * pos[25],
-                ],
-            ],
-            dtype=pos.dtype,
-        ),
-    ),
+    _shape_hexahedron_2,
+    _shape_hexahedron_2_deriv,
 )  # fmt: skip
 
 

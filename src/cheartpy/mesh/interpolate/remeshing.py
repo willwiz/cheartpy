@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 __all__ = ["create_quad_mesh_from_lin", "create_quad_mesh_from_lin_cylindrical"]
-from collections.abc import Mapping
+
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 
 from cheartpy.cheart_mesh.data import (
     CheartMesh,
@@ -13,6 +15,11 @@ from cheartpy.cheart_mesh.data import (
 )
 
 from .maps import L2QMAP, L2QMAPDICT, L2QTYPEDICT
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from arraystubs import Arr1, Arr2
 
 
 def gen_quadtop_node_sets[T: np.integer](

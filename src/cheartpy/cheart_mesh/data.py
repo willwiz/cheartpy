@@ -8,14 +8,18 @@ __all__ = [
     "CheartMeshTopology",
 ]
 import dataclasses as dc
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1, Arr2
-
-from cheartpy.vtk.trait import VtkType
 
 from .io import check_for_meshes, chwrite_d_utf, chwrite_iarr_utf, chwrite_t_utf, fix_suffix
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from arraystubs import Arr1, Arr2
+
+    from cheartpy.vtk.trait import VtkType
 
 
 @dc.dataclass(slots=True)

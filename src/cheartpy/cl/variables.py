@@ -1,28 +1,46 @@
+from __future__ import annotations
+
 __all__ = [
-    "create_lm_on_cl",
-    "create_dm_on_cl",
-    "Set_CLVAR_IC",
     "L2norm",
     "LL_interp",
+    "Set_CLVAR_IC",
+    "create_dm_on_cl",
+    "create_lm_on_cl",
 ]
+from typing import TYPE_CHECKING, cast, overload
+
 import numpy as np
-from typing import cast, overload
-from ..var_types import *
-from ..cheart.trait import IVariable
-from ..cheart.api import create_variable
-from .data import CLTopology, CLPartition
+
+from cheartpy.cheart.api import create_variable
+
+if TYPE_CHECKING:
+    from cheartpy.cheart.trait import IVariable
+
+    from .data import CLPartition, CLTopology
 
 
 @overload
 def create_lm_on_cl(
-    cl: None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "LM"
+    cl: None,
+    dim: int,
+    ex_freq: int,
+    set_bc: bool,
+    sfx: str = "LM",
 ) -> None: ...
 @overload
 def create_lm_on_cl(
-    cl: CLTopology, dim: int, ex_freq: int, set_bc: bool, sfx: str = "LM"
+    cl: CLTopology,
+    dim: int,
+    ex_freq: int,
+    set_bc: bool,
+    sfx: str = "LM",
 ) -> IVariable: ...
 def create_lm_on_cl(
-    cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "LM"
+    cl: CLTopology | None,
+    dim: int,
+    ex_freq: int,
+    set_bc: bool,
+    sfx: str = "LM",
 ) -> IVariable | None:
     if cl is None:
         return None
@@ -34,14 +52,26 @@ def create_lm_on_cl(
 
 @overload
 def create_dm_on_cl(
-    cl: None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "DM"
+    cl: None,
+    dim: int,
+    ex_freq: int,
+    set_bc: bool,
+    sfx: str = "DM",
 ) -> None: ...
 @overload
 def create_dm_on_cl(
-    cl: CLTopology, dim: int, ex_freq: int, set_bc: bool, sfx: str = "DM"
+    cl: CLTopology,
+    dim: int,
+    ex_freq: int,
+    set_bc: bool,
+    sfx: str = "DM",
 ) -> IVariable: ...
 def create_dm_on_cl(
-    cl: CLTopology | None, dim: int, ex_freq: int, set_bc: bool, sfx: str = "DM"
+    cl: CLTopology | None,
+    dim: int,
+    ex_freq: int,
+    set_bc: bool,
+    sfx: str = "DM",
 ) -> IVariable | None:
     if cl is None:
         return None
@@ -58,11 +88,13 @@ def Set_CLVAR_IC(var: IVariable | None, file: str) -> None:
 
 
 def L2norm(x: Vec[f64]) -> float:
-    return cast(float, x @ x)
+    return cast("float", x @ x)
 
 
 def LL_basis(
-    var: Mat[f64] | Vec[f64], nodes: Vec[f64], x: Vec[f64]
+    var: Mat[f64] | Vec[f64],
+    nodes: Vec[f64],
+    x: Vec[f64],
 ) -> tuple[Vec[int_t], Mat[f64]]:
     basis = {i: np.zeros_like(x) for i in range(2)}
     domain = (nodes[0] <= x) & (x <= nodes[1])

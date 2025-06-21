@@ -4,11 +4,11 @@ from pathlib import Path
 
 __all__ = ["import_cheart_mesh"]
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import Arr2
 
 from cheartpy.vtk.api import guess_elem_type_from_dim
-from cheartpy.vtk.trait import VtkElem, VtkType
 
 from .data import (
     CheartMesh,
@@ -18,6 +18,11 @@ from .data import (
     CheartMeshTopology,
 )
 from .io import fix_suffix
+
+if TYPE_CHECKING:
+    from arraystubs import Arr2
+
+    from cheartpy.vtk.trait import VtkElem, VtkType
 
 
 def create_bnd_surf[T: np.integer](v: Arr2[T], tag: int) -> CheartMeshPatch[T]:

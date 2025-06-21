@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 __all__ = ["remove_dangling_nodes"]
-from collections.abc import Mapping
+
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr2
 
 from .data import (
     CheartMesh,
@@ -11,6 +13,11 @@ from .data import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from arraystubs import Arr2
 
 
 def create_node_map[T: np.integer](elems: Arr2[T]) -> Mapping[T, int]:

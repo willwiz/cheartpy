@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 __all__ = [
     "dlagrange_1",
     "dlagrange_2",
     "lagrange_1",
     "lagrange_2",
 ]
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import Arr1
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1
 
 
 def lagrange_1(x: float) -> Arr1[np.float64]:

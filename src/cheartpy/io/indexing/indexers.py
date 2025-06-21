@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "ListIndexer",
     "ListSubIndexer",
@@ -6,10 +8,12 @@ __all__ = [
     "TupleIndexer",
     "ZeroIndexer",
 ]
-from collections.abc import Iterator, Mapping, Sequence
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from .interfaces import IIndexIterator, ProgramMode
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping, Sequence
 
 
 class ZeroIndexer(IIndexIterator):

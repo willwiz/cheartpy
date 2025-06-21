@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 __all__ = ["get_api_args", "get_cmdline_args", "main_parser"]
 import argparse
-from collections.abc import Sequence
-from typing import Literal
+from typing import TYPE_CHECKING, Unpack
 
 from pytools.logging.trait import LogLevel
 
-from cheartpy.cheart_mesh.api import fix_suffix
 from cheartpy.io.indexing.interfaces import SearchMode
 
-from .trait import CmdLineArgs
+from .struct import APIKwargs, CmdLineArgs
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 main_parser = argparse.ArgumentParser()
 
@@ -248,61 +247,40 @@ sub_index_fin.add_argument(
 parser_find.set_defaults(subindex="none")
 
 
-def parse_findmode_args(mesh: str) -> tuple[str, str, str | None, None]:
-    subs: str = fix_suffix(mesh)
-    space = subs + "X"
-    topology = subs + "T"
-    boundary = subs + "B"
-    boundary = boundary if Path(boundary).exists() else None
-    return space, topology, boundary, None
-
-
-def parse_indexmode_args(x: str, t: str, b: str) -> tuple[str, str, str | None, str | None]:
-    spacename: list[str] = x.split("+")
-    space = spacename[0]
-    disp = spacename[1] if len(spacename) == 2 else None
-    return space, t, b, disp
-
-
-def get_api_args(
-    prefix: str | None = None,
-    index: tuple[int, int, int] | None = None,
-    subindex: tuple[int, int, int] | Literal["auto", "none"] | None = "none",
-    vars: Sequence[str] = [],
-    input_dir: str = "",
-    output_dir: str = "",
-    mesh: str | tuple[str, str, str] = "mesh",
-    space: str | None = None,
-    time_series: str | None = None,
-    binary: bool = False,
-    compression: bool = True,
-    progress_bar: bool = True,
-    cores: int = 1,
-    log: LogLevel = LogLevel.INFO,
-) -> CmdLineArgs:
+def get_api_args(**kwargs: Unpack[APIKwargs]) -> CmdLineArgs:
+    log = kwargs.get("log", LogLevel.INFO)
+    mesh = kwargs.get("mesh", "mesh")
+    index = kwargs.get("index")
     args = CmdLineArgs(
-        mesh,
-        vars,
-        space,
-        prefix,
-        input_dir,
-        output_dir,
-        time_series,
-        False if (log == LogLevel.DEBUG) else progress_bar,
-        log,
-        binary,
-        compression,
-        cores,
+        mesh=mesh,
+        var=kwargs.get("vars", []),
+        space=kwargs.get("space"),
+        prefix=kwargs.get("prefix"),
+        input_dir=kwargs.get("input_dir", ""),
+        output_dir=kwargs.get("output_dir", ""),
+        time_series=kwargs.get("time_series"),
+        progress_bar=False if (log is LogLevel.DEBUG) else kwargs.get("progress_bar", True),
+        log=log,
+        binary=kwargs.get("binary", False),
+        compression=kwargs.get("compression", True),
+        cores=kwargs.get("cores", 1),
     )
     if len(args.var) == 0:
         return args
-    match mesh:
-        case str(), str(), str():
+    match index, mesh:
+        case (int(), int(), int()), _:
+            args.index = index
+        case None, (str(), str(), str()):
             args.index = SearchMode.none if index is None else index
-        case str():
+        case None, str():
             args.index = SearchMode.auto if index is None else index
-    subindex = "none" if subindex is None else subindex
-    args.subindex = SearchMode[subindex] if isinstance(subindex, str) else subindex
+    match kwargs.get("subindex", "none"):
+        case "auto":
+            args.subindex = SearchMode.auto
+        case "none":
+            args.subindex = SearchMode.none
+        case (int(i), int(j), int(k)):
+            args.subindex = (i, j, k)
     return args
 
 
@@ -316,19 +294,20 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
         case _:
             msg = "No subprogram called, cannot proceed."
             raise ValueError(msg)
-    return get_api_args(
-        prefix=nsp.prefix,
-        index=nsp.index,
-        subindex=nsp.subindex,
-        vars=nsp.var,
-        input_dir=nsp.infolder,
-        output_dir=nsp.outfolder,
-        mesh=mesh,
-        space=nsp.xfile,
-        time_series=nsp.time_series,
-        binary=nsp.binary,
-        compression=nsp.compression,
-        progress_bar=nsp.progress_bar,
-        cores=nsp.cores,
-        log=LogLevel[nsp.log],
-    )
+    kwargs: APIKwargs = {
+        "prefix": nsp.prefix,
+        "index": nsp.index,
+        "subindex": nsp.subindex,
+        "vars": nsp.var,
+        "input_dir": nsp.infolder,
+        "output_dir": nsp.outfolder,
+        "mesh": mesh,
+        "space": nsp.xfile,
+        "time_series": nsp.time_series,
+        "binary": nsp.binary,
+        "compression": nsp.compression,
+        "progress_bar": nsp.progress_bar,
+        "cores": nsp.cores,
+        "log": LogLevel[nsp.log],
+    }
+    return get_api_args(**kwargs)

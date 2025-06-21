@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "VTK_ELEM",
     "VTK_ELEM_TYPE",
@@ -6,12 +8,11 @@ __all__ = [
 ]
 import dataclasses as dc
 import enum
-from collections.abc import Mapping
-from typing import Callable, Final, Literal, TextIO
+from collections.abc import Callable, Mapping
+from typing import Final, Literal, TextIO
 
 import numpy as np
 
-from ..var_types import *
 from .shape_functions import *
 
 VTK_ELEM_TYPE = Literal[

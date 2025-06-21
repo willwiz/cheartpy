@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-import numpy as np
-from arraystubs import T3
-
-from cheartpy.cheart_mesh.data import CheartMesh
 from cheartpy.mesh.hex_core.api import create_hex_mesh
 from cheartpy.mesh.interpolate.remeshing import create_quad_mesh_from_lin_cylindrical
 
@@ -17,17 +13,21 @@ from .core import (
 )
 from .data import CartesianDirection
 
+if TYPE_CHECKING:
+    import numpy as np
+    from arraystubs import T3
+
+    from cheartpy.cheart_mesh.data import CheartMesh
+
 
 def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
+    shape: tuple[float, float, float, float],
     dim: T3[int],
     axis: Literal["x", "y", "z"],
     *,
     make_quad: bool = False,
 ) -> tuple[CheartMesh[np.float64, np.intc], CheartMesh[np.float64, np.intc] | None]:
+    r_in, r_out, length, base = shape
     cube = create_hex_mesh(dim)
     cylinder = convert_to_cylindrical(cube, r_in, r_out, length, base)
     cylinder = merge_circ_ends(cylinder)

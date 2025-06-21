@@ -17,7 +17,6 @@ from pathlib import Path
 
 from .cheart2vtu.parser_time import CmdLineArgs, get_cmdline_args
 from .cheart2vtu.time_series import create_time_series_file
-from .tools.path_tools import path
 
 
 def xml_write_header(f: tp.TextIO) -> None:
@@ -73,11 +72,12 @@ def print_cmd_header(inp: CmdLineArgs) -> None:
 def main() -> None:
     args = get_cmdline_args()
     print_cmd_header(args)
-    fout = path(args.folder, args.prefix + ".json")
-    prefix = path(args.folder, args.prefix)
+    root = Path(args.folder)
+    fout = root / (args.prefix + ".json")
+    prefix = args.prefix
     time = args.time_series
-    time = create_time_series_file(prefix, time)
-    with Path(fout).open("w") as f:
+    time = create_time_series_file(prefix, time, root=root)
+    with fout.open("w") as f:
         json.dump(time, f)
 
 

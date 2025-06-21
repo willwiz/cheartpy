@@ -1,7 +1,12 @@
-__all__ = ["get_cmdline_args", "CmdLineArgs"]
-import dataclasses as dc
+from __future__ import annotations
+
+__all__ = ["CmdLineArgs", "get_cmdline_args"]
 import argparse
-from typing import Final, Literal, Sequence
+import dataclasses as dc
+from typing import TYPE_CHECKING, Final, Literal
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 ################################################################################################
 # The argument parse
