@@ -1,14 +1,16 @@
 __all__ = [
     "CheartTopology",
-    "NullTopology",
-    "TopInterface",
-    "OneToOneTopInterface",
     "ManyToOneTopInterface",
+    "NullTopology",
+    "OneToOneTopInterface",
+    "TopInterface",
 ]
 import dataclasses as dc
-from typing import Sequence, TextIO
-from ..pytools import join_fields
+from collections.abc import Sequence
+from typing import TextIO
+
 from ..aliases import *
+from ..pytools import join_fields
 from ..trait import *
 
 
@@ -61,7 +63,7 @@ class CheartTopology(ICheartTopology):
         match task, val:
             case _:
                 raise ValueError(
-                    f"Setting for topology {self} {task} does not have a match value type"
+                    f"Setting for topology {self} {task} does not have a match value type",
                 )
 
     def create_in_boundary(self, top: ICheartTopology, surf: int | str) -> None:
@@ -74,7 +76,7 @@ class CheartTopology(ICheartTopology):
             f.write(f"  !SetTopology={{{self}|EmbeddedInTopology|{self.embedded}}}\n")
         if self.in_boundary is not None:
             f.write(
-                f"  !SetTopology={{{self}|CreateInBoundary|[{self.in_boundary[0]};{self.in_boundary[1]}]}}\n"
+                f"  !SetTopology={{{self}|CreateInBoundary|[{self.in_boundary[0]};{self.in_boundary[1]}]}}\n",
             )
         if self._discontinuous:
             f.write(f"  !SetTopology={{{self}|MakeDiscontinuous}}\n")
@@ -169,9 +171,7 @@ class ManyToOneTopInterface(ITopInterface):
 
     def __hash__(self) -> int:
         return hash(
-            "_".join([str(s) for s in self.topologies])
-            + ":"
-            + str(self.master_topology)
+            "_".join([str(s) for s in self.topologies]) + ":" + str(self.master_topology),
         )
 
     @property
@@ -186,9 +186,7 @@ class ManyToOneTopInterface(ITopInterface):
 
     def write(self, f: TextIO):
         nest_in_boundary = (
-            None
-            if self.nested_in_boundary is None
-            else f"NestedInBndry[{self.nested_in_boundary}]"
+            None if self.nested_in_boundary is None else f"NestedInBndry[{self.nested_in_boundary}]"
         )
         string = join_fields(
             "ManyToOne",

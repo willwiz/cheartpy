@@ -1,8 +1,10 @@
 __all__ = ["BCPatch", "BoundaryCondition"]
 import dataclasses as dc
-from typing import Sequence, TextIO, ValuesView
-from ..pytools import get_enum, join_fields
+from collections.abc import Sequence, ValuesView
+from typing import TextIO
+
 from ..aliases import *
+from ..pytools import get_enum, join_fields
 from ..trait import *
 
 
@@ -23,7 +25,7 @@ class BCPatch(IBCPatch):
                 self.bctype.value,
                 *[str(v) for v in self.values],
                 *self.options,
-            )
+            ),
         )
 
     def __init__(
@@ -59,9 +61,14 @@ class BCPatch(IBCPatch):
     def string(self):
         var, idx = self.component
         if idx is not None:
-            var = f"{str(var)}.{idx}"
+            var = f"{var!s}.{idx}"
         string = join_fields(
-            self.id, var, self.bctype, *self.values, *self.options, char="  "
+            self.id,
+            var,
+            self.bctype,
+            *self.values,
+            *self.options,
+            char="  ",
         )
         return f"    {string}\n"
 
@@ -84,18 +91,14 @@ class BoundaryCondition(IBoundaryCondition):
         if self.patches is None:
             false_dict: dict[int, IVariable] = dict()
             return false_dict.values()
-        vars = {
-            str(v): v for patch in self.patches.values() for v in patch.get_var_deps()
-        }
+        vars = {str(v): v for patch in self.patches.values() for v in patch.get_var_deps()}
         return vars.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         if self.patches is None:
             false_dict: dict[int, IExpression] = dict()
             return false_dict.values()
-        exprs = {
-            str(e): e for patch in self.patches.values() for e in patch.get_expr_deps()
-        }
+        exprs = {str(e): e for patch in self.patches.values() for e in patch.get_expr_deps()}
         return exprs.values()
 
     def get_patches(self) -> ValuesView[IBCPatch] | None:
@@ -111,11 +114,10 @@ class BoundaryCondition(IBoundaryCondition):
 
     def write(self, f: TextIO):
         if self.patches is None or len(self.patches) == 0:
-            f.write(f"  !Boundary-conditions-not-required\n\n")
+            f.write("  !Boundary-conditions-not-required\n\n")
         else:
-            f.write(f"  !Boundary-patch-definitions\n")
-            for p in self.patches.values():
-                f.write(p.string())
+            f.write("  !Boundary-patch-definitions\n")
+            f.writelines(p.string() for p in self.patches.values())
             f.write("\n")
 
 

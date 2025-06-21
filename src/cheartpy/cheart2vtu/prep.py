@@ -1,19 +1,22 @@
-__all__ = ["parse_cmdline_args", "init_variable_cache"]
+__all__ = ["init_variable_cache", "parse_cmdline_args"]
 import os
+
 import numpy as np
-from ..var_types import *
+
 from ..cheart_mesh.io import *
 from ..io.indexing import IIndexIterator, get_file_name_indexer
 from ..tools.basiclogging import BLogger, ILogger
-from .interfaces import *
-from .variable_naming import *
+from ..var_types import *
 from .fio import *
-from .print_headers import *
+from .interfaces import *
 from .parser_main import parse_findmode_args, parse_indexmode_args
+from .print_headers import *
+from .variable_naming import *
 
 
 def parse_cmdline_args(
-    args: CmdLineArgs, LOG: ILogger = BLogger("INFO")
+    args: CmdLineArgs,
+    LOG: ILogger = BLogger("INFO"),
 ) -> tuple[ProgramArgs, IIndexIterator]:
     err: bool = False
     print_input_info(args)
@@ -113,13 +116,13 @@ def init_variable_cache(inp: ProgramArgs, indexer: IIndexIterator) -> VariableCa
     i0 = next(iter(indexer))
     top = CheartTopology(inp.tfile, inp.bfile)
     fx = inp.space[i0]
-    space = CHRead_d(fx)
+    space = chread_d(fx)
     if inp.disp is None:
         fd = None
         disp = np.zeros_like(space)
     else:
         fd = inp.disp[i0]
-        disp = CHRead_d(fd)
+        disp = chread_d(fd)
     x = space if disp is None else space + disp
     fv: dict[str, str] = dict.fromkeys(inp.var.keys(), "")
     var: dict[str, Mat[f64]] = dict()
@@ -129,5 +132,5 @@ def init_variable_cache(inp: ProgramArgs, indexer: IIndexIterator) -> VariableCa
             fv[k] = name
         else:
             raise ValueError(f"The initial value for {k} cannot be found")
-        var[k] = CHRead_d(name)
+        var[k] = chread_d(name)
     return VariableCache(top, i0, fx, fd, space, disp, x, fv, var)

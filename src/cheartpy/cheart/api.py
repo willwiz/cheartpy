@@ -1,26 +1,26 @@
 __all__ = [
-    "hash_tops",
-    "create_time_scheme",
     "create_basis",
+    "create_bc",
+    "create_bcpatch",
     "create_boundary_basis",
-    "create_topology",
     "create_embedded_topology",
+    "create_expr",
+    "create_solver_group",
     "create_solver_matrix",
     "create_solver_subgroup",
-    "create_solver_group",
+    "create_time_scheme",
     "create_top_interface",
-    "create_bcpatch",
-    "create_bc",
+    "create_topology",
     "create_variable",
-    "create_expr",
+    "hash_tops",
 ]
 import os
-from typing import Sequence
+from collections.abc import Sequence
 
 from .aliases import *
-from .trait import *
 from .impl import *
 from .pytools import get_enum
+from .trait import *
 
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
@@ -29,7 +29,10 @@ def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
 
 
 def create_time_scheme(
-    name: str, start: int, stop: int, step: float | str
+    name: str,
+    start: int,
+    stop: int,
+    step: float | str,
 ) -> ITimeScheme:
     if isinstance(step, str):
         if not os.path.isfile(step):
@@ -74,14 +77,14 @@ def create_basis(
     quadrature = get_enum(quadrature, CheartQuadratureType)
     name = f"{_ORDER[order]}{_ELEM[elem]}"
     if 2 * gp < order + 1:
-        raise ValueError(f"For {name}, order {2*gp} < {order + 1}")
+        raise ValueError(f"For {name}, order {2 * gp} < {order + 1}")
     if quadrature is CheartQuadratureType.KEAST_LYNESS:
-        if not elem in [
+        if elem not in [
             CheartElementType.TETRAHEDRAL_ELEMENT,
             CheartElementType.TRIANGLE_ELEMENT,
         ]:
             raise ValueError(
-                f"For {name} Basis, KEAST_LYNESS can only be used with tetrahydral or triangles"
+                f"For {name} Basis, KEAST_LYNESS can only be used with tetrahydral or triangles",
             )
     return CheartBasis(name, elem, Basis(kind, order), Quadrature(quadrature, gp))
 
@@ -99,7 +102,7 @@ def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
         case CheartElementType.ONED_ELEMENT | CheartElementType.line:
             elem = CheartElementType.POINT_ELEMENT
         case CheartElementType.POINT_ELEMENT | CheartElementType.point:
-            raise ValueError(f"No such thing as boundary for point elements")
+            raise ValueError("No such thing as boundary for point elements")
     return CheartBasis(f"{vol}_surf", elem, vol.basis, vol.quadrature)
 
 
@@ -126,7 +129,9 @@ def create_embedded_topology(
 
 
 def create_solver_matrix(
-    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem | None
+    name: str,
+    solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes,
+    *probs: IProblem | None,
 ) -> ISolverMatrix:
     problems: dict[str, IProblem] = dict()
     for p in probs:
@@ -137,7 +142,9 @@ def create_solver_matrix(
 
 
 def create_solver_group(
-    name: str, time: ITimeScheme, *solver_subgroup: ISolverSubGroup
+    name: str,
+    time: ITimeScheme,
+    *solver_subgroup: ISolverSubGroup,
 ) -> ISolverGroup:
     sub_group: list[ISolverSubGroup] = list()
     for sg in solver_subgroup:
@@ -173,7 +180,11 @@ def create_top_interface(
                 raise ValueError("ManyToOne requires a interface_file")
             name = hash_tops(topologies) + ":" + str(master_topology)
             return ManyToOneTopInterface(
-                name, topologies, master_topology, interface_file, nest_in_boundary
+                name,
+                topologies,
+                master_topology,
+                interface_file,
+                nest_in_boundary,
             )
 
 

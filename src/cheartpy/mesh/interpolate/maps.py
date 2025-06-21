@@ -1,15 +1,23 @@
 __all__ = [
-    "_LIN_L2QMAP",
-    "_TRI_L2QMAP",
-    "_QUA_L2QMAP",
-    "_TET_L2QMAP",
-    "_HEX_L2QMAP",
     "L2QMAP",
     "L2QMAPDICT",
+    "_HEX_L2QMAP",
+    "_LIN_L2QMAP",
+    "_QUA_L2QMAP",
+    "_TET_L2QMAP",
+    "_TRI_L2QMAP",
 ]
-from typing import Collection, Final, Sequence
+from collections.abc import Collection, Sequence
+from typing import Final
 
-from ...cheart_mesh.elements import VtkType
+from cheartpy.vtk.impl import (
+    VTKHEXAHEDRON2,
+    VTKLINE2,
+    VTKQUADRILATERAL2,
+    VTKTETRAHEDRON2,
+    VTKTRIANGLE2,
+)
+from cheartpy.vtk.trait import VtkType
 
 type L2QMAP = Sequence[Collection[int]]
 
@@ -81,16 +89,16 @@ _HEX_L2QMAP: Final[L2QMAP] = [
 
 
 L2QMAPDICT = {
-    VtkType.LineLinear: _LIN_L2QMAP,
-    VtkType.TriangleLinear: _TRI_L2QMAP,
-    VtkType.QuadrilateralLinear: _QUA_L2QMAP,
-    VtkType.TetrahedronLinear: _TET_L2QMAP,
-    VtkType.HexahedronLinear: _HEX_L2QMAP,
+    VtkType.LinLine: _LIN_L2QMAP,
+    VtkType.LinTriangle: _TRI_L2QMAP,
+    VtkType.LinQuadrilateral: _QUA_L2QMAP,
+    VtkType.LinTetrahedron: _TET_L2QMAP,
+    VtkType.LinHexahedron: _HEX_L2QMAP,
 }
 L2QTYPEDICT = {
-    VtkType.LineLinear: VtkType.LineQuadratic,
-    VtkType.TriangleLinear: VtkType.TriangleQuadratic,
-    VtkType.QuadrilateralLinear: VtkType.QuadrilateralQuadratic,
-    VtkType.TetrahedronLinear: VtkType.TetrahedronQuadratic,
-    VtkType.HexahedronLinear: VtkType.HexahedronQuadratic,
+    VtkType.LinLine: VTKLINE2,
+    VtkType.LinTriangle: VTKTRIANGLE2,
+    VtkType.LinQuadrilateral: VTKQUADRILATERAL2,
+    VtkType.LinTetrahedron: VTKTETRAHEDRON2,
+    VtkType.LinHexahedron: VTKHEXAHEDRON2,
 }

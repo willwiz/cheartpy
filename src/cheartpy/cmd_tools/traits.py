@@ -1,8 +1,15 @@
-__all__ = ["IVariable", "IVariableGetter", "VarStats", "VarErrors"]
+from __future__ import annotations
+
+__all__ = ["IVariable", "IVariableGetter", "VarErrors", "VarStats"]
 import abc
 import dataclasses as dc
-from typing import ClassVar, Iterator, Final
-from ..tools.basiclogging import bcolors
+from typing import TYPE_CHECKING, ClassVar, Final
+
+from pytools.logging.trait import BColors
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from pathlib import Path
 
 HEADER = ["mean", "std", "min", "min pos", "max", "max pos", "bias"]
 HEADER_LEN = 8 + 10 + len(HEADER) * 11
@@ -16,7 +23,7 @@ class IVariable:
 
 class IVariableGetter(abc.ABC):
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[tuple[int | str, str | None, str | None]]: ...
+    def __iter__(self) -> Iterator[tuple[int | str, Path | None, Path | None]]: ...
 
 
 @dc.dataclass(slots=True)
@@ -46,8 +53,8 @@ class VarStats:
 def hstr(x: float | tuple[int, int], tol: float = 1e-10) -> str:
     match x:
         case tuple():
-            return f"{f"{x[0]},{x[1]}":^10}"
+            return f"{f'{x[0]},{x[1]}':^10}"
         case _:
             if x > tol:
-                return f"{bcolors.WARN}{x:>10.3E}{bcolors.ENDC}"
+                return f"{BColors.WARN}{x:>10.3E}{BColors.ENDC}"
             return f"{x:>10.3E}"

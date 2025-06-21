@@ -1,10 +1,21 @@
+from __future__ import annotations
+
 from typing import Literal
-from ...cheart_mesh import *
-from ...var_types import *
-from ..hex_core import create_hex_mesh
-from ..interpolate import create_quad_mesh_from_lin_cylindrical
-from .core import *
-from .data import *
+
+import numpy as np
+from arraystubs import T3
+
+from cheartpy.cheart_mesh.data import CheartMesh
+from cheartpy.mesh.hex_core import create_hex_mesh
+from cheartpy.mesh.interpolate.remeshing import create_quad_mesh_from_lin_cylindrical
+
+from .core import (
+    convert_to_cylindrical,
+    cylindrical_to_cartesian,
+    merge_circ_ends,
+    rotate_axis,
+)
+from .data import CartesianDirection
 
 
 def create_cylinder_mesh(
@@ -14,8 +25,9 @@ def create_cylinder_mesh(
     base: float,
     dim: T3[int],
     axis: Literal["x", "y", "z"],
+    *,
     make_quad: bool = False,
-) -> tuple[CheartMesh, CheartMesh | None]:
+) -> tuple[CheartMesh[np.float64, np.intc], CheartMesh[np.float64, np.intc] | None]:
     cube = create_hex_mesh(dim)
     cylinder = convert_to_cylindrical(cube, r_in, r_out, length, base)
     cylinder = merge_circ_ends(cylinder)

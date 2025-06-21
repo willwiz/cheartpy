@@ -8,14 +8,21 @@ version = "0.0.1"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["numpy", "meshio", "matplotlib"]
+dependencies = [
+  "arraystubs@git+https://github.com/willwiz/arraystubs",
+  "hpp2cythonparser@git+https://github.com/willwiz/hpp2cythonparser.git",
+  "pytools@git+https://github.com/willwiz/pytools",
+  "numpy",
+  "meshio",
+  "matplotlib",
+]
 
 [project.scripts]
 abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"

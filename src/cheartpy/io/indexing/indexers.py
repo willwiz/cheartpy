@@ -1,13 +1,15 @@
 __all__ = [
-    "ZeroIndexer",
-    "RangeIndexer",
-    "RangeSubIndexer",
     "ListIndexer",
     "ListSubIndexer",
+    "RangeIndexer",
+    "RangeSubIndexer",
     "TupleIndexer",
+    "ZeroIndexer",
 ]
-from typing import Final, Iterator, Mapping
-from .interfaces import *
+from collections.abc import Iterator, Mapping, Sequence
+from typing import Final
+
+from .interfaces import IIndexIterator, ProgramMode
 
 
 class ZeroIndexer(IIndexIterator):
@@ -24,12 +26,12 @@ class ZeroIndexer(IIndexIterator):
         return 1
 
     @property
-    def mode(self):
+    def mode(self) -> ProgramMode:
         return ProgramMode.none
 
 
 class RangeIndexer(IIndexIterator):
-    __slots__ = ["i0", "it", "di", "size"]
+    __slots__ = ["di", "i0", "it", "size"]
     i0: Final[int]
     it: Final[int]
     di: Final[int]
@@ -42,19 +44,18 @@ class RangeIndexer(IIndexIterator):
         self.size = (index[1] - index[0]) // index[2] + 1
 
     def __iter__(self) -> Iterator[int]:
-        for i in range(self.i0, self.it, self.di):
-            yield i
+        yield from range(self.i0, self.it, self.di)
 
     def __len__(self) -> int:
         return self.size
 
     @property
-    def mode(self):
+    def mode(self) -> ProgramMode:
         return ProgramMode.range
 
 
 class RangeSubIndexer(IIndexIterator):
-    __slots__ = ["i0", "it", "di", "s0", "st", "ds", "size"]
+    __slots__ = ["di", "ds", "i0", "it", "s0", "size", "st"]
     i0: Final[int]
     it: Final[int]
     di: Final[int]
@@ -88,35 +89,34 @@ class RangeSubIndexer(IIndexIterator):
         return self.size
 
     @property
-    def mode(self):
+    def mode(self) -> ProgramMode:
         return ProgramMode.subindex
 
 
 class ListIndexer[T: (int, str)](IIndexIterator):
     __slots__ = ["indices"]
-    values: list[T]
+    values: Sequence[T]
 
-    def __init__(self, values: list[T]) -> None:
+    def __init__(self, values: Sequence[T]) -> None:
         self.values = values
 
     def __iter__(self) -> Iterator[T]:
-        for i in self.values:
-            yield i
+        yield from self.values
 
     def __len__(self) -> int:
         return len(self.values)
 
     @property
-    def mode(self):
+    def mode(self) -> ProgramMode:
         return ProgramMode.search
 
 
 class ListSubIndexer(IIndexIterator):
-    __slots__ = ["values", "si"]
-    values: list[int]
+    __slots__ = ["si", "values"]
+    values: Sequence[int]
     si: tuple[int, int, int]
 
-    def __init__(self, indices: list[int], sub_index: tuple[int, int, int]) -> None:
+    def __init__(self, indices: Sequence[int], sub_index: tuple[int, int, int]) -> None:
         self.values = indices
         self.si = sub_index
 
@@ -130,15 +130,15 @@ class ListSubIndexer(IIndexIterator):
         return len(self.values) * ((self.si[1] - self.si[0]) // self.si[2] + 2)
 
     @property
-    def mode(self):
+    def mode(self) -> ProgramMode:
         return ProgramMode.searchsubindex
 
 
 class TupleIndexer(IIndexIterator):
     __slots__ = ["values"]
-    values: Mapping[int, list[int]]
+    values: Mapping[int, Sequence[int]]
 
-    def __init__(self, values: dict[int, list[int]]) -> None:
+    def __init__(self, values: Mapping[int, Sequence[int]]) -> None:
         self.values = values
 
     def __iter__(self) -> Iterator[str]:
@@ -151,5 +151,5 @@ class TupleIndexer(IIndexIterator):
         return sum([len(v) for v in self.values.values()])
 
     @property
-    def mode(self):
+    def mode(self) -> ProgramMode:
         return ProgramMode.subauto

@@ -1,6 +1,8 @@
-__all__ = ["SolverSubGroup", "SolverGroup"]
+__all__ = ["SolverGroup", "SolverSubGroup"]
 import dataclasses as dc
-from typing import Mapping, Sequence, TextIO, ValuesView
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import TextIO
+
 from ..aliases import *
 from ..pytools import *
 from ..trait import *
@@ -66,9 +68,7 @@ class SolverSubGroup(ISolverSubGroup):
         }
         _all_vars = {**_prob_vars, **_matrix_vars}
         _all_vars_dicts_ = [recurse_get_var_list_var(v) for v in _all_vars.values()]
-        _prob_exprs = {
-            str(e): e for p in self.get_problems() for e in p.get_expr_deps()
-        }
+        _prob_exprs = {str(e): e for p in self.get_problems() for e in p.get_expr_deps()}
         _matrix_exprs = {
             str(v): v
             for m in self.get_matrices()
@@ -77,14 +77,10 @@ class SolverSubGroup(ISolverSubGroup):
         }
         _all_exprs = {**_prob_exprs, **_matrix_exprs}
         _all_exprs_dicts_ = [recurse_get_var_list_expr(v) for v in _all_exprs.values()]
-        return {
-            k: v for d in _all_vars_dicts_ + _all_exprs_dicts_ for k, v in d.items()
-        }
+        return {k: v for d in _all_vars_dicts_ + _all_exprs_dicts_ for k, v in d.items()}
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
-        _prob_vars = {
-            k: v for p in self.get_problems() for k, v in p.get_prob_vars().items()
-        }
+        _prob_vars = {k: v for p in self.get_problems() for k, v in p.get_prob_vars().items()}
         _matrix_vars = {
             k: v
             for m in self.get_matrices()
@@ -141,18 +137,14 @@ class SolverGroup(ISolverGroup):
         return self.time
 
     def get_aux_vars(self) -> ValuesView[IVariable]:
-        _all_vars = {
-            k: v for sg in self.sub_groups for k, v in sg.get_all_vars().items()
-        }
-        _dep_vars = {
-            k: v for sg in self.sub_groups for k, v in sg.get_prob_vars().items()
-        }
+        _all_vars = {k: v for sg in self.sub_groups for k, v in sg.get_all_vars().items()}
+        _dep_vars = {k: v for sg in self.sub_groups for k, v in sg.get_prob_vars().items()}
         check = all(item in _all_vars.items() for item in _dep_vars.items())
         if not check:
             raise ValueError(
-                f"Dependent Variables not in super set check implementation"
+                "Dependent Variables not in super set check implementation",
             )
-        _aux_vars = {k: v for k, v in _all_vars.items() if not k in _dep_vars}
+        _aux_vars = {k: v for k, v in _all_vars.items() if k not in _dep_vars}
         return _aux_vars.values()
 
     def get_subgroups(self) -> Sequence[ISolverSubGroup]:
@@ -212,7 +204,7 @@ class SolverGroup(ISolverGroup):
             SolverSubGroup(
                 method=get_enum(method, SolverSubgroupAlgorithm),
                 problems={str(p): p for p in problems},
-            )
+            ),
         )
 
     # WRITE
@@ -224,7 +216,7 @@ class SolverGroup(ISolverGroup):
         for l in splicegen(45, vars):
             if l:
                 f.write(
-                    f'  !SetSolverGroup={{{join_fields(self, "AddVariables", *l)}}}\n'
+                    f"  !SetSolverGroup={{{join_fields(self, 'AddVariables', *l)}}}\n",
                 )
         # Print export init setting
         if self._export_initial_condition:
@@ -242,8 +234,9 @@ class SolverGroup(ISolverGroup):
                 else f"ScaleFirstResidual[{g.scale_first_residual}]"
             )
             f.write(
-                f"!DefSolverSubGroup={{{join_fields(self,
-                        g.get_method(), *g.get_systems(), _scale_res)}}}\n"
+                f"!DefSolverSubGroup={{{
+                    join_fields(self, g.get_method(), *g.get_systems(), _scale_res)
+                }}}\n",
             )
             # if g.scale_first_residual:
             #     f.write(

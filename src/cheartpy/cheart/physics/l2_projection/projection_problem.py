@@ -1,9 +1,11 @@
 __all__ = ["L2SolidProjection"]
 import enum
-from typing import Literal, Mapping, Sequence, TextIO, ValuesView
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import Literal, TextIO
+
+from ...api import create_bc
 from ...pytools import get_enum, join_fields
 from ...trait import *
-from ...api import create_bc
 from ..solid_mechanics.solid_problems import SolidProblem
 
 
@@ -99,17 +101,19 @@ class L2SolidProjection(IProblem):
         return list() if patches is None else list(patches)
 
     def set_projection(
-        self, calc: L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
+        self,
+        calc: L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE,
     ) -> None:
         self.calculation = get_enum(calc, L2SolidCalculationType)
 
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self.name}|{self._problem}}}\n")
-        for k, v in self.variables.items():
-            f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
+        f.writelines(
+            f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
+        )
 
         f.write(f"  !Mechanical-Problem={{{self.solid_prob}}}\n")
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
         if self._buffering == False:
-            f.write(f"  !No-buffering\n")
+            f.write("  !No-buffering\n")
         self.bc.write(f)

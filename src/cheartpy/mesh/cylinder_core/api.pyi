@@ -1,7 +1,10 @@
 __all__ = ["create_cylinder_mesh"]
 from typing import Literal, overload
-from ...cheart_mesh import *
-from ...var_types import *
+
+import numpy as np
+from arraystubs import T3
+
+from cheartpy.cheart_mesh.data import CheartMesh
 
 @overload
 def create_cylinder_mesh(
@@ -11,8 +14,17 @@ def create_cylinder_mesh(
     base: float,
     dim: T3[int],
     axis: Literal["x", "y", "z"],
+) -> tuple[CheartMesh[np.float64, np.intc], None]: ...
+@overload
+def create_cylinder_mesh(
+    r_in: float,
+    r_out: float,
+    length: float,
+    base: float,
+    dim: T3[int],
+    axis: Literal["x", "y", "z"],
     make_quad: Literal[False],
-) -> tuple[CheartMesh, None]: ...
+) -> tuple[CheartMesh[np.float64, np.intc], None]: ...
 @overload
 def create_cylinder_mesh(
     r_in: float,
@@ -22,14 +34,4 @@ def create_cylinder_mesh(
     dim: T3[int],
     axis: Literal["x", "y", "z"],
     make_quad: Literal[True],
-) -> tuple[CheartMesh, CheartMesh]: ...
-@overload
-def create_cylinder_mesh(
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
-    dim: T3[int],
-    axis: Literal["x", "y", "z"],
-    make_quad: bool,
-) -> tuple[CheartMesh, CheartMesh | None]: ...
+) -> tuple[CheartMesh[np.float64, np.intc], CheartMesh[np.float64, np.intc]]: ...

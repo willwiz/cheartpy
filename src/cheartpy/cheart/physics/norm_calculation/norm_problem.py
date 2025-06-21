@@ -1,9 +1,11 @@
 __all__ = ["NormProblem"]
-from typing import Literal, Mapping, Sequence, TextIO, ValuesView
-from ...trait.basic import IExpression, IVariable
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import Literal, TextIO
+
+from ...api import create_bc
 from ...pytools import join_fields
 from ...trait import *
-from ...api import create_bc
+from ...trait.basic import IExpression, IVariable
 
 
 class NormProblem(IProblem):
@@ -38,7 +40,7 @@ class NormProblem(IProblem):
         if boundary_n is not None:
             self.boundary_normal = boundary_n
         if term2 is not None != boundary_n is not None:
-            raise ValueError(f"One of Term2 or Boundary normal must be None")
+            raise ValueError("One of Term2 or Boundary normal must be None")
         self.aux_vars = dict()
         self.aux_expr = dict()
         self.bc = create_bc()
@@ -115,18 +117,19 @@ class NormProblem(IProblem):
 
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{join_fields(self, self._problem_name)}}}\n")
-        for k, v in self.variables.items():
-            f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
+        f.writelines(
+            f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
+        )
         if self.boundary_normal is not None:
             f.write(f"  !Boundary-normal={{{self.boundary_normal}}}\n")
         if self.scale_by_measure:
-            f.write(f"  !scale-by-measure\n")
+            f.write("  !scale-by-measure\n")
         if self.absolute_value:
-            f.write(f"  !Absolute-value\n")
+            f.write("  !Absolute-value\n")
         if self.root_top is not None:
-            f.write(f"  !SetRootTopology={{{str(self.root_top)}}}\n")
+            f.write(f"  !SetRootTopology={{{self.root_top!s}}}\n")
         if self._buffering == False:
-            f.write(f"  !No-buffering\n")
+            f.write("  !No-buffering\n")
         if self.output_filename is not None:
             f.write(f"  !Output-filename={{{self.output_filename}}}\n")
         self.bc.write(f)

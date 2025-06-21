@@ -1,12 +1,16 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
+
+import argparse
 
 from .hex_core import create_hex_mesh
-import argparse
 
 parser = argparse.ArgumentParser("block", description="Make a cube")
 parser.add_argument(
-    "--prefix", "-p", type=str, default="cube", help="Prefix for saved file."
+    "--prefix",
+    "-p",
+    type=str,
+    default="cube",
+    help="Prefix for saved file.",
 )
 parser.add_argument(
     "--size",
@@ -31,7 +35,7 @@ parser.add_argument("yn", type=int, help="number of elements in y")
 parser.add_argument("zn", type=int, help="number of elements in z")
 
 
-def main(args: argparse.Namespace):
+def main(args: argparse.Namespace) -> None:
     mesh = create_hex_mesh(
         (args.xn, args.yn, args.zn),
         tuple(args.size),

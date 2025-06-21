@@ -1,10 +1,14 @@
-__all__ = ["create_noise", "update_disp_w_noise", "compute_bc_w"]
-import numpy as np
+__all__ = ["compute_bc_w", "create_noise", "update_disp_w_noise"]
 from collections import defaultdict
 from typing import cast
+
+import numpy as np
+
+# from scipy.interpolate import interpn  # type: ignore
+from numpy import interp as interpn
+
 from ..cheart_mesh.data import CheartMesh
-from ..cheart_mesh.io import CHRead_d, CHWrite_d_utf
-from scipy.interpolate import interpn  # type: ignore
+from ..cheart_mesh.io import chread_d, chwrite_d_utf
 from ..var_types import *
 
 
@@ -13,7 +17,9 @@ def unbias[T: (Vec[f64], Mat[f64], MatV[f64])](vals: T) -> T:
 
 
 def generate_noise_data(
-    mag: float, nx: int, ny: int
+    mag: float,
+    nx: int,
+    ny: int,
 ) -> tuple[tuple[Vec[f64], Vec[f64]], Mat[f64]]:
     noise = np.random.normal(0.0, mag, (nx, ny))
     dx = 0.5 / nx
@@ -32,7 +38,7 @@ def create_noise(
     bc_w: Vec[f64] | None = None,
 ) -> Mat[f64]:
     noise_data = generate_noise_data(mag, *spatial_freq)
-    noise = unbias(cast(Vec[f64], interpn(*noise_data, cl, method="cubic")))
+    noise = unbias(cast("Vec[f64]", interpn(*noise_data, cl, method="cubic")))
     if bc_w is not None:
         noise = bc_w * noise
     return noise[:, None] * normal
@@ -46,9 +52,9 @@ def update_disp_w_noise(
     bc_w: Vec[f64] | None = None,
 ):
     noise = create_noise(mag, cl, normal, bc_w=bc_w)
-    disp = CHRead_d(f"{prefix}") + noise
-    CHWrite_d_utf(f"{prefix}", disp)
-    CHWrite_d_utf(f"{prefix}", disp)
+    disp = chread_d(f"{prefix}") + noise
+    chwrite_d_utf(f"{prefix}", disp)
+    chwrite_d_utf(f"{prefix}", disp)
 
 
 def find_neighbours(mesh: CheartMesh):
@@ -60,13 +66,16 @@ def find_neighbours(mesh: CheartMesh):
 
 
 def compute_bc_w(
-    mesh: CheartMesh, surfs: list[int], mult: float = 0.5, nest: int = 3
+    mesh: CheartMesh,
+    surfs: list[int],
+    mult: float = 0.5,
+    nest: int = 3,
 ) -> Vec[f64]:
     if mesh.bnd is None:
         raise ValueError("No boundary vertices found")
     bc_w: Vec[f64] = np.zeros(mesh.space.n, dtype=float)
     bc_nodes: Vec[int_t] = np.unique(
-        [n for i in surfs for n in mesh.bnd.v[i].v.flatten()]
+        [n for i in surfs for n in mesh.bnd.v[i].v.flatten()],
     )
     bc_w[bc_nodes] = 1.0
     neighbors = find_neighbours(mesh)
@@ -87,7 +96,7 @@ def diffuse_bc_w(mesh: CheartMesh, surfs: list[int], mult: float = 1.0, nest: in
         raise ValueError("No boundary vertices found")
     bc_w: Vec[f64] = np.zeros(mesh.space.n, dtype=float)
     bc_nodes: Vec[int_t] = np.unique(
-        [n for i in surfs for n in mesh.bnd.v[i].v.flatten()]
+        [n for i in surfs for n in mesh.bnd.v[i].v.flatten()],
     )
     bc_w[bc_nodes] = 1.0
     neighbors = find_neighbours(mesh)

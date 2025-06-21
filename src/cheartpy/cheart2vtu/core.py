@@ -1,82 +1,86 @@
 __all__ = [
     "export_boundary",
-    "run_exports_in_series",
     "run_exports_in_parallel",
+    "run_exports_in_series",
 ]
 import os
-from typing import Mapping
+from collections.abc import Mapping
+from concurrent import futures
 
 import numpy as np
-from ..var_types import *
-from ..tools.parallel_exec import PEXEC_ARGS, parallel_exec
-from ..tools.progress_bar import ProgressBar
+from arraystubs import Arr1, Arr2
+
+from ..cheart_mesh.io import chread_b_utf
 from ..io.indexing import IIndexIterator
 from ..tools.basiclogging import BLogger, ILogger
-from ..cheart_mesh.io import *
+from ..tools.parallel_exec import PEXEC_ARGS, parallel_exec
+from ..tools.progress_bar import ProgressBar
 from ..xmlwriter import XMLElement, XMLWriters
+from .fio import update_variable_cache
 from .interfaces import *
 from .third_party import compress_vtu
 from .variable_naming import CheartVTUFormat
-from .fio import update_variable_cache
-from concurrent import futures
 
 
-def create_XML_for_boundary(
+def create_XML_for_boundary[I: np.integer, F: np.floating](
     prefix: str,
-    fx: Mat[f64],
+    fx: Arr2[F],
     tp: CheartTopology,
-    fb: Mat[int_t],
-    fbid: Vec[int_t],
+    fb: Arr2[I],
+    fbid: Arr1[I],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
-    grid = vtkfile.add_elem(XMLElement("UnstructuredGrid"))
-    piece = grid.add_elem(
+    grid = vtkfile.create_elem(XMLElement("UnstructuredGrid"))
+    piece = grid.create_elem(
         XMLElement(
             "Piece",
             Name=f"{prefix}",
             NumberOfPoints=f"{len(fx)}",
             NumberOfCells=f"{fb.shape[0]}",
-        )
+        ),
     )
-    dataarr = piece.add_elem(XMLElement("Points")).add_elem(
-        XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii")
+    dataarr = piece.create_elem(XMLElement("Points")).create_elem(
+        XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
-    dataarr.add_data(fx, XMLWriters.PointWriter)
-    cell = piece.add_elem(XMLElement("CellData", Scalars="scalars"))
-    dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii")
+    dataarr.add_data(fx, XMLWriters.array_writer)
+    cell = piece.create_elem(XMLElement("CellData", Scalars="scalars"))
+    dataarr = cell.create_elem(
+        XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii"),
     )
-    dataarr.add_data(fbid, XMLWriters.IntegerWriter)
-    cell = piece.add_elem(XMLElement("Cells", Scalars="scalars"))
-    dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii")
+    dataarr.add_data(fbid, XMLWriters.int_writer)
+    cell = piece.create_elem(XMLElement("Cells", Scalars="scalars"))
+    dataarr = cell.create_elem(
+        XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
     dataarr.add_data(fb, tp.vtksurfacetype.write)
-    dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii")
+    dataarr = cell.create_elem(
+        XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
     dataarr.add_data(
-        np.arange(fb.shape[1], fb.size + 1, fb.shape[1]), XMLWriters.IntegerWriter
+        np.arange(fb.shape[1], fb.size + 1, fb.shape[1]),
+        XMLWriters.int_writer,
     )
-    dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int8", Name="types", Format="ascii")
+    dataarr = cell.create_elem(
+        XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
     dataarr.add_data(
         np.full((fb.shape[0],), tp.vtkelementtype.vtksurfaceid),
-        XMLWriters.IntegerWriter,
+        XMLWriters.int_writer,
     )
     return vtkfile
 
 
 def export_boundary(
-    inp: ProgramArgs, cache: VariableCache, LOG: ILogger = BLogger("INFO")
+    inp: ProgramArgs,
+    cache: VariableCache,
+    LOG: ILogger = BLogger("INFO"),
 ) -> None:
     LOG.debug("<<< Working on", inp.bfile)
     if inp.bfile is None:
         LOG.info(">>> NOTICE: No boundary file given, export is skipped")
         return
     dx = cache.space
-    raw = CHRead_b_utf(inp.bfile)
+    raw = chread_b_utf(inp.bfile)
     db = raw[:, 1:-1]
     dbid = raw[:, -1]
     vtkXML = create_XML_for_boundary(inp.prefix, dx, cache.top, db, dbid)
@@ -102,30 +106,32 @@ def create_XML_for_mesh(
             Name=f"{prefix}",
             NumberOfPoints=f"{fx.shape[0]}",
             NumberOfCells=f"{tp.ne}",
-        )
+        ),
     )
     points = piece.add_elem(XMLElement("Points"))
     dataarr = points.add_elem(
-        XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii")
+        XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
     dataarr.add_data(fx, XMLWriters.PointWriter)
 
     cell = piece.add_elem(XMLElement("Cells"))
     dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii")
+        XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
     dataarr.add_data(tp.get_data(), tp.vtkelementtype.write)
     dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii")
+        XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
     dataarr.add_data(
-        np.arange(tp.nc, tp.nc * (tp.ne + 1), tp.nc), XMLWriters.IntegerWriter
+        np.arange(tp.nc, tp.nc * (tp.ne + 1), tp.nc),
+        XMLWriters.IntegerWriter,
     )
     dataarr = cell.add_elem(
-        XMLElement("DataArray", type="Int8", Name="types", Format="ascii")
+        XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
     dataarr.add_data(
-        np.full((tp.ne,), tp.vtkelementtype.vtkelementid), XMLWriters.IntegerWriter
+        np.full((tp.ne,), tp.vtkelementtype.vtkelementid),
+        XMLWriters.IntegerWriter,
     )
     points = piece.add_elem(XMLElement("PointData", Scalars="scalars"))
     for v, dv in var.items():
@@ -136,7 +142,7 @@ def create_XML_for_mesh(
                 Name=f"{v}",
                 NumberOfComponents=f"{dv.shape[1]}",
                 Format="ascii",
-            )
+            ),
         )
         dataarr.add_data(dv, XMLWriters.FloatArrWriter)
     return vtkfile
@@ -149,7 +155,6 @@ def export_mesh_iter(
     cache: VariableCache,
     LOG: ILogger = BLogger("INFO"),
 ) -> None:
-
     LOG.debug("<<< Working on", prefix)
     x, vars = update_variable_cache(inp, t, cache, LOG)
     LOG.debug("<<< showing cache")

@@ -1,6 +1,8 @@
 __all__ = ["Variable"]
 import dataclasses as dc
-from typing import Self, TextIO, Literal, ValuesView, overload
+from collections.abc import ValuesView
+from typing import Literal, Self, TextIO, overload
+
 from ..aliases import *
 from ..pytools import get_enum, join_fields
 from ..trait import *
@@ -39,7 +41,9 @@ class Variable(IVariable):
 
     @overload
     def AddSetting(
-        self, task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"], val: IExpression
+        self,
+        task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
+        val: IExpression,
     ) -> None: ...
 
     @overload
@@ -66,7 +70,7 @@ class Variable(IVariable):
                     self.loop_step = self.freq
             case _:
                 raise ValueError(
-                    f"Setting for variable {self.name} does not match correct type"
+                    f"Setting for variable {self.name} does not match correct type",
                 )
 
     def SetFormat(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None:

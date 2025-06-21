@@ -1,13 +1,16 @@
 __all__ = [
-    "VTK_ELEM_TYPE",
     "VTK_ELEM",
+    "VTK_ELEM_TYPE",
     "VtkType",
     "guess_elem_type_from_dim",
 ]
-import enum
-import numpy as np
 import dataclasses as dc
-from typing import Callable, Final, Mapping, TextIO, Literal
+import enum
+from collections.abc import Mapping
+from typing import Callable, Final, Literal, TextIO
+
+import numpy as np
+
 from ..var_types import *
 from .shape_functions import *
 
@@ -40,8 +43,7 @@ class VtkElemInterface:
 
     def write(self, fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        for j in self.nodeordering:
-            fout.write(f" {elem[j] - 1:d}")
+        fout.writelines(f" {elem[j] - 1:d}" for j in self.nodeordering)
         fout.write("\n")
 
     def __bool__(self) -> bool:
@@ -95,8 +97,14 @@ class VtkType(VtkElemInterface, enum.Enum):
         21,
         (0, 1, 2, 3, 5, 4),
         (0, 1, 2, 3, 5, 4),
-        np.array([[0,0,0], [2,0,0], [0,2,0], [1,0,0], [0,1,0], [1,1,0]], dtype=int),  # fmt: skip
-        np.array([[0,0,0], [1,0,0], [0,1,0], [1/2,0,0], [0,1/2,0], [1/2,1/2,0]], dtype=float),  # fmt: skip
+        np.array(
+            [[0, 0, 0], [2, 0, 0], [0, 2, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]],
+            dtype=int,
+        ),  # fmt: skip
+        np.array(
+            [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1 / 2, 0, 0], [0, 1 / 2, 0], [1 / 2, 1 / 2, 0]],
+            dtype=float,
+        ),  # fmt: skip
         sf_triangle_quadratic,
         dsf_triangle_quadratic,
     )
@@ -119,8 +127,34 @@ class VtkType(VtkElemInterface, enum.Enum):
         21,
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
         (0, 1, 3, 2, 4, 7, 8, 5, 6),
-        np.array([[0,0,0],[2,0,0],[0,2,0],[2,2,0],[1,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0]], dtype=float),  # fmt: skip
-        np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0.5,0,0],[0,0.5,0],[0.5,0.5,0],[1,0.5,0],[0.5,1,0]], dtype=float),  # fmt: skip
+        np.array(
+            [
+                [0, 0, 0],
+                [2, 0, 0],
+                [0, 2, 0],
+                [2, 2, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [2, 1, 0],
+                [1, 2, 0],
+            ],
+            dtype=float,
+        ),  # fmt: skip
+        np.array(
+            [
+                [0, 0, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [0.5, 0, 0],
+                [0, 0.5, 0],
+                [0.5, 0.5, 0],
+                [1, 0.5, 0],
+                [0.5, 1, 0],
+            ],
+            dtype=float,
+        ),  # fmt: skip
         sf_quadrilateral_quadratic,
         dsf_quadrilateral_quadratic,
     )
@@ -131,8 +165,8 @@ class VtkType(VtkElemInterface, enum.Enum):
         5,
         (0, 1, 2, 3),
         (0, 1, 2, 3),
-        np.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1]], dtype=int),  # fmt: skip
-        np.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1]], dtype=float),  # fmt: skip
+        np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=int),  # fmt: skip
+        np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=float),  # fmt: skip
         sf_tetrahedron_linear,
         dsf_tetrahedron_linear,
     )
@@ -143,8 +177,37 @@ class VtkType(VtkElemInterface, enum.Enum):
         22,
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
         (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
-        np.array([[0,0,0],[2,0,0],[0,2,0],[0,0,2],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1]], dtype=int),  # fmt: skip
-        0.5*np.array([[0,0,0],[2,0,0],[0,2,0],[0,0,2],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1]], dtype=float),  # fmt: skip
+        np.array(
+            [
+                [0, 0, 0],
+                [2, 0, 0],
+                [0, 2, 0],
+                [0, 0, 2],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [0, 0, 1],
+                [1, 0, 1],
+                [0, 1, 1],
+            ],
+            dtype=int,
+        ),  # fmt: skip
+        0.5
+        * np.array(
+            [
+                [0, 0, 0],
+                [2, 0, 0],
+                [0, 2, 0],
+                [0, 0, 2],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [0, 0, 1],
+                [1, 0, 1],
+                [0, 1, 1],
+            ],
+            dtype=float,
+        ),  # fmt: skip
         sf_tetrahedron_quadratic,
         dsf_tetrahedron_quadratic,
     )
@@ -155,8 +218,32 @@ class VtkType(VtkElemInterface, enum.Enum):
         9,
         (0, 1, 5, 4, 2, 3, 7, 6),
         (0, 1, 5, 4, 2, 3, 7, 6),
-        np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]], dtype=int),  # fmt: skip
-        np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],[0,0,1],[1,0,1],[0,1,1],[1,1,1]], dtype=float),  # fmt: skip
+        np.array(
+            [
+                [0, 0, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [0, 0, 1],
+                [1, 0, 1],
+                [0, 1, 1],
+                [1, 1, 1],
+            ],
+            dtype=int,
+        ),  # fmt: skip
+        np.array(
+            [
+                [0, 0, 0],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [0, 0, 1],
+                [1, 0, 1],
+                [0, 1, 1],
+                [1, 1, 1],
+            ],
+            dtype=float,
+        ),  # fmt: skip
         sf_hexahedron_linear,
         dsf_hexahedron_linear,
     )
@@ -165,23 +252,128 @@ class VtkType(VtkElemInterface, enum.Enum):
         "VtkQuadrilateralQuadratic",
         29,
         28,
-        (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
-        (0,1,5,4,2,3,7,6,8,15,22,13,12,21,26,19,9,11,25,23,16,18,10,24,14,20,17),  # fmt: skip
+        (
+            0,
+            1,
+            5,
+            4,
+            2,
+            3,
+            7,
+            6,
+            8,
+            15,
+            22,
+            13,
+            12,
+            21,
+            26,
+            19,
+            9,
+            11,
+            25,
+            23,
+            16,
+            18,
+            10,
+            24,
+            14,
+            20,
+            17,
+        ),  # fmt: skip
+        (
+            0,
+            1,
+            5,
+            4,
+            2,
+            3,
+            7,
+            6,
+            8,
+            15,
+            22,
+            13,
+            12,
+            21,
+            26,
+            19,
+            9,
+            11,
+            25,
+            23,
+            16,
+            18,
+            10,
+            24,
+            14,
+            20,
+            17,
+        ),  # fmt: skip
         np.array(
             [
-                [0,0,0],[2,0,0],[0,2,0],[2,2,0],[0,0,2],[2,0,2],[0,2,2],[2,2,2],
-                [1,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0],
-                [0,0,1],[1,0,1],[2,0,1],[0,1,1],[1,1,1],[2,1,1],[0,2,1],[1,2,1],[2,2,1],
-                [1,0,2],[0,1,2],[1,1,2],[2,1,2],[1,2,2],
-            ], dtype=int
+                [0, 0, 0],
+                [2, 0, 0],
+                [0, 2, 0],
+                [2, 2, 0],
+                [0, 0, 2],
+                [2, 0, 2],
+                [0, 2, 2],
+                [2, 2, 2],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [2, 1, 0],
+                [1, 2, 0],
+                [0, 0, 1],
+                [1, 0, 1],
+                [2, 0, 1],
+                [0, 1, 1],
+                [1, 1, 1],
+                [2, 1, 1],
+                [0, 2, 1],
+                [1, 2, 1],
+                [2, 2, 1],
+                [1, 0, 2],
+                [0, 1, 2],
+                [1, 1, 2],
+                [2, 1, 2],
+                [1, 2, 2],
+            ],
+            dtype=int,
         ),  # fmt: skip
-        0.5*np.array(
+        0.5
+        * np.array(
             [
-                [0,0,0],[2,0,0],[0,2,0],[2,2,0],[0,0,2],[2,0,2],[0,2,2],[2,2,2],
-                [1,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0],
-                [0,0,1],[1,0,1],[2,0,1],[0,1,1],[1,1,1],[2,1,1],[0,2,1],[1,2,1],[2,2,1],
-                [1,0,2],[0,1,2],[1,1,2],[2,1,2],[1,2,2],
-            ], dtype=float
+                [0, 0, 0],
+                [2, 0, 0],
+                [0, 2, 0],
+                [2, 2, 0],
+                [0, 0, 2],
+                [2, 0, 2],
+                [0, 2, 2],
+                [2, 2, 2],
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 1, 0],
+                [2, 1, 0],
+                [1, 2, 0],
+                [0, 0, 1],
+                [1, 0, 1],
+                [2, 0, 1],
+                [0, 1, 1],
+                [1, 1, 1],
+                [2, 1, 1],
+                [0, 2, 1],
+                [1, 2, 1],
+                [2, 2, 1],
+                [1, 0, 2],
+                [0, 1, 2],
+                [1, 1, 2],
+                [2, 1, 2],
+                [1, 2, 2],
+            ],
+            dtype=float,
         ),  # fmt: skip
         sf_hexahedron_quadratic,
         dsf_hexahedron_quadratic,
@@ -234,7 +426,7 @@ def guess_elem_type_from_dim(edim: int, bdim: int | None) -> tuple[VtkType, VtkT
             return VtkType.HexahedronQuadratic, VtkType.QuadrilateralQuadratic
         case 4, None:
             raise ValueError(
-                "Cannot detect Bilinear quadrilateral/Trilinear tetrahedron, need boundary dim"
+                "Cannot detect Bilinear quadrilateral/Trilinear tetrahedron, need boundary dim",
             )
         case _:
             raise ValueError(f"Cannot determine element type from {edim} and {bdim}")

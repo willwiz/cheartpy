@@ -1,19 +1,15 @@
-__all__ = ["join_fields", "hline", "cline", "header", "splicegen", "get_enum"]
-from typing import Any, Type
+__all__ = ["cline", "get_enum", "header", "hline", "join_fields", "splicegen"]
 import enum
+from typing import Any, Type
 
 
 def join_fields(*terms: Any, char: str = "|") -> str:
-    vals = [
-        f"{v[0]}.{v[1]}" if isinstance(v, tuple) else str(v)
-        for v in terms
-        if v is not None
-    ]
+    vals = [f"{v[0]}.{v[1]}" if isinstance(v, tuple) else str(v) for v in terms if v is not None]
     return char.join(vals)
 
 
 def hline(s: str):
-    return f"% ----  {s + "  ":-<82}\n"
+    return f"% ----  {s + '  ':-<82}\n"
 
 
 def cline(s: str):
@@ -21,17 +17,15 @@ def cline(s: str):
 
 
 def header(msg: str = "Begin P file"):
-    ls = f"% {'-'*88}\n"
+    ls = f"% {'-' * 88}\n"
     for s in msg.splitlines():
         ls = ls + cline(s)
-    ls = ls + f"% {'-'*88}\n"
+    ls = ls + f"% {'-' * 88}\n"
     return ls
 
 
 def splicegen(maxchars: int, stringlist: list[str]):
-    """
-    Return a list of slices to print based on maxchars string-length boundary.
-    """
+    """Return a list of slices to print based on maxchars string-length boundary."""
     runningcount = 0  # start at 0
     tmpslice = []  # tmp list where we append slice numbers.
     for item in stringlist:

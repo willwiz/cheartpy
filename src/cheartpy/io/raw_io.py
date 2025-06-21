@@ -1,26 +1,26 @@
+from pathlib import Path
+
 import numpy as np
-from ..var_types import *
+from arraystubs import Arr2
 
 
-def read_array_int(name: str, skip: int = 0) -> Mat[int_t]:
+def read_array_int[T: np.integer](name: str, skip: int = 0) -> Arr2[T]:
     return np.loadtxt(name, skiprows=skip, dtype=int)
 
 
-def read_array_float(name: str, skip: int = 0) -> Mat[f64]:
+def read_array_float[T: np.floating](name: str, skip: int = 0) -> Arr2[T]:
     return np.loadtxt(name, skiprows=skip, dtype=float)
 
 
-def write_array_int(name: str, arr: Mat[int_t]) -> None:
-    with open(name, "w") as f:
+def write_array_int[T: np.integer](name: str, arr: Arr2[T]) -> None:
+    with Path(name).open("w") as f:
         for i in arr:
-            for j in i:
-                f.write("{:12d}".format(j))
+            f.writelines(f"{j:12d}" for j in i)
             f.write("\n")
 
 
-def write_array_float(name: str, arr: Mat[f64]) -> None:
-    with open(name, "w") as f:
+def write_array_float[T: np.floating](name: str, arr: Arr2[T]) -> None:
+    with Path(name).open("w") as f:
         for i in arr:
-            for j in i:
-                f.write("{:>24.12E}".format(j))
+            f.writelines(f"{j:>24.12E}" for j in i)
             f.write("\n")

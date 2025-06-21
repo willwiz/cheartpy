@@ -1,25 +1,25 @@
 from .basic import *
-from .solver_matrix import *
 from .solver_group import *
+from .solver_matrix import *
 
 __all__ = [
-    "EXPRESSION_VALUE",
     "BC_VALUE",
-    "ITimeScheme",
-    "IDataPointer",
-    "IDataInterp",
-    "IBasis",
-    "IQuadrature",
+    "EXPRESSION_VALUE",
     "IBCPatch",
+    "IBasis",
     "IBoundaryCondition",
     "ICheartBasis",
     "ICheartTopology",
-    "ITopInterface",
-    "IVariable",
+    "IDataInterp",
+    "IDataPointer",
     "IExpression",
     "ILaw",
     "IProblem",
+    "IQuadrature",
+    "ISolverGroup",
     "ISolverMatrix",
     "ISolverSubGroup",
-    "ISolverGroup",
+    "ITimeScheme",
+    "ITopInterface",
+    "IVariable",
 ]

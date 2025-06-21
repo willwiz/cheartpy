@@ -1,14 +1,17 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 
-from typing import Literal, cast
-from ..var_types import *
-from .cylinder_core.api import create_cylinder_mesh
 import argparse
+from typing import cast
+
+from .cylinder_core.api import create_cylinder_mesh
 
 parser = argparse.ArgumentParser("block", description="Make a cube")
 parser.add_argument(
-    "--prefix", "-p", type=str, default="cube", help="Prefix for saved file."
+    "--prefix",
+    "-p",
+    type=str,
+    default="cube",
+    help="Prefix for saved file.",
 )
 parser.add_argument("-l", type=float, default=1, help="long axis length")
 parser.add_argument("-b", type=float, default=0, help="starting location")
@@ -28,15 +31,15 @@ parser.add_argument("qn", type=int, help="number of elements in theta")
 parser.add_argument("zn", type=int, help="number of elements in z")
 
 
-def main(args: argparse.Namespace):
+def main(args: argparse.Namespace) -> None:
     mesh, quad = create_cylinder_mesh(
-        cast(float, args.rin),
-        cast(float, args.rout),
-        cast(float, args.l),
-        cast(float, args.b),
-        cast(T3[int], (args.xn, args.yn, args.zn)),
-        cast(Literal["x", "y", "z"], args.axis),
-        cast(bool, args.make_quad),
+        args.rin,
+        args.rout,
+        args.l,
+        args.b,
+        (args.xn, args.yn, args.zn),
+        args.axis,
+        cast("bool", args.make_quad),
     )
     mesh.save(args.prefix)
     quad.save(args.prefix + "_quad") if quad else ...

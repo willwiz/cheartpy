@@ -1,14 +1,23 @@
 __all__ = ["create_hex_mesh"]
-from ...var_types import *
-from ...cheart_mesh import *
-from .core import *
+import numpy as np
+from arraystubs import T3
+
+from cheartpy.cheart_mesh.data import CheartMesh
+
+from .core import (
+    create_boundary,
+    create_space,
+    create_square_element_index,
+    create_square_nodal_index,
+    create_topology,
+)
 
 
 def create_hex_mesh(
     dim: T3[int],
     shape: T3[float] = (1.0, 1.0, 1.0),
     shift: T3[float] = (0.0, 0.0, 0.0),
-) -> CheartMesh:
+) -> CheartMesh[np.float64, np.intc]:
     node_index = create_square_nodal_index(*dim)
     elem_index = create_square_element_index(*dim)
     return CheartMesh(

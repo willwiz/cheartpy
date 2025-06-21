@@ -1,10 +1,12 @@
 import abc
-from typing import Mapping, Sequence, TextIO, ValuesView
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import TextIO
+
 from ..aliases import *
 from .basic import *
 from .solver_matrix import *
 
-__all__ = ["ISolverSubGroup", "ISolverGroup"]
+__all__ = ["ISolverGroup", "ISolverSubGroup"]
 
 
 class ISolverSubGroup(abc.ABC):
@@ -57,7 +59,9 @@ class ISolverGroup(abc.ABC):
     ) -> None: ...
     @abc.abstractmethod
     def catch_solver_errors(
-        self, err: Literal["nan_maxval"], act: Literal["evaluate_full"]
+        self,
+        err: Literal["nan_maxval"],
+        act: Literal["evaluate_full"],
     ) -> None: ...
     @abc.abstractmethod
     def AddAuxVariable(self, *var: IVariable): ...

@@ -1,3 +1,3 @@
-from .varcomp import *
-from .traits import *
 from .funcs import *
+from .traits import *
+from .varcomp import *
