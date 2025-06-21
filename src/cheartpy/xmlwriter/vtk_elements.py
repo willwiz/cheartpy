@@ -1,29 +1,36 @@
+from __future__ import annotations
+
 __all__ = ["IVtkElementInterface", "get_element_type"]
 import abc
-from typing import TextIO, Protocol, ClassVar
-from ..var_types import *
+from pathlib import Path
+from typing import TYPE_CHECKING, ClassVar, Protocol, TextIO
+from warnings import warn
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1
 
 
 class IVtkElementInterface(Protocol):
     vtkelementid: ClassVar[int]
     vtksurfaceid: ClassVar[int | None]
-    # connectivity: ClassVar[tuple[int, ...]]
+    connectivity: ClassVar[tuple[int, ...]]
 
     @staticmethod
     @abc.abstractmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None: ...
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None: ...
 
 
 class VtkLinearLine(IVtkElementInterface):
-    vtkelementid: ClassVar[int] = 3
-    vtksurfaceid: ClassVar[int | None] = None
+    vtkelementid = 3
+    vtksurfaceid = None
     connectivity = (0, 1)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        for j in range(2):
-            fout.write(" %i" % (elem[j] - 1))
+        fout.writelines(f" {elem[j] - 1:d}" for j in VtkLinearLine.connectivity)
         fout.write("\n")
 
 
@@ -33,10 +40,9 @@ class VtkQuadraticLine(IVtkElementInterface):
     connectivity = (0, 1, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        for j in range(3):
-            fout.write(" %i" % (elem[j] - 1))
+        fout.writelines(f" {elem[j] - 1:d}" for j in VtkQuadraticLine.connectivity)
         fout.write("\n")
 
 
@@ -46,10 +52,9 @@ class VtkBilinearTriangle(IVtkElementInterface):
     connectivity = (0, 1, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        for j in range(3):
-            fout.write(" %i" % (elem[j] - 1))
+        fout.writelines(f" {elem[j] - 1:d}" for j in [VtkBilinearTriangle.connectivity])
         fout.write("\n")
 
 
@@ -59,186 +64,155 @@ class VtkBiquadraticTriangle(IVtkElementInterface):
     connectivity = (0, 1, 2, 3, 5, 4)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        fout.write(" %i" % (elem[0] - 1))
-        fout.write(" %i" % (elem[1] - 1))
-        fout.write(" %i" % (elem[2] - 1))
-        fout.write(" %i" % (elem[3] - 1))
-        fout.write(" %i" % (elem[5] - 1))
-        fout.write(" %i" % (elem[4] - 1))
+        fout.writelines(f" {elem[i] - 1:d}" for i in VtkBiquadraticTriangle.connectivity)
         fout.write("\n")
 
 
 class VtkBilinearQuadrilateral(IVtkElementInterface):
     vtkelementid: ClassVar[int] = 9
     vtksurfaceid: ClassVar[int | None] = 3
+    connectivity = (0, 1, 3, 2)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        fout.write(" %i" % (elem[0] - 1))
-        fout.write(" %i" % (elem[1] - 1))
-        fout.write(" %i" % (elem[3] - 1))
-        fout.write(" %i" % (elem[2] - 1))
+        fout.writelines(f" {elem[i] - 1:d}" for i in VtkBilinearQuadrilateral.connectivity)
         fout.write("\n")
 
 
 class VtkTrilinearTetrahedron(IVtkElementInterface):
     vtkelementid: ClassVar[int] = 10
     vtksurfaceid: ClassVar[int | None] = 5
+    connectivity = (0, 1, 2, 3)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        for j in range(4):
-            fout.write(" %i" % (elem[j] - 1))
+        fout.writelines(f" {elem[j] - 1:d}" for j in VtkTrilinearTetrahedron.connectivity)
         fout.write("\n")
 
 
 class VtkBiquadraticQuadrilateral(IVtkElementInterface):
     vtkelementid: ClassVar[int] = 28
     vtksurfaceid: ClassVar[int | None] = 21
+    connectivity = (0, 1, 3, 2, 4, 7, 8, 5, 6)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        fout.write(" %i" % (elem[0] - 1))
-        fout.write(" %i" % (elem[1] - 1))
-        fout.write(" %i" % (elem[3] - 1))
-        fout.write(" %i" % (elem[2] - 1))
-        fout.write(" %i" % (elem[4] - 1))
-        fout.write(" %i" % (elem[7] - 1))
-        fout.write(" %i" % (elem[8] - 1))
-        fout.write(" %i" % (elem[5] - 1))
-        fout.write(" %i" % (elem[6] - 1))
+        fout.writelines(f" {elem[i] - 1:d}" for i in VtkBiquadraticQuadrilateral.connectivity)
         fout.write("\n")
 
 
 class VtkTriquadraticTetrahedron(IVtkElementInterface):
     vtkelementid: ClassVar[int] = 24
     vtksurfaceid: ClassVar[int | None] = 22
+    connectivity = (
+        0, 1, 2, 3, 4, 6, 5, 7, 8, 9,
+    )  # fmt: skip
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        for j in range(10):
-            if j == 6:
-                fout.write(" %i" % (elem[5] - 1))
-            elif j == 5:
-                fout.write(" %i" % (elem[6] - 1))
-            else:
-                fout.write(" %i" % (elem[j] - 1))
+        fout.writelines(f" {elem[i] - 1:d}" for i in VtkTriquadraticTetrahedron.connectivity)
         fout.write("\n")
 
 
 class VtkTrilinearHexahedron(IVtkElementInterface):
     vtkelementid: ClassVar[int] = 12
     vtksurfaceid: ClassVar[int | None] = 9
+    connectivity = (0, 1, 5, 4, 2, 3, 7, 6)
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        fout.write(" %i" % (elem[0] - 1))
-        fout.write(" %i" % (elem[1] - 1))
-        fout.write(" %i" % (elem[5] - 1))
-        fout.write(" %i" % (elem[4] - 1))
-        fout.write(" %i" % (elem[2] - 1))
-        fout.write(" %i" % (elem[3] - 1))
-        fout.write(" %i" % (elem[7] - 1))
-        fout.write(" %i" % (elem[6] - 1))
+        fout.writelines(f" {elem[i] - 1:d}" for i in VtkTrilinearHexahedron.connectivity)
         fout.write("\n")
 
 
 class VtkTriquadraticHexahedron(IVtkElementInterface):
     vtkelementid: ClassVar[int] = 29
     vtksurfaceid: ClassVar[int | None] = 28
+    connectivity = (
+        0,  1,  5,  4,  2,  3,  7, 6,  8,  15,
+        22, 13, 12, 21, 26, 19, 9, 11, 25, 23,
+        16, 18, 10, 24, 14, 20, 17,
+    )  # fmt: skip
 
     @staticmethod
-    def write(fout: TextIO, elem: Vec[int_t], level: int = 0) -> None:
+    def write[T: np.integer](fout: TextIO, elem: Arr1[T], level: int = 0) -> None:
         fout.write(" " * (level - 1))
-        fout.write(" %i" % (elem[0] - 1))
-        fout.write(" %i" % (elem[1] - 1))
-        fout.write(" %i" % (elem[5] - 1))
-        fout.write(" %i" % (elem[4] - 1))
-        fout.write(" %i" % (elem[2] - 1))
-        fout.write(" %i" % (elem[3] - 1))
-        fout.write(" %i" % (elem[7] - 1))
-        fout.write(" %i" % (elem[6] - 1))
-        fout.write(" %i" % (elem[8] - 1))
-        fout.write(" %i" % (elem[15] - 1))
-        fout.write(" %i" % (elem[22] - 1))
-        fout.write(" %i" % (elem[13] - 1))
-        fout.write(" %i" % (elem[12] - 1))
-        fout.write(" %i" % (elem[21] - 1))
-        fout.write(" %i" % (elem[26] - 1))
-        fout.write(" %i" % (elem[19] - 1))
-        fout.write(" %i" % (elem[9] - 1))
-        fout.write(" %i" % (elem[11] - 1))
-        fout.write(" %i" % (elem[25] - 1))
-        fout.write(" %i" % (elem[23] - 1))
-        fout.write(" %i" % (elem[16] - 1))
-        fout.write(" %i" % (elem[18] - 1))
-        fout.write(" %i" % (elem[10] - 1))
-        fout.write(" %i" % (elem[24] - 1))
-        fout.write(" %i" % (elem[14] - 1))
-        fout.write(" %i" % (elem[20] - 1))
-        fout.write(" %i" % (elem[17] - 1))
+        fout.writelines(f" {elem[i] - 1:d}" for i in VtkTriquadraticHexahedron.connectivity)
         fout.write("\n")
 
 
-VtkTopologyElement = (
-    type[VtkBilinearTriangle]
-    | type[VtkBiquadraticTriangle]
-    | type[VtkBilinearQuadrilateral]
-    | type[VtkBiquadraticQuadrilateral]
-    | type[VtkTrilinearTetrahedron]
-    | type[VtkTriquadraticTetrahedron]
-    | type[VtkTrilinearHexahedron]
-    | type[VtkTriquadraticHexahedron]
-)
-VtkBoundaryElement = (
-    type[VtkLinearLine]
-    | type[VtkQuadraticLine]
-    | type[VtkBilinearTriangle]
-    | type[VtkBiquadraticTriangle]
-    | type[VtkBilinearQuadrilateral]
-    | type[VtkBiquadraticQuadrilateral]
-)
+type VtkTopologyElement = type[
+    VtkBilinearTriangle
+    | VtkBiquadraticTriangle
+    | VtkBilinearQuadrilateral
+    | VtkBiquadraticQuadrilateral
+    | VtkTrilinearTetrahedron
+    | VtkTriquadraticTetrahedron
+    | VtkTrilinearHexahedron
+    | VtkTriquadraticHexahedron
+]
+type VtkBoundaryElement = type[
+    VtkLinearLine
+    | VtkQuadraticLine
+    | VtkBilinearTriangle
+    | VtkBiquadraticTriangle
+    | VtkBilinearQuadrilateral
+    | VtkBiquadraticQuadrilateral
+]
+
+
+def get_element_type_from_nodes(
+    nnodes: int,
+    nbnd: int | None,
+) -> tuple[VtkTopologyElement, VtkBoundaryElement]:
+    match nnodes, nbnd:
+        case 3, _:
+            vtkelem = VtkBilinearTriangle, VtkLinearLine
+        case 6, _:
+            vtkelem = VtkBiquadraticTriangle, VtkQuadraticLine
+        case 4, 4:
+            vtkelem = VtkBilinearQuadrilateral, VtkLinearLine
+        case 4, 5:
+            vtkelem = VtkTrilinearTetrahedron, VtkBilinearTriangle
+        case 4, None:
+            msg = (
+                "Bilinear quadrilateral / Trilinear tetrahedron detected"
+                "It's ambiguous without boundary element size. Quadrilateral assumed."
+            )
+            warn(msg, stacklevel=2)
+            vtkelem = VtkBilinearQuadrilateral, VtkLinearLine
+        case 9, _:
+            vtkelem = VtkBiquadraticQuadrilateral, VtkQuadraticLine
+        case 10, _:
+            vtkelem = VtkTriquadraticTetrahedron, VtkBiquadraticTriangle
+        case 8, _:
+            vtkelem = VtkTrilinearHexahedron, VtkBilinearQuadrilateral
+        case 27, _:
+            vtkelem = VtkTriquadraticHexahedron, VtkBiquadraticQuadrilateral
+        case _:
+            msg = (
+                f"Cannot determine element type from {nnodes} nodes and "
+                f"{nbnd}, perhaps not implemented."
+            )
+            raise ValueError(msg)
+    return vtkelem
 
 
 def get_element_type(
-    nnodes: int, boundary: str | None
+    nnodes: int,
+    boundary: str | None,
 ) -> tuple[type[IVtkElementInterface], type[IVtkElementInterface]]:
     if boundary is None:
         nbnd = None
     else:
-        with open(boundary, "r") as f:
+        with Path(boundary).open("r") as f:
             _ = f.readline()
             nbnd = len(f.readline().strip().split())
-    match nnodes:
-        case 3:
-            return VtkBilinearTriangle, VtkLinearLine
-        case 6:
-            return VtkBiquadraticTriangle, VtkQuadraticLine
-        case 4:
-            if nbnd == 4:
-                return VtkBilinearQuadrilateral, VtkLinearLine
-            elif nbnd == 5:
-                return VtkTrilinearTetrahedron, VtkBilinearTriangle
-            raise ValueError(
-                f"Bilinear quadrilateral / Trilinear tetrahedron detected but ambiguous"
-            )
-        case 9:
-            return VtkBiquadraticQuadrilateral, VtkQuadraticLine
-        case 10:
-            return VtkTriquadraticTetrahedron, VtkBiquadraticTriangle
-        case 8:
-            return VtkTrilinearHexahedron, VtkBilinearQuadrilateral
-        case 27:
-            return VtkTriquadraticHexahedron, VtkBiquadraticQuadrilateral
-        case _:
-            raise ValueError(
-                f"Cannot determine element type from {nnodes} and {
-                    boundary}, perhaps not implemented."
-            )
+    return get_element_type_from_nodes(nnodes, nbnd)

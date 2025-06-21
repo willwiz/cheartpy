@@ -1,6 +1,5 @@
 import argparse
 
-
 interp_parser = argparse.ArgumentParser(
     "interp",
     description="""interpolate data from linear topology to quadratic topology""",
@@ -40,7 +39,7 @@ interp_parser.add_argument(
     dest="suffix",
     type=str,
     default="Quad",
-    help="OPTIONAL: output file will have [tag] appended to the end of name before index numbers and extension",
+    help="OPTIONAL: output file will have [tag] appended before index numbers and extension",
 )
 interp_parser.add_argument(
     "--sfx",

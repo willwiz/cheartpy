@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import dataclasses as dc
-from glob import glob
-from typing import Literal
-from ..io.indexing.search import get_var_index
-from ..cheart_mesh.api import import_cheart_mesh
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal
+
+from cheartpy.cheart_mesh.api import import_cheart_mesh
+from cheartpy.io.indexing.search import get_var_index
+
 from .interpolate.interpolation import interpolate_var_on_lin_topology, make_l2qmap
 from .interpolate.parsing import interp_parser
-import argparse
+
+if TYPE_CHECKING:
+    import argparse
 
 
 @dc.dataclass(slots=True)
@@ -34,24 +40,24 @@ def check_args_interp(args: argparse.Namespace) -> InterpInputArgs:
     )
 
 
-def main_interp(inp: InterpInputArgs):
+def main_interp(inp: InterpInputArgs) -> None:
     lin_mesh = import_cheart_mesh(inp.lin_mesh)
     quad_mesh = import_cheart_mesh(inp.quad_mesh)
-    L2Q = make_l2qmap(lin_mesh, quad_mesh)
+    l2qmap = make_l2qmap(lin_mesh, quad_mesh)
     items = get_var_index(
-        glob(f"{inp.vars[0]}-*.{inp.suffix}", root_dir=inp.input_folder),
+        [v.name for v in Path(inp.input_folder).glob(f"{inp.vars[0]}-*.{inp.suffix}")],
         f"{inp.vars[0]}",
     )
     for v in inp.vars:
         for i in items:
             interpolate_var_on_lin_topology(
-                L2Q,
+                l2qmap,
                 f"{inp.input_folder}/{v}-{i}.{inp.sfx}",
                 f"{inp.input_folder}/{v}_{inp.suffix}-{i}.{inp.sfx}",
             )
 
 
-def main_cli(cmd_args: list[str] | None = None):
+def main_cli(cmd_args: list[str] | None = None) -> None:
     args = interp_parser.parse_args(cmd_args)
     inp = check_args_interp(args)
     main_interp(inp)

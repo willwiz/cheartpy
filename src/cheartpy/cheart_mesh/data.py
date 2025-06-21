@@ -1,46 +1,50 @@
+from __future__ import annotations
+
 __all__ = [
+    "CheartMesh",
+    "CheartMeshBoundary",
+    "CheartMeshPatch",
     "CheartMeshSpace",
     "CheartMeshTopology",
-    "CheartMeshPatch",
-    "CheartMeshBoundary",
-    "CheartMesh",
-    "create_bnd_surf",
 ]
 import dataclasses as dc
-from typing import Mapping
+from collections.abc import Mapping
+
 import numpy as np
-from ..var_types import Mat, Vec, f64, int_t
-from .elements import VtkType
-from .io import *
+from arraystubs import Arr1, Arr2
+
+from cheartpy.vtk.trait import VtkType
+
+from .io import check_for_meshes, chwrite_d_utf, chwrite_iarr_utf, chwrite_t_utf, fix_suffix
 
 
 @dc.dataclass(slots=True)
-class CheartMeshSpace:
+class CheartMeshSpace[T: np.floating]:
     n: int
-    v: Mat[f64]
+    v: Arr2[T]
 
     def save(self, name: str) -> None:
-        CHWrite_d_utf(name, self.v)
+        chwrite_d_utf(name, self.v)
 
 
 @dc.dataclass(slots=True)
-class CheartMeshTopology:
+class CheartMeshTopology[T: np.integer]:
     n: int
-    v: Mat[int_t]
+    v: Arr2[T]
     TYPE: VtkType
 
     def save(self, name: str) -> None:
-        CHWrite_t_utf(name, self.v + 1, self.v.max() + 1)
+        chwrite_t_utf(name, self.v + 1, self.v.max() + 1)
 
 
 @dc.dataclass(slots=True)
-class CheartMeshPatch:
+class CheartMeshPatch[T: np.integer]:
     tag: int
     n: int
-    k: Vec[int_t]
-    v: Mat[int_t]
+    k: Arr1[T]
+    v: Arr2[T]
 
-    def to_array(self) -> Mat[int_t]:
+    def to_array(self) -> Arr2[T]:
         res = np.pad(self.v + 1, ((0, 0), (1, 1)))
         res[:, 0] = self.k + 1
         res[:, -1] = self.tag
@@ -48,23 +52,23 @@ class CheartMeshPatch:
 
 
 @dc.dataclass(slots=True)
-class CheartMeshBoundary:
+class CheartMeshBoundary[T: np.integer]:
     n: int
-    v: Mapping[str | int, CheartMeshPatch]
+    v: Mapping[int, CheartMeshPatch[T]]
     TYPE: VtkType
 
     def save(self, name: str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)
-        CHWrite_iarr_utf(name, data)
+        chwrite_iarr_utf(name, data)
 
 
 @dc.dataclass(slots=True)
-class CheartMesh:
-    space: CheartMeshSpace
-    top: CheartMeshTopology
-    bnd: CheartMeshBoundary | None
+class CheartMesh[F: np.floating, I: np.integer]:
+    space: CheartMeshSpace[F]
+    top: CheartMeshTopology[I]
+    bnd: CheartMeshBoundary[I] | None
 
-    def save(self, prefix: str, forced: bool = False) -> None:
+    def save(self, prefix: str, *, forced: bool = False) -> None:
         if check_for_meshes("prefix") and not forced:
             return
         prefix = fix_suffix(prefix)
@@ -72,10 +76,3 @@ class CheartMesh:
         self.top.save(f"{prefix}T")
         if self.bnd is not None:
             self.bnd.save(f"{prefix}B")
-
-
-def create_bnd_surf(v: Mat[int_t], tag: int) -> CheartMeshPatch:
-    bnd = v[v[:, -1] == tag, :-1]
-    elems = bnd[:, 0] - 1
-    nodes = bnd[:, 1:] - 1
-    return CheartMeshPatch(tag, len(bnd), elems, nodes)

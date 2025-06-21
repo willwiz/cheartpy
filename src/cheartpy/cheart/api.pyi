@@ -1,33 +1,38 @@
 __all__ = [
-    "hash_tops",
-    "create_time_scheme",
+    "AddStateVar",
     "create_basis",
+    "create_bc",
+    "create_bcpatch",
     "create_boundary_basis",
-    "create_topology",
     "create_embedded_topology",
+    "create_expr",
+    "create_solver_group",
     "create_solver_matrix",
     "create_solver_subgroup",
-    "create_solver_group",
+    "create_time_scheme",
     "create_top_interface",
-    "create_bcpatch",
-    "create_bc",
+    "create_topology",
     "create_variable",
-    "create_expr",
-    "AddStateVar",
+    "hash_tops",
 ]
-from typing import Sequence, overload
+from collections.abc import Sequence
+from typing import overload
+
 from .aliases import *
-from .trait import *
 from .impl import (
-    NullTopology,
     CheartTopology,
-    OneToOneTopInterface,
     ManyToOneTopInterface,
+    NullTopology,
+    OneToOneTopInterface,
 )
+from .trait import *
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
 def create_time_scheme(
-    name: str, start: int, stop: int, step: float | str
+    name: str,
+    start: int,
+    stop: int,
+    step: float | str,
 ) -> ITimeScheme: ...
 def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
@@ -42,26 +47,30 @@ def create_topology(
     name: str,
     basis: ICheartBasis,
     mesh: str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> CheartTopology: ...
 @overload
 def create_topology(
     name: str,
     basis: None,
     mesh: str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> NullTopology: ...
 def create_embedded_topology(
     name: str,
     embedded_top: CheartTopology,
     mesh: str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> CheartTopology: ...
 def create_solver_matrix(
-    name: str, solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes, *probs: IProblem | None
+    name: str,
+    solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes,
+    *probs: IProblem | None,
 ) -> ISolverMatrix: ...
 def create_solver_group(
-    name: str, time: ITimeScheme, *solver_subgroup: ISolverSubGroup
+    name: str,
+    time: ITimeScheme,
+    *solver_subgroup: ISolverSubGroup,
 ) -> ISolverGroup: ...
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
@@ -69,13 +78,13 @@ def create_solver_subgroup(
 ) -> ISolverSubGroup: ...
 @overload
 def create_top_interface(
-    method: Literal["OneToOne"],
+    method: Literal[OneToOne],
     topologies: list[ICheartTopology],
     nest_in_boundary: int | None = None,
 ) -> OneToOneTopInterface: ...
 @overload
 def create_top_interface(
-    method: Literal["ManyToOne"],
+    method: Literal[ManyToOne],
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology,
     interface_file: str,
@@ -93,7 +102,7 @@ def create_variable(
     top: ICheartTopology | None,
     dim: int = 3,
     data: str | None = None,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
     freq: int = 1,
     loop_step: int | None = None,
 ) -> IVariable: ...

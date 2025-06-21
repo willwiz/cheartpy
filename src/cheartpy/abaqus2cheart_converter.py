@@ -1,22 +1,28 @@
 #!/usr/bin/env python3
+from __future__ import annotations
 
-import enum
-import os
-import sys
-from collections import defaultdict
 import argparse
-from argparse import RawTextHelpFormatter
-from typing import Any, Callable, Sequence, TextIO, Self
-import numpy as np
 import dataclasses as dc
+import enum
+import sys
+from argparse import RawTextHelpFormatter
+from collections import defaultdict
+from collections.abc import Callable, Sequence
 from concurrent import futures
-from .var_types import *
+from pathlib import Path
+from typing import Any, NamedTuple, Self, TextIO
+
+import numpy as np
+from arraystubs import Arr2
+
 from .cheart_mesh.io import (
-    CHWrite_d_utf,
-    CHWrite_t_utf,
-    CHWrite_iarr_utf,
-    CHWrite_Str_utf,
+    chwrite_d_utf,
+    chwrite_iarr_utf,
+    chwrite_str_utf,
+    chwrite_t_utf,
 )
+
+# from .var_types import *
 
 ################################################################################################
 # Check if multiprocessing is available
@@ -37,7 +43,7 @@ parser = argparse.ArgumentParser(
       Surface 1 labeled as 1
       Surfaces 2 3 4 labeled as 2
       Topology as Volume1 and Volume2
-      python3 abaqus2cheart.py mesh.inp -t Volume1 Volume2 -b Surface1 1 -b Surface2 Surface3 Surface4 2
+      python3 abaqus2cheart.py mesh.inp -t Volume1 Volume2 -b Surface1 1 -b Surface2 Surface3 2
 
     Mesh is check for errors if topology and boundary as indicated. Extra nodes are not included.
 
@@ -124,40 +130,47 @@ class InputArgs:
     cores: int
 
 
-class AbaqusElementType(enum.Enum):
-    S3R = (0, 1, 2)
-    T3D2 = (0, 1)
-    T3D3 = (0, 1, 2)
-    CPS3 = (0, 1, 2)
-    CPS4 = (0, 1, 3, 2)
-    CPS4_3D = (0, 1, 3, 2, 4, 7, 8, 5, 6)
-    C3D4 = (0, 1, 3, 2)
-    TetQuad3D = (0, 1, 3, 2, 4, 5, 7, 6)
-    Tet3D = (0, 1, 2, 3)
+class _AbaqusElement(NamedTuple):
+    tag: str
+    nodes: tuple[int, ...]
 
 
-def get_abaqus_element(type: str, dim: int) -> AbaqusElementType:
-    match type, dim:
+class AbaqusElement(enum.Enum):
+    S3R = _AbaqusElement("S3R", (0, 1, 2))
+    T3D2 = _AbaqusElement("T3D2", (0, 1))
+    T3D3 = _AbaqusElement("T3D3", (0, 1, 2))
+    CPS3 = _AbaqusElement("CPS3", (0, 1, 2))
+    CPS4 = _AbaqusElement("CPS4", (0, 1, 3, 2))
+    CPS4_3D = _AbaqusElement("CPS4_3D", (0, 1, 3, 2, 4, 7, 8, 5, 6))
+    C3D4 = _AbaqusElement("C3D4", (0, 1, 3, 2))
+    TetQuad3D = _AbaqusElement("TetQuad3D", (0, 1, 3, 2, 4, 5, 7, 6))
+    Tet3D = _AbaqusElement("Tet3D", (0, 1, 2, 3))
+
+
+def get_abaqus_element(tag: str, dim: int) -> AbaqusElement:
+    match tag, dim:
         case "T3D2", 2:
-            return AbaqusElementType.T3D2
+            kind = AbaqusElement.T3D2
         case "T3D3", 3:
-            return AbaqusElementType.T3D3
+            kind = AbaqusElement.T3D3
         case "CPS3", 3:
-            return AbaqusElementType.CPS3
+            kind = AbaqusElement.CPS3
         case "CPS4", 4:
-            return AbaqusElementType.CPS4
+            kind = AbaqusElement.CPS4
         case "CPS4", 9:
-            return AbaqusElementType.CPS4_3D
+            kind = AbaqusElement.CPS4_3D
         case "C3D4", 4:
-            return AbaqusElementType.C3D4
+            kind = AbaqusElement.C3D4
         case "S3R", 3:
-            return AbaqusElementType.S3R
+            kind = AbaqusElement.S3R
         case _, 8:
-            return AbaqusElementType.TetQuad3D
+            kind = AbaqusElement.TetQuad3D
         case _, 4:
-            return AbaqusElementType.Tet3D
+            kind = AbaqusElement.Tet3D
         case _:
-            raise ValueError(f"type = {type} with dim = {dim} not implemented")
+            msg: str = f"Element type '{type}' with dimension {dim} is not implemented. "
+            raise ValueError(msg)
+    return kind
 
 
 @dc.dataclass(slots=True)
@@ -165,54 +178,57 @@ class AbaqusMeshElement:
     name: str = "none"
     kind: str = "none"
     n: int = 0
-    data: dict[int, list[int]] = dc.field(default_factory=dict)
+    data: dict[int, list[int]] = dc.field(default_factory=dict[int, list[int]])
 
-    def read(self, line: str):
+    def read(self, line: str) -> None:
         self.n = self.n + 1
         row = [int(i) for i in line.strip().split(",")]
         self.data[row[0]] = row[1:]
 
-    def to_numpy(self):
-        return np.ascontiguousarray([*self.data.values()], dtype=int)
+    def to_numpy(self) -> Arr2[np.intc]:
+        return np.ascontiguousarray([*self.data.values()], dtype=np.intc)
 
 
 @dc.dataclass(slots=True, order=True)
 class AbaqusMeshNode:
     n: int = 0
-    data: dict[int, list[float]] = dc.field(default_factory=dict)
+    data: dict[int, list[float]] = dc.field(default_factory=dict[int, list[float]])
 
-    def read(self, line: str):
+    def read(self, line: str) -> None:
         self.n = self.n + 1
         row = line.strip().split(",")
         self.data[int(row[0])] = [float(i) for i in row[1:]]
 
-    def __eq__(self, other: Any):
+    def __hash__(self) -> int:
+        return hash(tuple(sorted(self.data.keys())))
+
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, self.__class__):
             return self.data == other.data
         return False
 
 
 class ReaderPrint:
-    def read(self, line: str):
+    def read(self, line: str) -> None:
         print(line)
 
 
 @dc.dataclass(slots=True)
-class MeshTypeSpace:
+class MeshTypeSpace[T: np.floating]:
     n: int
-    data: Mat[f64]
+    data: Arr2[T]
 
 
 @dc.dataclass(slots=True)
-class MeshTypeTopology:
+class MeshTypeTopology[T: np.integer]:
     n: int
-    data: Mat[int_t]
+    data: Arr2[T]
 
 
 @dc.dataclass(slots=True)
-class MeshTypeBoundary:
+class MeshTypeBoundary[T: np.integer]:
     n: int
-    data: Mat[int_t]
+    data: Arr2[T]
 
 
 @dc.dataclass(slots=True)
@@ -227,88 +243,64 @@ class BoundaryElem:
     def __hash__(self) -> int:
         return hash((self.tag, self.elem, *self.nodes))
 
-    def __eq__(self, __value: object) -> bool:
-        if isinstance(__value, BoundaryElem):
-            return (
-                self.tag == __value.tag
-                and self.elem == __value.elem
-                and self.nodes == __value.nodes
-            )
-        return False
-
-    def __ne__(self, __value: object) -> bool:
-        if isinstance(__value, BoundaryElem):
-            if self.tag != __value.tag:
-                return False
-            elif self.elem != __value.elem:
-                return False
-            elif self.nodes != __value.nodes:
-                return False
-            return True
+    def __eq__(self, value: object, /) -> bool:
+        if isinstance(value, BoundaryElem):
+            return self.tag == value.tag and self.elem == value.elem and self.nodes == value.nodes
         return False
 
 
 @dc.dataclass(slots=True)
 class BoundaryPatch:
     n: int = 0
-    data: set[BoundaryElem] = dc.field(default_factory=set)
+    data: set[BoundaryElem] = dc.field(default_factory=set[BoundaryElem])
 
-    def __add__(self, other: Self):
+    def __add__(self, other: Self) -> BoundaryPatch:
         if isinstance(other, self.__class__):
             n = self.n + other.n
             data = self.data.union(other.data)
-            return BoundaryPatch(
-                n=n,
-                data=data,
-            )
-        else:
-            raise TypeError(
-                f"unsupported operand type(s) for +: {self.__class__} and {
-                    type(other)}"
-            )
+            return BoundaryPatch(n=n, data=data)
+        msg = f"unsupported operand type(s) for +: {self.__class__} and {type(other)}"
+        raise TypeError(msg)
 
-    def to_numpy(self):
+    def to_numpy(self) -> Arr2[np.intc]:
         return np.ascontiguousarray(
             sorted(
-                [v.values() for v in self.data], key=lambda x: (x[-1], x[0], x[1:-1])
+                [v.values() for v in self.data],
+                key=lambda x: (x[-1], x[0], x[1:-1]),
             ),
-            dtype=int,
+            dtype=np.intc,
         )
 
 
 @dc.dataclass(order=True, slots=True)
-class CheartMesh(object):
+class CheartMesh[T: np.floating, I: np.integer]:
     elmap: dict[int, int]
     dim: int
-    space: MeshTypeSpace | None = None
-    topology: MeshTypeTopology | None = None
-    boundary: MeshTypeBoundary | None = None
+    space: MeshTypeSpace[T] | None = None
+    topology: MeshTypeTopology[I] | None = None
+    boundary: MeshTypeBoundary[I] | None = None
 
 
 def get_results_from_futures(
-    func: Callable[..., Any], args: list[Any], cores: int = 2
+    func: Callable[..., Any],
+    args: list[Any],
+    cores: int = 2,
 ) -> Sequence[Any]:
-    future_jobs: list[futures.Future[Any]] = []
-    with futures.ProcessPoolExecutor(cores) as exec:
-        for a in args:
-            future_jobs.append(exec.submit(func, *a))
-        try:
-            res = [future.result() for future in futures.as_completed(future_jobs)]
-        except:
-            raise
-    return res
+    with futures.ProcessPoolExecutor(cores) as executor:
+        future_jobs = [executor.submit(func, *a) for a in args]
+    return [future.result() for future in futures.as_completed(future_jobs)]
 
 
 def abaqus_importer(f: TextIO) -> tuple[AbaqusMeshNode, dict[str, AbaqusMeshElement]]:
     nodes = AbaqusMeshNode()
-    elems: dict[str, AbaqusMeshElement] = dict()
+    elems: dict[str, AbaqusMeshElement] = {}
     reader = nodes
     for line in f:
         match line.lower():
             case s if s.startswith("*heading"):
                 reader = ReaderPrint()
             case s if s.startswith("*node"):
-                print(f"Creating space")
+                print("Creating space")
                 reader = AbaqusMeshNode()
                 nodes = reader
             case s if s.startswith("*element"):
@@ -322,10 +314,10 @@ def abaqus_importer(f: TextIO) -> tuple[AbaqusMeshNode, dict[str, AbaqusMeshElem
                     elif i1.lower().strip() == "type":
                         settype = i2
                 if setname is None or settype is None:
-                    raise ImportError(
-                        f">>>ERROR: Elset {setname} or Type {
-                            settype} is not define for element set"
+                    msg = (
+                        f">>>ERROR: Elset {setname} or Type {settype} is not define for element set"
                     )
+                    raise ImportError(msg)
                 print(f"Creating element {setname} with type {settype}")
                 reader = AbaqusMeshElement(name=setname, kind=settype)
                 elems[reader.name] = reader
@@ -340,18 +332,19 @@ def read_abaqus_mesh_to_raw_elems(
     files: list[str],
 ) -> tuple[AbaqusMeshNode, dict[str, AbaqusMeshElement]]:
     nodes = None
-    elems: dict[str, AbaqusMeshElement] = dict()
+    elems: dict[str, AbaqusMeshElement] = {}
     for it in files:
-        with open(it, "r") as f:
+        with Path(it).open("r") as f:
             sp, el = abaqus_importer(f)
         if nodes is None:
             nodes = sp
-        else:
-            if nodes != sp:
-                raise ImportError("Mesh Nodes do not match")
+        elif nodes != sp:
+            msg = ">>>ERROR: Mesh Nodes do not match"
+            raise ImportError(msg)
         elems.update(el)
     if nodes is None:
-        raise ValueError("Node data not found")
+        msg = ">>>ERROR: No nodes found in the mesh files"
+        raise ValueError(msg)
     return nodes, elems
 
 
@@ -362,20 +355,13 @@ def build_elmap(
 ) -> dict[int, int]:
     if topology is None:
         dim = len(space.data)
-        if not (dim == space.n):
-            raise ValueError(
-                f">>>The dimensions of the data, {
-                    dim}, does not match {space.n}."
-            )
+        if dim != space.n:
+            msg = f">>>The dimensions of the data, {dim}, does not match {space.n}."
+            raise ValueError(msg)
         uniques = set(space.data.keys())
     else:
-        uniques = {
-            int(v)
-            for name in topology
-            for vals in elems[name].data.values()
-            for v in vals
-        }
-    elmap: dict[int, int] = dict()
+        uniques = {int(v) for name in topology for vals in elems[name].data.values() for v in vals}
+    elmap: dict[int, int] = {}
     nn = 0
     for p in uniques:
         nn = nn + 1
@@ -384,15 +370,15 @@ def build_elmap(
 
 
 def import_space(
-    elmap: dict[int, int], nodes: AbaqusMeshNode, dim: int = 3
-) -> MeshTypeSpace:
+    elmap: dict[int, int],
+    nodes: AbaqusMeshNode,
+    dim: int = 3,
+) -> MeshTypeSpace[np.float64]:
     arraydim = len(nodes.data)
-    if not (arraydim == nodes.n):
-        raise ValueError(
-            f">>>The dimensions of the data, {
-                arraydim}, does not match {nodes.n}."
-        )
-    space = MeshTypeSpace(0, np.zeros((len(elmap), dim), dtype=float))
+    if arraydim != nodes.n:
+        msg = f">>>The dimensions of the data, {arraydim}, does not match {nodes.n}."
+        raise ValueError(msg)
+    space = MeshTypeSpace(0, np.zeros((len(elmap), dim), dtype=np.float64))
     for k, v in elmap.items():
         space.n = space.n + 1
         for j in range(dim):
@@ -401,39 +387,42 @@ def import_space(
 
 
 def import_topology(
-    elmap: dict[int, int], elems: dict[str, AbaqusMeshElement], tops: list[str]
-) -> MeshTypeTopology:
+    elmap: dict[int, int],
+    elems: dict[str, AbaqusMeshElement],
+    tops: list[str],
+) -> MeshTypeTopology[np.intc]:
     n = 0
-    data: list[list[int]] = list()
+    data: list[list[int]] = []
     for top in (elems[t] for t in tops):
         arraydim = len(next(iter(top.data.values())))
         el = get_abaqus_element(top.kind, arraydim)
-        for i in top.data.values():
+        for values in top.data.values():
             n = n + 1
-            vals = [v for v in i]
-            data.append([elmap[vals[j]] for j in el.value])
-    return MeshTypeTopology(n, np.ascontiguousarray(data, dtype=int))
+            data.append([elmap[values[j]] for j in el.value.nodes])
+    return MeshTypeTopology(n, np.ascontiguousarray(data, dtype=np.intc))
 
 
-def topology_hashmap(topology: MeshTypeTopology) -> dict[int, set[int]]:
+def topology_hashmap[T: np.integer](topology: MeshTypeTopology[T]) -> dict[int, set[int]]:
     hashmap: dict[int, set[int]] = defaultdict(set)
     for i, row in enumerate(topology.data, 1):
         for k in row:
-            hashmap[k].add(i)
+            hashmap[int(k)].add(i)
     return hashmap
 
 
-def find_elem_from_hashmap(map: dict[int, set[int]], nodes: list[int]) -> int:
-    elem_sets = [map[i] for i in nodes]
+def find_elem_from_hashmap(node_map: dict[int, set[int]], nodes: list[int]) -> int:
+    elem_sets = [node_map[i] for i in nodes]
     elements: set[int] = elem_sets[0].intersection(*elem_sets)
     if len(elements) == 0:
-        raise ValueError(f">>>ERROR: No element was found containing {nodes}")
-    elif len(elements) > 1:
+        msg = f">>>ERROR: No element was found containing {nodes}"
+        raise ValueError(msg)
+    if len(elements) > 1:
         print(
-            f">>>WARNNING: Multiple element {
-                elements} was found containing {nodes}. First one taken."
+            f">>>WARNNING: Multiple element {elements} was found containing {
+                nodes
+            }. First one taken.",
         )
-    return list(elements)[0]
+    return next(iter(elements))
 
 
 def make_boundary(
@@ -447,14 +436,13 @@ def make_boundary(
     n = 0
     data: set[BoundaryElem] = set()
     for row in elem.data.values():
-        patch = [elmap[row[j]] for j in elem_order.value]
+        patch = [elmap[row[j]] for j in elem_order.value.nodes]
         k = find_elem_from_hashmap(topmap, patch)
         data.add(BoundaryElem(k, patch, tag))
         n = n + 1
     if n != len(data):
         print(
-            f">>>WARNING: Duplicate boundary patch from in {
-                elem.name}, ignored",
+            f">>>WARNING: Duplicate boundary patch from in {elem.name}, ignored",
             file=sys.stderr,
         )
         n = len(data)
@@ -482,17 +470,15 @@ def import_boundaries(
     elems: dict[str, AbaqusMeshElement],
     boundary: dict[str, list[str]],
     cores: int = 1,
-) -> MeshTypeBoundary:
-    if cores < 2:
+) -> MeshTypeBoundary[np.intc]:
+    if cores <= 1:
         bnds = [
             checked_make_boundary(elmap, topmap, elems[b], int(k))
             for k, v in boundary.items()
             for b in v
         ]
     else:
-        args = [
-            (elmap, topmap, elems[b], int(k)) for k, v in boundary.items() for b in v
-        ]
+        args = [(elmap, topmap, elems[b], int(k)) for k, v in boundary.items() for b in v]
         bnds = get_results_from_futures(checked_make_boundary, args, cores=cores)
 
     boundaries = BoundaryPatch()
@@ -500,28 +486,28 @@ def import_boundaries(
         boundaries = boundaries + b
     if boundaries.n != len(boundaries.data):
         print(
-            f">>>WARNING: Duplicate boundary patch found when merging patches, ignored",
+            ">>>WARNING: Duplicate boundary patch found when merging patches, ignored",
             file=sys.stderr,
         )
         boundaries.n = len(boundaries.data)
     return MeshTypeBoundary(boundaries.n, boundaries.to_numpy())
 
 
-def export_cheart_mesh(
+def export_cheart_mesh[T: np.floating, V: np.integer](
     inp: InputArgs,
-    g: CheartMesh,
+    g: CheartMesh[T, V],
     nodes: AbaqusMeshNode,
     elems: dict[str, AbaqusMeshElement],
 ) -> None:
     if g.space is not None:
-        CHWrite_d_utf(inp.prefix + "_FE.X", g.space.data)
+        chwrite_d_utf(inp.prefix + "_FE.X", g.space.data)
     if g.topology is not None and g.space is not None:
-        CHWrite_t_utf(inp.prefix + "_FE.T", g.topology.data, g.space.n)
+        chwrite_t_utf(inp.prefix + "_FE.T", g.topology.data, g.space.n)
     if g.boundary is not None:
-        CHWrite_iarr_utf(inp.prefix + "_FE.B", g.boundary.data)
+        chwrite_iarr_utf(inp.prefix + "_FE.B", g.boundary.data)
     if inp.topology is None and inp.boundary is None:
         for k, v in elems.items():
-            CHWrite_t_utf(f"{inp.prefix}_{k}_FE.T", v.to_numpy(), nodes.n)
+            chwrite_t_utf(f"{inp.prefix}_{k}_FE.T", v.to_numpy(), nodes.n)
 
 
 def split_argslist_to_nameddict(
@@ -529,21 +515,24 @@ def split_argslist_to_nameddict(
 ) -> dict[str, list[str]] | None:
     if varlist is None:
         return None
-    var: dict[str, list[str]] = dict()
+    var: dict[str, list[str]] = {}
 
     for items in varlist:
-        if len(items) < 2:
-            raise ValueError("Not enough values given")
-        else:
-            var[items[-1]] = items[:-1]
+        if not len(items) > 1:
+            msg = ">>>ERROR: Boundary or Topology must have at least 2 items, elem and label."
+            raise ValueError(msg)
+        var[items[-1]] = items[:-1]
     return var
 
 
 def check_element_names_i(
-    elems: dict[str, AbaqusMeshElement], name: str, kind: str
+    elems: dict[str, AbaqusMeshElement],
+    name: str,
+    kind: str,
 ) -> None:
-    if not name in elems:
-        raise ValueError(f"{kind} {name} can not be found in abaqus file.")
+    if name not in elems:
+        msg = f">>>ERROR: {kind} {name} not found in the mesh file."
+        raise ValueError(msg)
 
 
 def check_element_names(
@@ -556,10 +545,14 @@ def check_element_names(
             check_element_names_i(elems, name, "Topology")
     if boundaries:
         if not topologies:
-            raise ValueError("Boundaries cannot be defined without topology")
+            msg = ">>>ERROR: Boundaries cannot be defined without topology."
+            raise ValueError(msg)
         for bnd in boundaries.values():
             for name in bnd:
                 check_element_names_i(elems, name, "Boundary")
+
+
+_MASK_ARG_LEN = 3
 
 
 def gather_masks(
@@ -567,36 +560,45 @@ def gather_masks(
 ) -> dict[str, Mask] | None:
     if cmd_arg_masks is None:
         return None
-    masks: dict[str, Mask] = dict()
+    masks: dict[str, Mask] = {}
     for m in cmd_arg_masks:
-        if len(m) < 3:
-            raise ValueError(
-                "A Mask at least 3 args, e.g., name1, name2, ..., value, output"
+        if len(m) < _MASK_ARG_LEN:
+            msg = (
+                ">>>ERROR: A Mask must have at least 3 args, e.g., name1, name2, ..., value, output"
             )
+            raise ValueError(msg)
         masks[m[-1]] = Mask(m[-1], m[-2], m[:-2])
     return masks
 
 
 def create_mask(
-    elmap: dict[int, int], elems: dict[str, AbaqusMeshElement], mask: Mask
+    elmap: dict[int, int],
+    elems: dict[str, AbaqusMeshElement],
+    mask: Mask,
 ) -> None:
     data = np.full((len(elmap), 1), "0", dtype="<U12")
     for elem in (elems[s] for s in mask.elems):
         for vals in elem.data.values():
             for v in vals:
                 data[elmap[v] - 1] = mask.value
-    CHWrite_Str_utf(mask.name, data)
+    chwrite_str_utf(mask.name, data)
 
 
 def check_args(args: argparse.Namespace) -> InputArgs:
     if args.prefix is None:
-        name, _ = os.path.splitext(args.input[0])
+        name, _ = Path(args.input[0]).stem
     else:
         name: str = args.prefix
     boundary = split_argslist_to_nameddict(args.boundary)
     masks = gather_masks(args.add_mask)
     return InputArgs(
-        args.input, name, args.dim, args.topology, boundary, masks, args.cores
+        args.input,
+        name,
+        args.dim,
+        args.topology,
+        boundary,
+        masks,
+        args.cores,
     )
 
 
@@ -606,17 +608,21 @@ def main(cmd_args: Sequence[str] | None = None) -> None:
     nodes, elems = read_abaqus_mesh_to_raw_elems(inp.inputs)
     check_element_names(elems, inp.topology, inp.boundary)
     elmap = build_elmap(nodes, elems, inp.topology)
-    g = CheartMesh(elmap, inp.dim)
+    g = CheartMesh[np.float64, np.intc](elmap, inp.dim)
     g.space = import_space(g.elmap, nodes, inp.dim)
     if inp.topology is not None:
         g.topology = import_topology(g.elmap, elems, inp.topology)
         top_hashmap = topology_hashmap(g.topology)
         if inp.boundary is not None:
             g.boundary = import_boundaries(
-                elmap, top_hashmap, elems, inp.boundary, inp.cores
+                elmap,
+                top_hashmap,
+                elems,
+                inp.boundary,
+                inp.cores,
             )
     if inp.masks:
-        for _, m in inp.masks.items():
+        for m in inp.masks.values():
             create_mask(elmap, elems, m)
     export_cheart_mesh(inp, g, nodes, elems)
 

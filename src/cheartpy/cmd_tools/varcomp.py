@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 __all__ = ["main"]
-from ..tools.basiclogging import BLogger
-from ..cheart_mesh.io import CHRead_d
-from .traits import HEADER_LEN, HEADER, VarErrors, VarStats
-from .funcs import get_variable_getter, compute_stats
 import argparse
 
+from pytools.logging.api import BLogger
+
+from cheartpy.cheart_mesh.io import chread_d
+
+from .funcs import compute_stats, get_variable_getter, get_variables
+from .traits import HEADER, HEADER_LEN, VarErrors, VarStats
 
 parser = argparse.ArgumentParser(
     description="""
@@ -27,41 +31,38 @@ parser.add_argument(
 parser.add_argument("var1", type=str, help="get name or prefix of first files")
 parser.add_argument("var2", type=str, help="get name or prefix of second files")
 parser.add_argument(
-    "_errcheck",
+    "errcheck",
     type=str,
     nargs="*",
     help="Catch arguments when shell expands wildcard on variables",
 )
 
 
-def print_table_header() -> None:
-    print(f"{r"#":^8}|", end="")
-    print(f"{"Mag":^8}||", end="")
-    print("|".join([f"{s:^10}" for s in HEADER]), end="\n")
-    print(HEADER_LEN * "─")
+def table_header() -> str:
+    return f"{r'#':^8}|{'Mag':^8}|||".join([f"{s:^10}" for s in HEADER]) + "\n" + (HEADER_LEN * "─")
 
 
-def print_table_row(iter: int | str, res: VarStats) -> None:
-    print(f"{iter:>8}", end="|")
-    print(str(res), end="\n")
+def table_row(it: int | str, res: VarStats) -> str:
+    return f"{it:>8}|{res}"
 
 
 def main() -> None:
     args = parser.parse_args()
     VarErrors.tol = args.tol
-    LOG = BLogger("INFO")
-    if len(args._errcheck) > 0:
-        LOG.fatal(f"Error: Shell expanded wildcard before python")
-        LOG.fatal(f"Error: Please place quotes around the offender variable")
+    log = BLogger("INFO")
+    if len(args.errcheck) > 0:
+        log.fatal("Error: Shell expanded wildcard before python")
+        log.fatal("Error: Please place quotes around the offender variable")
         return
-    LOG.disp(f"{f"{args.var1} vs {args.var2}":^{HEADER_LEN}}")
-    getter = get_variable_getter(args.var1, args.var2, root=args.folder)
-    print_table_header()
+    log.disp(f"{f'{args.var1} vs {args.var2}':^{HEADER_LEN}}")
+    v1, v2 = get_variables(args.var1, args.var2, root=args.folder)
+    getter = get_variable_getter(v1, v2, root=args.folder)
+    log.disp(table_header())
     for k, i, j in getter:
-        x = 0.0 if i is None else CHRead_d(i)
-        y = 0.0 if j is None else CHRead_d(j)
+        x = 0.0 if i is None else chread_d(i)
+        y = 0.0 if j is None else chread_d(j)
         res = compute_stats(x, y)
-        print_table_row(k, res)
+        log.disp(table_row(k, res))
 
 
 if __name__ == "__main__":

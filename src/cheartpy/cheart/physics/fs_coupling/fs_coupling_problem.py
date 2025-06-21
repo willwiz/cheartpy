@@ -1,10 +1,11 @@
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
-from typing import Literal, Sequence, TextIO, ValuesView
+from collections.abc import Sequence, ValuesView
+from typing import Literal, TextIO
 
+from ...api import create_bc
 from ...pytools import join_fields
 from ...trait import *
-from ...api import create_bc
 
 
 @dc.dataclass(slots=True)
@@ -163,20 +164,20 @@ class FSCouplingProblem(IProblem):
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self}|{self._problem_name}}}\n")
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
-        for t in self.m_terms.values():
-            f.write(
-                f"  !Addterms={{TestVariable[{t.test_var}]|{" ".join([s.to_str() for s in t.terms])}}}\n"
-            )
+        f.writelines(
+            f"  !Addterms={{TestVariable[{t.test_var}]|{' '.join([s.to_str() for s in t.terms])}}}\n"
+            for t in self.m_terms.values()
+        )
         if self.lm is not None:
             f.write(
-                f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{" ".join([s.to_str() for s in self.lm.terms])}}}\n"
+                f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{' '.join([s.to_str() for s in self.lm.terms])}}}\n",
             )
         else:
             raise ValueError(f"Lagrange multiplier not set for {self}")
         if self.perturbation:
-            f.write(f"  !SetPerturbationBuild\n")
+            f.write("  !SetPerturbationBuild\n")
         if self._buffering is False:
-            f.write(f"  !No-buffering\n")
+            f.write("  !No-buffering\n")
         if self.root_topology is not None:
             f.write(f"  !SetRootTopology={{{self.root_topology}}}\n")
         self.bc.write(f)

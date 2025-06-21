@@ -1,8 +1,10 @@
 __all__ = ["PFile"]
 import dataclasses as dc
-from typing import Mapping, Collection, TextIO
-from .trait import *
+from collections.abc import Collection, Mapping
+from typing import TextIO
+
 from .pytools import header, hline, splicegen
+from .trait import *
 
 
 @dc.dataclass(slots=True)
@@ -172,8 +174,9 @@ class PFile:
         f.write(hline("Export Frequency"))
         exportfrequencies = self.get_variable_frequency_list()
         for k, v in exportfrequencies.items():
-            for l in splicegen(60, sorted(v)):
-                f.write(f'!SetExportFrequency={{{"|".join(l)}|{k}}}\n')
+            f.writelines(
+                f"!SetExportFrequency={{{'|'.join(l)}|{k}}}\n" for l in splicegen(60, sorted(v))
+            )
         f.write(hline("Problem Definitions"))
         for v in self.problems.values():
             v.write(f)

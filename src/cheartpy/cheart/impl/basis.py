@@ -1,9 +1,10 @@
-__all__ = ["Basis", "Quadrature", "CheartBasis"]
+__all__ = ["Basis", "CheartBasis", "Quadrature"]
 import dataclasses as dc
 from typing import Literal, TextIO
+
 from ..aliases import CheartBasisType, CheartElementType, CheartQuadratureType
-from ..trait import *
 from ..pytools import join_fields
+from ..trait import *
 
 
 @dc.dataclass(slots=True)

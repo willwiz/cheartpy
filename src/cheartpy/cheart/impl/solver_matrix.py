@@ -1,9 +1,11 @@
 __all__ = ["SolverMatrix"]
 import dataclasses as dc
-from typing import TextIO, ValuesView, Any
-from ..trait import *
+from collections.abc import ValuesView
+from typing import Any, TextIO
+
 from ..aliases import *
 from ..pytools import *
+from ..trait import *
 
 
 @dc.dataclass(slots=True)
@@ -47,8 +49,7 @@ class SolverMatrix(ISolverMatrix):
         string = join_fields(self.name, self.solver, *self.problem.values())
         if len(string) > 45:
             f.write(f"!DefSolverMatrix={{{join_fields(self.name, self.solver)}}}\n")
-            for v in self.problem.values():
-                f.write(f"    {v}\n")
+            f.writelines(f"    {v}\n" for v in self.problem.values())
         else:
             f.write(f"!DefSolverMatrix={{{string}}}\n")
         if self.suppress_output:

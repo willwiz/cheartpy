@@ -1,6 +1,8 @@
 __all__ = ["Expression"]
 import dataclasses as dc
-from typing import Sequence, TextIO, Self
+from collections.abc import Sequence
+from typing import Self, TextIO
+
 from ..trait import *
 
 

@@ -1,74 +1,88 @@
 __all__ = [
-    "gen_end_node_mapping",
-    "update_elems",
-    "update_boundary",
-    "merge_circ_ends",
     "convert_cartesian_space_to_cylindrical",
     "convert_to_cylindrical",
     "cylindrical_to_cartesian",
+    "gen_end_node_mapping",
+    "merge_circ_ends",
     "rotate_axis",
+    "update_boundary",
+    "update_elems",
 ]
+from collections.abc import Mapping
+
 import numpy as np
-from typing import Mapping
-from ...var_types import *
-from ...cheart_mesh import *
-from .data import *
+from arraystubs import Arr2
+
+from cheartpy.cheart_mesh.data import (
+    CheartMesh,
+    CheartMeshBoundary,
+    CheartMeshPatch,
+    CheartMeshSpace,
+    CheartMeshTopology,
+)
+from cheartpy.cheart_mesh.validation import remove_dangling_nodes
+from cheartpy.vtk.trait import VtkType
+
+from .data import CartesianDirection
 
 
-def gen_end_node_mapping(
-    left: CheartMeshPatch, right: CheartMeshPatch
+def gen_end_node_mapping[I: np.integer](
+    left: CheartMeshPatch[I],
+    right: CheartMeshPatch[I],
 ) -> Mapping[int, int]:
-    """
-    Assumes:
-        x: r
-        y: q
-        z: z
-    """
-    node_map: dict[int, int] = dict()
+    node_map: dict[int, int] = {}
     for i in range(left.n):
         for j, k in {0: 0, 1: 2, 2: 1, 3: 3}.items():
             node_map[right.v[i, j]] = left.v[i, k]
     return node_map
 
 
-def update_elems(elems: Mat[int_t], map: Mapping[int, int]):
+def update_elems[I: np.integer](elems: Arr2[I], end_map: Mapping[int, int]) -> Arr2[I]:
     new_elems = elems.copy()
     for i, row in enumerate(elems):
         for j, v in enumerate(row):
-            if v in map:
-                new_elems[i, j] = map[v]
+            if v in end_map:
+                new_elems[i, j] = end_map[int(v)]
     return new_elems
 
 
-def update_boundary(patch: CheartMeshPatch, map: Mapping[int, int], tag: int):
+def update_boundary[I: np.integer](
+    patch: CheartMeshPatch[I],
+    end_map: Mapping[int, int],
+    tag: int,
+) -> CheartMeshPatch[I]:
     surf = patch.v.copy()
     for i, row in enumerate(surf):
         for j, v in enumerate(row):
-            if v in map:
-                surf[i, j] = map[v]
+            if v in end_map:
+                surf[i, j] = end_map[int(v)]
     return CheartMeshPatch(tag, patch.n, patch.k, surf)
 
 
-def merge_circ_ends(cube: CheartMesh):
+def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> CheartMesh[F, I]:
     if cube.bnd is None:
-        raise
+        msg = "Mesh must have a boundary to merge circular ends."
+        raise ValueError(msg)
     node_map = gen_end_node_mapping(cube.bnd.v[3], cube.bnd.v[4])
     new_t = update_elems(cube.top.v, node_map)
-    new_b: dict[int | str, CheartMeshPatch] = {
-        n: update_boundary(cube.bnd.v[k], node_map, n)
-        for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
+    new_b: dict[int, CheartMeshPatch[I]] = {
+        n: update_boundary(cube.bnd.v[k], node_map, n) for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
     }
     mesh = CheartMesh(
         cube.space,
-        CheartMeshTopology(len(new_t), new_t, VtkType.HexahedronLinear),
-        CheartMeshBoundary(len(new_b), new_b, VtkType.QuadrilateralLinear),
+        CheartMeshTopology(len(new_t), new_t, VtkType.LinHexahedron),
+        CheartMeshBoundary(len(new_b), new_b, VtkType.LinQuadrilateral),
     )
     return remove_dangling_nodes(mesh)
 
 
-def convert_cartesian_space_to_cylindrical(
-    x: Mat[f64], r_in: float, r_out: float, length: float, base: float
-):
+def convert_cartesian_space_to_cylindrical[F: np.floating](
+    x: Arr2[F],
+    r_in: float,
+    r_out: float,
+    length: float,
+    base: float,
+) -> Arr2[F]:
     r = np.zeros_like(x)
     r[:, 0] = (r_out - r_in) * x[:, 0] ** 0.707 + r_in
     r[:, 1] = 2.0 * np.pi * x[:, 1]
@@ -76,16 +90,26 @@ def convert_cartesian_space_to_cylindrical(
     return r
 
 
-def convert_to_cylindrical(
-    cube: CheartMesh, r_in: float, r_out: float, length: float, base: float
-):
+def convert_to_cylindrical[F: np.floating, I: np.integer](
+    cube: CheartMesh[F, I],
+    r_in: float,
+    r_out: float,
+    length: float,
+    base: float,
+) -> CheartMesh[F, I]:
     new_x = convert_cartesian_space_to_cylindrical(
-        cube.space.v, r_in, r_out, length, base
+        cube.space.v,
+        r_in,
+        r_out,
+        length,
+        base,
     )
     return CheartMesh(CheartMeshSpace(len(new_x), new_x), cube.top, cube.bnd)
 
 
-def cylindrical_to_cartesian(g: CheartMesh) -> CheartMesh:
+def cylindrical_to_cartesian[F: np.floating, I: np.integer](
+    g: CheartMesh[F, I],
+) -> CheartMesh[F, I]:
     cart_space = np.zeros_like(g.space.v)
     radius = g.space.v[:, 0]
     theta = g.space.v[:, 1]
@@ -95,15 +119,18 @@ def cylindrical_to_cartesian(g: CheartMesh) -> CheartMesh:
     return CheartMesh(CheartMeshSpace(g.space.n, cart_space), g.top, g.bnd)
 
 
-def rotate_axis(g: CheartMesh, orientation: CartesianDirection) -> CheartMesh:
+def rotate_axis[F: np.floating, I: np.integer](
+    g: CheartMesh[F, I],
+    orientation: CartesianDirection,
+) -> CheartMesh[F, I]:
     match orientation:
         case CartesianDirection.x:
             mat = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]]) @ np.array(
-                [[0, 0, 1], [0, 1, 0], [-1, 0, 0]]
+                [[0, 0, 1], [0, 1, 0], [-1, 0, 0]],
             )
         case CartesianDirection.y:
             mat = np.array([[0, 0, -1], [0, 1, 0], [1, 0, 0]]) @ np.array(
-                [[1, 0, 0], [0, 0, 1], [0, -1, 0]]
+                [[1, 0, 0], [0, 0, 1], [0, -1, 0]],
             )
         case CartesianDirection.z:
             return g

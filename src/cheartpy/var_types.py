@@ -1,6 +1,7 @@
-__all__ = ["Arr", "Any", "f64", "int_t", "char", "Vec", "Mat", "MatV", "T2", "T3"]
-import numpy as np
+__all__ = ["T2", "T3", "Any", "Arr", "Mat", "MatV", "Vec", "char", "f64", "int_t"]
 from typing import Any
+
+import numpy as np
 
 Arr = np.ndarray
 f64 = np.dtype[np.floating]

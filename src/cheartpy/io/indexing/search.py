@@ -1,31 +1,38 @@
+from __future__ import annotations
+
 __all__ = [
+    "find_var_index",
+    "find_var_subindex",
     "get_var_index",
     "get_var_index_all",
     "get_var_subindex",
-    "find_var_index",
-    "find_var_subindex",
 ]
 import re
-from glob import glob
 from collections import defaultdict
-from typing import Literal
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping, Sequence
 
 DFILE_TEMP = re.compile(r"(^.*)-(\d+|\d+\.\d+)\.(D|D\.gz)")
 
 
 def get_var_index(
-    names: list[str], prefix: str, suffix: Literal[r"D", r"D\.gz", r"vtu"] = r"D"
-) -> list[int]:
+    names: Sequence[str] | Iterable[str],
+    prefix: str,
+    suffix: Literal[r"D", r"D\.gz", r"vtu"] = r"D",
+) -> Sequence[int]:
     p = re.compile(rf"{prefix}-(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]
     return sorted([int(m.group(1)) for m in matches if m])
 
 
 def get_var_subindex(
-    names: list[str],
+    names: Sequence[str] | Iterable[str],
     prefix: str,
     suffix: Literal[r"D", r"D\.gz"] = r"D",
-) -> dict[int, list[int]]:
+) -> Mapping[int, Sequence[int]]:
     p = re.compile(rf"{prefix}-(\d+)\.(\d+).{suffix}")
     matches = [p.fullmatch(s) for s in names]
     matches = sorted([m.groups() for m in matches if m])
@@ -36,22 +43,26 @@ def get_var_subindex(
 
 
 def get_var_index_all(
-    names: list[str], prefix: str, suffix: Literal[r"D", r"D\.gz"] = r"D"
-) -> list[str]:
+    names: Sequence[str] | Iterable[str],
+    prefix: str,
+    suffix: Literal[r"D", r"D\.gz"] = r"D",
+) -> Sequence[str]:
     p = re.compile(rf"{prefix}-(\d+|\d+.\d+).{suffix}")
     matches = [p.fullmatch(s) for s in names]
     return [m.group(1) for m in matches if m]
 
 
-def find_var_index(prefix: str, root: str | None = None):
-    var, suffix = glob(f"{prefix}-*.D", root_dir=root), r"D"
-    if len(var) == 0:
-        var, suffix = glob(f"{prefix}-*.D", root_dir=root), r"D\.gz"
-    return get_var_index(var, prefix, suffix)
+def find_var_index(prefix: str, root: Path | str | None = None) -> Sequence[int]:
+    root = Path(root) if root else Path()
+    var, suffix = root.glob(f"{prefix}-*.D"), r"D"
+    if any(var):
+        var, suffix = root.glob(f"{prefix}-*.D"), r"D\.gz"
+    return get_var_index([v.name for v in var], prefix, suffix)
 
 
-def find_var_subindex(prefix: str, root: str | None = None):
-    var, suffix = glob(f"{prefix}-*.D", root_dir=root), r"D"
-    if len(var) == 0:
-        var, suffix = glob(f"{prefix}-*.D", root_dir=root), r"D\.gz"
-    return get_var_subindex(var, prefix, suffix)
+def find_var_subindex(prefix: str, root: Path | str | None = None) -> Mapping[int, Sequence[int]]:
+    root = Path(root) if root else Path()
+    var, suffix = root.glob(f"{prefix}-*.D"), r"D"
+    if not any(var):
+        var, suffix = root.glob(f"{prefix}-*.D"), r"D\.gz"
+    return get_var_subindex([v.name for v in var], prefix, suffix)

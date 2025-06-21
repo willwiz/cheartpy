@@ -1,6 +1,8 @@
-__all__ = ["Matlaw", "FractionalVE", "FractionalDiffEQ"]
+__all__ = ["FractionalDiffEQ", "FractionalVE", "Matlaw"]
 import dataclasses as dc
-from typing import Literal, Mapping, ValuesView
+from collections.abc import Mapping, ValuesView
+from typing import Literal
+
 from ...trait import *
 
 # Matlaws -----------------------------------------------------------------------------
@@ -10,7 +12,7 @@ from ...trait import *
 class Matlaw(ILaw):
     name: str
     parameters: list[str | float | IExpression | IVariable] = dc.field(
-        default_factory=list
+        default_factory=list,
     )
     deps_var: dict[str, IVariable] = dc.field(default_factory=dict)
     deps_expr: dict[str, IExpression] = dc.field(default_factory=dict)
@@ -39,7 +41,7 @@ class Matlaw(ILaw):
     def string(self):
         return (
             f"  !ConstitutiveLaw={{{self.name}}}\n"
-            f'    {"  ".join([str(i) for i in self.parameters])}\n'
+            f"    {'  '.join([str(i) for i in self.parameters])}\n"
         )
 
 
@@ -94,21 +96,19 @@ class FractionalVE(ILaw):
     def string(self):
         l = (
             f"  !ConstitutiveLaw={{{self.name}}}\n"
-            f"    {str(self.store)}\n"
-            f'    {self.alpha}  {self.np}  {self.Tf}  {
-                "" if self.Tscale is None else self.Tscale}\n'
+            f"    {self.store!s}\n"
+            f"    {self.alpha}  {self.np}  {self.Tf}  {
+                '' if self.Tscale is None else self.Tscale
+            }\n"
         )
         if self.InitPK2:
-            l = (
-                l
-                + f'    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ""}\n'
-            )
+            l = l + f"    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ''}\n"
         if self.ZeroPK2:
-            l = l + f"    ZeroPK2\n"
+            l = l + "    ZeroPK2\n"
         if self.Order != 2:
-            l = l + f"    Order 1\n"
+            l = l + "    Order 1\n"
         for v in self.laws:
-            l = l + f'    {v.name}  [{" ".join([str(i) for i in v.parameters])}]\n'
+            l = l + f"    {v.name}  [{' '.join([str(i) for i in v.parameters])}]\n"
         return l
 
 
@@ -167,15 +167,13 @@ class FractionalDiffEQ(ILaw):
     def string(self):
         l = (
             f"  !ConstitutiveLaw={{{self.name}}}\n"
-            f"    {str(self.store)}\n"
-            f'    {self.alpha}  {self.np}  {self.Tf}  {self.delta}  {
-                "" if self.Tscale is None else self.Tscale}\n'
+            f"    {self.store!s}\n"
+            f"    {self.alpha}  {self.np}  {self.Tf}  {self.delta}  {
+                '' if self.Tscale is None else self.Tscale
+            }\n"
         )
         if self.InitPK2:
-            l = (
-                l
-                + f'    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ""}\n'
-            )
+            l = l + f"    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ''}\n"
         if self.ZeroPK2:
             l = l + "    ZeroPK2\n"
         if self.Order != 2:
@@ -185,18 +183,12 @@ class FractionalDiffEQ(ILaw):
             if isinstance(v, FractionalVE):
                 counter = counter + 1
                 sc = "" if v.Tscale is None else v.Tscale
-                l = (
-                    l
-                    + f"    frac{counter}  parm  {str(v.store)}  {v.alpha}  {v.np}  {v.Tf}  {sc}\n"
-                )
+                l = l + f"    frac{counter}  parm  {v.store!s}  {v.alpha}  {v.np}  {v.Tf}  {sc}\n"
                 for law in v.laws:
                     l = (
                         l
-                        + f'    frac{counter}  law   {law.name}  [{" ".join([str(i) for i in law.parameters])}]\n'
+                        + f"    frac{counter}  law   {law.name}  [{' '.join([str(i) for i in law.parameters])}]\n"
                     )
             else:
-                l = (
-                    l
-                    + f'    HE  law  {v.name}  [{" ".join([str(i) for i in v.parameters])}]\n'
-                )
+                l = l + f"    HE  law  {v.name}  [{' '.join([str(i) for i in v.parameters])}]\n"
         return l

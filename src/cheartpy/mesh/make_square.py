@@ -1,11 +1,15 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
-from .quad_core import create_square_mesh
 import argparse
+
+from .quad_core import create_square_mesh
 
 parser = argparse.ArgumentParser("square", description="Make a square")
 parser.add_argument(
-    "--prefix", "-p", type=str, default="square", help="Prefix for mesh."
+    "--prefix",
+    "-p",
+    type=str,
+    default="square",
+    help="Prefix for mesh.",
 )
 parser.add_argument(
     "--size",
@@ -28,7 +32,7 @@ parser.add_argument("xn", type=int, help="number of elements in x")
 parser.add_argument("yn", type=int, help="number of elements in y")
 
 
-def main(args: argparse.Namespace):
+def main(args: argparse.Namespace) -> None:
     mesh = create_square_mesh(
         (args.xn, args.yn),
         tuple(args.size),

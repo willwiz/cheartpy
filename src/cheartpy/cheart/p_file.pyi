@@ -1,6 +1,7 @@
 __all__ = ["PFile"]
 import dataclasses as dc
 from typing import TextIO
+
 from .trait import *
 
 @dc.dataclass(slots=True)

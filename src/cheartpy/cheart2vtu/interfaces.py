@@ -1,18 +1,21 @@
 __all__ = [
-    "ProgramMode",
-    "IFormattedName",
-    "CmdLineArgs",
-    "ProgramArgs",
-    "VariableCache",
     "CheartTopology",
+    "CmdLineArgs",
+    "IFormattedName",
+    "ProgramArgs",
+    "ProgramMode",
+    "VariableCache",
 ]
 import abc
 import dataclasses as dc
 import enum
+from collections.abc import Sequence
+from typing import Final
+
+import numpy as np
+
 from ..io.indexing import SearchMode
 from ..tools.basiclogging import LogLevel
-import numpy as np
-from typing import Final, Sequence
 from ..var_types import *
 from ..xmlwriter import IVtkElementInterface, get_element_type
 
@@ -67,7 +70,7 @@ class ProgramArgs:
 
 
 class CheartTopology:
-    __slots__ = ["_ft", "ne", "nc", "vtkelementtype", "vtksurfacetype"]
+    __slots__ = ["_ft", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
 
     _ft: Mat[int_t]
     ne: int

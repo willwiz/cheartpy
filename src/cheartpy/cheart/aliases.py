@@ -1,6 +1,5 @@
 import enum
-from typing import Literal, Final
-
+from typing import Final, Literal
 
 TOL_SETTINGS = Literal[
     "L2TOL",

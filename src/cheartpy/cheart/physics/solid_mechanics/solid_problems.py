@@ -1,12 +1,12 @@
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
-from typing import Any, Literal, Mapping, Sequence, TextIO, ValuesView
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import Any, Literal, TextIO
 
-from ...api import create_bc
 from ...aliases import SOLID_PROBLEM_TYPE, SolidProblemType
+from ...api import create_bc
 from ...pytools import get_enum, join_fields
 from ...trait import *
 from .matlaws import ILaw
-
 
 SOLID_VARIABLES = Literal[
     "Space",
@@ -19,7 +19,10 @@ SOLID_VARIABLES = Literal[
 
 
 SOLID_OPTIONS = Literal[
-    "Density", "Perturbation-scale", "SetProblemTimeDiscretization", "UseStabilization"
+    "Density",
+    "Perturbation-scale",
+    "SetProblemTimeDiscretization",
+    "UseStabilization",
 ]
 
 SOLID_FLAGS = Literal["Inverse-mechanics",]
@@ -61,7 +64,7 @@ class SolidProblem(IProblem):
         if pres:
             if pres.get_dim() != 1:
                 raise ValueError(
-                    ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1"
+                    ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1",
                 )
             self.variables["Pressure"] = pres
         self.matlaws = list() if matlaws is None else matlaws
@@ -152,17 +155,18 @@ class SolidProblem(IProblem):
 
     def write(self, f: TextIO):
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
-        for k, v in self.variables.items():
-            f.write(f"  !UseVariablePointer={{{join_fields(k, v)}}}\n")
+        f.writelines(
+            f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
+        )
         if self.state_vars:
             f.write(
-                f"  !Add-State-Variables={{{join_fields(*self.state_vars.values())}}}\n"
+                f"  !Add-State-Variables={{{join_fields(*self.state_vars.values())}}}\n",
             )
         for k, v in self.options.items():
             string = join_fields(*v)
             f.write(f"  !{k}={{{string}}}\n")
         if self._buffering == False:
-            f.write(f"  !No-buffering\n")
+            f.write("  !No-buffering\n")
         for k, v in self.flags.items():
             if v:
                 f.write(f"  !{k}\n")

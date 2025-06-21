@@ -1,9 +1,10 @@
 __all__ = ["update_variable_cache"]
 import os
 from typing import Mapping
-from ..var_types import *
-from ..tools.basiclogging import BLogger, ILogger
+
 from ..cheart_mesh.io import *
+from ..tools.basiclogging import BLogger, ILogger
+from ..var_types import *
 from .interfaces import *
 
 
@@ -20,7 +21,7 @@ def update_variable_cache(
     update_space = fx != cache.space_i
     if update_space:
         LOG.debug(f"updating space to file {fx}")
-        cache.space = CHRead_d(fx)
+        cache.space = chread_d(fx)
         cache.space_i = fx
     if inp.disp is None:
         update_disp = False
@@ -29,7 +30,7 @@ def update_variable_cache(
         update_disp = fd != cache.disp_i
         if update_disp:
             LOG.debug(f"updating disp to file {fd}")
-            cache.disp = CHRead_d(fd)
+            cache.disp = chread_d(fd)
             cache.disp_i = fd
     match update_space, update_disp:
         case False, False:
@@ -43,6 +44,6 @@ def update_variable_cache(
         LOG.debug(f"updating var {k} to file {new_v} from {cache.var_i[k]}")
         if (cache.var_i[k] != new_v) and os.path.isfile(new_v):
             LOG.debug(f"updating var {k} to file {new_v}")
-            cache.var[k] = CHRead_d(new_v)
+            cache.var[k] = chread_d(new_v)
             cache.var_i[k] = new_v
     return cache.x, cache.var
