@@ -6,7 +6,7 @@ import numpy as np
 from arraystubs import T3
 
 from cheartpy.cheart_mesh.data import CheartMesh
-from cheartpy.mesh.hex_core import create_hex_mesh
+from cheartpy.mesh.hex_core.api import create_hex_mesh
 from cheartpy.mesh.interpolate.remeshing import create_quad_mesh_from_lin_cylindrical
 
 from .core import (

@@ -1,65 +1,74 @@
-from ..cheart_mesh.io import fix_suffix
-from ..tools.basiclogging import BLogger, ILogger
-from .interfaces import CmdLineArgs
-from ..io.indexing import SearchMode, IIndexIterator
+from collections.abc import Sequence
+
+from cheartpy.cheart_mesh.io import fix_suffix
+from cheartpy.io.indexing.interfaces import IIndexIterator, SearchMode
+
+from .trait import CmdLineArgs
 
 
-def print_guard(LOG: ILogger = BLogger("INFO")) -> None:
-    LOG.disp(
-        "\n################################################################################################\n"
+def print_guard() -> str:
+    return f"\n{'#' * 100}\n"
+
+
+def print_header() -> Sequence[str]:
+    return (
+        "#" * 100,
+        "    Program for converting CHeart data to vtk unstructured grid format",
+        "    This program is part of the CHeart project, which is FE solver for cardiac mechanics.",
+        "    Author: Andreas Hessenthaler",
+        "    Modified by: Will Zhang",
+        "    Data: 12/24/2024",
+        "#" * 100,
     )
 
 
-def print_header(LOG: ILogger = BLogger("INFO")) -> None:
-    LOG.disp(
-        "################################################################################################"
-    )
-    LOG.disp("    Program for converting CHeart data to vtk unstructured grid format")
-    LOG.disp("    author: Andreas Hessenthaler")
-    LOG.disp("    modified by: Will Zhang")
-    LOG.disp("    data: 12/24/2024")
-    LOG.disp(
-        "################################################################################################\n"
-    )
-
-
-def print_input_info(inp: CmdLineArgs, LOG: ILogger = BLogger("INFO")) -> None:
-    LOG.disp(f"The retrieving data from ", inp.input_dir)
+def print_input_info(inp: CmdLineArgs) -> Sequence[str]:
+    msg = ["The retrieving data from ", inp.input_dir]
     match inp.mesh:
         case str():
-            LOG.disp(f"<<< Running Program with Mode: find")
-            LOG.disp(f"The prefix for the mesh to use is", fix_suffix(inp.mesh))
+            msg = [
+                *msg,
+                "<<< Running Program with Mode: find",
+                f"The prefix for the mesh to use is {fix_suffix(inp.mesh)}",
+            ]
         case (x, t, b):
-            LOG.disp(f"<<< Running Program with Mode: index")
-            LOG.disp(f"The space file to use is ", x)
-            LOG.disp(f"The topology file to use is ", t)
-            LOG.disp(f"The boundary file to use is ", b)
-    LOG.disp(f"<<< The varibles to add are: ")
-    LOG.disp(inp.var)
+            msg = [
+                *msg,
+                "<<< Running Program with Mode: index",
+                f"The space file to use is {x}",
+                f"The topology file to use is {t}",
+                f"The boundary file to use is {b}",
+                "<<< The varibles to add are: ",
+            ]
+    msg = [*msg, *inp.var]
     match inp.index:
         case SearchMode.none:
-            LOG.disp(f"No variable will be used for this run")
+            msg = [*msg, "No variable will be used for this run"]
         case SearchMode.auto:
-            LOG.disp(f"<<< Attempting to find time steps from variable file names")
+            msg = [*msg, "<<< Attempting to find time steps from variable file names"]
         case (i, j, k):
-            LOG.disp(f"<<< Time step: From {i} to {j} in steps of {k}")
+            msg = [*msg, f"<<< Time step: From {i} to {j} in steps of {k}"]
     match inp.subindex:
         case SearchMode.none:
             pass
         case SearchMode.auto:
-            LOG.disp(f"<<< Automatically finding subiterations")
+            msg = [*msg, "<<< Automatically finding subiterations"]
         case (i, j, k):
-            LOG.disp(f"<<< Sub iterations: From {i} to {j} in steps of {k}")
-    LOG.disp(f"<<< Output file name prefix: {inp.prefix}")
-    LOG.disp(f"<<< Output folder:           {inp.output_dir}")
-    LOG.disp(f"<<< Compress VTU:            {inp.compression}")
-    LOG.disp(f"<<< Import data as binary:   {inp.binary}")
+            msg = [*msg, f"<<< Sub iterations: From {i} to {j} in steps of {k}"]
+    msg = [
+        *msg,
+        f"<<< Output file name prefix: {inp.prefix}",
+        f"<<< Output folder:           {inp.output_dir}",
+        f"<<< Compress VTU:            {inp.compression}",
+        f"<<< Import data as binary:   {inp.binary}",
+    ]
     if inp.time_series is not None:
-        LOG.disp(f"<<< Adding time series from {inp.time_series}")
+        msg = [*msg, f"<<< Adding time series from {inp.time_series}"]
+    return msg
 
 
-def print_index_info(indexer: IIndexIterator, LOG: ILogger = BLogger("INFO")) -> None:
-    first = last = next(iter(indexer))
-    for last in indexer:
+def print_index_info(indexer: IIndexIterator) -> str:
+    first = _last = next(iter(indexer))
+    for _last in indexer:
         pass
-    LOG.disp(f"<<<     Time step found: From {first} to {last}")
+    return f"<<<     Time step found: From {first} to {_last}"

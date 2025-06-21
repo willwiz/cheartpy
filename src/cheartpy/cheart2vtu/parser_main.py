@@ -1,12 +1,18 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 __all__ = ["get_api_args", "get_cmdline_args", "main_parser"]
 import argparse
-import os
-from typing import Literal, Sequence
+from collections.abc import Sequence
+from typing import Literal
 
-from ..cheart_mesh import fix_suffix
-from ..io.indexing import SearchMode
-from ..tools.basiclogging import LogLevel
-from .interfaces import CmdLineArgs
+from pytools.logging.trait import LogLevel
+
+from cheartpy.cheart_mesh.api import fix_suffix
+from cheartpy.io.indexing.interfaces import SearchMode
+
+from .trait import CmdLineArgs
 
 main_parser = argparse.ArgumentParser()
 
@@ -19,7 +25,10 @@ parser.add_argument(
     "-p",
     type=str,
     default=None,
-    help='OPTIONAL: supply a prefix name to be used for the exported vtu files. If -p is not supplied, then "paraview" will be used. that is the outputs will be named paraview-#.D',
+    help=(
+        "OPTIONAL: supply a prefix name to be used for the exported vtu files."
+        'If -p is not supplied, then "paraview" will be uses, e.g., paraview-#.D'
+    ),
 )
 parser.add_argument(
     "--folder",
@@ -28,7 +37,10 @@ parser.add_argument(
     action="store",
     default="",
     type=str,
-    help="OPTIONAL: supply the path to the folder where the .D files are stored. If -f is not supplied, then the path is assumed to be the current folder.",
+    help=(
+        "OPTIONAL: supply the path to the folder where the .D files are stored. "
+        "If -f is not supplied, then the path is assumed to be the current folder."
+    ),
 )
 parser.add_argument(
     "--out-folder",
@@ -37,16 +49,22 @@ parser.add_argument(
     action="store",
     default="",
     type=str,
-    help="OPTIONAL: supply the path to the folder where the vtu outputs should be saved to. If -f is not supplied, then the path is assumed to be the current folder.",
+    help=(
+        "OPTIONAL: supply the path to the folder where the vtu outputs should be saved to. "
+        "If -f is not supplied, then the path is assumed to be the current folder."
+    ),
 )
 parser.add_argument(
     "var",
     nargs="*",
     action="store",
-    default=list(),
+    default=[],
     type=str,
     metavar=("var"),
-    help="Optional: specify the variables to add to the vtu files. Multiple variable can be listed consecutively.",
+    help=(
+        "Optional: specify the variables to add to the vtu files. "
+        "Multiple variable can be listed consecutively."
+    ),
 )
 
 
@@ -98,7 +116,9 @@ extrasgroup.add_argument(
 subparsers = main_parser.add_subparsers(help="Collective of subprogram", dest="cmd")
 
 parser_index = subparsers.add_parser(
-    "index", help="give specific indexing for all args", parents=[parser]
+    "index",
+    help="give specific indexing for all args",
+    parents=[parser],
 )
 parser_index.add_argument(
     "--index",
@@ -109,7 +129,10 @@ parser_index.add_argument(
     default=[0, 0, 1],
     type=int,
     metavar=("start", "end", "step"),
-    help="MANDATORY: specify the start, end, and step for the range of data files. If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory.",
+    help=(
+        "MANDATORY: specify the start, end, and step for the range of data files. "
+        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+    ),
 )
 parser_index.add_argument(
     "--subindex",
@@ -120,7 +143,10 @@ parser_index.add_argument(
     default=None,
     type=int,
     metavar=("start", "end", "step"),
-    help="OPTIONAL: specify the start, end, and step for the range of data files. If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory.",
+    help=(
+        "OPTIONAL: specify the start, end, and step for the range of data files. "
+        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+    ),
 )
 topgroup = parser_index.add_argument_group(title="Topology")
 topgroup.add_argument(
@@ -130,7 +156,10 @@ topgroup.add_argument(
     action="store",
     default="mesh_FE.X",
     type=str,
-    help='MANDATORY: supply a relative path and file name  from the current directory to the .X file (must end in .X), or a variable name relative to the input folder for the Space variable. default is "Space" in cuurent folder',
+    help=(
+        "MANDATORY: supply a relative path and file name from the current directory to the .X file"
+        ", or a variable name relative to the input folder for the Space variable."
+    ),
 )
 topgroup.add_argument(
     "--t-file",
@@ -139,7 +168,10 @@ topgroup.add_argument(
     action="store",
     default="mesh_FE.T",
     type=str,
-    help="MANDATORY: supply a relative path and file name from the current directory to the topology file, the default is mesh_FE.T",
+    help=(
+        "MANDATORY: supply a relative path and file name from the current directory "
+        "to the topology file, the default is mesh_FE.T"
+    ),
 )
 topgroup.add_argument(
     "--b-file",
@@ -148,12 +180,17 @@ topgroup.add_argument(
     action="store",
     default=None,
     type=str,
-    help="OPTIONAL: supply a relative path and file name  from the current directory to the boundary file, the default is None",
+    help=(
+        "OPTIONAL: supply a relative path and file name from the current directory "
+        "to the boundary file, the default is None"
+    ),
 )
 
 
 parser_find = subparsers.add_parser(
-    "find", help="determine settings automatically", parents=[parser]
+    "find",
+    help="determine settings automatically",
+    parents=[parser],
 )
 parser_find.add_argument(
     "--mesh",
@@ -181,7 +218,10 @@ parser_find.add_argument(
     default=None,
     type=int,
     metavar=("start", "end", "step"),
-    help="MANDATORY: specify the start, end, and step for the range of data files. If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory.",
+    help=(
+        "MANDATORY: specify the start, end, and step for the range of data files. "
+        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+    ),
 )
 sub_index_fin = parser_find.add_mutually_exclusive_group()
 sub_index_fin.add_argument(
@@ -189,7 +229,10 @@ sub_index_fin.add_argument(
     action="store_const",
     dest="subindex",
     const="auto",
-    help="OPTIONAL: specify the start, end, and step for the range of data files. If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory.",
+    help=(
+        "OPTIONAL: specify the start, end, and step for the range of data files. "
+        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+    ),
 )
 sub_index_fin.add_argument(
     "--subindex",
@@ -197,21 +240,24 @@ sub_index_fin.add_argument(
     dest="subindex",
     action="store",
     metavar=("start", "end", "step"),
-    help="OPTIONAL: specify the start, end, and step for the range of data files. If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory.",
+    help=(
+        "OPTIONAL: specify the start, end, and step for the range of data files. "
+        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+    ),
 )
 parser_find.set_defaults(subindex="none")
 
 
-def parse_findmode_args(mesh: str):
+def parse_findmode_args(mesh: str) -> tuple[str, str, str | None, None]:
     subs: str = fix_suffix(mesh)
     space = subs + "X"
     topology = subs + "T"
     boundary = subs + "B"
-    boundary = boundary if os.path.isfile(boundary) else None
+    boundary = boundary if Path(boundary).exists() else None
     return space, topology, boundary, None
 
 
-def parse_indexmode_args(x: str, t: str, b: str):
+def parse_indexmode_args(x: str, t: str, b: str) -> tuple[str, str, str | None, str | None]:
     spacename: list[str] = x.split("+")
     space = spacename[0]
     disp = spacename[1] if len(spacename) == 2 else None
@@ -222,7 +268,7 @@ def get_api_args(
     prefix: str | None = None,
     index: tuple[int, int, int] | None = None,
     subindex: tuple[int, int, int] | Literal["auto", "none"] | None = "none",
-    vars: Sequence[str] = list(),
+    vars: Sequence[str] = [],
     input_dir: str = "",
     output_dir: str = "",
     mesh: str | tuple[str, str, str] = "mesh",
@@ -268,7 +314,8 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
         case "index":
             mesh = (nsp.xfile, nsp.tfile, nsp.bfile)
         case _:
-            raise ValueError("No subprogram called, cannot proceed.")
+            msg = "No subprogram called, cannot proceed."
+            raise ValueError(msg)
     return get_api_args(
         prefix=nsp.prefix,
         index=nsp.index,

@@ -1,30 +1,35 @@
-from typing import Literal, Sequence
+from __future__ import annotations
 
-from ..tools.basiclogging import LOG_LEVEL, BLogger, LogLevel
+from collections.abc import Sequence
+from typing import Literal
+
+from pytools.logging.api import BLogger
+from pytools.logging.trait import LOG_LEVEL, LogLevel
+
 from .core import export_boundary, run_exports_in_parallel, run_exports_in_series
-from .interfaces import CmdLineArgs
-from .parser_main import *
+from .parser_main import get_api_args, get_cmdline_args
 from .prep import init_variable_cache, parse_cmdline_args
 from .print_headers import (
     print_guard,
     print_header,
     print_index_info,
 )
+from .trait import CmdLineArgs
 
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None:
-    LOG = BLogger(cmd_args.log)
+    log = BLogger(cmd_args.log)
     print_header()
     inp, indexer = parse_cmdline_args(cmd_args)
     print_index_info(indexer)
     print_guard()
     cache = init_variable_cache(inp, indexer)
-    LOG.debug(cache)
+    log.debug(cache)
     export_boundary(inp, cache)
     if inp.cores > 1:
-        run_exports_in_parallel(inp, indexer, cache, LOG)
+        run_exports_in_parallel(inp, indexer, cache, log)
     else:
-        run_exports_in_series(inp, indexer, cache, LOG)
+        run_exports_in_series(inp, indexer, cache, log)
     print_guard()
 
 
@@ -32,7 +37,7 @@ def cheart2vtu_api(
     prefix: str | None = None,
     mesh: str | tuple[str, str, str] = "mesh",
     space: str | None = None,
-    vars: Sequence[str] = list(),
+    variables: Sequence[str] = [],
     input_dir: str = "",
     output_dir: str = "",
     index: tuple[int, int, int] | None = None,
@@ -48,7 +53,7 @@ def cheart2vtu_api(
         prefix=prefix,
         index=index,
         subindex=subindex,
-        vars=vars,
+        vars=variables,
         input_dir=input_dir,
         output_dir=output_dir,
         mesh=mesh,

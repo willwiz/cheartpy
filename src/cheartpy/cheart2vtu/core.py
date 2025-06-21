@@ -10,6 +10,7 @@ from concurrent import futures
 import numpy as np
 from arraystubs import Arr1, Arr2
 
+s
 from ..cheart_mesh.io import chread_b_utf
 from ..io.indexing import IIndexIterator
 from ..tools.basiclogging import BLogger, ILogger
@@ -17,8 +18,8 @@ from ..tools.parallel_exec import PEXEC_ARGS, parallel_exec
 from ..tools.progress_bar import ProgressBar
 from ..xmlwriter import XMLElement, XMLWriters
 from .fio import update_variable_cache
-from .interfaces import *
 from .third_party import compress_vtu
+from .trait import *
 from .variable_naming import CheartVTUFormat
 
 

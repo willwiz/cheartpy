@@ -1,25 +1,33 @@
 __all__ = ["init_variable_cache", "parse_cmdline_args"]
 import os
+from pathlib import Path
 
 import numpy as np
+from arraystubs import Arr2
+from pytools.logging.trait import ILogger
 
-from ..cheart_mesh.io import *
-from ..io.indexing import IIndexIterator, get_file_name_indexer
-from ..tools.basiclogging import BLogger, ILogger
-from ..var_types import *
-from .fio import *
-from .interfaces import *
+from cheartpy.cheart_mesh.io import chread_d
+from cheartpy.io.indexing.api import get_file_name_indexer
+from cheartpy.io.indexing.interfaces import IIndexIterator
+
 from .parser_main import parse_findmode_args, parse_indexmode_args
-from .print_headers import *
-from .variable_naming import *
+from .print_headers import print_input_info
+from .trait import (
+    CheartTopology,
+    CmdLineArgs,
+    IFormattedName,
+    ProgramArgs,
+    VariableCache,
+)
+from .variable_naming import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 
 
 def parse_cmdline_args(
     args: CmdLineArgs,
-    LOG: ILogger = BLogger("INFO"),
+    log: ILogger,
 ) -> tuple[ProgramArgs, IIndexIterator]:
     err: bool = False
-    print_input_info(args)
+    log.info(print_input_info(args))
     # Set the prefix
     if not args.prefix:
         prefix = args.output_dir.replace("_vtu", "") if args.output_dir else "paraview"
@@ -31,14 +39,14 @@ def parse_cmdline_args(
         case x, t, b:
             x, top, bnd, u = parse_indexmode_args(x, t, b)
     if bnd is not None:
-        LOG.disp(f"Looking for boundary file: {bnd}")
+        log.disp(f"Looking for boundary file: {bnd}")
         if os.path.isfile(bnd):
-            LOG.disp(f"<<< Output file name (boundary): {prefix}_boundary.vtu")
+            log.disp(f"<<< Output file name (boundary): {prefix}_boundary.vtu")
         else:
-            LOG.error(f"Boundary file = {bnd} not found.")
+            log.error(f"Boundary file = {bnd} not found.")
             err = True
     else:
-        LOG.disp("<<< No boundary file specified. Skipping boundary export.")
+        log.disp("<<< No boundary file specified. Skipping boundary export.")
     if args.space is not None:
         name = args.space.split("+")
         if len(name) == 2:
@@ -49,14 +57,14 @@ def parse_cmdline_args(
     if not args.input_dir:
         pass
     elif not os.path.isdir(args.input_dir):
-        LOG.error(f"Input folder = {args.input_dir} does not exist")
+        log.error(f"Input folder = {args.input_dir} does not exist")
         err = True
     if args.output_dir:
         os.makedirs(args.output_dir, exist_ok=True)
     # Get the indexer for the variable files
     indexer = get_file_name_indexer(args.index, args.subindex, args.var, args.input_dir)
     if not os.path.isfile(top):
-        LOG.error(f"ERROR: Topology = {top} not found.")
+        log.error(f"ERROR: Topology = {top} not found.")
         err = True
     i0 = next(iter(indexer))
     if os.path.isfile(x):
@@ -76,7 +84,7 @@ def parse_cmdline_args(
     elif os.path.isfile(f"{u}-{i0}.D.gz"):
         disp = CheartZipFormat(args.input_dir, u)
     else:
-        LOG.error(f"Disp = {u} not recognized as mesh, var, or zip")
+        log.error(f"Disp = {u} not recognized as mesh, var, or zip")
         raise
     var: dict[str, IFormattedName] = dict()
     for v in args.var:
@@ -85,13 +93,14 @@ def parse_cmdline_args(
         elif os.path.isfile(os.path.join(args.input_dir, f"{v}-{i0}.D.gz")):
             var[v] = CheartZipFormat(args.input_dir, v)
         else:
-            LOG.error(f">>>ERROR: Type of {v} cannot be identified.")
+            log.error(f">>>ERROR: Type of {v} cannot be identified.")
             err = True
     if err:
-        raise ValueError("At least one error was triggered.")
+        msg = ">>>ERROR: Some files were not found or could not be identified."
+        raise ValueError(msg)
     if space is None:
-        LOG.error(f"Space = {space} not recognized as mesh, var, or zip")
-        raise
+        log.error(f"Space = {space} not recognized as mesh, var, or zip")
+        raise ValueError
     return (
         ProgramArgs(
             prefix,
@@ -112,7 +121,10 @@ def parse_cmdline_args(
     )
 
 
-def init_variable_cache(inp: ProgramArgs, indexer: IIndexIterator) -> VariableCache:
+def init_variable_cache(
+    inp: ProgramArgs,
+    indexer: IIndexIterator,
+) -> VariableCache[np.float64, np.intc]:
     i0 = next(iter(indexer))
     top = CheartTopology(inp.tfile, inp.bfile)
     fx = inp.space[i0]
@@ -123,14 +135,15 @@ def init_variable_cache(inp: ProgramArgs, indexer: IIndexIterator) -> VariableCa
     else:
         fd = inp.disp[i0]
         disp = chread_d(fd)
-    x = space if disp is None else space + disp
-    fv: dict[str, str] = dict.fromkeys(inp.var.keys(), "")
-    var: dict[str, Mat[f64]] = dict()
+    x = space + disp
+    fv: dict[str, Path] = dict.fromkeys(inp.var.keys(), Path())
+    var: dict[str, Arr2[np.float64]] = {}
     for k, fn in inp.var.items():
         name = fn[i0]
-        if os.path.isfile(name):
+        if name.exists():
             fv[k] = name
         else:
-            raise ValueError(f"The initial value for {k} cannot be found")
+            msg = f"initial value for {k} = {name} does not exist"
+            raise ValueError(msg)
         var[k] = chread_d(name)
     return VariableCache(top, i0, fx, fd, space, disp, x, fv, var)
