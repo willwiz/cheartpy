@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
 from collections.abc import Mapping, Sequence, ValuesView
 from typing import Any, Literal, TextIO

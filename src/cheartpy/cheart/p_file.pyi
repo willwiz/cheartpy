@@ -2,7 +2,19 @@ __all__ = ["PFile"]
 import dataclasses as dc
 from typing import TextIO
 
-from .trait import *
+from .trait import (
+    ICheartBasis,
+    ICheartTopology,
+    IDataPointer,
+    IExpression,
+    IProblem,
+    ISolverGroup,
+    ISolverMatrix,
+    ISolverSubGroup,
+    ITimeScheme,
+    ITopInterface,
+    IVariable,
+)
 
 @dc.dataclass(slots=True)
 class PFile:

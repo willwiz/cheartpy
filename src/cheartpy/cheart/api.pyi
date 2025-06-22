@@ -18,14 +18,19 @@ __all__ = [
 from collections.abc import Sequence
 from typing import overload
 
-from .aliases import *
+from .aliases import (
+    CHEART_BASES_TYPE,
+    CHEART_ELEMENT_TYPE,
+)
 from .impl import (
     CheartTopology,
     ManyToOneTopInterface,
     NullTopology,
     OneToOneTopInterface,
 )
-from .trait import *
+from .trait import (
+    BC_VALUE,
+)
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
 def create_time_scheme(

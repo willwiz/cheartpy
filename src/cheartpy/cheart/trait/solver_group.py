@@ -1,12 +1,22 @@
-import abc
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import TextIO
-
-from ..aliases import *
-from .basic import *
-from .solver_matrix import *
+from __future__ import annotations
 
 __all__ = ["ISolverGroup", "ISolverSubGroup"]
+import abc
+from typing import TYPE_CHECKING, Literal, TextIO
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
+
+    from cheartpy.cheart.aliases import (
+        ITERATION_SETTINGS,
+        TOL_SETTINGS,
+        IterationSettings,
+        SolverSubgroupAlgorithm,
+        TolSettings,
+    )
+
+    from .basic import IProblem, ITimeScheme, IVariable
+    from .solver_matrix import ISolverMatrix
 
 
 class ISolverSubGroup(abc.ABC):
@@ -27,7 +37,7 @@ class ISolverSubGroup(abc.ABC):
     def scale_first_residual(self) -> float | None: ...
     @scale_first_residual.setter
     @abc.abstractmethod
-    def scale_first_residual(self, value: float | None): ...
+    def scale_first_residual(self, value: float | None) -> None: ...
 
 
 class ISolverGroup(abc.ABC):
@@ -38,7 +48,7 @@ class ISolverGroup(abc.ABC):
     def export_initial_condition(self) -> bool: ...
     @export_initial_condition.setter
     @abc.abstractmethod
-    def export_initial_condition(self, value: bool): ...
+    def export_initial_condition(self, value: bool) -> None: ...
     @abc.abstractmethod
     def get_time_scheme(self) -> ITimeScheme: ...
     @abc.abstractmethod
@@ -64,17 +74,17 @@ class ISolverGroup(abc.ABC):
         act: Literal["evaluate_full"],
     ) -> None: ...
     @abc.abstractmethod
-    def AddAuxVariable(self, *var: IVariable): ...
+    def add_auxvar(self, *var: IVariable) -> None: ...
     @abc.abstractmethod
-    def RemoveAuxVariable(self, *var: str | IVariable): ...
+    def remove_auxvar(self, *var: str | IVariable) -> None: ...
 
     # SG
     @abc.abstractmethod
-    def AddSolverSubGroup(self, *sg: ISolverSubGroup) -> None: ...
+    def add_solversubgroup(self, *sg: ISolverSubGroup) -> None: ...
     @abc.abstractmethod
-    def RemoveSolverSubGroup(self, *sg: ISolverSubGroup) -> None: ...
+    def remove_solversubgroup(self, *sg: ISolverSubGroup) -> None: ...
     @abc.abstractmethod
-    def MakeSolverSubGroup(
+    def make_solversubgroup(
         self,
         method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"],
         *problems: ISolverMatrix | IProblem,

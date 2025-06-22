@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["NormProblem"]
 from collections.abc import Mapping, Sequence, ValuesView
 from typing import Literal, TextIO

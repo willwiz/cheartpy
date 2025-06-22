@@ -1,10 +1,25 @@
+from __future__ import annotations
+
 __all__ = ["PFile"]
 import dataclasses as dc
 from collections.abc import Collection, Mapping
 from typing import TextIO
 
 from .pytools import header, hline, splicegen
-from .trait import *
+from .trait import (
+    ICheartBasis,
+    ICheartTopology,
+    IDataInterp,
+    IDataPointer,
+    IExpression,
+    IProblem,
+    ISolverGroup,
+    ISolverMatrix,
+    ISolverSubGroup,
+    ITimeScheme,
+    ITopInterface,
+    IVariable,
+)
 
 
 @dc.dataclass(slots=True)

@@ -1,6 +1,25 @@
-from .basic import *
-from .solver_group import *
-from .solver_matrix import *
+from __future__ import annotations
+
+from .basic import (
+    BC_VALUE,
+    EXPRESSION_VALUE,
+    IBasis,
+    IBCPatch,
+    IBoundaryCondition,
+    ICheartBasis,
+    ICheartTopology,
+    IDataInterp,
+    IDataPointer,
+    IExpression,
+    ILaw,
+    IProblem,
+    IQuadrature,
+    ITimeScheme,
+    ITopInterface,
+    IVariable,
+)
+from .solver_group import ISolverGroup, ISolverSubGroup
+from .solver_matrix import ISolverMatrix
 
 __all__ = [
     "BC_VALUE",

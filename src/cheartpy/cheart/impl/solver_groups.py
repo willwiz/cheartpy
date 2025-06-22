@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["SolverGroup", "SolverSubGroup"]
 import dataclasses as dc
 from collections.abc import Mapping, Sequence, ValuesView
@@ -114,7 +116,7 @@ class SolverGroup(ISolverGroup):
     time: ITimeScheme
     sub_groups: list[ISolverSubGroup] = dc.field(default_factory=list)
     settings: dict[
-        TolSettings | IterationSettings | Literal["CatchSolverErrors"],
+        TolSettings | IterationSettings | Literal[CatchSolverErrors],
         list[str | int | float | IExpression | IVariable],
     ] = dc.field(default_factory=dict)
     _export_initial_condition: bool = True
@@ -168,18 +170,18 @@ class SolverGroup(ISolverGroup):
 
     def catch_solver_errors(
         self,
-        err: Literal["nan_maxval"],
-        act: Literal["evaluate_full"],
+        err: Literal[nan_maxval],
+        act: Literal[evaluate_full],
         thresh: float = 1.0e10,
     ) -> None:
         self.settings["CatchSolverErrors"] = [err, act, thresh]
 
-    def AddAuxVariable(self, *var: IVariable):
+    def add_auxvar(self, *var: IVariable):
         for v in var:
             if str(v) not in self._aux_vars:
                 self._aux_vars[str(v)] = v
 
-    def RemoveAuxVariable(self, *var: str | IVariable):
+    def remove_auxvar(self, *var: str | IVariable):
         for v in var:
             if isinstance(v, str):
                 self._aux_vars.pop(v)
@@ -187,17 +189,17 @@ class SolverGroup(ISolverGroup):
                 self._aux_vars.pop(str(v))
 
     # SG
-    def AddSolverSubGroup(self, *sg: ISolverSubGroup) -> None:
+    def add_solversubgroup(self, *sg: ISolverSubGroup) -> None:
         for v in sg:
             self.sub_groups.append(v)
 
-    def RemoveSolverSubGroup(self, *sg: ISolverSubGroup) -> None:
+    def remove_solversubgroup(self, *sg: ISolverSubGroup) -> None:
         for v in sg:
             self.sub_groups.remove(v)
 
-    def MakeSolverSubGroup(
+    def make_solversubgroup(
         self,
-        method: Literal["seq_fp_linesearch", "SOLVER_SEQUENTIAL"],
+        method: Literal[seq_fp_linesearch, SOLVER_SEQUENTIAL],
         *problems: ISolverMatrix | IProblem,
     ) -> None:
         self.sub_groups.append(

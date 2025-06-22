@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "create_basis",
     "create_bc",
@@ -17,10 +19,35 @@ __all__ = [
 import os
 from collections.abc import Sequence
 
-from .aliases import *
+from .aliases import (
+    BOUNDARY_TYPE,
+    CHEART_BASES_TYPE,
+    CHEART_ELEMENT_TYPE,
+    CHEART_QUADRATURE_TYPE,
+    MATRIX_SOLVER_TYPES,
+    SOLVER_SUBGROUP_ALGORITHM,
+    VARIABLE_EXPORT_FORMAT,
+    BoundaryType,
+    CheartBasisType,
+    CheartElementType,
+    CheartQuadratureType,
+    MatrixSolverTypes,
+    SolverSubgroupAlgorithm,
+    VariableExportFormat,
+)
 from .impl import *
 from .pytools import get_enum
-from .trait import *
+from .trait import (
+    IBCPatch,
+    IBoundaryCondition,
+    ICheartBasis,
+    ICheartTopology,
+    IExpression,
+    IProblem,
+    ITimeScheme,
+    ITopInterface,
+    IVariable,
+)
 
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
@@ -163,7 +190,7 @@ def create_solver_subgroup(
 
 
 def create_top_interface(
-    method: Literal["OneToOne", "ManyToOne"],
+    method: Literal[OneToOne, ManyToOne],
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology | None = None,
     interface_file: str | None = None,
@@ -221,8 +248,8 @@ def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression:
     return Expression(name, value)
 
 
-def AddStateVar(p: IProblem | None, *vars: IVariable | IExpression | None) -> None:
+def add_statevar(p: IProblem | None, *var: IVariable | IExpression | None) -> None:
     if p is None:
         return
-    for v in vars:
+    for v in var:
         p.add_state_variable(v)

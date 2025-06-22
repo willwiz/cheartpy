@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = [
     "CheartTopology",
     "ManyToOneTopInterface",
@@ -20,12 +22,12 @@ class CheartTopology(ICheartTopology):
     basis: ICheartBasis | None
     _mesh: str
     fmt: VariableExportFormat = VariableExportFormat.TXT
-    embedded: "ICheartTopology | None" = None
+    embedded: ICheartTopology | None = None
     partitioning_weight: int | None = None
     in_partition: bool = False
     continuous: bool = True
     spatial_constant: bool = False
-    in_boundary: tuple["ICheartTopology", int | str] | None = None
+    in_boundary: tuple[ICheartTopology, int | str] | None = None
     _discontinuous: bool = False
 
     def __repr__(self) -> str:
@@ -55,7 +57,7 @@ class CheartTopology(ICheartTopology):
     def get_basis(self) -> ICheartBasis | None:
         return self.basis
 
-    def AddSetting(
+    def add_setting(
         self,
         task: CheartTopologySetting,
         val: int | tuple[ICheartTopology, int] | None = None,
@@ -110,10 +112,10 @@ class NullTopology(ICheartTopology):
     def get_basis(self) -> ICheartBasis | None:
         return None
 
-    def AddSetting(
+    def add_setting(
         self,
-        task: CheartTopologySetting,
-        val: int | tuple[ICheartTopology, int] | None = None,
+        _task: CheartTopologySetting,
+        _val: int | tuple[ICheartTopology, int] | None = None,
     ) -> None:
         raise ValueError("Cannot add setting to null topology")
 
@@ -144,7 +146,7 @@ class OneToOneTopInterface(ITopInterface):
         return hash("_".join([str(s) for s in self.topologies]))
 
     @property
-    def method(self) -> Literal["OneToOne"]:
+    def method(self) -> Literal[OneToOne]:
         return "OneToOne"
 
     def get_master(self) -> ICheartTopology | None:
@@ -175,7 +177,7 @@ class ManyToOneTopInterface(ITopInterface):
         )
 
     @property
-    def method(self) -> Literal["ManyToOne"]:
+    def method(self) -> Literal[ManyToOne]:
         return "ManyToOne"
 
     def get_master(self) -> ICheartTopology | None:
