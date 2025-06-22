@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
-from ..trait import *
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from cheartpy.cheart.trait import IExpression, IVariable
 
 
 def recurse_get_var_list_var(var: IVariable) -> Mapping[str, IVariable]:
@@ -16,5 +19,4 @@ def recurse_get_var_list_var(var: IVariable) -> Mapping[str, IVariable]:
 def recurse_get_var_list_expr(expr: IExpression) -> Mapping[str, IVariable]:
     var_deps = [recurse_get_var_list_var(v) for v in expr.get_var_deps()]
     expr_deps = [recurse_get_var_list_expr(e) for e in expr.get_expr_deps()]
-    _all_var_ = {k: v for d in expr_deps + var_deps for k, v in d.items()}
-    return _all_var_
+    return {k: v for d in expr_deps + var_deps for k, v in d.items()}

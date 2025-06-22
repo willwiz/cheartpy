@@ -2,13 +2,16 @@ from __future__ import annotations
 
 __all__ = ["L2SolidProjection"]
 import enum
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from ...api import create_bc
-from ...pytools import get_enum, join_fields
-from ...trait import *
-from ..solid_mechanics.solid_problems import SolidProblem
+from cheartpy.cheart.api import create_bc
+from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
+
+    from cheartpy.cheart.physics.solid_mechanics.solid_problems import SolidProblem
 
 
 class L2SolidCalculationType(enum.StrEnum):
@@ -47,8 +50,8 @@ class L2SolidProjection(IProblem):
         self.solid_prob = solid_prob
         self.variables = {"Space": space, "Variable": var}
         self.calculation = get_enum(projected_var, L2SolidCalculationType)
-        self.aux_vars = dict()
-        self.aux_expr = dict()
+        self.aux_vars = {}
+        self.aux_expr = {}
         self.bc = create_bc()
         self._buffering = True
 
@@ -65,8 +68,8 @@ class L2SolidProjection(IProblem):
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
-    def add_deps(self, *vars: IVariable | IExpression | None) -> None:
-        for v in vars:
+    def add_deps(self, *var: IVariable | IExpression | None) -> None:
+        for v in var:
             if isinstance(v, IVariable):
                 self.add_var_deps(v)
             else:
@@ -96,11 +99,11 @@ class L2SolidProjection(IProblem):
         return {**_expr_, **self.aux_expr}.values()
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
-        return
+        pass
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else list(patches)
+        return [] if patches is None else list(patches)
 
     def set_projection(
         self,
@@ -108,7 +111,7 @@ class L2SolidProjection(IProblem):
     ) -> None:
         self.calculation = get_enum(calc, L2SolidCalculationType)
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write(f"!DefProblem={{{self.name}|{self._problem}}}\n")
         f.writelines(
             f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
@@ -116,6 +119,6 @@ class L2SolidProjection(IProblem):
 
         f.write(f"  !Mechanical-Problem={{{self.solid_prob}}}\n")
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
-        if self._buffering == False:
+        if not self._buffering:
             f.write("  !No-buffering\n")
         self.bc.write(f)

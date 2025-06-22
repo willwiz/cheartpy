@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
+from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
+
 __all__ = [
     "create_basis",
     "create_bc",
@@ -16,8 +19,6 @@ __all__ = [
     "create_variable",
     "hash_tops",
 ]
-import os
-from collections.abc import Sequence
 
 from .aliases import (
     BOUNDARY_TYPE,
@@ -35,19 +36,44 @@ from .aliases import (
     SolverSubgroupAlgorithm,
     VariableExportFormat,
 )
-from .impl import *
-from .pytools import get_enum
-from .trait import (
-    IBCPatch,
-    IBoundaryCondition,
-    ICheartBasis,
-    ICheartTopology,
-    IExpression,
-    IProblem,
-    ITimeScheme,
-    ITopInterface,
-    IVariable,
+from .impl import (
+    Basis,
+    BCPatch,
+    BoundaryCondition,
+    CheartBasis,
+    CheartTopology,
+    Expression,
+    ManyToOneTopInterface,
+    NullTopology,
+    OneToOneTopInterface,
+    Quadrature,
+    SolverGroup,
+    SolverMatrix,
+    SolverSubGroup,
+    TimeScheme,
+    Variable,
 )
+from .string_tools import get_enum
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .trait import (
+        BC_VALUE,
+        EXPRESSION_VALUE,
+        IBCPatch,
+        IBoundaryCondition,
+        ICheartBasis,
+        ICheartTopology,
+        IExpression,
+        IProblem,
+        ISolverGroup,
+        ISolverMatrix,
+        ISolverSubGroup,
+        ITimeScheme,
+        ITopInterface,
+        IVariable,
+    )
 
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
@@ -61,9 +87,9 @@ def create_time_scheme(
     stop: int,
     step: float | str,
 ) -> ITimeScheme:
-    if isinstance(step, str):
-        if not os.path.isfile(step):
-            raise ValueError(f"Time step file {step} is not found!")
+    if isinstance(step, str) and not Path(step).is_file():
+        msg = f"Time step file {step} is not found!"
+        raise ValueError(msg)
     return TimeScheme(name, start, stop, step)
 
 
@@ -104,15 +130,14 @@ def create_basis(
     quadrature = get_enum(quadrature, CheartQuadratureType)
     name = f"{_ORDER[order]}{_ELEM[elem]}"
     if 2 * gp < order + 1:
-        raise ValueError(f"For {name}, order {2 * gp} < {order + 1}")
-    if quadrature is CheartQuadratureType.KEAST_LYNESS:
-        if elem not in [
-            CheartElementType.TETRAHEDRAL_ELEMENT,
-            CheartElementType.TRIANGLE_ELEMENT,
-        ]:
-            raise ValueError(
-                f"For {name} Basis, KEAST_LYNESS can only be used with tetrahydral or triangles",
-            )
+        msg = f"For {name}, order {2 * gp} < {order + 1}"
+        raise ValueError(msg)
+    if quadrature is CheartQuadratureType.KEAST_LYNESS and elem not in [
+        CheartElementType.TETRAHEDRAL_ELEMENT,
+        CheartElementType.TRIANGLE_ELEMENT,
+    ]:
+        msg = f"For {name} Basis, KEAST_LYNESS can only be used with tetrahedral or triangles"
+        raise ValueError(msg)
     return CheartBasis(name, elem, Basis(kind, order), Quadrature(quadrature, gp))
 
 
@@ -129,7 +154,8 @@ def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
         case CheartElementType.ONED_ELEMENT | CheartElementType.line:
             elem = CheartElementType.POINT_ELEMENT
         case CheartElementType.POINT_ELEMENT | CheartElementType.point:
-            raise ValueError("No such thing as boundary for point elements")
+            msg = "No such thing as boundary for point elements"
+            raise ValueError(msg)
     return CheartBasis(f"{vol}_surf", elem, vol.basis, vol.quadrature)
 
 
@@ -137,11 +163,11 @@ def create_topology(
     name: str,
     basis: ICheartBasis | None,
     mesh: str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> ICheartTopology:
     if basis is None:
         return NullTopology()
-    fmt = get_enum(format, VariableExportFormat)
+    fmt = get_enum(fmt, VariableExportFormat)
     return CheartTopology(name, basis, mesh, fmt)
 
 
@@ -149,9 +175,9 @@ def create_embedded_topology(
     name: str,
     embedded_top: ICheartTopology,
     mesh: str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> ICheartTopology:
-    fmt = get_enum(format, VariableExportFormat)
+    fmt = get_enum(fmt, VariableExportFormat)
     return CheartTopology(name, None, mesh, fmt, embedded=embedded_top)
 
 
@@ -160,7 +186,7 @@ def create_solver_matrix(
     solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes,
     *probs: IProblem | None,
 ) -> ISolverMatrix:
-    problems: dict[str, IProblem] = dict()
+    problems: dict[str, IProblem] = {}
     for p in probs:
         if p is not None:
             problems[str(p)] = p
@@ -173,24 +199,21 @@ def create_solver_group(
     time: ITimeScheme,
     *solver_subgroup: ISolverSubGroup,
 ) -> ISolverGroup:
-    sub_group: list[ISolverSubGroup] = list()
-    for sg in solver_subgroup:
-        sub_group.append(sg)
-    return SolverGroup(name, time, sub_group)
+    return SolverGroup(name, time, list(solver_subgroup))
 
 
 def create_solver_subgroup(
     method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
     *probs: ISolverMatrix | IProblem,
 ) -> ISolverSubGroup:
-    problems: dict[str, ISolverMatrix | IProblem] = dict()
+    problems: dict[str, ISolverMatrix | IProblem] = {}
     for p in probs:
         problems[str(p)] = p
     return SolverSubGroup(get_enum(method, SolverSubgroupAlgorithm), problems)
 
 
 def create_top_interface(
-    method: Literal[OneToOne, ManyToOne],
+    method: Literal["OneToOne", "ManyToOne"],
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology | None = None,
     interface_file: str | None = None,
@@ -202,9 +225,11 @@ def create_top_interface(
             return OneToOneTopInterface(name, topologies)
         case "ManyToOne":
             if master_topology is None:
-                raise ValueError("ManyToOne requires a master_topology")
+                msg = "ManyToOne requires a master_topology"
+                raise ValueError(msg)
             if interface_file is None:
-                raise ValueError("ManyToOne requires a interface_file")
+                msg = "ManyToOne requires a interface_file"
+                raise ValueError(msg)
             name = hash_tops(topologies) + ":" + str(master_topology)
             return ManyToOneTopInterface(
                 name,
@@ -230,18 +255,22 @@ def create_bc(*val: IBCPatch) -> IBoundaryCondition:
     return BoundaryCondition()
 
 
+class _ExtraCreateVarOptions(TypedDict, total=False):
+    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat
+    freq: int
+    loop_step: int | None
+
+
 def create_variable(
     name: str,
     top: ICheartTopology | None,
     dim: int = 3,
     data: str | None = None,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
-    freq: int = 1,
-    loop_step: int | None = None,
+    **kwargs: Unpack[_ExtraCreateVarOptions],
 ) -> IVariable:
-    fmt = get_enum(format, VariableExportFormat)
+    fmt = get_enum(kwargs.get("fmt", VariableExportFormat.TXT), VariableExportFormat)
     top = NullTopology() if top is None else top
-    return Variable(name, top, dim, data, fmt, freq, loop_step)
+    return Variable(name, top, dim, data, fmt, kwargs.get("freq", 1), kwargs.get("loop_step"))
 
 
 def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression:

@@ -2,13 +2,31 @@ from __future__ import annotations
 
 __all__ = ["SolverGroup", "SolverSubGroup"]
 import dataclasses as dc
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from ..aliases import *
-from ..pytools import *
-from ..trait import *
+from cheartpy.cheart.aliases import (
+    ITERATION_SETTINGS,
+    SOLVER_SUBGROUP_ALGORITHM,
+    TOL_SETTINGS,
+    IterationSettings,
+    SolverSubgroupAlgorithm,
+    TolSettings,
+)
+from cheartpy.cheart.pytools import get_enum, hline, join_fields, splicegen
+from cheartpy.cheart.trait import (
+    IExpression,
+    IProblem,
+    ISolverGroup,
+    ISolverMatrix,
+    ISolverSubGroup,
+    ITimeScheme,
+    IVariable,
+)
+
 from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
 
 """
 Cheart dataclasses
@@ -54,7 +72,9 @@ PFile
 @dc.dataclass(slots=True)
 class SolverSubGroup(ISolverSubGroup):
     method: SolverSubgroupAlgorithm
-    problems: dict[str, ISolverMatrix | IProblem] = dc.field(default_factory=dict)
+    problems: dict[str, ISolverMatrix | IProblem] = dc.field(
+        default_factory=dict[str, ISolverMatrix | IProblem],
+    )
     _scale_first_residual: float | None = None
 
     def get_method(self) -> SolverSubgroupAlgorithm:
@@ -89,8 +109,7 @@ class SolverSubGroup(ISolverSubGroup):
             for p in m.get_problems()
             for k, v in p.get_prob_vars().items()
         }
-        _all_vars = {**_prob_vars, **_matrix_vars}
-        return _all_vars
+        return {**_prob_vars, **_matrix_vars}
 
     def get_systems(self) -> ValuesView[IProblem | ISolverMatrix]:
         return self.problems.values()
@@ -114,15 +133,20 @@ class SolverSubGroup(ISolverSubGroup):
 class SolverGroup(ISolverGroup):
     name: str
     time: ITimeScheme
-    sub_groups: list[ISolverSubGroup] = dc.field(default_factory=list)
+    sub_groups: list[ISolverSubGroup] = dc.field(default_factory=list[ISolverSubGroup])
     settings: dict[
-        TolSettings | IterationSettings | Literal[CatchSolverErrors],
+        TolSettings | IterationSettings | Literal["CatchSolverErrors"],
         list[str | int | float | IExpression | IVariable],
-    ] = dc.field(default_factory=dict)
+    ] = dc.field(
+        default_factory=dict[
+            TolSettings | IterationSettings | Literal["CatchSolverErrors"],
+            list[str | int | float | IExpression | IVariable],
+        ],
+    )
     _export_initial_condition: bool = True
     use_dynamic_topologies: bool | float = False
-    _aux_vars: dict[str, IVariable] = dc.field(default_factory=dict)
-    _deps_vars: dict[str, IVariable] = dc.field(default_factory=dict)
+    _aux_vars: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
+    _deps_vars: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
 
     def __repr__(self) -> str:
         return self.name
@@ -132,7 +156,7 @@ class SolverGroup(ISolverGroup):
         return self._export_initial_condition
 
     @export_initial_condition.setter
-    def export_initial_condition(self, value: bool):
+    def export_initial_condition(self, value: bool) -> None:
         self._export_initial_condition = value
 
     def get_time_scheme(self) -> ITimeScheme:
@@ -143,9 +167,8 @@ class SolverGroup(ISolverGroup):
         _dep_vars = {k: v for sg in self.sub_groups for k, v in sg.get_prob_vars().items()}
         check = all(item in _all_vars.items() for item in _dep_vars.items())
         if not check:
-            raise ValueError(
-                "Dependent Variables not in super set check implementation",
-            )
+            msg = "Dependent Variables not in super set check implementation"
+            raise ValueError(msg)
         _aux_vars = {k: v for k, v in _all_vars.items() if k not in _dep_vars}
         return _aux_vars.values()
 
@@ -170,18 +193,18 @@ class SolverGroup(ISolverGroup):
 
     def catch_solver_errors(
         self,
-        err: Literal[nan_maxval],
-        act: Literal[evaluate_full],
+        err: Literal["nan_maxval"],
+        act: Literal["evaluate_full"],
         thresh: float = 1.0e10,
     ) -> None:
         self.settings["CatchSolverErrors"] = [err, act, thresh]
 
-    def add_auxvar(self, *var: IVariable):
+    def add_auxvar(self, *var: IVariable) -> None:
         for v in var:
             if str(v) not in self._aux_vars:
                 self._aux_vars[str(v)] = v
 
-    def remove_auxvar(self, *var: str | IVariable):
+    def remove_auxvar(self, *var: str | IVariable) -> None:
         for v in var:
             if isinstance(v, str):
                 self._aux_vars.pop(v)
@@ -199,7 +222,7 @@ class SolverGroup(ISolverGroup):
 
     def make_solversubgroup(
         self,
-        method: Literal[seq_fp_linesearch, SOLVER_SEQUENTIAL],
+        method: SOLVER_SUBGROUP_ALGORITHM,
         *problems: ISolverMatrix | IProblem,
     ) -> None:
         self.sub_groups.append(
@@ -214,11 +237,11 @@ class SolverGroup(ISolverGroup):
         f.write(hline("Solver Groups"))
         f.write(f"!DefSolverGroup={{{self}|{self.time}}}\n")
         # Handle Additional Vars
-        vars = [str(v) for v in self.get_aux_vars()]
-        for l in splicegen(45, vars):
-            if l:
+        variables = [str(v) for v in self.get_aux_vars()]
+        for s in splicegen(45, variables):
+            if s:
                 f.write(
-                    f"  !SetSolverGroup={{{join_fields(self, 'AddVariables', *l)}}}\n",
+                    f"  !SetSolverGroup={{{join_fields(self, 'AddVariables', *s)}}}\n",
                 )
         # Print export init setting
         if self._export_initial_condition:

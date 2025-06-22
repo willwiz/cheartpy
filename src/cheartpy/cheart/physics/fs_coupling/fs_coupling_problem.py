@@ -2,12 +2,21 @@ from __future__ import annotations
 
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
-from collections.abc import Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from ...api import create_bc
-from ...pytools import join_fields
-from ...trait import *
+from cheartpy.cheart.api import create_bc
+from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.trait import (
+    IBCPatch,
+    IBoundaryCondition,
+    ICheartTopology,
+    IExpression,
+    IProblem,
+    IVariable,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence, ValuesView
 
 
 @dc.dataclass(slots=True)
@@ -55,9 +64,9 @@ class FSCouplingProblem(IProblem):
         self.space = space
         self.root_topology = root_top if root_top else None
         self.lm = None
-        self.m_terms = dict()
-        self.aux_vars = dict()
-        self.aux_expr = dict()
+        self.m_terms = {}
+        self.aux_vars = {}
+        self.aux_expr = {}
         self.bc = create_bc()
         self._buffering = True
 
@@ -85,16 +94,16 @@ class FSCouplingProblem(IProblem):
                 self.m_terms[str(v)] = FSCouplingTerm(v, [FSExpr(v, 0)])
 
     def get_prob_vars(self) -> dict[str, IVariable]:
-        vars: dict[str, IVariable] = {str(self.space): self.space}
+        variables: dict[str, IVariable] = {str(self.space): self.space}
         if self.lm is not None:
-            vars[str(self.lm.test_var)] = self.lm.test_var
-        for _, v in self.m_terms.items():
-            if str(v.test_var) not in vars:
-                vars[str(v.test_var)] = v.test_var
-        return vars
+            variables[str(self.lm.test_var)] = self.lm.test_var
+        for v in self.m_terms.values():
+            if str(v.test_var) not in variables:
+                variables[str(v.test_var)] = v.test_var
+        return variables
 
-    def add_deps(self, *vars: IVariable | IExpression | None) -> None:
-        for v in vars:
+    def add_deps(self, *var: IVariable | IExpression | None) -> None:
+        for v in var:
             if isinstance(v, IVariable):
                 self.add_var_deps(v)
             else:
@@ -116,66 +125,62 @@ class FSCouplingProblem(IProblem):
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
-        if str(self.space) not in _vars_:
-            _vars_[str(self.space)] = self.space
+        _vars_[str(self.space)] = self.space
         if self.lm is not None:
             _vars_[str(self.lm.test_var)] = self.lm.test_var
             for t in self.lm.terms:
-                if isinstance(t.var, IVariable):
-                    if str(t.var) not in _vars_:
-                        _vars_[str(t.var)] = t.var
-                if isinstance(t.mult, IVariable):
-                    if str(t.mult) not in _vars_:
-                        _vars_[str(t.mult)] = t.mult
+                if isinstance(t.var, IVariable) and str(t.var) not in _vars_:
+                    _vars_[str(t.var)] = t.var
+                if isinstance(t.mult, IVariable) and str(t.mult) not in _vars_:
+                    _vars_[str(t.mult)] = t.mult
         for v in self.m_terms.values():
             if str(v.test_var) not in _vars_:
                 _vars_[str(v.test_var)] = v.test_var
             for t in v.terms:
-                if isinstance(t.var, IVariable):
-                    if str(t.var) not in _vars_:
-                        _vars_[str(t.var)] = t.var
-                if isinstance(t.mult, IVariable):
-                    if str(t.mult) not in _vars_:
-                        _vars_[str(t.mult)] = t.mult
+                if isinstance(t.var, IVariable) and str(t.var) not in _vars_:
+                    _vars_[str(t.var)] = t.var
+                if isinstance(t.mult, IVariable) and str(t.mult) not in _vars_:
+                    _vars_[str(t.mult)] = t.mult
         return {**self.aux_vars, **_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         if self.lm is not None:
             for t in self.lm.terms:
-                if isinstance(t.var, IExpression):
-                    if str(t.var) not in _expr_:
-                        _expr_[str(t.var)] = t.var
-                if isinstance(t.mult, IExpression):
-                    if str(t.mult) not in _expr_:
-                        _expr_[str(t.mult)] = t.mult
+                if isinstance(t.var, IExpression) and str(t.var) not in _expr_:
+                    _expr_[str(t.var)] = t.var
+                if isinstance(t.mult, IExpression) and str(t.mult) not in _expr_:
+                    _expr_[str(t.mult)] = t.mult
         for v in self.m_terms.values():
             for t in v.terms:
-                if isinstance(t.var, IExpression):
-                    if str(t.var) not in _expr_:
-                        _expr_[str(t.var)] = t.var
-                if isinstance(t.mult, IExpression):
-                    if str(t.mult) not in _expr_:
-                        _expr_[str(t.mult)] = t.mult
+                if isinstance(t.var, IExpression) and str(t.var) not in _expr_:
+                    _expr_[str(t.var)] = t.var
+                if isinstance(t.mult, IExpression) and str(t.mult) not in _expr_:
+                    _expr_[str(t.mult)] = t.mult
         return {**self.aux_expr, **_expr_}.values()
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else list(patches)
+        return [] if patches is None else list(patches)
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write(f"!DefProblem={{{self}|{self._problem_name}}}\n")
         f.write(f"  !UseVariablePointer={{Space|{self.space}}}\n")
         f.writelines(
-            f"  !Addterms={{TestVariable[{t.test_var}]|{' '.join([s.to_str() for s in t.terms])}}}\n"
+            (
+                f"  !Addterms={{TestVariable[{t.test_var}]|"
+                "{' '.join([s.to_str() for s in t.terms])}}}\n"
+            )
             for t in self.m_terms.values()
         )
         if self.lm is not None:
             f.write(
-                f"  !Addterms={{TestVariable[{self.lm.test_var}*]|{' '.join([s.to_str() for s in self.lm.terms])}}}\n",
+                f"  !Addterms={{TestVariable[{self.lm.test_var}*]|"
+                "{' '.join([s.to_str() for s in self.lm.terms])}}}\n",
             )
         else:
-            raise ValueError(f"Lagrange multiplier not set for {self}")
+            msg = "Lagrange multiplier not set for FSCouplingProblem"
+            raise ValueError(msg)
         if self.perturbation:
             f.write("  !SetPerturbationBuild\n")
         if self._buffering is False:

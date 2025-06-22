@@ -1,13 +1,21 @@
 from __future__ import annotations
 
 __all__ = ["NormProblem"]
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from ...api import create_bc
-from ...pytools import join_fields
-from ...trait import *
-from ...trait.basic import IExpression, IVariable
+from cheartpy.cheart.api import create_bc
+from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.trait import (
+    IBCPatch,
+    IBoundaryCondition,
+    ICheartTopology,
+    IExpression,
+    IProblem,
+    IVariable,
+)
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
 
 
 class NormProblem(IProblem):
@@ -42,9 +50,10 @@ class NormProblem(IProblem):
         if boundary_n is not None:
             self.boundary_normal = boundary_n
         if term2 is not None != boundary_n is not None:
-            raise ValueError("One of Term2 or Boundary normal must be None")
-        self.aux_vars = dict()
-        self.aux_expr = dict()
+            msg = "One of Term2 or Boundary normal must be None"
+            raise ValueError(msg)
+        self.aux_vars = {}
+        self.aux_expr = {}
         self.bc = create_bc()
         self.root_top = None
         self.boundary_normal = None
@@ -67,8 +76,8 @@ class NormProblem(IProblem):
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
-    def add_deps(self, *vars: IVariable | IExpression | None) -> None:
-        for v in vars:
+    def add_deps(self, *var: IVariable | IExpression | None) -> None:
+        for v in var:
             if isinstance(v, IVariable):
                 self.add_var_deps(v)
             else:
@@ -99,12 +108,12 @@ class NormProblem(IProblem):
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else list(patches)
+        return [] if patches is None else list(patches)
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
-        return
+        pass
 
-    def AddVariable(
+    def add_variable(
         self,
         req: Literal["Space", "Term1", "Term2", "ExportToVariable"],
         var: IVariable,
@@ -117,7 +126,7 @@ class NormProblem(IProblem):
     def export_to_file(self, name: str) -> None:
         self.output_filename = name
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write(f"!DefProblem={{{join_fields(self, self._problem_name)}}}\n")
         f.writelines(
             f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
@@ -130,7 +139,7 @@ class NormProblem(IProblem):
             f.write("  !Absolute-value\n")
         if self.root_top is not None:
             f.write(f"  !SetRootTopology={{{self.root_top!s}}}\n")
-        if self._buffering == False:
+        if not self._buffering:
             f.write("  !No-buffering\n")
         if self.output_filename is not None:
             f.write(f"  !Output-filename={{{self.output_filename}}}\n")

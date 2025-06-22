@@ -1,5 +1,5 @@
 __all__ = [
-    "AddStateVar",
+    "add_statevar",
     "create_basis",
     "create_bc",
     "create_bcpatch",
@@ -16,11 +16,25 @@ __all__ = [
     "hash_tops",
 ]
 from collections.abc import Sequence
-from typing import overload
+from typing import Literal, overload
+
+from cheartpy.cheart.trait.basic import EXPRESSION_VALUE
 
 from .aliases import (
+    BOUNDARY_TYPE,
     CHEART_BASES_TYPE,
     CHEART_ELEMENT_TYPE,
+    CHEART_QUADRATURE_TYPE,
+    MATRIX_SOLVER_TYPES,
+    SOLVER_SUBGROUP_ALGORITHM,
+    VARIABLE_EXPORT_FORMAT,
+    BoundaryType,
+    CheartBasisType,
+    CheartElementType,
+    CheartQuadratureType,
+    MatrixSolverTypes,
+    SolverSubgroupAlgorithm,
+    VariableExportFormat,
 )
 from .impl import (
     CheartTopology,
@@ -30,6 +44,17 @@ from .impl import (
 )
 from .trait import (
     BC_VALUE,
+    IBCPatch,
+    IBoundaryCondition,
+    ICheartBasis,
+    ICheartTopology,
+    IExpression,
+    IProblem,
+    ISolverGroup,
+    ISolverMatrix,
+    ISolverSubGroup,
+    ITimeScheme,
+    IVariable,
 )
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
@@ -65,7 +90,7 @@ def create_embedded_topology(
     name: str,
     embedded_top: CheartTopology,
     mesh: str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
+    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> CheartTopology: ...
 def create_solver_matrix(
     name: str,
@@ -83,13 +108,13 @@ def create_solver_subgroup(
 ) -> ISolverSubGroup: ...
 @overload
 def create_top_interface(
-    method: Literal[OneToOne],
+    method: Literal["OneToOne"],
     topologies: list[ICheartTopology],
     nest_in_boundary: int | None = None,
 ) -> OneToOneTopInterface: ...
 @overload
 def create_top_interface(
-    method: Literal[ManyToOne],
+    method: Literal["ManyToOne"],
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology,
     interface_file: str,
@@ -107,9 +132,9 @@ def create_variable(
     top: ICheartTopology | None,
     dim: int = 3,
     data: str | None = None,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
+    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
     freq: int = 1,
     loop_step: int | None = None,
 ) -> IVariable: ...
 def create_expr(name: str, value: Sequence[EXPRESSION_VALUE]) -> IExpression: ...
-def AddStateVar(p: IProblem | None, *vars: IVariable | IExpression | None) -> None: ...
+def add_statevar(p: IProblem | None, *var: IVariable | IExpression | None) -> None: ...
