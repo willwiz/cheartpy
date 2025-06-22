@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["SolverMatrix"]
 import dataclasses as dc
 from collections.abc import ValuesView
@@ -38,10 +40,10 @@ class SolverMatrix(ISolverMatrix):
     def get_problems(self) -> ValuesView[IProblem]:
         return self.problem.values()
 
-    def AddSetting(self, opt: str, *val: Any):
+    def add_setting(self, opt: str, *val: Any):
         self.settings[opt] = list(val)
 
-    def AddProblem(self, *prob: IProblem):
+    def add_problem(self, *prob: IProblem):
         for p in prob:
             self.problem[str(p)] = p
 

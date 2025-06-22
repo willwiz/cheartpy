@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 __all__ = ["Basis", "CheartBasis", "Quadrature"]
 import dataclasses as dc
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from ..aliases import CheartBasisType, CheartElementType, CheartQuadratureType
-from ..pytools import join_fields
-from ..trait import *
+from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.trait import IBasis, ICheartBasis, IQuadrature
+
+if TYPE_CHECKING:
+    from cheartpy.cheart.aliases import CheartBasisType, CheartElementType, CheartQuadratureType
 
 
 @dc.dataclass(slots=True)
@@ -12,7 +16,7 @@ class Basis(IBasis):
     name: CheartBasisType
     _order: Literal[0, 1, 2]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.name}{self._order}"
 
     @property
@@ -29,7 +33,7 @@ class Quadrature(IQuadrature):
     name: CheartQuadratureType
     _gp: int
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.name + str(self._gp)
 
     @property
@@ -71,6 +75,6 @@ class CheartBasis(ICheartBasis):
     def gp(self) -> int:
         return self._quadrature.gp
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         string = join_fields(self.name, self._elem, self._basis, self._quadrature)
         f.write(f"!UseBasis={{{string}}}\n")

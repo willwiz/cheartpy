@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["Variable"]
 import dataclasses as dc
 from collections.abc import ValuesView
@@ -40,20 +42,20 @@ class Variable(IVariable):
         return self.dim
 
     @overload
-    def AddSetting(
+    def add_setting(
         self,
         task: Literal["INIT_EXPR", "TEMPORAL_UPDATE_EXPR"],
         val: IExpression,
     ) -> None: ...
 
     @overload
-    def AddSetting(
+    def add_setting(
         self,
         task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
         val: str,
     ) -> None: ...
 
-    def AddSetting(
+    def add_setting(
         self,
         task: VARIABLE_UPDATE_SETTING,
         val: str | IExpression,
@@ -73,7 +75,7 @@ class Variable(IVariable):
                     f"Setting for variable {self.name} does not match correct type",
                 )
 
-    def SetFormat(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None:
+    def set_format(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None:
         self.fmt = VariableExportFormat[fmt]
 
     def add_data(self, data: str | None) -> None:

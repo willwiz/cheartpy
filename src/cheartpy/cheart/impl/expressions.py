@@ -1,17 +1,21 @@
+from __future__ import annotations
+
 __all__ = ["Expression"]
 import dataclasses as dc
-from collections.abc import Sequence
-from typing import Self, TextIO
+from typing import TYPE_CHECKING, Self, TextIO
 
-from ..trait import *
+from cheartpy.cheart.trait import EXPRESSION_VALUE, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence, ValuesView
 
 
 @dc.dataclass(slots=True)
 class Expression(IExpression):
     name: str
     value: Sequence[EXPRESSION_VALUE]
-    deps_var: dict[str, IVariable] = dc.field(default_factory=dict)
-    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict)
+    deps_var: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
+    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
 
     def __repr__(self) -> str:
         return self.name
@@ -22,22 +26,22 @@ class Expression(IExpression):
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)
 
-    def get_values(self):
+    def get_values(self) -> Sequence[EXPRESSION_VALUE]:
         return self.value
 
-    def add_deps(self, *vars: IExpression | IVariable | None) -> None:
-        for v in vars:
+    def add_deps(self, *var: IExpression | IVariable | None) -> None:
+        for v in var:
             if isinstance(v, IExpression):
                 self.add_expr_deps(v)
             elif isinstance(v, IVariable):
                 self.add_var_deps(v)
 
-    def add_expr_deps(self, *expr: IExpression):
+    def add_expr_deps(self, *expr: IExpression) -> None:
         for v in expr:
             if str(v) not in self.deps_expr:
                 self.deps_expr[str(v)] = v
 
-    def get_expr_deps(self):
+    def get_expr_deps(self) -> ValuesView[IExpression]:
         return self.deps_expr.values()
 
     def add_var_deps(self, *var: IVariable) -> None:
@@ -45,13 +49,13 @@ class Expression(IExpression):
             if str(v) not in self.deps_var:
                 self.deps_var[str(v)] = v
 
-    def get_var_deps(self):
+    def get_var_deps(self) -> ValuesView[IVariable]:
         return self.deps_var.values()
 
     def idx(self, key: int) -> str:
         return f"{self.name}.{key}"
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write(f"!DefExpression={{{self.name}}}\n")
         for v in self.value:
             if isinstance(v, tuple):

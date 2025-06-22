@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["L2SolidProjection"]
 import enum
 from collections.abc import Mapping, Sequence, ValuesView

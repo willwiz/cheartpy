@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
 from collections.abc import Sequence, ValuesView

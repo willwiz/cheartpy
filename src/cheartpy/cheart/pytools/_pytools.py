@@ -1,30 +1,34 @@
+from __future__ import annotations
+
 __all__ = ["cline", "get_enum", "header", "hline", "join_fields", "splicegen"]
 import enum
-from typing import Any, Type
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
-def join_fields(*terms: Any, char: str = "|") -> str:
+def join_fields(*terms: object, char: str = "|") -> str:
     vals = [f"{v[0]}.{v[1]}" if isinstance(v, tuple) else str(v) for v in terms if v is not None]
     return char.join(vals)
 
 
-def hline(s: str):
+def hline(s: str) -> str:
     return f"% ----  {s + '  ':-<82}\n"
 
 
-def cline(s: str):
+def cline(s: str) -> str:
     return f"% {s}\n"
 
 
-def header(msg: str = "Begin P file"):
+def header(msg: str = "Begin P file") -> str:
     ls = f"% {'-' * 88}\n"
     for s in msg.splitlines():
         ls = ls + cline(s)
-    ls = ls + f"% {'-' * 88}\n"
-    return ls
+    return ls + f"% {'-' * 88}\n"
 
 
-def splicegen(maxchars: int, stringlist: list[str]):
+def splicegen(maxchars: int, stringlist: list[str]) -> Generator[list[str], None, None]:
     """Return a list of slices to print based on maxchars string-length boundary."""
     runningcount = 0  # start at 0
     tmpslice = []  # tmp list where we append slice numbers.
@@ -39,7 +43,7 @@ def splicegen(maxchars: int, stringlist: list[str]):
     yield (tmpslice)
 
 
-def get_enum[T: enum.Enum](v: str | T, e: Type[T]) -> T:
+def get_enum[T: enum.Enum](v: str | T, e: type[T]) -> T:
     if not isinstance(v, str):
         return v
     return e[v]

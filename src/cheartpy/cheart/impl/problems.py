@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 __all__ = ["BCPatch", "BoundaryCondition"]
 import dataclasses as dc
-from collections.abc import Sequence, ValuesView
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
-from ..aliases import *
-from ..pytools import get_enum, join_fields
-from ..trait import *
+from cheartpy.cheart.aliases import BOUNDARY_TYPE, BoundaryType
+from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence, ValuesView
 
 
 @dc.dataclass(init=False, slots=True)
@@ -39,26 +43,26 @@ class BCPatch(IBCPatch):
         if isinstance(component, tuple):
             component, idx = component
         else:
-            component, idx = component, None
+            idx = None
         self.component = component[idx]
         self.bctype = get_enum(bctype, BoundaryType)
         self.values = list(val)
-        self.options = list()
+        self.options = []
 
     def get_var_deps(self) -> ValuesView[IVariable]:
-        vars = {str(v): v for v in self.values if isinstance(v, IVariable)}
+        variables = {str(v): v for v in self.values if isinstance(v, IVariable)}
         for v in self.values:
             if isinstance(v, tuple):
-                vars[str(v[0])] = v[0]
-        return vars.values()
+                variables[str(v[0])] = v[0]
+        return variables.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         exprs = {str(e): e for e in self.values if isinstance(e, IExpression)}
         return exprs.values()
 
-    def UseOption(self) -> None: ...
+    def use_option(self) -> None: ...
 
-    def string(self):
+    def string(self) -> str:
         var, idx = self.component
         if idx is not None:
             var = f"{var!s}.{idx}"
@@ -81,22 +85,22 @@ class BoundaryCondition(IBoundaryCondition):
         if patch is None:
             self.patches = None
             return
-        self.patches = dict()
+        self.patches = {}
         for p in patch:
             p_hash = hash(p)
             if p_hash not in self.patches:
                 self.patches[p_hash] = p
 
-    def get_vars_deps(self):
+    def get_vars_deps(self) -> ValuesView[IVariable]:
         if self.patches is None:
-            false_dict: dict[int, IVariable] = dict()
+            false_dict: dict[int, IVariable] = {}
             return false_dict.values()
-        vars = {str(v): v for patch in self.patches.values() for v in patch.get_var_deps()}
-        return vars.values()
+        variables = {str(v): v for patch in self.patches.values() for v in patch.get_var_deps()}
+        return variables.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         if self.patches is None:
-            false_dict: dict[int, IExpression] = dict()
+            false_dict: dict[int, IExpression] = {}
             return false_dict.values()
         exprs = {str(e): e for patch in self.patches.values() for e in patch.get_expr_deps()}
         return exprs.values()
@@ -106,13 +110,13 @@ class BoundaryCondition(IBoundaryCondition):
             return None
         return self.patches.values()
 
-    def AddPatch(self, *patch: IBCPatch):
+    def add_patch(self, *patch: IBCPatch) -> None:
         if self.patches is None:
-            self.patches = dict()
+            self.patches = {}
         for p in patch:
             self.patches[hash(p)] = p
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         if self.patches is None or len(self.patches) == 0:
             f.write("  !Boundary-conditions-not-required\n\n")
         else:

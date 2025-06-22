@@ -1,9 +1,12 @@
-import abc
-from collections.abc import ValuesView
-from typing import Any, TextIO
+from __future__ import annotations
 
-from ..aliases import *
-from .basic import *
+import abc
+from typing import TYPE_CHECKING, TextIO
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+    from .basic import ICheartTopology, IExpression, IProblem
 
 __all__ = ["ISolverMatrix"]
 
@@ -16,15 +19,19 @@ class ISolverMatrix(abc.ABC):
     def suppress_output(self) -> bool: ...
     @suppress_output.setter
     @abc.abstractmethod
-    def suppress_output(self, val: bool): ...
+    def suppress_output(self, val: bool) -> None: ...
 
     # @abc.abstractmethod
     # def get_aux_var(self) -> Sequence[_Variable]: ...
     @abc.abstractmethod
     def get_problems(self) -> ValuesView[IProblem]: ...
     @abc.abstractmethod
-    def AddSetting(self, opt: str, *val: Any) -> None: ...
+    def add_setting(
+        self,
+        opt: str,
+        *val: str | int | IExpression | tuple[ICheartTopology, int],
+    ) -> None: ...
     @abc.abstractmethod
-    def AddProblem(self, *prob: IProblem) -> None: ...
+    def add_problem(self, *prob: IProblem) -> None: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
