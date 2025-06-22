@@ -2,21 +2,24 @@ from __future__ import annotations
 
 __all__ = ["SolverMatrix"]
 import dataclasses as dc
-from collections.abc import ValuesView
-from typing import Any, TextIO
+from typing import TYPE_CHECKING, TextIO
 
-from ..aliases import *
-from ..pytools import *
-from ..trait import *
+from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.trait import ICheartTopology, IExpression, IProblem, ISolverMatrix
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+    from cheartpy.cheart.aliases import MatrixSolverTypes
 
 
 @dc.dataclass(slots=True)
 class SolverMatrix(ISolverMatrix):
     name: str
     solver: MatrixSolverTypes
-    problem: dict[str, IProblem] = dc.field(default_factory=dict)
+    problem: dict[str, IProblem] = dc.field(default_factory=dict[str, IProblem])
     _suppress_output: bool = dc.field(default=True)
-    settings: dict[str, list[str]] = dc.field(default_factory=dict)
+    settings: dict[str, list[str]] = dc.field(default_factory=dict[str, list[str]])
 
     # def __post_init__(self):
     #     for _, p in self.problem.items():
@@ -31,7 +34,7 @@ class SolverMatrix(ISolverMatrix):
         return self._suppress_output
 
     @suppress_output.setter
-    def suppress_output(self, val: bool):
+    def suppress_output(self, val: bool) -> None:
         self._suppress_output = val
 
     # def get_aux_var(self):
@@ -40,16 +43,20 @@ class SolverMatrix(ISolverMatrix):
     def get_problems(self) -> ValuesView[IProblem]:
         return self.problem.values()
 
-    def add_setting(self, opt: str, *val: Any):
-        self.settings[opt] = list(val)
+    def add_setting(
+        self,
+        opt: str,
+        *val: str | int | IExpression | tuple[ICheartTopology, int],
+    ) -> None:
+        self.settings[opt] = [str(v) for v in val]
 
-    def add_problem(self, *prob: IProblem):
+    def add_problem(self, *prob: IProblem) -> None:
         for p in prob:
             self.problem[str(p)] = p
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         string = join_fields(self.name, self.solver, *self.problem.values())
-        if len(string) > 45:
+        if len(string) > _REMAINING_LINE_LEN:
             f.write(f"!DefSolverMatrix={{{join_fields(self.name, self.solver)}}}\n")
             f.writelines(f"    {v}\n" for v in self.problem.values())
         else:
@@ -59,3 +66,6 @@ class SolverMatrix(ISolverMatrix):
         for k, v in self.settings.items():
             string = join_fields(self.name, k, *v)
             f.write(f"  !SetSolverMatrix={{{string}}}\n")
+
+
+_REMAINING_LINE_LEN = 45

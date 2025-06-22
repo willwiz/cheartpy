@@ -2,10 +2,9 @@ from __future__ import annotations
 
 __all__ = ["PFile"]
 import dataclasses as dc
-from collections.abc import Collection, Mapping
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
-from .pytools import header, hline, splicegen
+from .string_tools import header, hline, splicegen
 from .trait import (
     ICheartBasis,
     ICheartTopology,
@@ -21,125 +20,125 @@ from .trait import (
     IVariable,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
+
 
 @dc.dataclass(slots=True)
 class PFile:
     h: str = ""
     output_dir: str | None = None
-    times: dict[str, ITimeScheme] = dc.field(default_factory=dict)
-    dataPs: dict[str, IDataPointer] = dc.field(default_factory=dict)
-    bases: dict[str, ICheartBasis] = dc.field(default_factory=dict)
-    toplogies: dict[str, ICheartTopology] = dc.field(default_factory=dict)
-    interfaces: dict[str, ITopInterface] = dc.field(default_factory=dict)
-    variables: dict[str, IVariable] = dc.field(default_factory=dict)
-    exprs: dict[str, IExpression] = dc.field(default_factory=dict)
-    problems: dict[str, IProblem] = dc.field(default_factory=dict)
-    matrices: dict[str, ISolverMatrix] = dc.field(default_factory=dict)
-    solverGs: dict[str, ISolverGroup] = dc.field(default_factory=dict)
+    times: dict[str, ITimeScheme] = dc.field(default_factory=dict[str, ITimeScheme])
+    data_pointers: dict[str, IDataPointer] = dc.field(default_factory=dict[str, IDataPointer])
+    bases: dict[str, ICheartBasis] = dc.field(default_factory=dict[str, ICheartBasis])
+    toplogies: dict[str, ICheartTopology] = dc.field(default_factory=dict[str, ICheartTopology])
+    interfaces: dict[str, ITopInterface] = dc.field(default_factory=dict[str, ITopInterface])
+    variables: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
+    exprs: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
+    problems: dict[str, IProblem] = dc.field(default_factory=dict[str, IProblem])
+    matrices: dict[str, ISolverMatrix] = dc.field(default_factory=dict[str, ISolverMatrix])
+    solver_groups: dict[str, ISolverGroup] = dc.field(default_factory=dict[str, ISolverGroup])
 
-    def SetOutputPath(self, path: str):
+    def set_outputpath(self, path: str) -> None:
         self.output_dir = path
 
     # Add Time Scheme
-    def AddTimeScheme(self, *time: ITimeScheme) -> None:
+    def add_timescheme(self, *time: ITimeScheme) -> None:
         for t in time:
             if str(t) not in self.times:
                 self.times[str(t)] = t
 
     # Add Data Pointers
-    def AddDataPointer(self, *var: IDataPointer) -> None:
+    def add_datapointer(self, *var: IDataPointer) -> None:
         for v in var:
-            if str(v) not in self.dataPs:
-                self.dataPs[str(v)] = v
+            if str(v) not in self.data_pointers:
+                self.data_pointers[str(v)] = v
 
     # Add Basis
-    def AddBasis(self, *basis: ICheartBasis | None) -> None:
+    def add_basis(self, *basis: ICheartBasis | None) -> None:
         for b in basis:
-            if b is not None:
-                if str(b) not in self.bases:
-                    self.bases[str(b)] = b
+            if b is not None and str(b) not in self.bases:
+                self.bases[str(b)] = b
 
     # Add Topology
-    def AddTopology(self, *top: ICheartTopology) -> None:
+    def add_topology(self, *top: ICheartTopology) -> None:
         for t in top:
-            self.AddBasis(t.get_basis())
+            self.add_basis(t.get_basis())
             if str(t) not in self.toplogies:
                 self.toplogies[str(t)] = t
 
-    def AddInterface(self, *interfaces: ITopInterface) -> None:
+    def add_interface(self, *interfaces: ITopInterface) -> None:
         for item in interfaces:
-            self.AddTopology(*item.get_tops())
+            self.add_topology(*item.get_tops())
             if str(item) not in self.interfaces:
                 self.interfaces[str(item)] = item
 
-    def AddVariable(self, *var: IVariable) -> None:
+    def add_variable(self, *var: IVariable) -> None:
         for v in var:
-            self.AddTopology(v.get_top())
-            self.AddExpression(*v.get_expr_deps())
+            self.add_topology(v.get_top())
+            self.add_expression(*v.get_expr_deps())
             if str(v) not in self.variables:
                 self.variables[str(v)] = v
 
-    # Expression
-    def AddExpression(self, *expr: IExpression) -> None:
+    def add_expression(self, *expr: IExpression) -> None:
         for v in expr:
             for x in v.get_values():
                 if isinstance(x, IDataInterp):
-                    self.AddDataPointer(x.get_datapointer())
+                    self.add_datapointer(x.get_datapointer())
                 elif isinstance(x, IVariable):
-                    self.AddVariable(x)
+                    self.add_variable(x)
                 elif isinstance(x, IExpression):
-                    self.AddExpression(x)
+                    self.add_expression(x)
                 elif isinstance(x, tuple):
                     if isinstance(x[0], IDataInterp):
-                        self.AddDataPointer(x[0].get_datapointer())
+                        self.add_datapointer(x[0].get_datapointer())
                     elif isinstance(x[0], IExpression):
-                        self.AddExpression(x[0])
+                        self.add_expression(x[0])
                     else:
-                        self.AddVariable(x[0])
-            self.AddVariable(*v.get_var_deps())
-            self.AddExpression(*v.get_expr_deps())
+                        self.add_variable(x[0])
+            self.add_variable(*v.get_var_deps())
+            self.add_expression(*v.get_expr_deps())
             if str(v) not in self.exprs:
                 self.exprs[str(v)] = v
 
-    def AddProblem(self, *prob: IProblem) -> None:
-        """Internal automatically done through add solver group"""
+    def add_problem(self, *prob: IProblem) -> None:
         for p in prob:
-            self.AddExpression(*p.get_expr_deps())
-            self.AddVariable(*p.get_var_deps())
+            self.add_expression(*p.get_expr_deps())
+            self.add_variable(*p.get_var_deps())
             for patch in p.get_bc_patches():
-                self.AddVariable(*patch.get_var_deps())
-                self.AddExpression(*patch.get_expr_deps())
+                self.add_variable(*patch.get_var_deps())
+                self.add_expression(*patch.get_expr_deps())
             if str(p) not in self.problems:
                 self.problems[str(p)] = p
 
     # Matrix
-    def AddMatrix(self, *mat: ISolverMatrix) -> None:
+    def add_matrix(self, *mat: ISolverMatrix) -> None:
         for m in mat:
-            self.AddProblem(*m.get_problems())
+            self.add_problem(*m.get_problems())
             if str(m) not in self.matrices:
                 self.matrices[str(m)] = m
 
-    def AddSolverSubGroup(self, *subgroup: ISolverSubGroup) -> None:
+    def add_solversubgroup(self, *subgroup: ISolverSubGroup) -> None:
         # PFile does not need this, SolverGroup will handle printing
         for sg in subgroup:
-            self.AddProblem(*sg.get_problems())
-            self.AddMatrix(*sg.get_matrices())
+            self.add_problem(*sg.get_problems())
+            self.add_matrix(*sg.get_matrices())
 
     # SolverGroup
-    def AddSolverGroup(self, *grp: ISolverGroup) -> None:
+    def add_solvergroup(self, *grp: ISolverGroup) -> None:
         for g in grp:
-            self.AddTimeScheme(g.get_time_scheme())
-            self.AddSolverSubGroup(*g.get_subgroups())
-            if str(g) not in self.solverGs:
-                self.solverGs[str(g)] = g
+            self.add_timescheme(g.get_time_scheme())
+            self.add_solversubgroup(*g.get_subgroups())
+            if str(g) not in self.solver_groups:
+                self.solver_groups[str(g)] = g
 
     # Set Export Frequency
-    def SetExportFrequency(self, *vars: IVariable, freq: int = 1) -> None:
-        for v in vars:
+    def set_exportfrequency(self, *var: IVariable, freq: int = 1) -> None:
+        for v in var:
             v.set_export_frequency(freq)
 
     def get_variable_frequency_list(self) -> Mapping[int, Collection[str]]:
-        exportfrequencies: dict[int, set[str]] = dict()
+        exportfrequencies: dict[int, set[str]] = {}
         for v in self.variables.values():
             if v.get_export_frequency() in exportfrequencies:
                 exportfrequencies[v.get_export_frequency()].update({str(v)})
@@ -149,14 +148,14 @@ class PFile:
 
     # ----------------------------------------------------------------------------
     # Resolve Pfile
-    def resolve(self):
-        for g in self.solverGs.values():
-            self.AddSolverGroup(g)
+    def resolve(self) -> None:
+        for g in self.solver_groups.values():
+            self.add_solvergroup(g)
 
     # ----------------------------------------------------------------------------
     # Producing the Pfile
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:  # noqa: C901, PLR0912
         self.resolve()
         f.write(header(self.h))
         f.write(hline("New Output Path"))
@@ -164,7 +163,7 @@ class PFile:
             f.write(f"!SetOutputPath={{{self.output_dir}}}\n")
         for t in self.times.values():
             t.write(f)
-        for v in self.solverGs.values():
+        for v in self.solver_groups.values():
             v.write(f)
         f.write(hline("Solver Matrices"))
         for v in self.matrices.values():
@@ -184,13 +183,13 @@ class PFile:
         f.write(hline("Variables"))
         for v in self.variables.values():
             v.write(f)
-        for v in self.dataPs.values():
+        for v in self.data_pointers.values():
             v.write(f)
         f.write(hline("Export Frequency"))
         exportfrequencies = self.get_variable_frequency_list()
         for k, v in exportfrequencies.items():
             f.writelines(
-                f"!SetExportFrequency={{{'|'.join(l)}|{k}}}\n" for l in splicegen(60, sorted(v))
+                f"!SetExportFrequency={{{'|'.join(s)}|{k}}}\n" for s in splicegen(60, sorted(v))
             )
         f.write(hline("Problem Definitions"))
         for v in self.problems.values():

@@ -4,8 +4,8 @@ __all__ = ["TimeScheme"]
 import dataclasses as dc
 from typing import TextIO
 
-from ..pytools import hline
-from ..trait import *
+from cheartpy.cheart.pytools import hline
+from cheartpy.cheart.trait import ITimeScheme
 
 
 @dc.dataclass(slots=True)
@@ -18,7 +18,7 @@ class TimeScheme(ITimeScheme):
     def __repr__(self) -> str:
         return self.name
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write(hline("Define Time Scheme"))
         f.write(f"!DefTimeStepScheme={{{self.name}}}\n")
         f.write(f"  {self.start}  {self.stop}  {self.value}\n")

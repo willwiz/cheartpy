@@ -1,16 +1,24 @@
 from __future__ import annotations
 
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Any, Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
 
-from ...aliases import SOLID_PROBLEM_TYPE, SolidProblemType
-from ...api import create_bc
-from ...pytools import get_enum, join_fields
-from ...trait import *
-from .matlaws import ILaw
+from cheartpy.cheart.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
+from cheartpy.cheart.api import create_bc
+from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.trait import (
+    IBCPatch,
+    IBoundaryCondition,
+    IExpression,
+    ILaw,
+    IProblem,
+    IVariable,
+)
 
-SOLID_VARIABLES = Literal[
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
+
+type SOLID_VARIABLES = Literal[
     "Space",
     "Disp",
     "Velocity",
@@ -20,14 +28,20 @@ SOLID_VARIABLES = Literal[
 ]
 
 
-SOLID_OPTIONS = Literal[
+type SOLID_OPTIONS = Literal[
     "Density",
     "Perturbation-scale",
     "SetProblemTimeDiscretization",
     "UseStabilization",
 ]
 
-SOLID_FLAGS = Literal["Inverse-mechanics",]
+type SOLID_FLAGS = Literal["Inverse-mechanics"]
+
+
+class _SolidProblemExtraArgs(TypedDict, total=False):
+    vel: IVariable | None
+    pres: IVariable | None
+    matlaws: list[ILaw] | None
 
 
 class SolidProblem(IProblem):
@@ -38,7 +52,7 @@ class SolidProblem(IProblem):
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     state_vars: dict[str, IVariable]
-    options: dict[str, list[Any]]
+    options: dict[str, list[float | int | str]]
     flags: dict[str, bool]
     _buffering: bool
     bc: IBoundaryCondition
@@ -52,29 +66,30 @@ class SolidProblem(IProblem):
         problem: SolidProblemType,
         space: IVariable,
         disp: IVariable,
-        vel: IVariable | None = None,
-        pres: IVariable | None = None,
-        matlaws: list[ILaw] | None = None,
+        **kwargs: Unpack[_SolidProblemExtraArgs],
     ) -> None:
+        vel = kwargs.get("vel")
+        pres = kwargs.get("pres")
+        matlaws = kwargs.get("matlaws")
         self.name = name
         self.problem = problem
         self.variables = {"Space": space, "Displacement": disp}
         if problem is SolidProblemType.TRANSIENT and vel is None:
-            raise ValueError(f"{name}: Transient problem must have velocity")
+            msg = f"{name}: Transient problem must have velocity"
+            raise ValueError(msg)
         if vel:
             self.variables["Velocity"] = vel
         if pres:
             if pres.get_dim() != 1:
-                raise ValueError(
-                    ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1",
-                )
+                msg = ">>>FATAL: Pressure variable for SolidProblems must have a dimension of 1"
+                raise ValueError(msg)
             self.variables["Pressure"] = pres
-        self.matlaws = list() if matlaws is None else matlaws
-        self.aux_vars = dict()
-        self.aux_expr = dict()
-        self.state_vars = dict()
-        self.options = dict()
-        self.flags = dict()
+        self.matlaws = [] if matlaws is None else matlaws
+        self.aux_vars = {}
+        self.aux_expr = {}
+        self.state_vars = {}
+        self.options = {}
+        self.flags = {}
         self._buffering = True
         self.bc = create_bc()
 
@@ -90,8 +105,8 @@ class SolidProblem(IProblem):
         _self_vars_ = {str(v): v for v in self.variables.values()}
         return {**_self_vars_}
 
-    def add_deps(self, *vars: IVariable | IExpression | None) -> None:
-        for v in vars:
+    def add_deps(self, *var: IVariable | IExpression | None) -> None:
+        for v in var:
             if isinstance(v, IVariable):
                 self.add_var_deps(v)
             else:
@@ -124,15 +139,15 @@ class SolidProblem(IProblem):
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
-        return list() if patches is None else list(patches)
+        return [] if patches is None else list(patches)
 
-    def AddMatlaw(self, *law: ILaw):
+    def add_matlaw(self, *law: ILaw) -> None:
         for w in law:
             self.matlaws.append(w)
             for v in w.get_var_deps():
                 self.aux_vars[str(v)] = v
 
-    def AddVariable(self, name: SOLID_VARIABLES, var: IVariable) -> None:
+    def add_variable(self, name: SOLID_VARIABLES, var: IVariable) -> None:
         self.variables[name] = var
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
@@ -141,21 +156,21 @@ class SolidProblem(IProblem):
                 self.state_vars[str(v)] = v
                 self.aux_vars[str(v)] = v
 
-    def UseOption(self, opt: SOLID_OPTIONS, val: Any, *sub_val: Any) -> None:
-        self.options[opt] = list([val, *sub_val])
+    def use_option(self, opt: SOLID_OPTIONS, val: str, *sub_val: str) -> None:
+        self.options[opt] = [val, *sub_val]
 
-    def Stabilize(
+    def stabilize(
         self,
         mode: Literal["UseStabilization", "Nearly-incompressible"],
         val: float,
-        *order: Any,
+        *order: int,
     ) -> None:
         self.options[mode] = [val, *order]
 
-    def SetFlags(self, flag: SOLID_FLAGS) -> None:
+    def set_flags(self, flag: SOLID_FLAGS) -> None:
         self.flags[flag] = True
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         f.write(f"!DefProblem={{{self.name}|{self.problem}}}\n")
         f.writelines(
             f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
@@ -167,7 +182,7 @@ class SolidProblem(IProblem):
         for k, v in self.options.items():
             string = join_fields(*v)
             f.write(f"  !{k}={{{string}}}\n")
-        if self._buffering == False:
+        if not self._buffering:
             f.write("  !No-buffering\n")
         for k, v in self.flags.items():
             if v:
@@ -182,15 +197,25 @@ def create_solid_mechanics_problem(
     prob: SOLID_PROBLEM_TYPE | SolidProblemType,
     space: IVariable,
     disp: IVariable,
-    vel: IVariable | None = None,
-    pres: IVariable | None = None,
+    **kwargs: Unpack[_SolidProblemExtraArgs],
 ) -> SolidProblem:
     problem = get_enum(prob, SolidProblemType)
     if space.get_data() is None:
-        raise ValueError(f"Space for {name} must be initialized with values")
+        msg = f"Space for {name} must be initialized with values"
+        raise ValueError(msg)
+    vel = kwargs.get("vel")
     match problem, vel:
         case SolidProblemType.TRANSIENT, None:
-            raise ValueError(f"Solid Problem {name}: Transient must have Vel")
+            msg = f"Solid Problem {name}: Transient must have Vel"
+            raise ValueError(msg)
         case _:
             pass
-    return SolidProblem(name, problem, space, disp, vel, pres)
+    return SolidProblem(
+        name,
+        problem,
+        space,
+        disp,
+        vel=vel,
+        pres=kwargs.get("pres"),
+        matlaws=kwargs.get("matlaws"),
+    )

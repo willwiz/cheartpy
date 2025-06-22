@@ -8,12 +8,18 @@ __all__ = [
     "TopInterface",
 ]
 import dataclasses as dc
-from collections.abc import Sequence
-from typing import TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from ..aliases import *
-from ..pytools import join_fields
-from ..trait import *
+from cheartpy.cheart.aliases import (
+    CheartTopologySetting,
+    TopologyInterfaceType,
+    VariableExportFormat,
+)
+from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.trait import ICheartBasis, ICheartTopology, ITopInterface
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @dc.dataclass(slots=True)
@@ -64,22 +70,23 @@ class CheartTopology(ICheartTopology):
     ) -> None:
         match task, val:
             case _:
-                raise ValueError(
-                    f"Setting for topology {self} {task} does not have a match value type",
-                )
+                msg = f"Setting for topology {self} {task} does not have a match value type"
+                raise ValueError(msg)
 
     def create_in_boundary(self, top: ICheartTopology, surf: int | str) -> None:
         self.in_boundary = (top, surf)
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         string = join_fields(self, self._mesh, self.basis if self.basis else "none")
         f.write(f"!DefTopology={{{string}}}\n")
         if self.embedded is not None:
             f.write(f"  !SetTopology={{{self}|EmbeddedInTopology|{self.embedded}}}\n")
         if self.in_boundary is not None:
-            f.write(
-                f"  !SetTopology={{{self}|CreateInBoundary|[{self.in_boundary[0]};{self.in_boundary[1]}]}}\n",
+            line = (
+                f"  !SetTopology={{{self}|CreateInBoundary|"
+                f"[{self.in_boundary[0]};{self.in_boundary[1]}]}}\n"
             )
+            f.write(line)
         if self._discontinuous:
             f.write(f"  !SetTopology={{{self}|MakeDiscontinuous}}\n")
 
@@ -114,12 +121,12 @@ class NullTopology(ICheartTopology):
 
     def add_setting(
         self,
-        _task: CheartTopologySetting,
-        _val: int | tuple[ICheartTopology, int] | None = None,
+        task: CheartTopologySetting,
+        val: int | tuple[ICheartTopology, int] | None = None,
     ) -> None:
-        raise ValueError("Cannot add setting to null topology")
+        pass
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         pass
 
 
@@ -127,9 +134,9 @@ class NullTopology(ICheartTopology):
 class TopInterface(ITopInterface):
     name: str
     _method: TopologyInterfaceType
-    topologies: list[ICheartTopology] = dc.field(default_factory=list)
+    topologies: list[ICheartTopology] = dc.field(default_factory=list[ICheartTopology])
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         string = join_fields(self._method, *self.topologies)
         f.write(f"!DefInterface={{{string}}}\n")
 
@@ -137,7 +144,7 @@ class TopInterface(ITopInterface):
 @dc.dataclass(slots=True)
 class OneToOneTopInterface(ITopInterface):
     name: str
-    topologies: list[ICheartTopology] = dc.field(default_factory=list)
+    topologies: list[ICheartTopology] = dc.field(default_factory=list[ICheartTopology])
 
     def __repr__(self) -> str:
         return self.name
@@ -146,7 +153,7 @@ class OneToOneTopInterface(ITopInterface):
         return hash("_".join([str(s) for s in self.topologies]))
 
     @property
-    def method(self) -> Literal[OneToOne]:
+    def method(self) -> Literal["OneToOne"]:
         return "OneToOne"
 
     def get_master(self) -> ICheartTopology | None:
@@ -155,7 +162,7 @@ class OneToOneTopInterface(ITopInterface):
     def get_tops(self) -> Sequence[ICheartTopology]:
         return self.topologies
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         string = join_fields("OneToOne", *self.topologies)
         f.write(f"!DefInterface={{{string}}}\n")
 
@@ -177,7 +184,7 @@ class ManyToOneTopInterface(ITopInterface):
         )
 
     @property
-    def method(self) -> Literal[ManyToOne]:
+    def method(self) -> Literal["ManyToOne"]:
         return "ManyToOne"
 
     def get_master(self) -> ICheartTopology | None:
@@ -186,7 +193,7 @@ class ManyToOneTopInterface(ITopInterface):
     def get_tops(self) -> Sequence[ICheartTopology]:
         return [self.master_topology, *self.topologies]
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         nest_in_boundary = (
             None if self.nested_in_boundary is None else f"NestedInBndry[{self.nested_in_boundary}]"
         )

@@ -1,15 +1,14 @@
 __all__ = [
     "BCPatch",
+    "Basis",
     "BoundaryCondition",
     "CheartBasis",
-    "CheartBasisType",
-    "CheartElementType",
-    "CheartQuadratureType",
     "CheartTopology",
     "Expression",
     "ManyToOneTopInterface",
     "NullTopology",
     "OneToOneTopInterface",
+    "Quadrature",
     "SolverGroup",
     "SolverMatrix",
     "SolverSubGroup",
@@ -17,12 +16,7 @@ __all__ = [
     "TopInterface",
     "Variable",
 ]
-from .basis import (
-    CheartBasis,
-    CheartBasisType,
-    CheartElementType,
-    CheartQuadratureType,
-)
+from .basis import Basis, CheartBasis, Quadrature
 from .expressions import Expression
 from .problems import BCPatch, BoundaryCondition
 from .solver_groups import SolverGroup, SolverSubGroup

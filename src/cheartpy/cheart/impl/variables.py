@@ -2,12 +2,18 @@ from __future__ import annotations
 
 __all__ = ["Variable"]
 import dataclasses as dc
-from collections.abc import ValuesView
-from typing import Literal, Self, TextIO, overload
+from typing import TYPE_CHECKING, Literal, Self, TextIO, overload
 
-from ..aliases import *
-from ..pytools import get_enum, join_fields
-from ..trait import *
+from cheartpy.cheart.aliases import (
+    VARIABLE_UPDATE_SETTING,
+    VariableExportFormat,
+    VariableUpdateSetting,
+)
+from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
 
 
 @dc.dataclass(slots=True)
@@ -20,7 +26,7 @@ class Variable(IVariable):
     freq: int = 1
     loop_step: int | None = None
     setting: tuple[VariableUpdateSetting, str | IExpression] | None = None
-    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict)
+    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
 
     def __repr__(self) -> str:
         return self.name
@@ -32,7 +38,7 @@ class Variable(IVariable):
         return True
 
     @property
-    def order(self):
+    def order(self) -> Literal[0, 1, 2, None]:
         return self.topology.order
 
     def idx(self, key: int) -> str:
@@ -71,9 +77,8 @@ class Variable(IVariable):
                 if self.loop_step is None:
                     self.loop_step = self.freq
             case _:
-                raise ValueError(
-                    f"Setting for variable {self.name} does not match correct type",
-                )
+                msg = (f"Setting for variable {self.name} does not match correct type",)
+                raise ValueError(msg)
 
     def set_format(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None:
         self.fmt = VariableExportFormat[fmt]
@@ -98,7 +103,7 @@ class Variable(IVariable):
     def get_export_frequency(self) -> int:
         return self.freq
 
-    def write(self, f: TextIO):
+    def write(self, f: TextIO) -> None:
         string = join_fields(
             self.name,
             self.topology if self.topology else "null_topology",
