@@ -4,7 +4,7 @@ __all__ = ["SolverMatrix"]
 import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import ICheartTopology, IExpression, IProblem, ISolverMatrix
 
 if TYPE_CHECKING:

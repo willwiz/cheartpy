@@ -4,7 +4,7 @@ __all__ = ["TimeScheme"]
 import dataclasses as dc
 from typing import TextIO
 
-from cheartpy.cheart.pytools import hline
+from cheartpy.cheart.string_tools import hline
 from cheartpy.cheart.trait import ITimeScheme
 
 

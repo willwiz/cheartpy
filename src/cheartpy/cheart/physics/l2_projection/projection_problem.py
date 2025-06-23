@@ -5,7 +5,7 @@ import enum
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.cheart.api import create_bc
-from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.string_tools import get_enum, join_fields
 from cheartpy.cheart.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
 
 if TYPE_CHECKING:

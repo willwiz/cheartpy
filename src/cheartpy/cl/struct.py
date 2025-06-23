@@ -1,47 +1,58 @@
+from __future__ import annotations
+
+from pathlib import Path
+
 __all__ = [
-    "CLBasis",
-    "CLTopology",
-    "CLTopologies",
     "CL_NODAL_LM_TYPE",
-    "CLPartition",
+    "CLBasis",
     "CLNodalData",
+    "CLPartition",
+    "CLTopologies",
+    "CLTopology",
     "PatchNode2ElemMap",
 ]
 import dataclasses as dc
-from typing import Mapping, TypedDict
-from ..cheart.trait import IExpression, IVariable, ICheartTopology
-from ..cheart_mesh.data import CheartMesh
-from ..var_types import *
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, TypedDict
+
+import numpy as np
+
+from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from arraystubs import Arr1, Arr2
+
+    from cheartpy.cheart_mesh.data import CheartMesh
 
 CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 
 
 @dc.dataclass(slots=True)
-class CLPartition:
+class CLPartition[F: np.floating, I: np.integer]:
     prefix: str
     in_surf: int
     nn: int
     ne: int
     n_prefix: Mapping[int, str]
     e_prefix: Mapping[int, str]
-    node: Vec[f64]
-    elem: Mat[int_t]
-    support: Mat[f64]
+    node: Arr1[F]
+    elem: Arr2[I]
+    support: Arr2[F]
 
     def __repr__(self) -> str:
         return self.prefix
 
 
-class CLNodalData(TypedDict):
-    file: str
-    mesh: CheartMesh
-    n: Mat[f64]
+class CLNodalData[F: np.floating, I: np.integer](TypedDict):
+    file: Path
+    mesh: CheartMesh[F, I]
+    n: Arr2[F]
 
 
 @dc.dataclass(slots=True)
 class PatchNode2ElemMap:
-    i: Vec[int_t]  # global index of nodes in surface
-    x: Vec[f64]  # cl value of nodes in surface
+    i: Arr1[np.integer]  # global index of nodes in surface
+    x: Arr1[np.floating]  # cl value of nodes in surface
     n2e_map: Mapping[int, list[int]]
 
 

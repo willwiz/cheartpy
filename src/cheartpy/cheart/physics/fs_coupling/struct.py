@@ -5,7 +5,7 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.cheart.api import create_bc
-from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import (
     IBCPatch,
     IBoundaryCondition,

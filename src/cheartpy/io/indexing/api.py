@@ -34,9 +34,10 @@ def find_common_index(
 ) -> Sequence[int]:
     if log is None:
         log = BLogger("WARN")
-    indices = find_var_index(var[0], root)
+    indices = find_var_index(var[0], root, log)
     if len(indices) < 1:
-        log.warn(f"No files found for {var[0]}\nNo variable outputed")
+        log.warn(f"No files found for {var[0]} in {root}\nNo variable outputed")
+        raise ValueError
     return indices
 
 
@@ -48,10 +49,11 @@ def find_common_subindex(
 ) -> Mapping[int, Sequence[int]]:
     if log is None:
         log = BLogger("WARN")
-    indices = find_var_subindex(var[0], root)
+    indices = find_var_subindex(var[0], root, log)
     common_keys = sorted(set(indices) & set(index) if index else list(indices))
     if len(common_keys) < 1:
-        log.warn(f"No files found for {var[0]}\nNo variable outputed")
+        log.warn(f"No files found for {var[0]} in {root}\nNo variable outputed")
+        raise ValueError
     return {k: indices[k] for k in common_keys}
 
 
@@ -66,7 +68,7 @@ def get_file_name_indexer(
         log = BLogger("WARN")
     if (index is SearchMode.auto) or (subindex is SearchMode.auto):
         log.info(
-            f"Variable index will be determined from the first variable, {variables[0]}",
+            f"Variable index will be determined from the first variable: {variables[0]}",
         )
     match index, subindex:
         case SearchMode.none, _:

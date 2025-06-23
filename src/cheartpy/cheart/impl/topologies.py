@@ -15,7 +15,7 @@ from cheartpy.cheart.aliases import (
     TopologyInterfaceType,
     VariableExportFormat,
 )
-from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import ICheartBasis, ICheartTopology, ITopInterface
 
 if TYPE_CHECKING:

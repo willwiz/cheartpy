@@ -15,6 +15,8 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
 
+    from pytools.logging.trait import ILogger
+
 DFILE_TEMP = re.compile(r"(^.*)-(\d+|\d+\.\d+)\.(D|D\.gz)")
 
 
@@ -52,17 +54,23 @@ def get_var_index_all(
     return [m.group(1) for m in matches if m]
 
 
-def find_var_index(prefix: str, root: Path | str | None = None) -> Sequence[int]:
+def find_var_index(prefix: str, root: Path | str | None, log: ILogger) -> Sequence[int]:
     root = Path(root) if root else Path()
+    log.debug(f"Searching for files with prefix: {prefix} in {root=}")
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
-    if any(var):
-        var, suffix = root.glob(f"{prefix}-*.D"), r"D\.gz"
+    if not any(var):
+        var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
     return get_var_index([v.name for v in var], prefix, suffix)
 
 
-def find_var_subindex(prefix: str, root: Path | str | None = None) -> Mapping[int, Sequence[int]]:
+def find_var_subindex(
+    prefix: str,
+    root: Path | str | None,
+    log: ILogger,
+) -> Mapping[int, Sequence[int]]:
     root = Path(root) if root else Path()
+    log.debug(f"Searching for files with prefix: {prefix} in {root=}")
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
     if not any(var):
-        var, suffix = root.glob(f"{prefix}-*.D"), r"D\.gz"
+        var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
     return get_var_subindex([v.name for v in var], prefix, suffix)

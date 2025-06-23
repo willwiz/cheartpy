@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 __all__ = ["create_cl_motion_constraint_problem"]
-from ..cheart.api import create_expr
-from .data import CLTopology
-from ..cheart.physics import FSCouplingProblem, FSExpr
-from ..cheart.trait import IVariable
+from typing import TYPE_CHECKING
+
+from cheartpy.cheart.api import create_expr
+from cheartpy.cheart.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
+
+if TYPE_CHECKING:
+    from cheartpy.cheart.trait import IVariable
+
+    from .struct import CLTopology
 
 
 def create_cl_motion_constraint_problem(
