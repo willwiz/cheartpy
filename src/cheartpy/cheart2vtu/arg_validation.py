@@ -42,7 +42,7 @@ def parse_indexmode_args(x: str, t: str, b: str) -> tuple[str, str, str | None, 
 def _get_prefix(args: CmdLineArgs) -> str:
     if args.prefix:
         return args.prefix
-    return args.output_dir.replace("_vtu", "") if args.output_dir else "paraview"
+    return Path(args.output_dir).name.replace("_vtu", "") if args.output_dir else "paraview"
 
 
 def _check_dirs_inputs(args: CmdLineArgs) -> tuple[Path, Path] | tuple[ValueError, Path]:
@@ -109,12 +109,13 @@ def _check_boundary_file(
         log.disp("<<< No boundary file specified. Skipping boundary export.")
         return None
     bnd = Path(bnd)
-    log.disp(f"Looking for boundary file: {bnd}")
+    log.info(f"Looking for boundary file: {bnd}")
     if bnd.is_file():
         log.disp(f"<<< Output file name (boundary): {prefix}_boundary.vtu")
         return bnd
-    msg = f"Boundary file = {bnd} not found."
-    return ValueError(msg)
+
+    log.info(f"Boundary file = {bnd} not found.")
+    return ValueError()
 
 
 def _check_for_file(file: Path | str, msg: str) -> Path | ValueError:
@@ -155,7 +156,7 @@ def process_cmdline_args(
     log: ILogger,
 ) -> tuple[ProgramArgs, IIndexIterator]:
     """Process command line arguments raw into program structs."""
-    log.info(print_input_info(args))
+    log.info(*print_input_info(args))
     prefix = _get_prefix(args)
     input_dir, output_dir = _check_dirs_inputs(args)
     input_dir = _check_errors(input_dir, log)

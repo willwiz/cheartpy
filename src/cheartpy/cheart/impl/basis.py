@@ -4,7 +4,7 @@ __all__ = ["Basis", "CheartBasis", "Quadrature"]
 import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
-from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import IBasis, ICheartBasis, IQuadrature
 
 if TYPE_CHECKING:

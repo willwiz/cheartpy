@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
 
 from cheartpy.cheart.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from cheartpy.cheart.api import create_bc
-from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.string_tools import get_enum, join_fields
 from cheartpy.cheart.trait import (
     IBCPatch,
     IBoundaryCondition,

@@ -8,26 +8,25 @@ if TYPE_CHECKING:
     from arraystubs import Arr, Arr1, Arr2
 
 
-class XMLData:
+class XMLData[T: np.number]:
     __slots__ = ("data", "fmt", "order")
-    data: Arr[tuple[int, ...], np.generic]
+    data: Arr[tuple[int, ...], T]
     fmt: Literal[".16f", "d"]
     order: tuple[int, ...]
 
     def __init__(
         self,
-        data: Arr[tuple[int, ...], np.generic],
+        data: Arr[tuple[int, ...], T],
         order: tuple[int, ...] | None,
     ) -> None:
         self.data = data
-        match data.dtype:
-            case np.floating:
-                self.fmt = ".16f"
-            case np.integer:
-                self.fmt = "d"
-            case _:
-                msg = f"Only floating and integer arrays are supported, got {data.dtype}."
-                raise TypeError(msg)
+        if np.issubdtype(data.dtype, np.floating):
+            self.fmt = ".16f"
+        elif np.issubdtype(data.dtype, np.integer):
+            self.fmt = "d"
+        else:
+            msg = f"Only floating and integer arrays are supported, got {data.dtype}."
+            raise TypeError(msg)
         match data.shape, order:
             case (int(col),), None:
                 self.order = (0,)
@@ -45,6 +44,7 @@ class XMLData:
     def write(self, fout: TextIO, level: int = 0) -> None:
         if self.data.ndim == 1:
             fout.writelines(f"{' ' * (level + 2)}{d:<{self.fmt}}\n" for d in self.data)
+            return
         for arr in self.data:
             fout.write(" " * (level + 2))
             fout.writelines(f"{p:<{self.fmt}} " for p in arr)
@@ -54,7 +54,7 @@ class XMLData:
 class XMLElement:
     __slots__ = ("attribs", "data", "datawriter", "subelems", "tag")
     tag: str
-    data: XMLData | None
+    data: XMLData[np.number] | None
     attribs: str
     subelems: list[XMLElement]
 
@@ -71,9 +71,9 @@ class XMLElement:
         self.subelems.append(elem)
         return elem
 
-    def add_data(
+    def add_data[S: np.number](
         self,
-        arr: Arr2[np.generic] | Arr1[np.generic],
+        arr: Arr2[S] | Arr1[S],
         order: tuple[int, ...] | None = None,
     ) -> None:
         self.data = XMLData(arr, order)
@@ -82,13 +82,6 @@ class XMLElement:
         fout.write(f"{' ' * level}<{self.tag}{self.attribs}>\n")
         for elem in self.subelems:
             elem.write(fout, level + 2)
-        if self.data is None:
-            return
-        if self.datawriter is None:
-            msg = (
-                f"Data writer not set for element {self.tag}. "
-                "Please set a data writer before writing."
-            )
-            raise ValueError(msg)
-        self.data.write(fout)
+        if self.data is not None:
+            self.data.write(fout)
         fout.write(f"{' ' * level}</{self.tag}>\n")

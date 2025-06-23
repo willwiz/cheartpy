@@ -1,7 +1,9 @@
 from typing import overload
-from .data import CLTopology
-from ..cheart.physics import FSCouplingProblem
-from ..cheart.trait import IVariable
+
+from cheartpy.cheart.physics.fs_coupling.struct import FSCouplingProblem
+from cheartpy.cheart.trait import IVariable
+
+from .struct import CLTopology
 
 @overload
 def create_cl_motion_constraint_problem(

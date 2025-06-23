@@ -1,8 +1,15 @@
+from __future__ import annotations
+
 __all__ = ["create_cl_dilation_constraint_problem"]
-from .data import CLTopology
-from ..cheart.physics import FSCouplingProblem, FSExpr
-from ..cheart.trait import IVariable
-from ..cheart.api import create_expr
+from typing import TYPE_CHECKING
+
+from cheartpy.cheart.api import create_expr
+from cheartpy.cheart.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
+
+if TYPE_CHECKING:
+    from cheartpy.cheart.trait import IVariable
+
+    from .struct import CLTopology
 
 
 def create_cl_dilation_constraint_problem(
@@ -19,7 +26,7 @@ def create_cl_dilation_constraint_problem(
     integral_expr = create_expr(
         f"{cl}{sfx}_expr",
         [
-            f"{cl.elem}.{k + 1} * {cl.basis} * ({" - ".join([f"{v}.{i + 1}" for v in var if v])})"
+            f"{cl.elem}.{k + 1} * {cl.basis} * ({' - '.join([f'{v}.{i + 1}' for v in var if v])})"
             for k in range(cl.nn)
             for i in range(disp.get_dim())
         ],

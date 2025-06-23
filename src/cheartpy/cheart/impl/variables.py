@@ -9,7 +9,7 @@ from cheartpy.cheart.aliases import (
     VariableExportFormat,
     VariableUpdateSetting,
 )
-from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.string_tools import get_enum, join_fields
 from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
 
 if TYPE_CHECKING:

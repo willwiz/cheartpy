@@ -5,7 +5,7 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.cheart.aliases import BOUNDARY_TYPE, BoundaryType
-from cheartpy.cheart.pytools import get_enum, join_fields
+from cheartpy.cheart.string_tools import get_enum, join_fields
 from cheartpy.cheart.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IExpression, IVariable
 
 if TYPE_CHECKING:

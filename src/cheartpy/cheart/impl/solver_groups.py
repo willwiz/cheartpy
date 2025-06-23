@@ -12,7 +12,7 @@ from cheartpy.cheart.aliases import (
     SolverSubgroupAlgorithm,
     TolSettings,
 )
-from cheartpy.cheart.pytools import get_enum, hline, join_fields, splicegen
+from cheartpy.cheart.string_tools import get_enum, hline, join_fields, splicegen
 from cheartpy.cheart.trait import (
     IExpression,
     IProblem,

@@ -3,7 +3,7 @@ from __future__ import annotations
 import dataclasses as dc
 from typing import TextIO
 
-from cheartpy.cheart.pytools import join_fields
+from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait.basic import IDataInterp, IDataPointer
 
 

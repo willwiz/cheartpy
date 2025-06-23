@@ -24,7 +24,7 @@ def cheart2vtu(cmd_args: CmdLineArgs) -> None:
     log = BLogger(cmd_args.log)
     log.disp(*print_header())
     inp, indexer = process_cmdline_args(cmd_args, log)
-    log.disp(*print_index_info(indexer), print_guard())
+    log.disp(print_index_info(indexer), print_guard())
     cache = init_variable_cache(inp, indexer)
     log.debug(cache)
     export_boundary(inp, cache, log)
