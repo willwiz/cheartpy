@@ -59,6 +59,6 @@ def import_cheart_mesh(
     if forced_type is None:
         forced_type = guess_elem_type_from_dim(edim, bdim)
     space = CheartMeshSpace(len(raw_space), raw_space)
-    top = CheartMeshTopology(len(raw_top), raw_top, forced_type.elem)
+    top = CheartMeshTopology(len(raw_top), raw_top, forced_type.body)
     bnd = _create_cheart_mesh_surf_from_raw(raw_bnd, forced_type.surf)
     return CheartMesh(space, top, bnd)

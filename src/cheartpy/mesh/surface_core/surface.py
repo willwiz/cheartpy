@@ -87,7 +87,7 @@ def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     log: ILogger = NULL_LOGGER,
 ) -> Arr2[F]:
     vtkelem = get_vtk_elem(mesh.top.TYPE)
-    log.debug(f"{vtkelem.elem=}")
+    log.debug(f"{vtkelem.body=}")
     interp_basis = {k: vtkelem.shape_dfunc(v) for k, v in enumerate(vtkelem.ref)}
     node_normal: dict[int, list[Arr1[F]]] = defaultdict(list)
     for elem in mesh.top.v:
