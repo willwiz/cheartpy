@@ -47,7 +47,7 @@ type VTK_TYPE = Literal[
 
 @dc.dataclass(slots=True, frozen=True)
 class VtkElem:
-    elem: VtkType
+    body: VtkType
     surf: VtkType | None
     connectivity: tuple[int, ...]
     nodes: Arr2[np.intc]

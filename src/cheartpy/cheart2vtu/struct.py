@@ -108,7 +108,7 @@ class CheartTopology:
             case None:
                 bdim = None
         vtk = guess_elem_type_from_dim(self.nc, bdim)
-        self.vtkelementtype, self.vtksurfacetype = vtk.elem, vtk.surf
+        self.vtkelementtype, self.vtksurfacetype = vtk.body, vtk.surf
 
     def __setitem__(self, index: int, data: Arr1[np.intc]) -> None:
         self._ft[index] = data

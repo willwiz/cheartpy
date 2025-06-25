@@ -58,6 +58,7 @@ def find_var_index(prefix: str, root: Path | str | None, log: ILogger) -> Sequen
     root = Path(root) if root else Path()
     log.debug(f"Searching for files with prefix: {prefix} in {root=}")
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
+    var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
     return get_var_index([v.name for v in var], prefix, suffix)
@@ -71,6 +72,7 @@ def find_var_subindex(
     root = Path(root) if root else Path()
     log.debug(f"Searching for files with prefix: {prefix} in {root=}")
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
+    var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
     return get_var_subindex([v.name for v in var], prefix, suffix)

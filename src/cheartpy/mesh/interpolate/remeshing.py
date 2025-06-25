@@ -51,7 +51,7 @@ def create_quad_top_and_map[T: np.integer](
                 quad_map[v] = nn
                 nn = nn + 1
             new_top[i, j] = quad_map[v]
-    return CheartMeshTopology(len(new_top), new_top, quad_elem.elem), quad_map
+    return CheartMeshTopology(len(new_top), new_top, quad_elem.body), quad_map
 
 
 def create_quad_surf[T: np.integer](
@@ -82,7 +82,7 @@ def create_quad_boundary[T: np.integer](
         msg = f"No quad type found for {b.TYPE}. Boundary to be interpolated must be linear"
         raise ValueError(msg)
     surfs = {k: create_quad_surf(l2qmap, quad_map, v) for k, v in b.v.items()}
-    return CheartMeshBoundary(b.n, surfs, quad_elem.elem)
+    return CheartMeshBoundary(b.n, surfs, quad_elem.body)
 
 
 def create_quad_space_cartesian[T: np.floating](

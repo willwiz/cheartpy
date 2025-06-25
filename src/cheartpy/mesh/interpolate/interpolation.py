@@ -30,14 +30,11 @@ def make_l2qmap[F: np.floating, I: np.integer](
     if l2qmap is None:
         msg = f"No map found for {lin_top.TYPE}. Topology to be interpolated must be linear"
         raise ValueError(msg)
-    quad_elem = L2QTYPEDICT.get(quad_top.TYPE)
+    quad_elem = L2QTYPEDICT.get(lin_top.TYPE)
     if quad_elem is None:
         msg = (
             f"No quad topology found for {quad_top.TYPE}.Topology to be interpolated must be linear"
         )
-        raise ValueError(msg)
-    if quad_elem.elem != lin_top.TYPE:
-        msg = f"quad mesh ({quad_elem.elem}) must be quadratic version of ({lin_top.TYPE})"
         raise ValueError(msg)
     if lin_top.n != quad_top.n:
         msg = (
