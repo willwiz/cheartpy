@@ -52,7 +52,7 @@ def import_cheart_mesh(
     raw_top = np.loadtxt(f"{prefix}T", dtype=np.intc, skiprows=1) - 1
     edim = raw_top.shape[1]
     if Path(f"{prefix}B").exists():
-        raw_bnd = np.loadtxt(f"{prefix}B", dtype=int, skiprows=1)
+        raw_bnd = np.loadtxt(f"{prefix}B", dtype=np.intc, skiprows=1)
         bdim = raw_bnd.shape[1] - 2
     else:
         raw_bnd, bdim = None, None

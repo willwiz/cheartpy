@@ -1,13 +1,24 @@
 from __future__ import annotations
 
-__all__ = ["get_vtk_elem"]
+__all__ = [
+    "VTKHEXAHEDRON1",
+    "VTKHEXAHEDRON2",
+    "VTKLINE1",
+    "VTKLINE2",
+    "VTKQUADRILATERAL1",
+    "VTKQUADRILATERAL2",
+    "VTKTETRAHEDRON1",
+    "VTKTETRAHEDRON2",
+    "VTKTRIANGLE1",
+    "VTKTRIANGLE2",
+]
 
 
 from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cheartpy.vtk.lagrange_shape_funcs import dlagrange_2, lagrange_2
+from cheartpy.vtk._lagrange_shape_funcs import dlagrange_2, lagrange_2
 
 from .trait import VTK_TYPE, VtkElem, VtkType
 

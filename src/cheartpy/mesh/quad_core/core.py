@@ -12,7 +12,7 @@ from cheartpy.cheart_mesh.data import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.vtk.impl import VTKLINE1, VTKQUADRILATERAL1
+from cheartpy.vtk.struct import VTKLINE1, VTKQUADRILATERAL1
 from cheartpy.vtk.trait import VtkType
 
 if TYPE_CHECKING:

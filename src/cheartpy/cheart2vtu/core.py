@@ -17,9 +17,9 @@ from cheartpy.cheart_mesh.io import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml.xml import XMLElement
 
-from .caching import update_variable_cache
-from .third_party import compress_vtu
-from .variable_getter import CheartVTUFormat
+from ._caching import update_variable_cache
+from ._third_party import compress_vtu
+from ._variable_getter import CheartVTUFormat
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -86,7 +86,7 @@ def export_boundary(
         return
     dx = cache.space
     raw = chread_b_utf(inp.bfile)
-    db = raw[:, 1:-1]
+    db = raw[:, 1:-1] - 1
     dbid = raw[:, -1]
     if cache.top.vtksurfacetype is None:
         log.error(">>> Boundary file does not have a valid surface type")
@@ -164,8 +164,8 @@ def export_mesh_iter(
     vtk_xml = create_xml_for_mesh(inp.prefix, cache.top, x, var)
     with prefix.open("w") as fout:
         vtk_xml.write(fout)
-    if inp.compression:
-        compress_vtu(prefix, log)
+    # if inp.compression:
+    #     compress_vtu(prefix, log)
 
 
 def run_exports_in_series(

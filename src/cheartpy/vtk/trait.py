@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses as dc
 
-__all__ = ["VtkElem", "VtkType"]
+__all__ = ["VTK_TYPE", "VtkElem", "VtkType"]
 import enum
 from typing import TYPE_CHECKING, Literal, NamedTuple
 

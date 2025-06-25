@@ -12,7 +12,7 @@ __all__ = [
 ]
 from collections import defaultdict
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
 from pytools.logging.api import NULL_LOGGER
@@ -37,10 +37,10 @@ if TYPE_CHECKING:
 _SQRT2 = np.sqrt(2.0)
 
 
-def check_normal(
-    node_normals: Arr2[np.floating],
+def check_normal[F: np.floating](
+    node_normals: Arr2[F],
     elem: Arr1[np.integer],
-    patch_normals: Arr1[np.floating],
+    patch_normals: Arr1[F],
     log: ILogger = NULL_LOGGER,
 ) -> bool:
     check = all(abs(node_normals[i] @ patch_normals) > _SQRT2 for i in elem)
@@ -136,15 +136,22 @@ def get_boundaryelems_in_clrange[F: np.floating](
     return np.fromiter({v for i in nodes for v in node_map.n2e_map[int(i)]}, dtype=np.intc)
 
 
+class _CLNodalMeshKwargs[F: np.floating](TypedDict, total=False):
+    normal_check: Arr2[F] | None
+    log: ILogger
+
+
 def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     surf: CheartMeshPatch[I],
     bnd_map: PatchNode2ElemMap,
     domain: tuple[F, F] | Arr1[F],
-    *,
-    normal_check: Arr2[F] | None = None,
-    log: ILogger = NULL_LOGGER,
+    **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> CheartMesh[F, I]:
+    # Unpack the kwargs
+    log = kwargs.get("log", NULL_LOGGER)
+    normal_check = kwargs.get("normal_check")
+    # Main logic
     body_elem = get_vtk_elem(mesh.top.TYPE)
     if body_elem.surf is None:
         e = log.exception(ValueError("Mesh is 1D, normal not defined"))
@@ -174,9 +181,12 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     cl: Arr2[F],
     cl_top: CLPartition[F, I],
     surf_id: int,
-    normal_check: Arr2[F] | None = None,
-    log: ILogger = NULL_LOGGER,
+    **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> NODAL_MESHES[F, I]:
+    # Unpack the kwargs
+    log = kwargs.get("log", NULL_LOGGER)
+    normal_check = kwargs.get("normal_check")
+    # Main logic
     if mesh.bnd is None:
         msg = "Mesh has not boundary"
         raise ValueError(msg)
@@ -261,17 +271,20 @@ def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
     cl: Arr2[F],
     cl_top: CLPartition[F, I],
     surf_id: int,
-    normal_check: Arr2[F] | None = None,
-    log: ILogger = NULL_LOGGER,
-):
+    **kwargs: Unpack[_CLNodalMeshKwargs[F]],
+) -> tuple[CheartMesh[F, I], CheartMesh[F, I]]:
+    # Unpack kwargs
+    log = kwargs.get("log", NULL_LOGGER)
+    normal_check = kwargs.get("normal_check")
+    # Main Logic
     nodal_meshes = create_cheart_cl_nodal_meshes(
         mesh_dir,
         mesh,
         cl,
         cl_top,
         surf_id,
-        normal_check,
-        log,
+        normal_check=normal_check,
+        log=log,
     )
     node_count = [len(x["mesh"].space.v) for x in nodal_meshes.values()]
     node_offset = np.add.accumulate(np.insert(node_count, 0, 0))

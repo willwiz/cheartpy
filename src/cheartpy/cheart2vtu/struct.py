@@ -93,9 +93,9 @@ class CheartTopology:
     def __init__(self, tfile: Path | str, bfile: Path | None) -> None:
         ################################################################################################
         # read topology and get number of elements, number of nodes per elements
-        self._ft = np.loadtxt(tfile, skiprows=1, dtype=np.intc)
+        self._ft = np.loadtxt(tfile, skiprows=1, dtype=np.intc) - 1
         if self._ft.ndim == 1:
-            self._ft = np.array([self._ft])
+            self._ft = self._ft[:, np.newaxis]
         self.ne = self._ft.shape[0]
         self.nc = self._ft.shape[1]
         # guess the VTK element type

@@ -137,7 +137,7 @@ class PFile:
         for v in var:
             v.set_export_frequency(freq)
 
-    def get_variable_frequency_list(self) -> Mapping[int, Collection[str]]:
+    def _get_variable_frequency_list(self) -> Mapping[int, Collection[str]]:
         exportfrequencies: dict[int, set[str]] = {}
         for v in self.variables.values():
             if v.get_export_frequency() in exportfrequencies:
@@ -145,6 +145,12 @@ class PFile:
             else:
                 exportfrequencies[v.get_export_frequency()] = {str(v)}
         return exportfrequencies
+
+    def _get_ordered_topinterface_list(self) -> list[ITopInterface]:
+        return [
+            *[v for v in self.interfaces.values() if v.method == "OneToOne"],
+            *[v for v in self.interfaces.values() if v.method == "ManyToOne"],
+        ]
 
     # ----------------------------------------------------------------------------
     # Resolve Pfile
@@ -155,7 +161,7 @@ class PFile:
     # ----------------------------------------------------------------------------
     # Producing the Pfile
 
-    def write(self, f: TextIO) -> None:  # noqa: C901, PLR0912
+    def write(self, f: TextIO) -> None:  # noqa: C901
         self.resolve()
         f.write(header(self.h))
         f.write(hline("New Output Path"))
@@ -174,22 +180,17 @@ class PFile:
         f.write(hline("Topologies"))
         for t in self.toplogies.values():
             t.write(f)
-        for i in self.interfaces.values():
-            if i.method == "OneToOne":
-                i.write(f)
-        for i in self.interfaces.values():
-            if i.method == "ManyToOne":
-                i.write(f)
+        for i in self._get_ordered_topinterface_list():
+            i.write(f)
         f.write(hline("Variables"))
         for v in self.variables.values():
             v.write(f)
         for v in self.data_pointers.values():
             v.write(f)
         f.write(hline("Export Frequency"))
-        exportfrequencies = self.get_variable_frequency_list()
-        for k, v in exportfrequencies.items():
+        for freq, v in self._get_variable_frequency_list().items():
             f.writelines(
-                f"!SetExportFrequency={{{'|'.join(s)}|{k}}}\n" for s in splicegen(60, sorted(v))
+                f"!SetExportFrequency={{{'|'.join(s)}|{freq}}}\n" for s in splicegen(60, sorted(v))
             )
         f.write(hline("Problem Definitions"))
         for v in self.problems.values():
