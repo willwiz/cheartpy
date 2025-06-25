@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 __all__ = [
     "CL_NODAL_LM_TYPE",
     "CLBasis",
@@ -20,6 +18,8 @@ import numpy as np
 from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from arraystubs import Arr1, Arr2
 
     from cheartpy.cheart_mesh.data import CheartMesh

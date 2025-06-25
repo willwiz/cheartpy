@@ -100,8 +100,8 @@ def compute_bc_w[F: np.floating, I: np.integer](
             bc_w[k] = mult * np.amax(bc_w[nw])
         current = current | new_nodes
         new_nodes = new_nodes.union(*[neighbors[n] for n in current]) - current
-    # bc_w[bc_w > 1] = 1
-    return 1 - bc_w
+    bc_w[bc_w > 1] = 1
+    return (1 - bc_w).astype(bc_w.dtype)
 
 
 def diffuse_bc_w[F: np.floating, I: np.integer](

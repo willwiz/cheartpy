@@ -4,7 +4,7 @@ __all__ = ["get_vtk_elem", "guess_elem_type_from_dim"]
 
 from typing import TYPE_CHECKING
 
-from .impl import (
+from .struct import (
     VTKHEXAHEDRON1,
     VTKHEXAHEDRON2,
     VTKQUADRILATERAL1,

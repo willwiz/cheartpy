@@ -4,7 +4,7 @@ from pathlib import Path
 
 import numpy as np
 
-__all__ = ["update_variable_cache"]
+__all__ = ["init_variable_cache", "update_variable_cache"]
 
 from typing import TYPE_CHECKING
 
@@ -85,7 +85,7 @@ def update_variable_cache(
     for k, var in inp.var.items():
         new_v = var[time]
         log.debug(f"updating var {k} to file {new_v} from {cache.var_i[k]}")
-        if (cache.var_i[k] != new_v) and Path(new_v).exists():
+        if (cache.var_i[k] != new_v) and new_v.exists():
             log.debug(f"updating var {k} to file {new_v}")
             cache.var[k] = chread_d(new_v)
             cache.var_i[k] = new_v

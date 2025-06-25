@@ -12,7 +12,7 @@ class XMLData[T: np.number]:
     __slots__ = ("data", "fmt", "order")
     data: Arr[tuple[int, ...], T]
     fmt: Literal[".16f", "d"]
-    order: tuple[int, ...]
+    order: list[int]
 
     def __init__(
         self,
@@ -29,14 +29,14 @@ class XMLData[T: np.number]:
             raise TypeError(msg)
         match data.shape, order:
             case (int(col),), None:
-                self.order = (0,)
+                self.order = [0]
             case (int(), int(col)), None:
-                self.order = tuple(range(col))
+                self.order = list(range(col))
             case (int(), int(col)), tuple():
                 if len(order) != col:
                     msg = "order must match the number of columns in the data array. "
                     raise ValueError(msg)
-                self.order = order
+                self.order = list(order)
             case _:
                 msg = f"Data must be 1D or 2D array, got {data.shape} with order {order}."
                 raise ValueError(msg)
@@ -47,7 +47,7 @@ class XMLData[T: np.number]:
             return
         for arr in self.data:
             fout.write(" " * (level + 2))
-            fout.writelines(f"{p:<{self.fmt}} " for p in arr)
+            fout.writelines(f"{p:<{self.fmt}} " for p in arr[self.order])
             fout.write("\n")
 
 

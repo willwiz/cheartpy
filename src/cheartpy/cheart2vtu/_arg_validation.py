@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING, TypeIs, overload
 from cheartpy.cheart_mesh.io import fix_suffix
 from cheartpy.io.indexing.api import get_file_name_indexer
 
-from .print_headers import print_input_info
+from ._headers import print_input_info
+from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 from .struct import CmdLineArgs, IFormattedName, ProgramArgs
-from .variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from cheartpy.io.indexing.interfaces import IIndexIterator
 
 
-def parse_findmode_args(mesh: str) -> tuple[str, str, str | None, None]:
+def _parse_findmode_args(mesh: str) -> tuple[str, str, str | None, None]:
     subs: str = fix_suffix(mesh)
     space = subs + "X"
     topology = subs + "T"
@@ -26,7 +26,7 @@ def parse_findmode_args(mesh: str) -> tuple[str, str, str | None, None]:
     return space, topology, boundary, None
 
 
-def parse_indexmode_args(x: str, t: str, b: str) -> tuple[str, str, str | None, str | None]:
+def _parse_indexmode_args(x: str, t: str, b: str) -> tuple[str, str, str | None, str | None]:
     spacename: list[str] = x.split("+")
     match spacename:
         case (str(s),):
@@ -58,9 +58,9 @@ def _check_dirs_inputs(args: CmdLineArgs) -> tuple[Path, Path] | tuple[ValueErro
 def _get_mesh_names(args: CmdLineArgs) -> tuple[str | ValueError, str, str | None, str | None]:
     match args.mesh:
         case str():
-            x, top, bnd, u = parse_findmode_args(args.mesh)
+            x, top, bnd, u = _parse_findmode_args(args.mesh)
         case x, t, b:
-            x, top, bnd, u = parse_indexmode_args(x, t, b)
+            x, top, bnd, u = _parse_indexmode_args(x, t, b)
     if args.space is not None:
         match args.space.split("+"):
             case str(x), str(u):
@@ -135,7 +135,7 @@ def _check_errors[T](var: T | ValueError, log: ILogger) -> T:
             return var
 
 
-def capture_err[T](var: T | ValueError, log: ILogger) -> TypeIs[T]:
+def _capture_err[T](var: T | ValueError, log: ILogger) -> TypeIs[T]:
     """Capture errors in variable formats."""
     if isinstance(var, ValueError):
         log.error(var)
@@ -143,12 +143,12 @@ def capture_err[T](var: T | ValueError, log: ILogger) -> TypeIs[T]:
     return True
 
 
-def capture_err_sequence[T](
+def _capture_err_sequence[T](
     var: tuple[T | ValueError, ...],
     log: ILogger,
 ) -> TypeIs[tuple[T, ...]]:
     """Capture errors in variable formats."""
-    return all(capture_err(v, log) for v in var)
+    return all(_capture_err(v, log) for v in var)
 
 
 def process_cmdline_args(
@@ -170,11 +170,11 @@ def process_cmdline_args(
     bnd = _check_boundary_file(b, prefix, log)
     var = tuple([_check_variable_format(v, ifirst, input_dir) for v in args.var])
     if (
-        capture_err(space, log)
-        and capture_err(disp, log)
-        and capture_err(top, log)
-        and capture_err(bnd, log)
-        and capture_err_sequence(var, log)
+        _capture_err(space, log)
+        and _capture_err(disp, log)
+        and _capture_err(top, log)
+        and _capture_err(bnd, log)
+        and _capture_err_sequence(var, log)
     ):
         return ProgramArgs(
             prefix=prefix,

@@ -12,7 +12,7 @@ __all__ = [
 from collections.abc import Collection, Sequence
 from typing import Final
 
-from cheartpy.vtk.impl import (
+from cheartpy.vtk.struct import (
     VTKHEXAHEDRON2,
     VTKLINE2,
     VTKQUADRILATERAL2,
