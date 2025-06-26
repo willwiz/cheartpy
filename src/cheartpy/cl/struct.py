@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
     from arraystubs import Arr1, Arr2
 
-    from cheartpy.cheart_mesh.data import CheartMesh
+    from cheartpy.cheart_mesh.struct import CheartMesh
 
 CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 

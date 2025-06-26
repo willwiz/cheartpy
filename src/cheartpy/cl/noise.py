@@ -12,7 +12,7 @@ from cheartpy.cheart_mesh.io import chread_d, chwrite_d_utf
 if TYPE_CHECKING:
     from arraystubs import Arr, Arr1, Arr2
 
-    from cheartpy.cheart_mesh.data import CheartMesh
+    from cheartpy.cheart_mesh.struct import CheartMesh
 
 
 def unbias[T: np.floating, D: (tuple[int], tuple[int, int], tuple[int, int, int])](
@@ -43,6 +43,7 @@ def create_noise[F: np.floating](
     bc_w: Arr1[F] | None = None,
 ) -> Arr2[F]:
     (x, xp), yp = generate_noise_data(mag, *spatial_freq)
+
     y = interp(x, xp, yp, cl, method="cubic")
     noise = unbias(y)
     if bc_w is not None:
@@ -50,12 +51,12 @@ def create_noise[F: np.floating](
     return noise[:, None] * normal
 
 
-def update_disp_w_noise(
+def update_disp_w_noise[F: np.floating](
     prefix: str,
-    cl: Arr2[np.floating],
-    normal: Arr2[np.floating],
+    cl: Arr2[F],
+    normal: Arr2[F],
     mag: float,
-    bc_w: Arr1[np.floating] | None = None,
+    bc_w: Arr1[F] | None = None,
 ) -> None:
     noise = create_noise(mag, cl, normal, bc_w=bc_w)
     disp = chread_d(f"{prefix}") + noise

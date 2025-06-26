@@ -9,12 +9,22 @@ if TYPE_CHECKING:
     from arraystubs import Arr, Arr2
 
 
-def read_array_int(name: Path | str, skip: int = 0) -> Arr[tuple[int, ...], np.intc]:
-    return np.loadtxt(name, skiprows=skip, dtype=np.intc)
+def read_array_int[I: np.integer](
+    name: Path | str,
+    skip: int = 0,
+    *,
+    dtype: type[I] = np.intc,
+) -> Arr[tuple[int, ...], I]:
+    return np.loadtxt(name, skiprows=skip, dtype=dtype)
 
 
-def read_array_float(name: Path | str, skip: int = 0) -> Arr[tuple[int, ...], np.float64]:
-    return np.loadtxt(name, skiprows=skip, dtype=np.float64)
+def read_array_float[F: np.floating](
+    name: Path | str,
+    skip: int = 0,
+    *,
+    dtype: type[F] = np.float64,
+) -> Arr[tuple[int, ...], F]:
+    return np.loadtxt(name, skiprows=skip, dtype=dtype)
 
 
 def write_array_int[T: np.integer](name: Path | str, arr: Arr2[T]) -> None:

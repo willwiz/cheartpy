@@ -75,9 +75,9 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
     return vtkfile
 
 
-def export_boundary(
+def export_boundary[F: np.floating, I: np.integer](
     inp: ProgramArgs,
-    cache: VariableCache,
+    cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
     log.debug("<<< Working on", inp.bfile)
@@ -100,11 +100,11 @@ def export_boundary(
     log.disp(f"<<< Exported the boundary to {foutfile}")
 
 
-def create_xml_for_mesh(
+def create_xml_for_mesh[F: np.floating, I: np.integer](
     prefix: str,
-    tp: CheartTopology,
-    fx: Arr2[np.float64],
-    var: Mapping[str, Arr2[np.float64]],
+    tp: CheartTopology[I],
+    fx: Arr2[F],
+    var: Mapping[str, Arr2[F]],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.create_elem(XMLElement("UnstructuredGrid"))
@@ -150,11 +150,11 @@ def create_xml_for_mesh(
     return vtkfile
 
 
-def export_mesh_iter(
+def export_mesh_iter[F: np.floating, I: np.integer](
     prefix: Path,
     t: str | int,
     inp: ProgramArgs,
-    cache: VariableCache,
+    cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
     log.debug("<<< Working on", prefix.name)
@@ -168,10 +168,10 @@ def export_mesh_iter(
     #     compress_vtu(prefix, log)
 
 
-def run_exports_in_series(
+def run_exports_in_series[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
-    cache: VariableCache,
+    cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
     log.disp("Processing vtus")
@@ -182,10 +182,10 @@ def run_exports_in_series(
         bart.next() if bart else print(f"<<< Completed {name[t]}")
 
 
-def run_exports_in_parallel(
+def run_exports_in_parallel[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
-    cache: VariableCache,
+    cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
     log.disp("Processing vtus")
