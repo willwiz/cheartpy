@@ -81,19 +81,19 @@ class ProgramArgs:
     var: Final[Mapping[str, IFormattedName]]
 
 
-class CheartTopology:
+class CheartTopology[I: np.integer]:
     __slots__ = ["_ft", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
 
-    _ft: Arr2[np.intc]
+    _ft: Arr2[I]
     ne: int
     nc: int
     vtkelementtype: VtkType
     vtksurfacetype: VtkType | None
 
-    def __init__(self, tfile: Path | str, bfile: Path | None) -> None:
+    def __init__(self, tfile: Path | str, bfile: Path | None, *, dtype: type[I] = np.intc) -> None:
         ################################################################################################
         # read topology and get number of elements, number of nodes per elements
-        self._ft = np.loadtxt(tfile, skiprows=1, dtype=np.intc) - 1
+        self._ft = np.loadtxt(tfile, skiprows=1, dtype=dtype) - 1
         if self._ft.ndim == 1:
             self._ft = self._ft[:, np.newaxis]
         self.ne = self._ft.shape[0]
@@ -110,27 +110,27 @@ class CheartTopology:
         vtk = guess_elem_type_from_dim(self.nc, bdim)
         self.vtkelementtype, self.vtksurfacetype = vtk.body, vtk.surf
 
-    def __setitem__(self, index: int, data: Arr1[np.intc]) -> None:
+    def __setitem__(self, index: int, data: Arr1[I]) -> None:
         self._ft[index] = data
 
-    def __getitem__(self, index: int) -> int | Arr1[np.intc]:
+    def __getitem__(self, index: int) -> int | Arr1[I]:
         return self._ft[index]
 
-    def get_data(self) -> Arr2[np.intc]:
+    def get_data(self) -> Arr2[I]:
         return self._ft
 
 
 @dc.dataclass(slots=True)
-class VariableCache:
-    top: Final[CheartTopology]
+class VariableCache[F: np.floating, I: np.integer]:
+    top: Final[CheartTopology[I]]
     t: str | int
     space_i: Path
     disp_i: Path | None
-    space: Arr2[np.float64]
-    disp: Arr2[np.float64]
-    x: Arr2[np.float64]
+    space: Arr2[F]
+    disp: Arr2[F]
+    x: Arr2[F]
     var_i: dict[str, Path] = dc.field(default_factory=dict[str, Path])
-    var: dict[str, Arr2[np.float64]] = dc.field(default_factory=dict[str, "Arr2[np.float64]"])
+    var: dict[str, Arr2[F]] = dc.field(default_factory=dict[str, "Arr2[F]"])
 
 
 @dc.dataclass(slots=True)

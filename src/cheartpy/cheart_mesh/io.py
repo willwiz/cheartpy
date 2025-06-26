@@ -66,15 +66,15 @@ def check_for_meshes(*names: str, bc: bool = True) -> bool:
     return all(Path(s).exists() for s in meshes)
 
 
-def chread_d_utf(file: Path | str) -> Arr2[np.float64]:
-    return np.loadtxt(file, skiprows=1, dtype=np.float64, ndmin=2)
+def chread_d_utf[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> Arr2[F]:
+    return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
-def chread_d_bin(file: Path | str) -> Arr2[np.float64]:
+def chread_d_bin[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> Arr2[F]:
     with Path(file).open("rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
-        arr = np.zeros((nnodes, dim), dtype=np.float64)
+        arr = np.zeros((nnodes, dim), dtype=dtype)
         for i in range(nnodes):
             for j in range(dim):
                 bite = f.read(8)
@@ -85,14 +85,14 @@ def chread_d_bin(file: Path | str) -> Arr2[np.float64]:
     return arr
 
 
-def chread_d(file: Path | str) -> Arr2[np.float64]:
+def chread_d[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> Arr2[F]:
     if is_binary(file):
-        return chread_d_bin(file)
-    return chread_d_utf(file)
+        return chread_d_bin(file, dtype=dtype)
+    return chread_d_utf(file, dtype=dtype)
 
 
-def chread_t_utf(file: Path | str) -> Arr2[np.intc]:
-    return np.loadtxt(file, skiprows=1, dtype=np.intc, ndmin=2)
+def chread_t_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> Arr2[I]:
+    return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
 def chread_header_utf(file: Path | str) -> tuple[int, int]:
@@ -103,8 +103,8 @@ def chread_header_utf(file: Path | str) -> tuple[int, int]:
     return nelem, nnode
 
 
-def chread_b_utf(file: Path | str) -> Arr2[np.intc]:
-    return np.loadtxt(file, skiprows=1, dtype=np.intc, ndmin=2)
+def chread_b_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> Arr2[I]:
+    return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
 """

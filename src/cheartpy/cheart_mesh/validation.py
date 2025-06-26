@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from .data import (
+from .struct import (
     CheartMesh,
     CheartMeshBoundary,
     CheartMeshPatch,
