@@ -1,25 +1,9 @@
 [build-system]
 requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = [
-  "cheartpy-abaqus/src",
-  "cheartpy-cl/src",
-  "cheartpy-cmd-tools/src",
-  "cheartpy-fe/src",
-  "cheartpy-io/src",
-  "cheartpy-mesh/src",
-  "cheartpy-paraview/src",
-  "cheartpy-search/src",
-  "cheartpy-vtk/src",
-  "cheartpy-xml/src",
-]
-include = ["cheartpy.*"]
 
 [project]
-name = "cheartpy"
-version = "0.2.0"
+name = "cheartpy-abaqus"
+version = "0.0.1"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
@@ -32,8 +16,8 @@ classifiers = [
 ]
 dependencies = [
   "arraystubs@git+https://github.com/willwiz/arraystubs",
-  "hpp2cythonparser@git+https://github.com/willwiz/hpp2cythonparser.git",
   "pytools@git+https://github.com/willwiz/pytools",
   "numpy",
-  "meshio",
+  "cheartpy-mesh",
+  "cheartpy-vtk",
 ]
