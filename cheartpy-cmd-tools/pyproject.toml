@@ -2,6 +2,10 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["src/"]
+include = ["cheartpy.cmd_tools"]
+
 [project]
 name = "cheartpy-cmd-tools"
 version = "0.0.1"

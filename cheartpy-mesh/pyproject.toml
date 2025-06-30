@@ -2,6 +2,10 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["src/"]
+include = ["cheartpy.mesh"]
+
 [project]
 name = "cheartpy-mesh"
 version = "0.0.1"
