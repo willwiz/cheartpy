@@ -1,11 +1,6 @@
-from __future__ import annotations
-
 import abc
 import enum
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
 
 class ProgramMode(enum.StrEnum):

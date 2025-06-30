@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from .basic import (
     BC_VALUE,
     EXPRESSION_VALUE,

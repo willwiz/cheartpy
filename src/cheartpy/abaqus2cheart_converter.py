@@ -1,17 +1,16 @@
-#!/usr/bin/env python3
-from __future__ import annotations
-
 import argparse
 import dataclasses as dc
 import enum
 import sys
 from argparse import RawTextHelpFormatter
 from collections import defaultdict
+from collections.abc import Callable, Sequence
 from concurrent import futures
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NamedTuple, Self, TextIO
+from typing import Any, NamedTuple, Self, TextIO
 
 import numpy as np
+from arraystubs import Arr2
 
 from .cheart_mesh.io import (
     chwrite_d_utf,
@@ -19,11 +18,6 @@ from .cheart_mesh.io import (
     chwrite_str_utf,
     chwrite_t_utf,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Callable, Sequence
-
-    from arraystubs import Arr2
 
 ################################################################################################
 # Check if multiprocessing is available
@@ -255,7 +249,7 @@ class BoundaryPatch:
     n: int = 0
     data: set[BoundaryElem] = dc.field(default_factory=set[BoundaryElem])
 
-    def __add__(self, other: Self) -> BoundaryPatch:
+    def __add__(self, other: Self) -> "BoundaryPatch":
         if isinstance(other, self.__class__):
             n = self.n + other.n
             data = self.data.union(other.data)

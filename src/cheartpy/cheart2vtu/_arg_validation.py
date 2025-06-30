@@ -1,20 +1,16 @@
-from __future__ import annotations
-
 __all__ = ["process_cmdline_args"]
 from pathlib import Path
-from typing import TYPE_CHECKING, TypeIs, overload
+from typing import TypeIs, overload
+
+from pytools.logging.trait import ILogger
 
 from cheartpy.cheart_mesh.io import fix_suffix
 from cheartpy.io.indexing.api import get_file_name_indexer
+from cheartpy.io.indexing.interfaces import IIndexIterator
 
 from ._headers import print_input_info
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 from .struct import CmdLineArgs, IFormattedName, ProgramArgs
-
-if TYPE_CHECKING:
-    from pytools.logging.trait import ILogger
-
-    from cheartpy.io.indexing.interfaces import IIndexIterator
 
 
 def _parse_findmode_args(mesh: str) -> tuple[str, str, str | None, None]:

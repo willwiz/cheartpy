@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 __all__ = ["ll_str"]
-from typing import TYPE_CHECKING
 
 import numpy as np
+from arraystubs import Arr1
 
 from cheartpy.cheart.trait import IVariable
-
-if TYPE_CHECKING:
-    from arraystubs import Arr1
 
 
 def ll_str(v: IVariable, b: tuple[float, float, float] | Arr1[np.floating] | IVariable) -> str:

@@ -1,14 +1,12 @@
-from __future__ import annotations
+__all__ = ["import_cheart_mesh"]
 
 from pathlib import Path
 
-__all__ = ["import_cheart_mesh"]
-
-from typing import TYPE_CHECKING
-
 import numpy as np
+from arraystubs import Arr2
 
 from cheartpy.vtk.api import guess_elem_type_from_dim
+from cheartpy.vtk.trait import VtkElem, VtkType
 
 from .io import fix_suffix
 from .struct import (
@@ -19,17 +17,12 @@ from .struct import (
     CheartMeshTopology,
 )
 
-if TYPE_CHECKING:
-    from arraystubs import Arr2
 
-    from cheartpy.vtk.trait import VtkElem, VtkType
-
-
-def _create_bnd_surf[T: np.integer](v: Arr2[T], tag: int) -> CheartMeshPatch[T]:
+def _create_bnd_surf[T: np.integer](v: Arr2[T], tag: int, kind: VtkType) -> CheartMeshPatch[T]:
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1
-    return CheartMeshPatch(tag, len(bnd), elems, nodes)
+    return CheartMeshPatch(tag, len(bnd), elems, nodes, kind)
 
 
 def _create_cheart_mesh_surf_from_raw[T: np.integer](
@@ -39,7 +32,7 @@ def _create_cheart_mesh_surf_from_raw[T: np.integer](
     if raw_bnd is None or surf_type is None:
         return None
     bnd_tags = np.unique(raw_bnd[:, -1])
-    bnd = {int(tag): _create_bnd_surf(raw_bnd, int(tag)) for tag in bnd_tags}
+    bnd = {int(tag): _create_bnd_surf(raw_bnd, int(tag), surf_type) for tag in bnd_tags}
     return CheartMeshBoundary(len(raw_bnd), bnd, surf_type)
 
 

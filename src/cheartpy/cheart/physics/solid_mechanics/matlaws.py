@@ -1,17 +1,9 @@
-from __future__ import annotations
-
 __all__ = ["FractionalDiffEQ", "FractionalVE", "Matlaw"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal
+from collections.abc import Mapping, ValuesView
+from typing import Literal
 
-from cheartpy.cheart.trait import (
-    IExpression,
-    ILaw,
-    IVariable,
-)
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, ValuesView
+from cheartpy.cheart.trait import IExpression, ILaw, IVariable
 
 # Matlaws -----------------------------------------------------------------------------
 

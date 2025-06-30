@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
+from typing import Literal, TypedDict, Unpack
 
 __all__ = [
     "create_basis",
@@ -19,6 +17,8 @@ __all__ = [
     "create_variable",
     "hash_tops",
 ]
+
+from collections.abc import Sequence
 
 from .aliases import (
     BOUNDARY_TYPE,
@@ -54,26 +54,22 @@ from .impl import (
     Variable,
 )
 from .string_tools import get_enum
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from .trait import (
-        BC_VALUE,
-        EXPRESSION_VALUE,
-        IBCPatch,
-        IBoundaryCondition,
-        ICheartBasis,
-        ICheartTopology,
-        IExpression,
-        IProblem,
-        ISolverGroup,
-        ISolverMatrix,
-        ISolverSubGroup,
-        ITimeScheme,
-        ITopInterface,
-        IVariable,
-    )
+from .trait import (
+    BC_VALUE,
+    EXPRESSION_VALUE,
+    IBCPatch,
+    IBoundaryCondition,
+    ICheartBasis,
+    ICheartTopology,
+    IExpression,
+    IProblem,
+    ISolverGroup,
+    ISolverMatrix,
+    ISolverSubGroup,
+    ITimeScheme,
+    ITopInterface,
+    IVariable,
+)
 
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:

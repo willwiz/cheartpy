@@ -1,12 +1,9 @@
-from __future__ import annotations
-
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
-if TYPE_CHECKING:
-    from pytools.logging.trait import ILogger
+from pytools.logging.trait import ILogger
 
-    from .interfaces import IIndexIterator
+from .interfaces import IIndexIterator
 
 
 def check_for_var_files(

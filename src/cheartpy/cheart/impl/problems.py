@@ -1,15 +1,11 @@
-from __future__ import annotations
-
 __all__ = ["BCPatch", "BoundaryCondition"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, TextIO
+from collections.abc import Sequence, ValuesView
+from typing import TextIO
 
 from cheartpy.cheart.aliases import BOUNDARY_TYPE, BoundaryType
 from cheartpy.cheart.string_tools import get_enum, join_fields
 from cheartpy.cheart.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IExpression, IVariable
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence, ValuesView
 
 
 @dc.dataclass(init=False, slots=True)

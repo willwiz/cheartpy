@@ -1,9 +1,9 @@
-from __future__ import annotations
-
 __all__ = ["create_hex_mesh"]
-from typing import TYPE_CHECKING
 
-from cheartpy.cheart_mesh.data import CheartMesh
+import numpy as np
+from arraystubs import T3
+
+from cheartpy.cheart_mesh.struct import CheartMesh
 
 from .core import (
     create_boundary,
@@ -12,10 +12,6 @@ from .core import (
     create_square_nodal_index,
     create_topology,
 )
-
-if TYPE_CHECKING:
-    import numpy as np
-    from arraystubs import T3
 
 
 def create_hex_mesh(

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "CL_NODAL_LM_TYPE",
     "CLBasis",
@@ -11,18 +9,14 @@ __all__ = [
 ]
 import dataclasses as dc
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypedDict
+from pathlib import Path
+from typing import TypedDict
 
 import numpy as np
+from arraystubs import Arr1, Arr2
 
 from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from arraystubs import Arr1, Arr2
-
-    from cheartpy.cheart_mesh.struct import CheartMesh
+from cheartpy.cheart_mesh.struct import CheartMesh
 
 CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 

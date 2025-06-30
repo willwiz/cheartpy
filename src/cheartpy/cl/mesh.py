@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 from pprint import pformat
 
@@ -12,12 +10,14 @@ __all__ = [
 ]
 from collections import defaultdict
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypedDict, Unpack
+from typing import TypedDict, Unpack
 
 import numpy as np
+from arraystubs import Arr1, Arr2
 from pytools.logging.api import NULL_LOGGER
+from pytools.logging.trait import ILogger
 
-from cheartpy.cheart_mesh.data import (
+from cheartpy.cheart_mesh.struct import (
     CheartMesh,
     CheartMeshPatch,
     CheartMeshSpace,
@@ -29,10 +29,6 @@ from cheartpy.mesh.surface_core.surface import (
 )
 
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
-
-if TYPE_CHECKING:
-    from arraystubs import Arr1, Arr2
-    from pytools.logging.trait import ILogger
 
 _SQRT2 = np.sqrt(2.0)
 

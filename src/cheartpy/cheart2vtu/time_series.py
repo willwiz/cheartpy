@@ -1,18 +1,13 @@
-from __future__ import annotations
-
 __all__ = ["create_time_series_file", "create_time_series_range"]
-from typing import TYPE_CHECKING, Final, ReadOnly, TypedDict, cast
+from collections.abc import Sequence
+from pathlib import Path
+from typing import Final, ReadOnly, TypedDict, cast
 
 import numpy as np
+from arraystubs import Arr1
 
 from cheartpy.io.indexing.search import get_var_index
 from cheartpy.io.raw_io import read_array_float
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from pathlib import Path
-
-    from arraystubs import Arr1
 
 _CURRENT_VERSION: Final[str] = "1.0.0"
 

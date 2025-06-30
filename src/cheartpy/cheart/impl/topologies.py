@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "CheartTopology",
     "ManyToOneTopInterface",
@@ -8,7 +6,8 @@ __all__ = [
     "TopInterface",
 ]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, TextIO
+from collections.abc import Sequence
+from typing import Literal, TextIO
 
 from cheartpy.cheart.aliases import (
     CheartTopologySetting,
@@ -17,9 +16,6 @@ from cheartpy.cheart.aliases import (
 )
 from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import ICheartBasis, ICheartTopology, ITopInterface
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 
 @dc.dataclass(slots=True)

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "L2QMAP",
     "L2QMAPDICT",

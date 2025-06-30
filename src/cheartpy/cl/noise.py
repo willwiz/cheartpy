@@ -1,18 +1,13 @@
-from __future__ import annotations
-
 __all__ = ["compute_bc_w", "create_noise", "update_disp_w_noise"]
 from collections import defaultdict
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import numpy as np
+from arraystubs import Arr, Arr1, Arr2
 from numpy import interp
 
 from cheartpy.cheart_mesh.io import chread_d, chwrite_d_utf
-
-if TYPE_CHECKING:
-    from arraystubs import Arr, Arr1, Arr2
-
-    from cheartpy.cheart_mesh.struct import CheartMesh
+from cheartpy.cheart_mesh.struct import CheartMesh
 
 
 def unbias[T: np.floating, D: (tuple[int], tuple[int, int], tuple[int, int, int])](

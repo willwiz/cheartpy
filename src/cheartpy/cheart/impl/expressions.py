@@ -1,13 +1,9 @@
-from __future__ import annotations
-
 __all__ = ["Expression"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Self, TextIO
+from collections.abc import Sequence, ValuesView
+from typing import Self, TextIO
 
 from cheartpy.cheart.trait import EXPRESSION_VALUE, IExpression, IVariable
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence, ValuesView
 
 
 @dc.dataclass(slots=True)

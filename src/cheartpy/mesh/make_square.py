@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-from __future__ import annotations
-
 import argparse
 
 from .quad_core.core import create_square_mesh

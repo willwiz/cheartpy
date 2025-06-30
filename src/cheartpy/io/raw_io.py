@@ -1,12 +1,7 @@
-from __future__ import annotations
-
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from arraystubs import Arr, Arr2
+from arraystubs import Arr, Arr2
 
 
 def read_array_int[I: np.integer](

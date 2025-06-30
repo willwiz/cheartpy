@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 __all__ = [
@@ -10,22 +8,18 @@ __all__ = [
     "VariableCache",
 ]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Final, Literal, TypedDict
+from collections.abc import Mapping, Sequence
+from typing import Final, Literal, TypedDict
 
 import numpy as np
+from arraystubs import Arr1, Arr2
 from pytools.logging.trait import LogLevel
 
 from cheartpy.io.indexing.interfaces import SearchMode
 from cheartpy.vtk.api import guess_elem_type_from_dim
+from cheartpy.vtk.trait import VtkType
 
 from .trait import IFormattedName
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
-
-    from arraystubs import Arr1, Arr2
-
-    from cheartpy.vtk.trait import VtkType
 
 
 class APIKwargs(TypedDict, total=False):
@@ -103,8 +97,8 @@ class CheartTopology[I: np.integer]:
         match bfile:
             case Path():
                 with Path(bfile).open("r") as f:
-                    _ = f.readline()
-                    bdim = len(f.readline().strip().split()) - 2
+                    _ = next(f)  # skip header
+                    bdim = len(next(f).strip().split()) - 2
             case None:
                 bdim = None
         vtk = guess_elem_type_from_dim(self.nc, bdim)

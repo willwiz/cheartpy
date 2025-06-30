@@ -1,17 +1,13 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
-from __future__ import annotations
 
 from pathlib import Path
 
 __all__ = ["compress_vtu"]
 
-from typing import TYPE_CHECKING
 
 import meshio
 from pytools.logging.api import BLogger
-
-if TYPE_CHECKING:
-    from pytools.logging.trait import ILogger
+from pytools.logging.trait import ILogger
 
 
 def compress_vtu(name: Path | str, log: ILogger | None = None) -> None:

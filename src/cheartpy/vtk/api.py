@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["get_vtk_elem", "guess_elem_type_from_dim"]
 
-from typing import TYPE_CHECKING
+
+from cheartpy.vtk.trait import VtkElem
 
 from .struct import (
     VTKHEXAHEDRON1,
@@ -14,9 +13,6 @@ from .struct import (
     VTKTRIANGLE2,
     get_vtk_elem,
 )
-
-if TYPE_CHECKING:
-    from cheartpy.vtk.trait import VtkElem
 
 
 def guess_elem_type_from_dim(edim: int, bdim: int | None) -> VtkElem:

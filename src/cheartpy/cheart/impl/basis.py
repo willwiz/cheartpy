@@ -1,14 +1,10 @@
-from __future__ import annotations
-
 __all__ = ["Basis", "CheartBasis", "Quadrature"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, TextIO
+from typing import Literal, TextIO
 
+from cheartpy.cheart.aliases import CheartBasisType, CheartElementType, CheartQuadratureType
 from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import IBasis, ICheartBasis, IQuadrature
-
-if TYPE_CHECKING:
-    from cheartpy.cheart.aliases import CheartBasisType, CheartElementType, CheartQuadratureType
 
 
 @dc.dataclass(slots=True)

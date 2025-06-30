@@ -9,7 +9,7 @@
 #     --time   / -t : indicate a time file to add
 #     --folder / -f : indicate a folder to work from
 #     --name   / -n : indicate a output filename
-from __future__ import annotations
+
 
 import json
 import typing as tp
@@ -20,11 +20,13 @@ from .cheart2vtu.time_series import create_time_series_file
 
 
 def xml_write_header(f: tp.TextIO) -> None:
-    f.write('<?xml version="1.0"?>\n')
-    f.write('<VTKFile type="Collection" version="0.1"\n')
-    f.write('         byte_order="LittleEndian"\n')
-    f.write('         compressor="vtkZLibDataCompressor">\n')
-    f.write("  <Collection>\n")
+    f.write(
+        '<?xml version="1.0"?>\n'
+        '<VTKFile type="Collection" version="0.1"\n'
+        '         byte_order="LittleEndian"\n'
+        '         compressor="vtkZLibDataCompressor">\n'
+        "  <Collection>\n",
+    )
 
 
 def xml_write_footer(f: tp.TextIO) -> None:
@@ -41,32 +43,34 @@ def import_time_data(file: Path | str) -> tuple[int, dict[int, float]]:
     arr: dict[int, float] = {}
     with Path(file).open("r") as f:
         try:
-            n = int(f.readline().strip())
+            n = int(next(f).strip())
         except ValueError:
             print(">>>ERROR: check file format. Time series data has 1 int for header.")
             raise
         except Exception:
             raise
-        arr[0] = 0.0
-        for i in range(n):
-            s, v = f.readline().strip().split()
+        for i, line in enumerate(f):
+            s, v = line.strip().split()
             arr[int(s)] = float(v) + arr[i]
+        if len(arr) != n:
+            print()
+            msg = (
+                ">>>ERROR: Incorrect number of time steps in the file."
+                f"          check file format. Expected {n} lines, got {len(arr)}."
+            )
+            raise ValueError(msg)
     return len(arr), arr
 
 
 def print_cmd_header(inp: CmdLineArgs) -> None:
     print(
         "################################################################################################",
+        "    script for putting together a collection with the time serie added",
+        "################################################################################################\n",
+        f"<<< Output folder:          {inp.folder}",
+        f"<<< Input file name prefix: {inp.prefix}",
+        f"<<< Output file name:       {inp.prefix + '.json'}\n",
     )
-    print("    script for putting together a collection with the time serie added")
-    print(
-        "################################################################################################",
-    )
-    print()
-    print(f"<<< Output folder:          {inp.folder}")
-    print(f"<<< Input file name prefix: {inp.prefix}")
-    print(f"<<< Output file name:       {inp.prefix + '.json'}")
-    print()
 
 
 def main() -> None:

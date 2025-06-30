@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "VTKHEXAHEDRON1",
     "VTKHEXAHEDRON2",
@@ -14,16 +12,12 @@ __all__ = [
 ]
 
 
-from typing import TYPE_CHECKING
-
 import numpy as np
+from arraystubs import Arr1, Arr2
 
 from cheartpy.vtk._lagrange_shape_funcs import dlagrange_2, lagrange_2
 
 from .trait import VTK_TYPE, VtkElem, VtkType
-
-if TYPE_CHECKING:
-    from arraystubs import Arr1, Arr2
 
 
 def _shape_line_1[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:

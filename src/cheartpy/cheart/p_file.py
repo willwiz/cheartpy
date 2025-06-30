@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["PFile"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, TextIO
+from collections.abc import Collection, Mapping
+from typing import TextIO
 
 from .string_tools import header, hline, splicegen
 from .trait import (
@@ -19,9 +18,6 @@ from .trait import (
     ITopInterface,
     IVariable,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Collection, Mapping
 
 
 @dc.dataclass(slots=True)

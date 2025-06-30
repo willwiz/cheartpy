@@ -1,13 +1,13 @@
-from __future__ import annotations
-
 __all__ = [
     "find_common_index",
     "find_common_subindex",
     "get_file_name_indexer",
 ]
-from typing import TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from pathlib import Path
 
 from pytools.logging.api import BLogger
+from pytools.logging.trait import ILogger
 
 from .indexers import (
     ListIndexer,
@@ -19,12 +19,6 @@ from .indexers import (
 )
 from .interfaces import IIndexIterator, SearchMode
 from .search import find_var_index, find_var_subindex
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
-    from pathlib import Path
-
-    from pytools.logging.trait import ILogger
 
 
 def find_common_index(

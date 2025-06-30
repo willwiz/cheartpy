@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import argparse
 
 from .mesh.make_block import main as cube_main

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "convert_cartesian_space_to_cylindrical",
     "convert_to_cylindrical",
@@ -11,11 +9,12 @@ __all__ = [
     "update_elems",
 ]
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
 import numpy as np
+from arraystubs import Arr2
 
-from cheartpy.cheart_mesh.data import (
+from cheartpy.cheart_mesh.struct import (
     CheartMesh,
     CheartMeshBoundary,
     CheartMeshPatch,
@@ -26,11 +25,6 @@ from cheartpy.cheart_mesh.validation import remove_dangling_nodes
 from cheartpy.vtk.trait import VtkType
 
 from .data import CartesianDirection
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from arraystubs import Arr2
 
 
 def gen_end_node_mapping[I: np.integer](
@@ -63,7 +57,7 @@ def update_boundary[I: np.integer](
         for j, v in enumerate(row):
             if v in end_map:
                 surf[i, j] = end_map[int(v)]
-    return CheartMeshPatch(tag, patch.n, patch.k, surf)
+    return CheartMeshPatch(tag, patch.n, patch.k, surf, patch.TYPE)
 
 
 def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> CheartMesh[F, I]:

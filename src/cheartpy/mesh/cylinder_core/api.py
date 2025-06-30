@@ -1,7 +1,9 @@
-from __future__ import annotations
+from typing import Literal
 
-from typing import TYPE_CHECKING, Literal
+import numpy as np
+from arraystubs import T3
 
+from cheartpy.cheart_mesh.struct import CheartMesh
 from cheartpy.mesh.hex_core.api import create_hex_mesh
 from cheartpy.mesh.interpolate.remeshing import create_quad_mesh_from_lin_cylindrical
 
@@ -12,12 +14,6 @@ from .core import (
     rotate_axis,
 )
 from .data import CartesianDirection
-
-if TYPE_CHECKING:
-    import numpy as np
-    from arraystubs import T3
-
-    from cheartpy.cheart_mesh.data import CheartMesh
 
 
 def create_cylinder_mesh(

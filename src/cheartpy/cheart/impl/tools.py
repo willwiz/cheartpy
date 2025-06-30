@@ -1,11 +1,6 @@
-from __future__ import annotations
+from collections.abc import Mapping
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from cheartpy.cheart.trait import IExpression, IVariable
+from cheartpy.cheart.trait import IExpression, IVariable
 
 
 def recurse_get_var_list_var(var: IVariable) -> Mapping[str, IVariable]:

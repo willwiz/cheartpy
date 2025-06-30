@@ -1,19 +1,15 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 __all__ = ["compute_stats", "get_variable_getter"]
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 import numpy as np
+from arraystubs import Arr1, Arr2
 
 from cheartpy.io.indexing.search import get_var_index
 
 from .impls import Variable0Getter, Variable1Getter, Variable2Getter
 from .traits import IVariable, IVariableGetter, VarErrors, VarStats
-
-if TYPE_CHECKING:
-    from arraystubs import Arr1, Arr2
 
 
 def moving_average[T: np.floating](x: Arr2[T], w: int) -> Arr1[T]:
