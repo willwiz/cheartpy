@@ -14,10 +14,7 @@ from typing import TypedDict, Unpack
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-from pytools.logging.api import NULL_LOGGER
-from pytools.logging.trait import ILogger
-
-from cheartpy.cheart_mesh.struct import (
+from cheartpy.mesh.struct import (
     CheartMesh,
     CheartMeshPatch,
     CheartMeshSpace,
@@ -27,6 +24,8 @@ from cheartpy.mesh.surface_core.surface import (
     compute_mesh_outer_normal_at_nodes,
     compute_normal_surface_at_center,
 )
+from pytools.logging.api import NULL_LOGGER
+from pytools.logging.trait import ILogger
 
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
 

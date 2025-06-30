@@ -13,7 +13,7 @@ from typing import Final, Literal, TypedDict
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-from cheartpy.io.indexing.interfaces import SearchMode
+from cheartpy.search.trait import SearchMode
 from cheartpy.vtk.api import guess_elem_type_from_dim
 from cheartpy.vtk.trait import VtkType
 from pytools.logging.trait import LogLevel

@@ -1,8 +1,8 @@
 __all__ = ["create_cl_dilation_constraint_problem"]
 
-from cheartpy.cheart.api import create_expr
-from cheartpy.cheart.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
-from cheartpy.cheart.trait import IVariable
+from cheartpy.fe.api import create_expr
+from cheartpy.fe.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
+from cheartpy.fe.trait import IVariable
 
 from .struct import CLTopology
 

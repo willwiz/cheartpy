@@ -2,9 +2,9 @@ from typing import Literal
 
 import numpy as np
 from arraystubs import T3
+from cheartpy.mesh.hex_core.api import create_hex_mesh
+from cheartpy.mesh.interpolate.remeshing import create_quad_mesh_from_lin_cylindrical
 from cheartpy.mesh.struct import CheartMesh
-from cheartpy.meshing.hex_core.api import create_hex_mesh
-from cheartpy.meshing.interpolate.remeshing import create_quad_mesh_from_lin_cylindrical
 
 from .core import (
     convert_to_cylindrical,

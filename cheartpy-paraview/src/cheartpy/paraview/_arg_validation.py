@@ -2,9 +2,9 @@ __all__ = ["process_cmdline_args"]
 from pathlib import Path
 from typing import TypeIs, overload
 
-from cheartpy.io.indexing.api import get_file_name_indexer
-from cheartpy.io.indexing.interfaces import IIndexIterator
 from cheartpy.mesh.io import fix_suffix
+from cheartpy.search.api import get_file_name_indexer
+from cheartpy.search.trait import IIndexIterator
 from pytools.logging.trait import ILogger
 
 from ._headers import print_input_info

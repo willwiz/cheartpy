@@ -21,4 +21,5 @@ dependencies = [
   "numpy",
   "cheartpy-io",
   "cheartpy-vtk",
+  "cheartpy-search",
 ]
