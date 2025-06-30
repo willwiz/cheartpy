@@ -6,14 +6,12 @@ build-backend = "setuptools.build_meta"
 where = [
   "cheartpy-abaqus/src",
   "cheartpy-cl/src",
-  "cheartpy-cmd-tools/src",
   "cheartpy-fe/src",
   "cheartpy-io/src",
   "cheartpy-mesh/src",
   "cheartpy-paraview/src",
   "cheartpy-search/src",
   "cheartpy-vtk/src",
-  "cheartpy-xml/src",
 ]
 include = ["cheartpy.*"]
 
