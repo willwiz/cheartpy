@@ -9,8 +9,8 @@ from pathlib import Path
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-from cheartpy.io.indexing.interfaces import IIndexIterator
 from cheartpy.mesh.io import chread_b_utf
+from cheartpy.search.trait import IIndexIterator
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.vtk.trait import VtkType
 from cheartpy.xml.xml import XMLElement

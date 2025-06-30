@@ -4,10 +4,9 @@ from typing import cast
 
 import numpy as np
 from arraystubs import Arr, Arr1, Arr2
+from cheartpy.io.api import chread_d, chwrite_d_utf
+from cheartpy.mesh.struct import CheartMesh
 from numpy import interp
-
-from cheartpy.cheart_mesh.io import chread_d, chwrite_d_utf
-from cheartpy.cheart_mesh.struct import CheartMesh
 
 
 def unbias[T: np.floating, D: (tuple[int], tuple[int, int], tuple[int, int, int])](

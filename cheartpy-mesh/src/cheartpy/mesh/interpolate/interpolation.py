@@ -4,7 +4,7 @@ from typing import cast
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-from cheartpy.mesh.io import chread_d, chwrite_d_utf
+from cheartpy.io.api import chread_d, chwrite_d_utf
 from cheartpy.mesh.struct import CheartMesh
 from pytools.logging.api import NULL_LOGGER
 from pytools.logging.trait import ILogger

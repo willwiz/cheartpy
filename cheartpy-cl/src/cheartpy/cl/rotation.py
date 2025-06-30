@@ -2,9 +2,9 @@ __all__ = ["create_rotation_constraint"]
 from collections.abc import Mapping, Sequence
 from typing import Literal, TypedDict, Unpack
 
-from cheartpy.cheart.api import create_expr
-from cheartpy.cheart.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
-from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
+from cheartpy.fe.api import create_expr
+from cheartpy.fe.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
+from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
 
 ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Sequence[Literal["x", "y", "z"]]]
 

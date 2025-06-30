@@ -9,13 +9,12 @@ from typing import cast
 
 import numpy as np
 from arraystubs import Arr1, Arr2
+from cheartpy.mesh.struct import CheartMesh
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.vtk.trait import VtkElem
 from numpy.linalg import lstsq
 from pytools.logging.api import NULL_LOGGER
 from pytools.logging.trait import ILogger
-
-from mesh.struct import CheartMesh
 
 _REGRESS_TOL = 0.01
 _DBL_TOL = 1.0e-14

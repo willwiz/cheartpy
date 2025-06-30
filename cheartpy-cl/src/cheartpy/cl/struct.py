@@ -14,9 +14,8 @@ from typing import TypedDict
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-
-from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
-from cheartpy.cheart_mesh.struct import CheartMesh
+from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
+from cheartpy.mesh.struct import CheartMesh
 
 CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 

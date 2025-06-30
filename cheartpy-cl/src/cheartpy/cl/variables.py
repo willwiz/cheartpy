@@ -9,9 +9,8 @@ from typing import overload
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-
-from cheartpy.cheart.api import create_variable
-from cheartpy.cheart.trait import IVariable
+from cheartpy.fe.api import create_variable
+from cheartpy.fe.trait import IVariable
 
 from .struct import CLPartition, CLTopology
 

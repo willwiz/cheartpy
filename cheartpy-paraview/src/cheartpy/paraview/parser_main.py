@@ -3,7 +3,7 @@ import argparse
 from collections.abc import Sequence
 from typing import Unpack
 
-from cheartpy.io.indexing.interfaces import SearchMode
+from cheartpy.search.trait import SearchMode
 from pytools.logging.trait import LogLevel
 
 from .struct import APIKwargs, CmdLineArgs

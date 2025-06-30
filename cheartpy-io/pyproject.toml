@@ -15,9 +15,4 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = [
-  "arraystubs@git+https://github.com/willwiz/arraystubs",
-  "pytools@git+https://github.com/willwiz/pytools",
-  "numpy",
-  "cheartpy-vtk",
-]
+dependencies = ["arraystubs@git+https://github.com/willwiz/arraystubs", "numpy"]
