@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheartpy-vtk"
+version = "0.0.1"
+authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
+description = "Python module for creating Cheart pfiles and executing them."
+readme = "README.md"
+requires-python = ">=3.12"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Linux",
+  "Development Status :: 0 - Alpha",
+]
+dependencies = ["arraystubs@git+https://github.com/willwiz/arraystubs", "numpy"]
