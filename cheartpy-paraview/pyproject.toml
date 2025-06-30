@@ -21,9 +21,8 @@ classifiers = [
 ]
 dependencies = [
   "arraystubs@git+https://github.com/willwiz/arraystubs",
-  "cheartpy-search",
-  "cheartpy-vtk",
-  "cheartpy-xml",
   "pytools@git+https://github.com/willwiz/pytools",
   "numpy",
+  "cheartpy-io",
+  "cheartpy-vtk",
 ]
