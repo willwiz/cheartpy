@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
-from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import Literal, TextIO, TypedDict, Unpack
 
 from cheartpy.cheart.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from cheartpy.cheart.api import create_bc
@@ -14,9 +13,6 @@ from cheartpy.cheart.trait import (
     IProblem,
     IVariable,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence, ValuesView
 
 type SOLID_VARIABLES = Literal[
     "Space",

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = ["TimeScheme"]
 import dataclasses as dc
 from typing import TextIO

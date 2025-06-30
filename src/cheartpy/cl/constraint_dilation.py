@@ -1,15 +1,10 @@
-from __future__ import annotations
-
 __all__ = ["create_cl_dilation_constraint_problem"]
-from typing import TYPE_CHECKING
 
 from cheartpy.cheart.api import create_expr
 from cheartpy.cheart.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
+from cheartpy.cheart.trait import IVariable
 
-if TYPE_CHECKING:
-    from cheartpy.cheart.trait import IVariable
-
-    from .struct import CLTopology
+from .struct import CLTopology
 
 
 def create_cl_dilation_constraint_problem(

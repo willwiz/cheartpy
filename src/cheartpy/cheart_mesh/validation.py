@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 __all__ = ["remove_dangling_nodes"]
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
 import numpy as np
+from arraystubs import Arr2
 
 from .struct import (
     CheartMesh,
@@ -13,11 +12,6 @@ from .struct import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from arraystubs import Arr2
 
 
 def create_node_map[T: np.integer](elems: Arr2[T]) -> Mapping[T, int]:
@@ -34,7 +28,7 @@ def _create_new_bnd[T: np.integer](
     node_map: Mapping[T, int],
 ) -> CheartMeshPatch[T]:
     new_v = np.array([[node_map[i] for i in patch] for patch in p.v], dtype=int)
-    return CheartMeshPatch(p.tag, p.n, p.k, new_v)
+    return CheartMeshPatch(p.tag, p.n, p.k, new_v, p.TYPE)
 
 
 def remove_dangling_nodes[F: np.floating, I: np.integer](g: CheartMesh[F, I]) -> CheartMesh[F, I]:

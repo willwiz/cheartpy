@@ -1,14 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 from cheartpy.cheart_mesh.io import fix_suffix
 from cheartpy.io.indexing.interfaces import IIndexIterator, SearchMode
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from .struct import CmdLineArgs
+from .struct import CmdLineArgs
 
 
 def print_guard() -> str:

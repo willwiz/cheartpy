@@ -1,15 +1,11 @@
-from __future__ import annotations
-
 __all__ = ["IVtkElementInterface", "get_element_type"]
 import abc
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Protocol, TextIO
+from typing import ClassVar, Protocol, TextIO
 from warnings import warn
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from arraystubs import Arr1
+from arraystubs import Arr1
 
 
 class IVtkElementInterface(Protocol):
@@ -213,6 +209,6 @@ def get_element_type(
         nbnd = None
     else:
         with Path(boundary).open("r") as f:
-            _ = f.readline()
-            nbnd = len(f.readline().strip().split())
+            _ = next(f)  # skip header
+            nbnd = len(next(f).strip().split())
     return get_element_type_from_nodes(nnodes, nbnd)

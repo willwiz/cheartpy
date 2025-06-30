@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "create_dm_on_cl",
     "create_lm_on_cl",
@@ -7,18 +5,15 @@ __all__ = [
     "ll_interp",
     "set_clvar_ic",
 ]
-from typing import TYPE_CHECKING, overload
+from typing import overload
 
 import numpy as np
+from arraystubs import Arr1, Arr2
 
 from cheartpy.cheart.api import create_variable
+from cheartpy.cheart.trait import IVariable
 
-if TYPE_CHECKING:
-    from arraystubs import Arr1, Arr2
-
-    from cheartpy.cheart.trait import IVariable
-
-    from .struct import CLPartition, CLTopology
+from .struct import CLPartition, CLTopology
 
 
 @overload

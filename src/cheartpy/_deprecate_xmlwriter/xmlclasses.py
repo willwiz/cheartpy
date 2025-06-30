@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import numpy as np
 
 __all__ = ["XMLElement", "XMLWriters"]
@@ -30,7 +28,7 @@ class XMLElement:
     data: Arr2[np.integer] | Arr2[np.floating] | Arr1[np.integer] | None
     datawriter: WRITERSIGS | None
     attribs: str
-    subelems: list[XMLElement]
+    subelems: list["XMLElement"]
 
     def __init__(self, tag: str, **attribs: str) -> None:
         self.tag = tag
@@ -42,7 +40,7 @@ class XMLElement:
         self.datawriter = XMLWriters.int_writer
         self.subelems = []
 
-    def create_elem(self, elem: XMLElement[T]) -> XMLElement[T]:
+    def create_elem(self, elem: "XMLElement") -> "XMLElement":
         self.subelems.append(elem)
         return elem
 

@@ -1,17 +1,13 @@
-from __future__ import annotations
-
+import argparse
 import dataclasses as dc
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
 from cheartpy.cheart_mesh.api import import_cheart_mesh
 from cheartpy.io.indexing.search import get_var_index
 
 from .interpolate.interpolation import interpolate_var_on_lin_topology, make_l2qmap
 from .interpolate.parsing import interp_parser
-
-if TYPE_CHECKING:
-    import argparse
 
 
 @dc.dataclass(slots=True)

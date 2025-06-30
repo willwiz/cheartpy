@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = ["CheartMeshFormat", "CheartVarFormat", "CheartZipFormat"]
 from pathlib import Path
 from typing import Final

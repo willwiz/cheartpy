@@ -1,16 +1,11 @@
-from __future__ import annotations
-
 __all__ = ["SolverMatrix"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, TextIO
+from collections.abc import ValuesView
+from typing import TextIO
 
+from cheartpy.cheart.aliases import MatrixSolverTypes
 from cheartpy.cheart.string_tools import join_fields
 from cheartpy.cheart.trait import ICheartTopology, IExpression, IProblem, ISolverMatrix
-
-if TYPE_CHECKING:
-    from collections.abc import ValuesView
-
-    from cheartpy.cheart.aliases import MatrixSolverTypes
 
 
 @dc.dataclass(slots=True)

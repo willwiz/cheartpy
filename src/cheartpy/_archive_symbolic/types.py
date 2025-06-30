@@ -1,7 +1,5 @@
-from __future__ import annotations
 import abc
 from typing import Final, Literal
-
 
 MATH_OPS = Literal[r"+", r"-", r"*", r"/", r"**", r"%"]
 FUNC_OPS = Literal[r"sin", r"cos", r"abs", r"exp"]
@@ -19,9 +17,8 @@ class _Operator_:
     def __eq__(self, other: object) -> bool:
         if isinstance(other, self.__class__):
             return self.op == other.op
-        raise ValueError(
-            f"__eq__ operator of {self.__class__} is in compatible with {other.__class__}"
-        )
+        msg = f"__eq__ operator of {self.__class__} is in compatible with {other.__class__}"
+        raise ValueError(msg)
 
     # def __eq__(self, __value) -> bool:
     #     if not isinstance()
@@ -29,43 +26,36 @@ class _Operator_:
 
 
 class _Add_(_Operator_):
-
     def __init__(self) -> None:
         super().__init__("+")
 
 
 class _Sub_(_Operator_):
-
     def __init__(self) -> None:
         super().__init__("-")
 
 
 class _Mul_(_Operator_):
-
     def __init__(self) -> None:
         super().__init__("*")
 
 
 class _Div_(_Operator_):
-
     def __init__(self) -> None:
         super().__init__("/")
 
 
 class _Pow_(_Operator_):
-
     def __init__(self) -> None:
         super().__init__("**")
 
 
 class _Mod_(_Operator_):
-
     def __init__(self) -> None:
         super().__init__("%")
 
 
 class _Fun_(_Operator_):
-
     def __init__(self, name: MATH_OPS) -> None:
         super().__init__(name)
 
@@ -74,7 +64,7 @@ class Number(abc.ABC):
     __slots__ = ["val"]
     val: float | int
 
-    def __init__(self, val: float | int) -> None:
+    def __init__(self, val: float) -> None:
         self.val = val
 
     def __repr__(self) -> str:
@@ -86,55 +76,56 @@ class Number(abc.ABC):
         return False
 
     def __add__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression:
         if isinstance(other, Number):
             return type(self)(self.val + other.val)
-        else:
-            return other.__add__(self)
+        return other.__add__(self)
 
     def __sub__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression:
         if isinstance(other, Number):
             return type(self)(self.val - other.val)
-        else:
-            return other.__mul__(Number(-1)).__add__(self)
+        return other.__mul__(Number(-1)).__add__(self)
 
     def __mul__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression:
         if isinstance(other, Number):
             return type(self)(self.val * other.val)
-        else:
-            return other.__mul__(self)
+        return other.__mul__(self)
 
     def __div__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression:
         if isinstance(other, Number):
             return type(self)(self.val / other.val)
-        elif isinstance(other, _Symbol):
+        if isinstance(other, _Symbol):
             return _Expression(self, _Div_(), other)
-        elif isinstance(other, _Expression):
+        if isinstance(other, _Expression):
             return other.__num_div__(self)
         raise ValueError("Number Division went wrong!!")
 
     def __pow__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression:
         if isinstance(other, Number):
             return type(self)(self.val**other.val)
-        else:
-            return _Expression(self, _Pow_(), other)
+        return _Expression(self, _Pow_(), other)
 
     def __mod__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression:
         if isinstance(other, Number):
             return type(self)(self.val % other.val)
-        else:
-            return _Expression(self, _Mod_(), other)
+        return _Expression(self, _Mod_(), other)
 
     def mergeable(self, other) -> bool:
         if isinstance(other, Number):
@@ -185,9 +176,9 @@ class _Expression:
 
     def __init__(
         self,
-        term1: _Expression | _Symbol | Number | int | float,
+        term1: _Expression | _Symbol | Number | float,
         op: _Operator_,
-        term2: _Expression | _Symbol | Number | int | float,
+        term2: _Expression | _Symbol | Number | float,
     ) -> None:
         self.term1 = Number(term1) if isinstance(term1, (int, float)) else term1
         self.op = op
@@ -198,31 +189,31 @@ class _Expression:
 
     def __eq__(self, other) -> bool:
         if isinstance(other, _Expression):
-            return (
-                self.term1 == other.term1
-                and self.op == other.op
-                and self.term2 == other.term2
-            )
+            return self.term1 == other.term1 and self.op == other.op and self.term2 == other.term2
         return False
 
     @abc.abstractmethod
     def __add__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression: ...
 
     @abc.abstractmethod
     def __sub__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression: ...
 
     @abc.abstractmethod
     def __mul__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression: ...
 
     @abc.abstractmethod
     def __div__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression: ...
 
     @abc.abstractmethod
@@ -233,12 +224,14 @@ class _Expression:
 
     @abc.abstractmethod
     def __pow__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression: ...
 
     @abc.abstractmethod
     def __mod__(
-        self, other: Number | _Symbol | _Expression
+        self,
+        other: Number | _Symbol | _Expression,
     ) -> Number | _Symbol | _Expression: ...
 
     @abc.abstractmethod
@@ -246,7 +239,8 @@ class _Expression:
 
 
 def str_expr(
-    *vals: _Expression | _Symbol | _Operator_ | Number | None, char: str = " "
+    *vals: _Expression | _Symbol | _Operator_ | Number | None,
+    char: str = " ",
 ) -> str:
     values = [str(v) for v in vals if v is not None]
     return char.join(values)

@@ -4,7 +4,7 @@ from typing import Literal, overload
 import numpy as np
 from arraystubs import T3
 
-from cheartpy.cheart_mesh.data import CheartMesh
+from cheartpy.cheart_mesh.struct import CheartMesh
 
 @overload
 def create_cylinder_mesh(

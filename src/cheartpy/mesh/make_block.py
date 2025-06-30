@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-from __future__ import annotations
-
 import argparse
 
 from .hex_core.api import create_hex_mesh

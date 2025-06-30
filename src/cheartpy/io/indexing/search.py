@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "find_var_index",
     "find_var_subindex",
@@ -9,13 +7,11 @@ __all__ = [
 ]
 import re
 from collections import defaultdict
+from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from typing import Literal
 
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
-
-    from pytools.logging.trait import ILogger
+from pytools.logging.trait import ILogger
 
 DFILE_TEMP = re.compile(r"(^.*)-(\d+|\d+\.\d+)\.(D|D\.gz)")
 

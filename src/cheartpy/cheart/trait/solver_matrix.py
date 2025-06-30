@@ -1,12 +1,8 @@
-from __future__ import annotations
-
 import abc
-from typing import TYPE_CHECKING, TextIO
+from collections.abc import ValuesView
+from typing import TextIO
 
-if TYPE_CHECKING:
-    from collections.abc import ValuesView
-
-    from .basic import ICheartTopology, IExpression, IProblem
+from .basic import ICheartTopology, IExpression, IProblem
 
 __all__ = ["ISolverMatrix"]
 

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = ["cline", "get_enum", "header", "hline", "join_fields", "splicegen"]
 
 from ._pytools import (

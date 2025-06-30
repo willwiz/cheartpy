@@ -2,7 +2,7 @@ __all__ = ["create_hex_mesh"]
 import numpy as np
 from arraystubs import T3
 
-from cheartpy.cheart_mesh.data import CheartMesh
+from cheartpy.cheart_mesh.struct import CheartMesh
 
 def create_hex_mesh(
     dim: T3[int],

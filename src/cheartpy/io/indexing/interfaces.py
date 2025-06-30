@@ -1,12 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["IIndexIterator", "ProgramMode", "SearchMode"]
 import abc
 import enum
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
+from collections.abc import Iterator
 
 
 class ProgramMode(enum.StrEnum):

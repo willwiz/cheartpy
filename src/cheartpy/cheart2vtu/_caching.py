@@ -1,24 +1,18 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 import numpy as np
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+
+from arraystubs import Arr2
+from pytools.logging.trait import ILogger
 
 from cheartpy.cheart_mesh.io import chread_d, chread_d_utf
+from cheartpy.io.indexing.interfaces import IIndexIterator
 
 from .struct import CheartTopology, ProgramArgs, VariableCache
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from arraystubs import Arr2
-    from pytools.logging.trait import ILogger
-
-    from cheartpy.io.indexing.interfaces import IIndexIterator
 
 
 def init_variable_cache[F: np.floating, I: np.integer](

@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["Variable"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, Self, TextIO, overload
+from collections.abc import ValuesView
+from typing import Literal, Self, TextIO, overload
 
 from cheartpy.cheart.aliases import (
     VARIABLE_UPDATE_SETTING,
@@ -11,9 +10,6 @@ from cheartpy.cheart.aliases import (
 )
 from cheartpy.cheart.string_tools import get_enum, join_fields
 from cheartpy.cheart.trait import ICheartTopology, IExpression, IVariable
-
-if TYPE_CHECKING:
-    from collections.abc import ValuesView
 
 
 @dc.dataclass(slots=True)

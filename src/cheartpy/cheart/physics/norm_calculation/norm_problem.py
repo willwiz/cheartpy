@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 __all__ = ["NormProblem"]
-from typing import TYPE_CHECKING, Literal, TextIO
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import Literal, TextIO
 
 from cheartpy.cheart.api import create_bc
 from cheartpy.cheart.string_tools import join_fields
@@ -13,9 +12,6 @@ from cheartpy.cheart.trait import (
     IProblem,
     IVariable,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence, ValuesView
 
 
 class NormProblem(IProblem):

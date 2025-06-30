@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "CheartMesh",
     "CheartMeshBoundary",
@@ -8,18 +6,14 @@ __all__ = [
     "CheartMeshTopology",
 ]
 import dataclasses as dc
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
 
 import numpy as np
+from arraystubs import Arr1, Arr2
+
+from cheartpy.vtk.trait import VtkType
 
 from .io import check_for_meshes, chwrite_d_utf, chwrite_iarr_utf, chwrite_t_utf, fix_suffix
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from arraystubs import Arr1, Arr2
-
-    from cheartpy.vtk.trait import VtkType
 
 
 @dc.dataclass(slots=True)
@@ -47,6 +41,7 @@ class CheartMeshPatch[T: np.integer]:
     n: int
     k: Arr1[T]
     v: Arr2[T]
+    TYPE: VtkType
 
     def to_array(self) -> Arr2[T]:
         res = np.pad(self.v + 1, ((0, 0), (1, 1)))

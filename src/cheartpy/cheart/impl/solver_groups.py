@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["SolverGroup", "SolverSubGroup"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, TextIO
+from collections.abc import Mapping, Sequence, ValuesView
+from typing import Literal, TextIO
 
 from cheartpy.cheart.aliases import (
     ITERATION_SETTINGS,
@@ -24,9 +23,6 @@ from cheartpy.cheart.trait import (
 )
 
 from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence, ValuesView
 
 """
 Cheart dataclasses

@@ -1,8 +1,7 @@
-from __future__ import annotations
-
 __all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, TextIO
+from collections.abc import Sequence, ValuesView
+from typing import Literal, TextIO
 
 from cheartpy.cheart.api import create_bc
 from cheartpy.cheart.string_tools import join_fields
@@ -14,9 +13,6 @@ from cheartpy.cheart.trait import (
     IProblem,
     IVariable,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence, ValuesView
 
 
 @dc.dataclass(slots=True)

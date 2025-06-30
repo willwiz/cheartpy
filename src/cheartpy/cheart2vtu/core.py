@@ -1,36 +1,28 @@
-from __future__ import annotations
-
 __all__ = [
     "export_boundary",
     "run_exports_in_parallel",
     "run_exports_in_series",
 ]
+from collections.abc import Mapping
 from concurrent import futures
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
+from arraystubs import Arr1, Arr2
+from pytools.logging.trait import ILogger
 from pytools.parallel.parallel_exec import PEXEC_ARGS, parallel_exec
 from pytools.progress.progress_bar import ProgressBar
 
 from cheartpy.cheart_mesh.io import chread_b_utf
+from cheartpy.io.indexing.interfaces import IIndexIterator
 from cheartpy.vtk.api import get_vtk_elem
+from cheartpy.vtk.trait import VtkType
 from cheartpy.xml.xml import XMLElement
 
 from ._caching import update_variable_cache
 from ._third_party import compress_vtu
 from ._variable_getter import CheartVTUFormat
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from arraystubs import Arr1, Arr2
-    from pytools.logging.trait import ILogger
-
-    from cheartpy.io.indexing.interfaces import IIndexIterator
-    from cheartpy.vtk.trait import VtkType
-
-    from .struct import CheartTopology, ProgramArgs, VariableCache
+from .struct import CheartTopology, ProgramArgs, VariableCache
 
 
 def create_xml_for_boundary[I: np.integer, F: np.floating](

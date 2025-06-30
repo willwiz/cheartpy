@@ -1,16 +1,12 @@
-from __future__ import annotations
-
 import dataclasses as dc
 
 __all__ = ["VTK_TYPE", "VtkElem", "VtkType"]
 import enum
-from typing import TYPE_CHECKING, Literal, NamedTuple
+from collections.abc import Callable
+from typing import Literal, NamedTuple
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    import numpy as np
-    from arraystubs import Arr1, Arr2
+import numpy as np
+from arraystubs import Arr1, Arr2
 
 
 class _Vtk(NamedTuple):

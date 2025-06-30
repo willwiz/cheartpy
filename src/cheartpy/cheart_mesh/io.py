@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 __all__ = [
     "check_for_meshes",
     "chread_b_utf",
@@ -17,13 +15,9 @@ __all__ = [
 ]
 import struct
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
-
-if TYPE_CHECKING:
-    from arraystubs import Arr, Arr2
-
+from arraystubs import Arr, Arr2
 
 """
 CHeart Read Array functions
@@ -36,15 +30,13 @@ def is_binary(filename: Path | str) -> bool:
         # or codecs.open on Python <= 2.5
         # or io.open on Python > 2.5 and <= 2.7
         with filename.open("r") as f:
-            line = f.readline().strip().split()
-            _ = [int(i) for i in line]
+            _ = [int(i) for i in next(f).strip().split()]
     except ValueError:
         try:
             # or codecs.open on Python <= 2.5
             # or io.open on Python > 2.5 and <= 2.7
             with filename.open("rb") as f:
-                line = f.readline().strip().split()
-                _ = [float(i) for i in line]
+                _ = [float(i) for i in next(f).strip().split()]
         except ValueError:
             return True
         else:
@@ -97,7 +89,7 @@ def chread_t_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -
 
 def chread_header_utf(file: Path | str) -> tuple[int, int]:
     with Path(file).open("r") as f:
-        items = f.readline().strip().split()
+        items = next(f).strip().split()
         nelem = int(items[0])
         nnode = int(items[1])
     return nelem, nnode

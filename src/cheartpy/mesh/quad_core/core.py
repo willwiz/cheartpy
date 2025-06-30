@@ -1,11 +1,9 @@
-from __future__ import annotations
-
 __all__ = ["create_square_mesh"]
-from typing import TYPE_CHECKING
 
 import numpy as np
+from arraystubs import T2, Arr1, Arr2
 
-from cheartpy.cheart_mesh.data import (
+from cheartpy.cheart_mesh.struct import (
     CheartMesh,
     CheartMeshBoundary,
     CheartMeshPatch,
@@ -14,9 +12,6 @@ from cheartpy.cheart_mesh.data import (
 )
 from cheartpy.vtk.struct import VTKLINE1, VTKQUADRILATERAL1
 from cheartpy.vtk.trait import VtkType
-
-if TYPE_CHECKING:
-    from arraystubs import T2, Arr1, Arr2
 
 
 def create_square_nodal_index(nx: int, ny: int) -> Arr2[np.intc]:
@@ -85,7 +80,7 @@ def create_boundary_side_x_cw[I: np.integer](
     for j in iy:
         patch[j] = [node_index[ix + 1, j + m] for m, *_ in VTKLINE1.nodes]
         elems[j] = elem_index[ix, j]
-    return CheartMeshPatch(tag, len(patch), elems, patch)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkType.LinLine)
 
 
 def create_boundary_side_x_ccw[I: np.integer](
@@ -100,7 +95,7 @@ def create_boundary_side_x_ccw[I: np.integer](
     for j in iy:
         patch[j] = [node_index[ix, j + m] for m, *_ in reversed(VTKLINE1.nodes)]
         elems[j] = elem_index[ix, j]
-    return CheartMeshPatch(tag, len(patch), elems, patch)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkType.LinLine)
 
 
 def create_boundary_side_y_cw[I: np.integer](
@@ -115,7 +110,7 @@ def create_boundary_side_y_cw[I: np.integer](
     for i in ix:
         patch[i] = [node_index[i + m, iy + 1] for m, *_ in VTKLINE1.nodes]
         elems[i] = elem_index[i, iy]
-    return CheartMeshPatch(tag, len(patch), elems, patch)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkType.LinLine)
 
 
 def create_boundary_side_y_ccw[I: np.integer](
@@ -130,7 +125,7 @@ def create_boundary_side_y_ccw[I: np.integer](
     for i in ix:
         patch[i] = [node_index[i + m, iy] for m, *_ in reversed(VTKLINE1.nodes)]
         elems[i] = elem_index[i, iy]
-    return CheartMeshPatch(tag, len(patch), elems, patch)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkType.LinLine)
 
 
 def create_boundary[I: np.integer](
