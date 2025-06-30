@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from cheartpy.mesh.io import fix_suffix
+from cheartpy.io.api import fix_suffix
 from cheartpy.search.trait import IIndexIterator, SearchMode
 
 from .struct import CmdLineArgs

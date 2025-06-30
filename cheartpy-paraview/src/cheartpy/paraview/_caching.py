@@ -7,7 +7,7 @@ __all__ = ["init_variable_cache", "update_variable_cache"]
 from collections.abc import Mapping
 
 from arraystubs import Arr2
-from cheartpy.mesh.io import chread_d, chread_d_utf
+from cheartpy.io.api import chread_d, chread_d_utf
 from cheartpy.search.trait import IIndexIterator
 from pytools.logging.trait import ILogger
 

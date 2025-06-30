@@ -5,7 +5,7 @@ from typing import Unpack
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-from cheartpy.mesh.io import chwrite_str_utf
+from cheartpy.io.api import chwrite_str_utf
 from cheartpy.mesh.struct import (
     CheartMeshBoundary,
     CheartMeshPatch,

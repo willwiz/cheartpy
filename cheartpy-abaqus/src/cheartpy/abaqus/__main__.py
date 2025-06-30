@@ -11,7 +11,7 @@ from typing import Any, NamedTuple, Self, TextIO
 
 import numpy as np
 from arraystubs import Arr2
-from cheartpy.mesh.io import (
+from cheartpy.io.api import (
     chwrite_d_utf,
     chwrite_iarr_utf,
     chwrite_str_utf,

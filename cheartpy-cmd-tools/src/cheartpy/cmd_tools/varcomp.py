@@ -1,7 +1,7 @@
 __all__ = ["main"]
 import argparse
 
-from cheartpy.mesh.io import chread_d
+from cheartpy.io.api import chread_d
 from pytools.logging.api import BLogger
 
 from .funcs import compute_stats, get_variable_getter, get_variables
