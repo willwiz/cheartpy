@@ -24,5 +24,6 @@ dependencies = [
   "pytools@git+https://github.com/willwiz/pytools",
   "numpy",
   "cheartpy-mesh",
+  "cheartpy-io",
   "cheartpy-vtk",
 ]

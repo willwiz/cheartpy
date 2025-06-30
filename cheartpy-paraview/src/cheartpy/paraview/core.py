@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 from arraystubs import Arr1, Arr2
-from cheartpy.mesh.io import chread_b_utf
+from cheartpy.io.api import chread_b_utf
 from cheartpy.search.trait import IIndexIterator
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.vtk.trait import VtkType
