@@ -2,10 +2,6 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["src/"]
-include = ["cheartpy.mesh"]
-
 [project]
 name = "cheartpy-mesh"
 version = "0.0.1"
@@ -26,3 +22,7 @@ dependencies = [
   "cheartpy-io",
   "cheartpy-vtk",
 ]
+
+[tool.uv.build-backend]
+module-name = "cheartpy"
+namespace = true

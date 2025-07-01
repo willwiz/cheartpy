@@ -2,10 +2,6 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["src/"]
-include = ["cheartpy.cl"]
-
 [project]
 name = "cheartpy-cl"
 version = "0.0.1"
@@ -26,3 +22,7 @@ dependencies = [
   "cheartpy-mesh",
   "numpy",
 ]
+
+[tool.uv.build-backend]
+module-name = "cheartpy"
+namespace = true
