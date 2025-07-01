@@ -2,10 +2,6 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["src/"]
-include = ["cheartpy.vtk"]
-
 [project]
 name = "cheartpy-vtk"
 version = "0.0.1"
@@ -20,3 +16,7 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 dependencies = ["arraystubs@git+https://github.com/willwiz/arraystubs", "numpy"]
+
+[tool.uv.build-backend]
+module-name = "cheartpy"
+namespace = true

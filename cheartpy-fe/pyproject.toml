@@ -20,3 +20,7 @@ dependencies = [
   "pytools@git+https://github.com/willwiz/pytools",
   "numpy",
 ]
+
+[tool.uv.build-backend]
+module-name = "cheartpy"
+namespace = true
