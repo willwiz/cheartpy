@@ -40,20 +40,55 @@ dependencies = [
     { name = "pytools" },
 ]
 
+[package.optional-dependencies]
+abaqus = [
+    { name = "cheartpy-abaqus" },
+]
+all = [
+    { name = "cheartpy-abaqus" },
+    { name = "cheartpy-cl" },
+    { name = "cheartpy-fe" },
+    { name = "cheartpy-io" },
+    { name = "cheartpy-mesh" },
+    { name = "cheartpy-paraview" },
+    { name = "cheartpy-vtk" },
+]
+fe = [
+    { name = "cheartpy-fe" },
+    { name = "cheartpy-mesh" },
+    { name = "cheartpy-paraview" },
+]
+mesh = [
+    { name = "cheartpy-mesh" },
+]
+vtu = [
+    { name = "cheartpy-mesh" },
+    { name = "cheartpy-paraview" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
-    { name = "cheartpy-abaqus", editable = "cheartpy-abaqus" },
-    { name = "cheartpy-cl", editable = "cheartpy-cl" },
-    { name = "cheartpy-fe", editable = "cheartpy-fe" },
-    { name = "cheartpy-io", editable = "cheartpy-io" },
-    { name = "cheartpy-mesh", editable = "cheartpy-mesh" },
-    { name = "cheartpy-paraview", editable = "cheartpy-paraview" },
-    { name = "cheartpy-vtk", editable = "cheartpy-vtk" },
+    { name = "cheartpy", extras = ["all"], editable = "." },
+    { name = "cheartpy-abaqus", marker = "extra == 'abaqus'", editable = "cheartpy-abaqus" },
+    { name = "cheartpy-abaqus", marker = "extra == 'all'", editable = "cheartpy-abaqus" },
+    { name = "cheartpy-cl", marker = "extra == 'all'", editable = "cheartpy-cl" },
+    { name = "cheartpy-fe", marker = "extra == 'all'", editable = "cheartpy-fe" },
+    { name = "cheartpy-fe", marker = "extra == 'fe'", editable = "cheartpy-fe" },
+    { name = "cheartpy-io", marker = "extra == 'all'", editable = "cheartpy-io" },
+    { name = "cheartpy-mesh", marker = "extra == 'all'", editable = "cheartpy-mesh" },
+    { name = "cheartpy-mesh", marker = "extra == 'fe'", editable = "cheartpy-mesh" },
+    { name = "cheartpy-mesh", marker = "extra == 'mesh'", editable = "cheartpy-mesh" },
+    { name = "cheartpy-mesh", marker = "extra == 'vtu'", editable = "cheartpy-mesh" },
+    { name = "cheartpy-paraview", marker = "extra == 'all'", editable = "cheartpy-paraview" },
+    { name = "cheartpy-paraview", marker = "extra == 'fe'", editable = "cheartpy-paraview" },
+    { name = "cheartpy-paraview", marker = "extra == 'vtu'", editable = "cheartpy-paraview" },
+    { name = "cheartpy-vtk", marker = "extra == 'all'", editable = "cheartpy-vtk" },
     { name = "meshio" },
     { name = "numpy" },
     { name = "pytools", git = "https://github.com/willwiz/pytools" },
 ]
+provides-extras = ["all", "mesh", "vtu", "abaqus", "fe"]
 
 [[package]]
 name = "cheartpy-abaqus"
@@ -276,8 +311,8 @@ wheels = [
 
 [[package]]
 name = "pytools"
-version = "1.0.1a2"
-source = { git = "https://github.com/willwiz/pytools#e709946cf05a54ab0187920cc07c32d2620f84f6" }
+version = "1.0.2a1"
+source = { git = "https://github.com/willwiz/pytools#549e83392a1af3c74de67ece1d6f65e74f320174" }
 
 [[package]]
 name = "rich"
