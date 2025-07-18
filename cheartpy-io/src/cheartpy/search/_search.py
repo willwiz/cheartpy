@@ -21,6 +21,10 @@ def get_var_index(
     prefix: str,
     suffix: Literal[r"D", r"D\.gz", r"vtu"] = r"D",
 ) -> Sequence[int]:
+    """Extract variable indices from a list of file names."""
+    if r".\\" in prefix:
+        msg = f"Prefix {prefix} should not contain '.\\'"
+        raise ValueError(msg)
     p = re.compile(rf"{prefix}-(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]
     return sorted([int(m.group(1)) for m in matches if m])
@@ -31,7 +35,10 @@ def get_var_subindex(
     prefix: str,
     suffix: Literal[r"D", r"D\.gz"] = r"D",
 ) -> Mapping[int, Sequence[int]]:
-    p = re.compile(rf"{prefix}-(\d+)\.(\d+).{suffix}")
+    if r".\\" in prefix:
+        msg = f"Prefix {prefix} should not contain '.\\'"
+        raise ValueError(msg)
+    p = re.compile(rf"{prefix}-(\d+)\.(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]
     matches = sorted([m.groups() for m in matches if m])
     index_lists: dict[int, list[int]] = defaultdict(list)

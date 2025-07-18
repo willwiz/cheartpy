@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from pprint import pformat
 
 from cheartpy.io.api import fix_suffix
 from cheartpy.search.trait import IIndexIterator, SearchMode
@@ -40,12 +41,12 @@ def print_input_info(inp: CmdLineArgs) -> Sequence[str]:
                 f"The boundary file to use is {b}",
                 "<<< The varibles to add are: ",
             ]
-    msg = [*msg, *inp.var]
+
     match inp.index:
         case SearchMode.none:
             msg = [*msg, "No variable will be used for this run"]
         case SearchMode.auto:
-            msg = [*msg, "<<< Attempting to find time steps from variable file names"]
+            msg = [*msg, "<<< Index search model is auto"]
         case (i, j, k):
             msg = [*msg, f"<<< Time step: From {i} to {j} in steps of {k}"]
     match inp.subindex:
@@ -62,6 +63,7 @@ def print_input_info(inp: CmdLineArgs) -> Sequence[str]:
         f"<<< Compress VTU:            {inp.compression}",
         f"<<< Import data as binary:   {inp.binary}",
     ]
+    msg = [*msg, "<<< Variables to be added are:", pformat(inp.var, compact=True)]
     if inp.time_series is not None:
         msg = [*msg, f"<<< Adding time series from {inp.time_series}"]
     return msg

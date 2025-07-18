@@ -7,6 +7,7 @@ __all__ = [
 ]
 import dataclasses as dc
 from collections.abc import Mapping
+from pathlib import Path
 
 import numpy as np
 from arraystubs import Arr1, Arr2
@@ -25,7 +26,7 @@ class CheartMeshSpace[T: np.floating]:
     n: int
     v: Arr2[T]
 
-    def save(self, name: str) -> None:
+    def save(self, name: Path | str) -> None:
         chwrite_d_utf(name, self.v)
 
 
@@ -35,7 +36,7 @@ class CheartMeshTopology[T: np.integer]:
     v: Arr2[T]
     TYPE: VtkType
 
-    def save(self, name: str) -> None:
+    def save(self, name: Path | str) -> None:
         chwrite_t_utf(name, self.v + 1, self.v.max() + 1)
 
 
@@ -60,7 +61,7 @@ class CheartMeshBoundary[T: np.integer]:
     v: Mapping[int, CheartMeshPatch[T]]
     TYPE: VtkType
 
-    def save(self, name: str) -> None:
+    def save(self, name: Path | str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)
         chwrite_iarr_utf(name, data)
 
@@ -71,7 +72,7 @@ class CheartMesh[F: np.floating, I: np.integer]:
     top: CheartMeshTopology[I]
     bnd: CheartMeshBoundary[I] | None
 
-    def save(self, prefix: str, *, forced: bool = False) -> None:
+    def save(self, prefix: Path | str, *, forced: bool = False) -> None:
         if check_for_meshes("prefix") and not forced:
             return
         prefix = fix_suffix(prefix)
