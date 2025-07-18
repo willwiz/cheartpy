@@ -45,11 +45,15 @@ def is_binary(filename: Path | str) -> bool:
         return False
 
 
-def fix_suffix(prefix: str, suffix: str = "_FE.") -> str:
+def fix_suffix[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
+    _prefix = str(prefix)
     for i in range(len(suffix), 0, -1):
-        if prefix.endswith(suffix[:i]):
-            return prefix + suffix[i:]
-    return prefix + suffix
+        if _prefix.endswith(suffix[:i]):
+            _prefix = _prefix + suffix[i:]
+            break
+    else:
+        _prefix = _prefix + suffix
+    return type(prefix)(_prefix)
 
 
 def check_for_meshes(*names: str, bc: bool = True) -> bool:
