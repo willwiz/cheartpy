@@ -20,7 +20,7 @@ dependencies = [
   "pytools@git+https://github.com/willwiz/pytools",
   "numpy",
   "meshio",
-  "cheartpy-io",
+  "cheartpy[all]",
 ]
 
 [project.optional-dependencies]
