@@ -1,6 +1,5 @@
 __all__ = ["cheart2vtu", "cheart2vtu_api", "cheart2vtu_cli", "process_cmdline_args"]
-from collections.abc import Sequence
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
 
 from pytools.logging.api import BLogger
 
@@ -13,7 +12,11 @@ from ._headers import (
 )
 from .core import export_boundary, run_exports_in_parallel, run_exports_in_series
 from .parser_main import APIKwargs, get_api_args, get_cmdline_args
-from .struct import CmdLineArgs
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .struct import CmdLineArgs
 
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None:

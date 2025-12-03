@@ -1,10 +1,11 @@
-__all__ = ["create_cl_dilation_constraint_problem"]
 from typing import overload
 
 from cheartpy.fe.physics.fs_coupling.struct import FSCouplingProblem
 from cheartpy.fe.trait import IVariable
 
 from .struct import CLTopology
+
+__all__ = ["create_cl_dilation_constraint_problem"]
 
 @overload
 def create_cl_dilation_constraint_problem(

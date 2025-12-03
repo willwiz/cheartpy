@@ -4,14 +4,19 @@ import numpy as np
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
 
-from collections.abc import Mapping
 
-from arraystubs import Arr2
+from typing import TYPE_CHECKING
+
 from cheartpy.io.api import chread_d, chread_d_utf
-from cheartpy.search.trait import IIndexIterator
-from pytools.logging.trait import ILogger
 
 from .struct import CheartTopology, ProgramArgs, VariableCache
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from cheartpy.search.trait import IIndexIterator
+    from pytools.arrays import A2
+    from pytools.logging.trait import ILogger
 
 
 def init_variable_cache[F: np.floating, I: np.integer](
@@ -26,13 +31,13 @@ def init_variable_cache[F: np.floating, I: np.integer](
     space = chread_d(fx, dtype=ftype)
     if inp.disp is None:
         fd = None
-        disp: Arr2[F] = np.zeros_like(space, dtype=ftype)
+        disp: A2[F] = np.zeros_like(space, dtype=ftype)
     else:
         fd = inp.disp[i0]
         disp = chread_d(fd, dtype=ftype)
     x = (space + disp).astype(ftype, copy=False)
     fv: dict[str, Path] = dict.fromkeys(inp.var.keys(), Path())
-    var: dict[str, Arr2[F]] = {}
+    var: dict[str, A2[F]] = {}
     for k, fn in inp.var.items():
         name = fn[i0]
         if name.exists():
@@ -49,7 +54,7 @@ def update_variable_cache[F: np.floating, I: np.integer](
     time: int | str,
     cache: VariableCache[F, I],
     log: ILogger,
-) -> tuple[Arr2[F], Mapping[str, Arr2[F]]]:
+) -> tuple[A2[F], Mapping[str, A2[F]]]:
     ftype = cache.space.dtype.type
     if time == cache.t:
         log.debug(f"time point {time} did not change")

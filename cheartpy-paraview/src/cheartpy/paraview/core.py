@@ -3,33 +3,38 @@ __all__ = [
     "run_exports_in_parallel",
     "run_exports_in_series",
 ]
-from collections.abc import Mapping
 from concurrent import futures
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.io.api import chread_b_utf
-from cheartpy.search.trait import IIndexIterator
 from cheartpy.vtk.api import get_vtk_elem
-from cheartpy.vtk.trait import VtkType
-from cheartpy.xml.xml import XMLElement
-from pytools.logging.trait import ILogger
+from cheartpy.xml import XMLElement
 from pytools.parallel.parallel_exec import PEXEC_ARGS, parallel_exec
-from pytools.progress.progress_bar import ProgressBar
+from pytools.progress import ProgressBar
 
 from ._caching import update_variable_cache
 from ._third_party import compress_vtu
 from ._variable_getter import CheartVTUFormat
-from .struct import CheartTopology, ProgramArgs, VariableCache
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from cheartpy.search.trait import IIndexIterator
+    from cheartpy.vtk.trait import VtkType
+    from pytools.arrays import A1, A2
+    from pytools.logging.trait import ILogger
+
+    from .struct import CheartTopology, ProgramArgs, VariableCache
 
 
 def create_xml_for_boundary[I: np.integer, F: np.floating](
     prefix: str,
-    fx: Arr2[F],
+    fx: A2[F],
     vtk_id: VtkType,
-    fb: Arr2[I],
-    fbid: Arr1[I],
+    fb: A2[I],
+    fbid: A1[I],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.create_elem(XMLElement("UnstructuredGrid"))
@@ -94,8 +99,8 @@ def export_boundary[F: np.floating, I: np.integer](
 def create_xml_for_mesh[F: np.floating, I: np.integer](
     prefix: str,
     tp: CheartTopology[I],
-    fx: Arr2[F],
-    var: Mapping[str, Arr2[F]],
+    fx: A2[F],
+    var: Mapping[str, A2[F]],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.create_elem(XMLElement("UnstructuredGrid"))

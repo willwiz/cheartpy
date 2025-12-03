@@ -1,12 +1,14 @@
 __all__ = ["get_api_args", "get_cmdline_args", "main_parser"]
 import argparse
-from collections.abc import Sequence
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
 
 from cheartpy.search.trait import SearchMode
 from pytools.logging.trait import LogLevel
 
 from .struct import APIKwargs, CmdLineArgs
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 main_parser = argparse.ArgumentParser()
 

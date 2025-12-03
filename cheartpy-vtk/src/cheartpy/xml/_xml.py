@@ -1,7 +1,9 @@
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
 import numpy as np
-from arraystubs import Arr, Arr1, Arr2
+
+if TYPE_CHECKING:
+    from pytools.arrays import A1, A2, Arr
 
 
 class XMLData[T: np.number]:
@@ -52,7 +54,7 @@ class XMLElement:
     tag: str
     data: XMLData[np.number] | None
     attribs: str
-    subelems: list["XMLElement"]
+    subelems: list[XMLElement]
 
     def __init__(self, tag: str, **attribs: str) -> None:
         self.tag = tag
@@ -63,13 +65,13 @@ class XMLElement:
         self.data = None
         self.subelems = []
 
-    def create_elem(self, elem: "XMLElement") -> "XMLElement":
+    def create_elem(self, elem: XMLElement) -> XMLElement:
         self.subelems.append(elem)
         return elem
 
     def add_data[S: np.number](
         self,
-        arr: Arr2[S] | Arr1[S],
+        arr: A2[S] | A1[S],
         order: tuple[int, ...] | None = None,
     ) -> None:
         self.data = XMLData(arr, order)

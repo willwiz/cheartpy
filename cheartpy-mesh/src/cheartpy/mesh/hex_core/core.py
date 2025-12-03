@@ -6,8 +6,9 @@ __all__ = [
     "create_topology",
 ]
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import T3, Arr1, Arr3
 from cheartpy.mesh.struct import (
     CheartMeshBoundary,
     CheartMeshPatch,
@@ -17,8 +18,11 @@ from cheartpy.mesh.struct import (
 from cheartpy.vtk.struct import VTKHEXAHEDRON1, VTKQUADRILATERAL1
 from cheartpy.vtk.trait import VtkType
 
+if TYPE_CHECKING:
+    from pytools.arrays import A1, A3, T3
 
-def create_square_nodal_index(nx: int, ny: int, nz: int) -> Arr3[np.intc]:
+
+def create_square_nodal_index(nx: int, ny: int, nz: int) -> A3[np.intc]:
     index = np.zeros((nx + 1, ny + 1, nz + 1), dtype=np.intc)
     nn = 0
     for k in range(nz + 1):
@@ -29,7 +33,7 @@ def create_square_nodal_index(nx: int, ny: int, nz: int) -> Arr3[np.intc]:
     return index
 
 
-def create_square_element_index(nx: int, ny: int, nz: int) -> Arr3[np.intc]:
+def create_square_element_index(nx: int, ny: int, nz: int) -> A3[np.intc]:
     index = np.zeros((nx, ny, nz), dtype=np.intc)
     ne = 0
     for k in range(nz):
@@ -44,7 +48,7 @@ def create_space[I: np.integer](
     shape: T3[float],
     shift: T3[float],
     dim: T3[int],
-    index: Arr3[I],
+    index: A3[I],
 ) -> CheartMeshSpace[np.float64]:
     nx, ny, nz = dim
     lx, ly, lz = shape
@@ -64,8 +68,8 @@ def create_topology[I: np.integer](
     nx: int,
     ny: int,
     nz: int,
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshTopology[I]:
     elems = np.zeros((nx * ny * nz, 8), dtype=node_index.dtype)
     for k in range(nz):
@@ -79,9 +83,9 @@ def create_topology[I: np.integer](
 
 def create_boundary_side_x_cw[I: np.integer](
     tag: int,
-    ip: tuple[int, Arr1[I], Arr1[I]],
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    ip: tuple[int, A1[I], A1[I]],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshPatch[I]:
     ix, iy, iz = ip
     ny, nz = len(iy), len(iz)
@@ -98,9 +102,9 @@ def create_boundary_side_x_cw[I: np.integer](
 
 def create_boundary_side_x_ccw[I: np.integer](
     tag: int,
-    ip: tuple[int, Arr1[I], Arr1[I]],
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    ip: tuple[int, A1[I], A1[I]],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshPatch[I]:
     ix, iy, iz = ip
     ny, nz = len(iy), len(iz)
@@ -117,9 +121,9 @@ def create_boundary_side_x_ccw[I: np.integer](
 
 def create_boundary_side_y_cw[I: np.integer](
     tag: int,
-    ip: tuple[Arr1[I], int, Arr1[I]],
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    ip: tuple[A1[I], int, A1[I]],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshPatch[I]:
     ix, iy, iz = ip
     nx, nz = len(ix), len(iz)
@@ -136,9 +140,9 @@ def create_boundary_side_y_cw[I: np.integer](
 
 def create_boundary_side_y_ccw[I: np.integer](
     tag: int,
-    ip: tuple[Arr1[I], int, Arr1[I]],
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    ip: tuple[A1[I], int, A1[I]],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshPatch[I]:
     ix, iy, iz = ip
     nx, nz = len(ix), len(iz)
@@ -155,9 +159,9 @@ def create_boundary_side_y_ccw[I: np.integer](
 
 def create_boundary_side_z_cw[I: np.integer](
     tag: int,
-    ip: tuple[Arr1[I], Arr1[I], int],
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    ip: tuple[A1[I], A1[I], int],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshPatch[I]:
     ix, iy, iz = ip
     nx, ny = len(ix), len(iy)
@@ -174,9 +178,9 @@ def create_boundary_side_z_cw[I: np.integer](
 
 def create_boundary_side_z_ccw[I: np.integer](
     tag: int,
-    ip: tuple[Arr1[I], Arr1[I], int],
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    ip: tuple[A1[I], A1[I], int],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshPatch[I]:
     ix, iy, iz = ip
     nx, ny = len(ix), len(iy)
@@ -195,8 +199,8 @@ def create_boundary[I: np.integer](
     nx: int,
     ny: int,
     nz: int,
-    node_index: Arr3[I],
-    elem_index: Arr3[I],
+    node_index: A3[I],
+    elem_index: A3[I],
 ) -> CheartMeshBoundary[I]:
     ix = np.arange(nx, dtype=node_index.dtype)
     iy = np.arange(ny, dtype=node_index.dtype)

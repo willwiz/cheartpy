@@ -1,10 +1,11 @@
-__all__ = ["cheart2vtu", "cheart2vtu_api", "cheart2vtu_cli"]
 from collections.abc import Sequence
 from typing import Literal
 
 from pytools.logging.trait import LogLevel
 
 from .struct import CmdLineArgs
+
+__all__ = ["cheart2vtu", "cheart2vtu_api", "cheart2vtu_cli"]
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None: ...
 def cheart2vtu_api(

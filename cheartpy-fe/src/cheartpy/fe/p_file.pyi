@@ -1,4 +1,3 @@
-__all__ = ["PFile"]
 import dataclasses as dc
 from typing import TextIO
 
@@ -15,6 +14,8 @@ from .trait import (
     ITopInterface,
     IVariable,
 )
+
+__all__ = ["PFile"]
 
 @dc.dataclass(slots=True)
 class PFile:

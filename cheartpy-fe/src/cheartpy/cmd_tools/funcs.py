@@ -1,17 +1,20 @@
 from pathlib import Path
-
-__all__ = ["compute_stats", "get_variable_getter"]
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.search.api import get_var_index
 
 from .impls import Variable0Getter, Variable1Getter, Variable2Getter
 from .traits import IVariable, IVariableGetter, VarErrors, VarStats
 
+if TYPE_CHECKING:
+    from pytools.arrays import A1, A2
 
-def moving_average[T: np.floating](x: Arr2[T], w: int) -> Arr1[T]:
+
+__all__ = ["compute_stats", "get_variable_getter"]
+
+
+def moving_average[T: np.floating](x: A2[T], w: int) -> A1[T]:
     dim = x.shape
     mu = np.zeros(dim[0], dtype=x.dtype)
     for i in range(dim[0]):
@@ -24,7 +27,7 @@ def moving_average[T: np.floating](x: Arr2[T], w: int) -> Arr1[T]:
     return mu
 
 
-def compute_stats[T: np.floating](data1: Arr2[T] | float, data2: Arr2[T] | float) -> VarStats:
+def compute_stats[T: np.floating](data1: A2[T] | float, data2: A2[T] | float) -> VarStats:
     res = np.ascontiguousarray(data1 - data2)
     rn = max(1, min(len(res) // 10, 10))
     rollmean = moving_average(res, rn)

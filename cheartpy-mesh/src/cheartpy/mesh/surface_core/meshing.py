@@ -1,14 +1,19 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
 from cheartpy.mesh.struct import CheartMesh, CheartMeshSpace, CheartMeshTopology
 from cheartpy.vtk.api import get_vtk_elem
-from pytools.logging.trait import NULL_LOG, ILogger
+from pytools.logging.api import NLOGGER
+
+if TYPE_CHECKING:
+    from pytools.logging.trait import ILogger
 
 
 def create_mesh_from_surface[F: np.floating, I: np.integer](
     body: CheartMesh[F, I],
     surf_id: int,
     *,
-    log: ILogger = NULL_LOG,
+    log: ILogger = NLOGGER,
 ) -> CheartMesh[F, I]:
     """Create a mesh from a surface defined in the boundary of a CheartMesh.
 

@@ -1,18 +1,22 @@
-__all__ = ["ISolverGroup", "ISolverSubGroup"]
 import abc
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
-from cheartpy.fe.aliases import (
-    ITERATION_SETTINGS,
-    TOL_SETTINGS,
-    IterationSettings,
-    SolverSubgroupAlgorithm,
-    TolSettings,
-)
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
 
-from .basic import IProblem, ITimeScheme, IVariable
-from .solver_matrix import ISolverMatrix
+    from cheartpy.fe.aliases import (
+        ITERATION_SETTINGS,
+        TOL_SETTINGS,
+        IterationSettings,
+        SolverSubgroupAlgorithm,
+        TolSettings,
+    )
+
+    from .basic import IProblem, ITimeScheme, IVariable
+    from .solver_matrix import ISolverMatrix
+
+
+__all__ = ["ISolverGroup", "ISolverSubGroup"]
 
 
 class ISolverSubGroup(abc.ABC):

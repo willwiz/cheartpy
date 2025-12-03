@@ -1,6 +1,8 @@
 __all__ = ["get_vtk_elem", "guess_elem_type_from_dim"]
 
 
+from typing import TYPE_CHECKING
+
 from .struct import (
     VTKHEXAHEDRON1,
     VTKHEXAHEDRON2,
@@ -11,7 +13,9 @@ from .struct import (
     VTKTRIANGLE2,
     get_vtk_elem,
 )
-from .trait import VtkElem
+
+if TYPE_CHECKING:
+    from .trait import VtkElem
 
 
 def guess_elem_type_from_dim(edim: int, bdim: int | None) -> VtkElem:

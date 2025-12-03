@@ -1,8 +1,10 @@
 import abc
-from collections.abc import ValuesView
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
-from .basic import ICheartTopology, IExpression, IProblem
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+    from .basic import ICheartTopology, IExpression, IProblem
 
 __all__ = ["ISolverMatrix"]
 

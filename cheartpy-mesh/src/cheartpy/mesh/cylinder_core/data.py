@@ -1,5 +1,6 @@
-__all__ = ["CartesianDirection"]
 import enum
+
+__all__ = ["CartesianDirection"]
 
 
 class CartesianDirection(enum.Enum):

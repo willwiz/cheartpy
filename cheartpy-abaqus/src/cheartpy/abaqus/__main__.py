@@ -1,7 +1,10 @@
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from .api import create_cheartmesh_from_abaqus
 from .parser import check_args, parser
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def main(cmd_args: Sequence[str] | None = None) -> None:

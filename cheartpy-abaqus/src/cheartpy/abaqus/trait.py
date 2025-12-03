@@ -1,6 +1,8 @@
 import enum
-from collections.abc import Sequence
-from typing import NamedTuple, Required, TypedDict
+from typing import TYPE_CHECKING, NamedTuple, Required, TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class _AbaqusElement(NamedTuple):

@@ -1,20 +1,3 @@
-__all__ = [
-    "add_statevar",
-    "create_basis",
-    "create_bc",
-    "create_bcpatch",
-    "create_boundary_basis",
-    "create_embedded_topology",
-    "create_expr",
-    "create_solver_group",
-    "create_solver_matrix",
-    "create_solver_subgroup",
-    "create_time_scheme",
-    "create_top_interface",
-    "create_topology",
-    "create_variable",
-    "hash_tops",
-]
 from collections.abc import Sequence
 from typing import Literal, overload
 
@@ -55,6 +38,24 @@ from .trait import (
     IVariable,
 )
 from .trait.basic import EXPRESSION_VALUE
+
+__all__ = [
+    "add_statevar",
+    "create_basis",
+    "create_bc",
+    "create_bcpatch",
+    "create_boundary_basis",
+    "create_embedded_topology",
+    "create_expr",
+    "create_solver_group",
+    "create_solver_matrix",
+    "create_solver_subgroup",
+    "create_time_scheme",
+    "create_top_interface",
+    "create_topology",
+    "create_variable",
+    "hash_tops",
+]
 
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
 def create_time_scheme(

@@ -15,7 +15,7 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["arraystubs@git+https://github.com/willwiz/arraystubs", "numpy"]
+dependencies = ["numpy"]
 
 [tool.uv.build-backend]
 module-name = "cheartpy"

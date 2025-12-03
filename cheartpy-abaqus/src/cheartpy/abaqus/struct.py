@@ -1,12 +1,14 @@
 import dataclasses as dc
-from collections.abc import Mapping, Sequence
-from typing import Any, TypeIs
+from typing import TYPE_CHECKING, Any, TypeIs
 
 import numpy as np
-from arraystubs import Arr2
 
-from .struct import MeshElements
-from .trait import AbaqusItem
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pytools.arrays import A2
+
+    from .trait import AbaqusItem
 
 
 @dc.dataclass(slots=True)
@@ -30,7 +32,7 @@ class InputArgs:
 @dc.dataclass(slots=True)
 class MeshNodes[F: np.floating]:
     n: int
-    v: Arr2[F]
+    v: A2[F]
 
 
 def _is_mesh_elements(value: object) -> TypeIs[MeshElements[np.integer[Any]]]:
@@ -42,7 +44,7 @@ class MeshElements[I: np.integer]:
     name: str
     kind: str
     n: int
-    v: Arr2[I]
+    v: A2[I]
 
     def __hash__(self) -> int:
         return hash((self.name, self.kind, self.n))

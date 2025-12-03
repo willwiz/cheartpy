@@ -15,9 +15,12 @@ __all__ = [
 ]
 import struct
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr, Arr2
+
+if TYPE_CHECKING:
+    from pytools.arrays import A2, Arr
 
 """
 CHeart Read Array functions
@@ -62,11 +65,11 @@ def check_for_meshes(*names: str, bc: bool = True) -> bool:
     return all(Path(s).exists() for s in meshes)
 
 
-def chread_d_utf[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> Arr2[F]:
+def chread_d_utf[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
-def chread_d_bin[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> Arr2[F]:
+def chread_d_bin[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:
     with Path(file).open("rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
@@ -81,13 +84,13 @@ def chread_d_bin[F: np.floating](file: Path | str, *, dtype: type[F] = np.float6
     return arr
 
 
-def chread_d[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> Arr2[F]:
+def chread_d[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:
     if is_binary(file):
         return chread_d_bin(file, dtype=dtype)
     return chread_d_utf(file, dtype=dtype)
 
 
-def chread_t_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> Arr2[I]:
+def chread_t_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> A2[I]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
@@ -99,7 +102,7 @@ def chread_header_utf(file: Path | str) -> tuple[int, int]:
     return nelem, nnode
 
 
-def chread_b_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> Arr2[I]:
+def chread_b_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> A2[I]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
@@ -129,7 +132,7 @@ def chwrite_d_utf[T: np.floating, S: tuple[int, ...]](file: Path | str, data: Ar
     )
 
 
-def chwrite_d_binary[T: np.floating](file: Path | str, arr: Arr2[T]) -> None:
+def chwrite_d_binary[T: np.floating](file: Path | str, arr: A2[T]) -> None:
     dim = arr.shape
     with Path(file).open("wb") as f:
         f.write(struct.pack("i", dim[0]))
@@ -138,7 +141,7 @@ def chwrite_d_binary[T: np.floating](file: Path | str, arr: Arr2[T]) -> None:
             f.writelines(struct.pack("d", j) for j in i)
 
 
-def chwrite_t_utf[T: np.integer](file: Path | str, data: Arr2[T], nn: int | None = None) -> None:
+def chwrite_t_utf[T: np.integer](file: Path | str, data: A2[T], nn: int | None = None) -> None:
     ne = len(data)
     nn = data.max() if nn is None else nn
     if data.ndim != 2:  # noqa: PLR2004
@@ -152,7 +155,7 @@ def chwrite_t_utf[T: np.integer](file: Path | str, data: Arr2[T], nn: int | None
             f.write("\n")
 
 
-def chwrite_iarr_utf[T: np.integer](file: Path | str, data: Arr2[T]) -> None:
+def chwrite_iarr_utf[T: np.integer](file: Path | str, data: A2[T]) -> None:
     dim = data.shape
     with Path(file).open("w") as f:
         f.write(f"{dim[0]:12d}\n")
@@ -161,7 +164,7 @@ def chwrite_iarr_utf[T: np.integer](file: Path | str, data: Arr2[T]) -> None:
             f.write("\n")
 
 
-def chwrite_str_utf[T: np.str_](file: Path | str, data: Arr2[T]) -> None:
+def chwrite_str_utf[T: np.str_](file: Path | str, data: A2[T]) -> None:
     with Path(file).open("w") as f:
         f.write(f"{data.shape[0]:>12}")
         f.write(f"{data.shape[1]:>12}\n")

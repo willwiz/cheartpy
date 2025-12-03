@@ -12,20 +12,24 @@ __all__ = [
 ]
 
 
+from typing import TYPE_CHECKING
+
 import numpy as np
-from arraystubs import Arr1, Arr2
 
 from ._lagrange_shape_funcs import dlagrange_2, lagrange_2
 from .trait import VTK_TYPE, VtkElem, VtkType
 
+if TYPE_CHECKING:
+    from pytools.arrays import A1, A2
 
-def _shape_line_1[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:
+
+def _shape_line_1[T: np.floating](pos: A1[T]) -> A1[np.float64]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((2,), dtype=np.float64)
     return np.array([1.0 - pos[0], pos[0]], dtype=np.float64)
 
 
-def _shape_line_1_deriv[T: np.floating](pos: Arr1[T]) -> Arr2[np.float64]:
+def _shape_line_1_deriv[T: np.floating](pos: A1[T]) -> A2[np.float64]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((2, 3), dtype=np.float64)
     return np.array([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], dtype=np.float64)
@@ -42,7 +46,7 @@ VTKLINE1 = VtkElem(
 )
 
 
-def _shape_line_2[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:
+def _shape_line_2[T: np.floating](pos: A1[T]) -> A1[np.float64]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((3,), dtype=np.float64)
     return np.array(
@@ -55,7 +59,7 @@ def _shape_line_2[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:
     )
 
 
-def _shape_line_2_deriv[T: np.floating](pos: Arr1[T]) -> Arr2[np.float64]:
+def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[np.float64]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((3, 3), dtype=np.float64)
     return np.array(
@@ -79,7 +83,7 @@ VTKLINE2 = VtkElem(
 )
 
 
-def _shape_triangle_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_triangle_1(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
         return np.zeros((3,), dtype=np.float64)
     return np.array(
@@ -88,7 +92,7 @@ def _shape_triangle_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
     )
 
 
-def _shape_triangle_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_triangle_1_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
         return np.zeros((3, 3), dtype=np.float64)
     return np.array(
@@ -112,7 +116,7 @@ VTKTRIANGLE1 = VtkElem(
 )
 
 
-def _shape_triangle_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_triangle_2(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
         return np.zeros(6, dtype=np.float64)
     return np.array(
@@ -128,7 +132,7 @@ def _shape_triangle_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
     )
 
 
-def _shape_triangle_2_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_triangle_2_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] + pos[1] > 1.0):
         return np.zeros((6, 3), dtype=np.float64)
     return np.array(
@@ -158,7 +162,7 @@ VTKTRIANGLE2 = VtkElem(
 )
 
 
-def _shape_quad_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_quad_1(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] > 1.0) | (pos[1] > 1.0):
         return np.zeros((4,), dtype=np.float64)
     return np.array(
@@ -172,7 +176,7 @@ def _shape_quad_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
     )
 
 
-def _shape_quad_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_quad_1_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[0] > 1.0) | (pos[1] > 1.0):
         return np.zeros((4, 3), dtype=np.float64)
     return np.array(
@@ -197,7 +201,7 @@ VTKQUADRILATERAL1 = VtkElem(
 )
 
 
-def _shape_quad_2[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:
+def _shape_quad_2[T: np.floating](pos: A1[T]) -> A1[np.float64]:
     if pos[0] < 0.0 or pos[1] < 0.0 or pos[0] > 1.0 or pos[1] > 1.0:
         return np.zeros((9,), dtype=np.float64)
     dx = lagrange_2(pos[0])
@@ -218,7 +222,7 @@ def _shape_quad_2[T: np.floating](pos: Arr1[T]) -> Arr1[np.float64]:
     )
 
 
-def _shape_quad_2_deriv[T: np.floating](pos: Arr1[T]) -> Arr2[np.float64]:
+def _shape_quad_2_deriv[T: np.floating](pos: A1[T]) -> A2[np.float64]:
     if pos[0] < 0.0 or pos[1] < 0.0 or pos[0] > 1.0 or pos[1] > 1.0:
         return np.zeros((9, 3), dtype=np.float64)
     dx = lagrange_2(pos[0])
@@ -292,13 +296,13 @@ VTKQUADRILATERAL2 = VtkElem(
 )
 
 
-def _shape_tetrahedron_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_tetrahedron_1(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[0] + pos[1] + pos[2] > 1.0):
         return np.zeros((4,), dtype=np.float64)
     raise NotImplementedError
 
 
-def _shape_tetrahedron_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_tetrahedron_1_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[0] + pos[1] + pos[2] > 1.0):
         return np.zeros((4, 4), dtype=np.float64)
     raise NotImplementedError
@@ -315,13 +319,13 @@ VTKTETRAHEDRON1 = VtkElem(
 )
 
 
-def _shape_tetrahedron_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_tetrahedron_2(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
         return np.zeros((10,), dtype=np.float64)
     raise NotImplementedError
 
 
-def _shape_tetrahedron_2_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_tetrahedron_2_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
         return np.zeros((10, 4), dtype=np.float64)
     raise NotImplementedError
@@ -366,13 +370,13 @@ VTKTETRAHEDRON2 = VtkElem(
 )
 
 
-def _shape_hexahedron_1(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_hexahedron_1(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
         return np.zeros((8,), dtype=np.float64)
     raise NotImplementedError
 
 
-def _shape_hexahedron_1_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_hexahedron_1_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
         return np.zeros((8, 4), dtype=np.float64)
     raise NotImplementedError
@@ -413,13 +417,13 @@ VTKHEXAHEDRON1 = VtkElem(
 )
 
 
-def _shape_hexahedron_2(pos: Arr1[np.floating]) -> Arr1[np.float64]:
+def _shape_hexahedron_2(pos: A1[np.floating]) -> A1[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
         return np.zeros((16,), dtype=np.float64)
     raise NotImplementedError
 
 
-def _shape_hexahedron_2_deriv(pos: Arr1[np.floating]) -> Arr2[np.float64]:
+def _shape_hexahedron_2_deriv(pos: A1[np.floating]) -> A2[np.float64]:
     if (pos[0] < 0.0) | (pos[1] < 0.0) | (pos[2] < 0.0) | (pos[3] < 0.0):
         return np.zeros((16, 4), dtype=np.float64)
     raise NotImplementedError

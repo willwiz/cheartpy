@@ -1,9 +1,6 @@
-__all__ = ["remove_dangling_nodes"]
-
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr2
 
 from .struct import (
     CheartMesh,
@@ -13,8 +10,16 @@ from .struct import (
     CheartMeshTopology,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
-def create_node_map[T: np.integer](elems: Arr2[T]) -> Mapping[T, int]:
+    from pytools.arrays import A2
+
+
+__all__ = ["remove_dangling_nodes"]
+
+
+def create_node_map[T: np.integer](elems: A2[T]) -> Mapping[T, int]:
     node_map: dict[T, int] = {}
     nn = 0
     for node in np.unique(elems):

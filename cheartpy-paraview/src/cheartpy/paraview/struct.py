@@ -8,17 +8,20 @@ __all__ = [
     "VariableCache",
 ]
 import dataclasses as dc
-from collections.abc import Mapping, Sequence
-from typing import Final, Literal, TypedDict
+from typing import TYPE_CHECKING, Final, Literal, TypedDict
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.search.trait import SearchMode
 from cheartpy.vtk.api import guess_elem_type_from_dim
-from cheartpy.vtk.trait import VtkType
 from pytools.logging.trait import LogLevel
 
 from .trait import IFormattedName
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from cheartpy.vtk.trait import VtkType
+    from pytools.arrays import A1, A2
 
 
 class APIKwargs(TypedDict, total=False):
@@ -77,7 +80,7 @@ class ProgramArgs:
 class CheartTopology[I: np.integer]:
     __slots__ = ["_ft", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
 
-    _ft: Arr2[I]
+    _ft: A2[I]
     ne: int
     nc: int
     vtkelementtype: VtkType
@@ -103,13 +106,13 @@ class CheartTopology[I: np.integer]:
         vtk = guess_elem_type_from_dim(self.nc, bdim)
         self.vtkelementtype, self.vtksurfacetype = vtk.body, vtk.surf
 
-    def __setitem__(self, index: int, data: Arr1[I]) -> None:
+    def __setitem__(self, index: int, data: A1[I]) -> None:
         self._ft[index] = data
 
-    def __getitem__(self, index: int) -> int | Arr1[I]:
+    def __getitem__(self, index: int) -> int | A1[I]:
         return self._ft[index]
 
-    def get_data(self) -> Arr2[I]:
+    def get_data(self) -> A2[I]:
         return self._ft
 
 
@@ -119,16 +122,16 @@ class VariableCache[F: np.floating, I: np.integer]:
     t: str | int
     space_i: Path
     disp_i: Path | None
-    space: Arr2[F]
-    disp: Arr2[F]
-    x: Arr2[F]
+    space: A2[F]
+    disp: A2[F]
+    x: A2[F]
     var_i: dict[str, Path] = dc.field(default_factory=dict[str, Path])
-    var: dict[str, Arr2[F]] = dc.field(default_factory=dict[str, "Arr2[F]"])
+    var: dict[str, A2[F]] = dc.field(default_factory=dict[str, "A2[F]"])
 
 
 @dc.dataclass(slots=True)
 class InputArguments:
-    space: str | Arr2[np.float64]
+    space: str | A2[np.float64]
     disp: str | None
     var: dict[str, str]
     prefix: str

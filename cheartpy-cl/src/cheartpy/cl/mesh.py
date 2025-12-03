@@ -1,19 +1,10 @@
-from pathlib import Path
-from pprint import pformat
-
-from cheartpy.vtk.api import get_vtk_elem
-
-__all__ = [
-    "create_cheart_cl_nodal_meshes",
-    "create_cl_partition",
-    "filter_mesh_normals",
-]
 from collections import defaultdict
 from collections.abc import Mapping
-from typing import TypedDict, Unpack
+from pathlib import Path
+from pprint import pformat
+from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.mesh.struct import (
     CheartMesh,
     CheartMeshPatch,
@@ -24,19 +15,28 @@ from cheartpy.mesh.surface_core.surface import (
     compute_mesh_outer_normal_at_nodes,
     compute_normal_surface_at_center,
 )
-from pytools.logging.api import NULL_LOGGER
-from pytools.logging.trait import ILogger
+from cheartpy.vtk.api import get_vtk_elem
+from pytools.logging.api import NLOGGER
 
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
 
+if TYPE_CHECKING:
+    from pytools.arrays import A1, A2
+    from pytools.logging.trait import ILogger
+
+__all__ = [
+    "create_cheart_cl_nodal_meshes",
+    "create_cl_partition",
+    "filter_mesh_normals",
+]
 _SQRT2 = np.sqrt(2.0)
 
 
 def check_normal[F: np.floating](
-    node_normals: Arr2[F],
-    elem: Arr1[np.integer],
-    patch_normals: Arr1[F],
-    log: ILogger = NULL_LOGGER,
+    node_normals: A2[F],
+    elem: A1[np.integer],
+    patch_normals: A1[F],
+    log: ILogger = NLOGGER,
 ) -> bool:
     check = all(abs(node_normals[i] @ patch_normals) > _SQRT2 for i in elem)
     if not check:
@@ -50,10 +50,10 @@ def check_normal[F: np.floating](
 
 def filter_mesh_normals[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
-    elems: Arr2[I],
-    normal_check: Arr2[F],
-    log: ILogger = NULL_LOGGER,
-) -> Arr2[I]:
+    elems: A2[I],
+    normal_check: A2[F],
+    log: ILogger = NLOGGER,
+) -> A2[I]:
     log.debug(f"The number of elements in patch is {len(elems)}")
     top_body_elem = get_vtk_elem(mesh.top.TYPE)
     if top_body_elem.surf is None:
@@ -74,7 +74,7 @@ def create_cl_partition(
     in_surf: int,
     ne: int,
     bc: tuple[float, float] = (0.0, 1.0),
-    log: ILogger = NULL_LOGGER,
+    log: ILogger = NLOGGER,
 ) -> CLPartition[np.float64, np.intc]:
     nn = ne + 1
     nodes = np.linspace(*bc, nn, dtype=float)
@@ -106,7 +106,7 @@ def create_cl_partition(
 
 
 def create_boundarynode_map[F: np.floating, I: np.integer](
-    cl: Arr2[F],
+    cl: A2[F],
     b: CheartMeshPatch[I],
 ) -> PatchNode2ElemMap:
     n2p_map: Mapping[int, list[int]] = defaultdict(list)
@@ -122,8 +122,8 @@ _OPTIMIZATION_TOL = 1.0e-8
 
 def get_boundaryelems_in_clrange[F: np.floating](
     node_map: PatchNode2ElemMap,
-    domain: tuple[F, F] | Arr1[F],
-) -> Arr1[np.intc]:
+    domain: tuple[F, F] | A1[F],
+) -> A1[np.intc]:
     nodes = node_map.i[
         ((node_map.x - domain[0]) > _OPTIMIZATION_TOL)
         & (domain[1] - node_map.x > _OPTIMIZATION_TOL)
@@ -132,7 +132,7 @@ def get_boundaryelems_in_clrange[F: np.floating](
 
 
 class _CLNodalMeshKwargs[F: np.floating](TypedDict, total=False):
-    normal_check: Arr2[F] | None
+    normal_check: A2[F] | None
     log: ILogger
 
 
@@ -140,11 +140,11 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     surf: CheartMeshPatch[I],
     bnd_map: PatchNode2ElemMap,
-    domain: tuple[F, F] | Arr1[F],
+    domain: tuple[F, F] | A1[F],
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> CheartMesh[F, I]:
     # Unpack the kwargs
-    log = kwargs.get("log", NULL_LOGGER)
+    log = kwargs.get("log", NLOGGER)
     normal_check = kwargs.get("normal_check")
     # Main logic
     body_elem = get_vtk_elem(mesh.top.TYPE)
@@ -152,7 +152,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
         e = log.exception(ValueError("Mesh is 1D, normal not defined"))
         raise e
     log.debug(f"{domain=}")
-    elems: Arr2[I] = surf.v[get_boundaryelems_in_clrange(bnd_map, domain)]
+    elems: A2[I] = surf.v[get_boundaryelems_in_clrange(bnd_map, domain)]
     log.debug(f"{len(elems)=}")
     if normal_check is not None:
         elems = filter_mesh_normals(mesh, elems, normal_check, log)
@@ -173,13 +173,13 @@ type NODAL_MESHES[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I
 def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     mesh_dir: str,
     mesh: CheartMesh[F, I],
-    cl: Arr2[F],
+    cl: A2[F],
     cl_top: CLPartition[F, I],
     surf_id: int,
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> NODAL_MESHES[F, I]:
     # Unpack the kwargs
-    log = kwargs.get("log", NULL_LOGGER)
+    log = kwargs.get("log", NLOGGER)
     normal_check = kwargs.get("normal_check")
     # Main logic
     if mesh.bnd is None:
@@ -211,7 +211,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
 
 def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
     nodal_meshes: NODAL_MESHES[F, I],
-    node_offset: Arr1[I],
+    node_offset: A1[I],
 ) -> CheartMesh[F, I]:
     cl_1_x = np.vstack([x["mesh"].space.v for x in nodal_meshes.values()], dtype=float)
     cl_1_t = np.vstack(
@@ -243,7 +243,7 @@ def assemble_const_cl_mesh[F: np.floating, I: np.integer](
 def assemble_interface_cl_mesh[F: np.floating, I: np.integer](
     cl_top: CLPartition[F, I],
     const_mesh: CheartMesh[F, I],
-    node_count: Arr1[I],
+    node_count: A1[I],
 ) -> CheartMesh[F, I]:
     cl_i_x = np.ascontiguousarray(
         [[c, 0, 0] for _, c, _ in cl_top.support],
@@ -263,13 +263,13 @@ def assemble_interface_cl_mesh[F: np.floating, I: np.integer](
 def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
     mesh_dir: str,
     mesh: CheartMesh[F, I],
-    cl: Arr2[F],
+    cl: A2[F],
     cl_top: CLPartition[F, I],
     surf_id: int,
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> tuple[CheartMesh[F, I], CheartMesh[F, I]]:
     # Unpack kwargs
-    log = kwargs.get("log", NULL_LOGGER)
+    log = kwargs.get("log", NLOGGER)
     normal_check = kwargs.get("normal_check")
     # Main Logic
     nodal_meshes = create_cheart_cl_nodal_meshes(

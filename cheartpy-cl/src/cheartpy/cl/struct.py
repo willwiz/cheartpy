@@ -1,3 +1,16 @@
+import dataclasses as dc
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, TypedDict
+
+import numpy as np
+from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cheartpy.mesh.struct import CheartMesh
+    from pytools.arrays import A1, A2
+
 __all__ = [
     "CL_NODAL_LM_TYPE",
     "CLBasis",
@@ -7,16 +20,6 @@ __all__ = [
     "CLTopology",
     "PatchNode2ElemMap",
 ]
-import dataclasses as dc
-from collections.abc import Mapping
-from pathlib import Path
-from typing import TypedDict
-
-import numpy as np
-from arraystubs import Arr1, Arr2
-from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
-from cheartpy.mesh.struct import CheartMesh
-
 CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 
 
@@ -28,9 +31,9 @@ class CLPartition[F: np.floating, I: np.integer]:
     ne: int
     n_prefix: Mapping[int, str]
     e_prefix: Mapping[int, str]
-    node: Arr1[F]
-    elem: Arr2[I]
-    support: Arr2[F]
+    node: A1[F]
+    elem: A2[I]
+    support: A2[F]
 
     def __repr__(self) -> str:
         return self.prefix
@@ -39,13 +42,13 @@ class CLPartition[F: np.floating, I: np.integer]:
 class CLNodalData[F: np.floating, I: np.integer](TypedDict):
     file: Path
     mesh: CheartMesh[F, I]
-    n: Arr2[F]
+    n: A2[F]
 
 
 @dc.dataclass(slots=True)
 class PatchNode2ElemMap:
-    i: Arr1[np.integer]  # global index of nodes in surface
-    x: Arr1[np.floating]  # cl value of nodes in surface
+    i: A1[np.integer]  # global index of nodes in surface
+    x: A1[np.floating]  # cl value of nodes in surface
     n2e_map: Mapping[int, list[int]]
 
 
