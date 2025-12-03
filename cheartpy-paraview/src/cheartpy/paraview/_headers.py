@@ -1,10 +1,13 @@
-from collections.abc import Sequence
 from pprint import pformat
+from typing import TYPE_CHECKING
 
 from cheartpy.io.api import fix_suffix
 from cheartpy.search.trait import IIndexIterator, SearchMode
 
-from .struct import CmdLineArgs
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .struct import CmdLineArgs
 
 
 def print_guard() -> str:

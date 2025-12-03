@@ -2,8 +2,8 @@ __all__ = ["create_cylinder_mesh"]
 from typing import Literal, overload
 
 import numpy as np
-from arraystubs import T3
 from cheartpy.mesh.struct import CheartMesh
+from pytools.arrays import T3
 
 @overload
 def create_cylinder_mesh(

@@ -1,11 +1,13 @@
 from pathlib import Path
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
-from pytools.logging.trait import ILogger
 
 from .struct import AbaqusContent, MeshElements, MeshNodes
 from .trait import AbaqusItem
+
+if TYPE_CHECKING:
+    from pytools.logging.trait import ILogger
 
 
 def get_next_contect(line: str, log: ILogger) -> AbaqusContent | None:

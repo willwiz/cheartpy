@@ -1,16 +1,7 @@
-__all__ = [
-    "CheartMesh",
-    "CheartMeshBoundary",
-    "CheartMeshPatch",
-    "CheartMeshSpace",
-    "CheartMeshTopology",
-]
 import dataclasses as dc
-from collections.abc import Mapping
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.io.api import (
     check_for_meshes,
     chwrite_d_utf,
@@ -18,13 +9,28 @@ from cheartpy.io.api import (
     chwrite_t_utf,
     fix_suffix,
 )
-from cheartpy.vtk.trait import VtkType
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
+
+    from cheartpy.vtk.trait import VtkType
+    from pytools.arrays import A1, A2
+
+
+__all__ = [
+    "CheartMesh",
+    "CheartMeshBoundary",
+    "CheartMeshPatch",
+    "CheartMeshSpace",
+    "CheartMeshTopology",
+]
 
 
 @dc.dataclass(slots=True)
 class CheartMeshSpace[T: np.floating]:
     n: int
-    v: Arr2[T]
+    v: A2[T]
 
     def save(self, name: Path | str) -> None:
         chwrite_d_utf(name, self.v)
@@ -33,7 +39,7 @@ class CheartMeshSpace[T: np.floating]:
 @dc.dataclass(slots=True)
 class CheartMeshTopology[T: np.integer]:
     n: int
-    v: Arr2[T]
+    v: A2[T]
     TYPE: VtkType
 
     def save(self, name: Path | str) -> None:
@@ -44,11 +50,11 @@ class CheartMeshTopology[T: np.integer]:
 class CheartMeshPatch[T: np.integer]:
     tag: int
     n: int
-    k: Arr1[T]
-    v: Arr2[T]
+    k: A1[T]
+    v: A2[T]
     TYPE: VtkType
 
-    def to_array(self) -> Arr2[T]:
+    def to_array(self) -> A2[T]:
         res = np.pad(self.v + 1, ((0, 0), (1, 1)))
         res[:, 0] = self.k + 1
         res[:, -1] = self.tag

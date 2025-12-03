@@ -1,11 +1,16 @@
-__all__ = ["IVariable", "IVariableGetter", "VarErrors", "VarStats"]
 import abc
 import dataclasses as dc
-from collections.abc import Iterator
-from pathlib import Path
-from typing import ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
-from pytools.logging.api import BColors
+from pytools.logging.trait import BColors
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from pathlib import Path
+
+
+__all__ = ["IVariable", "IVariableGetter", "VarErrors", "VarStats"]
+
 
 HEADER = ["mean", "std", "min", "min pos", "max", "max pos", "bias"]
 HEADER_LEN = 8 + 10 + len(HEADER) * 11

@@ -1,3 +1,14 @@
+from typing import TYPE_CHECKING, overload
+
+import numpy as np
+from cheartpy.fe.api import create_variable
+
+if TYPE_CHECKING:
+    from cheartpy.fe.trait import IVariable
+    from pytools.arrays import A1, A2
+
+    from .struct import CLPartition, CLTopology
+
 __all__ = [
     "create_dm_on_cl",
     "create_lm_on_cl",
@@ -5,14 +16,6 @@ __all__ = [
     "ll_interp",
     "set_clvar_ic",
 ]
-from typing import overload
-
-import numpy as np
-from arraystubs import Arr1, Arr2
-from cheartpy.fe.api import create_variable
-from cheartpy.fe.trait import IVariable
-
-from .struct import CLPartition, CLTopology
 
 
 @overload
@@ -52,15 +55,15 @@ def set_clvar_ic(var: IVariable | None, file: str) -> None:
     var.add_data(file)
 
 
-def l2_norm(x: Arr1[np.floating]) -> float:
+def l2_norm(x: A1[np.floating]) -> float:
     return float(x @ x)
 
 
 def ll_basis[F: np.floating](
-    var: Arr2[F] | Arr1[F],
-    nodes: Arr1[F],
-    x: Arr1[F],
-) -> tuple[Arr1[np.intc], Arr2[F]]:
+    var: A2[F] | A1[F],
+    nodes: A1[F],
+    x: A1[F],
+) -> tuple[A1[np.intc], A2[F]]:
     basis = {i: np.zeros_like(x) for i in range(2)}
     domain = (nodes[0] <= x) & (x <= nodes[1]).astype(np.intc)
     basis[0][domain] = 1 - (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
@@ -70,9 +73,9 @@ def ll_basis[F: np.floating](
 
 def ll_interp[F: np.floating](
     top: CLPartition[F, np.integer],
-    var: Arr2[F],
-    cl: Arr1[F],
-) -> Arr2[F]:
+    var: A2[F],
+    cl: A1[F],
+) -> A2[F]:
     x_bar = [ll_basis(var[elem], top.node[elem], cl) for elem in top.elem]
     res = np.zeros((len(cl), var.shape[1]), dtype=float)
     for k, v in x_bar:

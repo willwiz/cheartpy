@@ -15,19 +15,10 @@ members = [
 ]
 
 [[package]]
-name = "arraystubs"
-version = "0.0.1"
-source = { git = "https://github.com/willwiz/arraystubs#0980da7b7459e2784280940659682a75456036fd" }
-dependencies = [
-    { name = "numpy" },
-]
-
-[[package]]
 name = "cheartpy"
 version = "0.2.0"
 source = { editable = "." }
 dependencies = [
-    { name = "arraystubs" },
     { name = "cheartpy-abaqus" },
     { name = "cheartpy-cl" },
     { name = "cheartpy-fe" },
@@ -68,7 +59,6 @@ vtu = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "cheartpy", extras = ["all"], editable = "." },
     { name = "cheartpy-abaqus", marker = "extra == 'abaqus'", editable = "cheartpy-abaqus" },
     { name = "cheartpy-abaqus", marker = "extra == 'all'", editable = "cheartpy-abaqus" },
@@ -95,7 +85,6 @@ name = "cheartpy-abaqus"
 version = "0.0.1"
 source = { editable = "cheartpy-abaqus" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
@@ -105,7 +94,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
@@ -118,7 +106,6 @@ name = "cheartpy-cl"
 version = "0.0.1"
 source = { editable = "cheartpy-cl" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "cheartpy-fe" },
     { name = "cheartpy-mesh" },
     { name = "numpy" },
@@ -127,7 +114,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "cheartpy-fe" },
     { name = "cheartpy-mesh" },
     { name = "numpy" },
@@ -139,14 +125,12 @@ name = "cheartpy-fe"
 version = "0.0.1"
 source = { editable = "cheartpy-fe" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "numpy" },
     { name = "pytools" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "numpy" },
     { name = "pytools", git = "https://github.com/willwiz/pytools" },
 ]
@@ -156,14 +140,12 @@ name = "cheartpy-io"
 version = "0.0.1"
 source = { editable = "cheartpy-io" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "numpy" },
     { name = "pytools" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "numpy" },
     { name = "pytools", git = "https://github.com/willwiz/pytools" },
 ]
@@ -173,7 +155,6 @@ name = "cheartpy-mesh"
 version = "0.0.1"
 source = { editable = "cheartpy-mesh" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
@@ -182,7 +163,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
@@ -194,7 +174,6 @@ name = "cheartpy-paraview"
 version = "0.0.1"
 source = { editable = "cheartpy-paraview" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
@@ -203,7 +182,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
@@ -215,13 +193,11 @@ name = "cheartpy-vtk"
 version = "0.0.1"
 source = { editable = "cheartpy-vtk" }
 dependencies = [
-    { name = "arraystubs" },
     { name = "numpy" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "arraystubs", git = "https://github.com/willwiz/arraystubs" },
     { name = "numpy" },
 ]
 

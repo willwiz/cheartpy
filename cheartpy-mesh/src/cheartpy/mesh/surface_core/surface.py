@@ -1,32 +1,35 @@
+from collections import defaultdict
+from typing import TYPE_CHECKING, cast
+
+import numpy as np
+from cheartpy.vtk.api import get_vtk_elem
+from numpy.linalg import lstsq
+from pytools.logging.api import NLOGGER
+
+if TYPE_CHECKING:
+    from cheartpy.mesh.struct import CheartMesh
+    from cheartpy.vtk.trait import VtkElem
+    from pytools.arrays import A1, A2
+    from pytools.logging.trait import ILogger
+
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
     "compute_normal_surface_at_center",
     "compute_normal_surface_at_nodes",
     "normalize_by_row",
 ]
-from collections import defaultdict
-from typing import cast
-
-import numpy as np
-from arraystubs import Arr1, Arr2
-from cheartpy.mesh.struct import CheartMesh
-from cheartpy.vtk.api import get_vtk_elem
-from cheartpy.vtk.trait import VtkElem
-from numpy.linalg import lstsq
-from pytools.logging.api import NULL_LOGGER
-from pytools.logging.trait import ILogger
 
 _REGRESS_TOL = 0.01
 _DBL_TOL = 1.0e-14
 
 
 def compute_normal_patch[F: np.floating, I: np.integer](
-    basis: Arr2[np.floating],
-    space: Arr2[F],
-    elem: Arr1[I],
-    ref_space: Arr2[np.floating],
-    log: ILogger = NULL_LOGGER,
-) -> Arr1[F]:
+    basis: A2[np.floating],
+    space: A2[F],
+    elem: A1[I],
+    ref_space: A2[np.floating],
+    log: ILogger = NLOGGER,
+) -> A1[F]:
     nodes = space[elem] - ref_space
     u = np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)])
     f = u + np.identity(3)
@@ -34,10 +37,10 @@ def compute_normal_patch[F: np.floating, I: np.integer](
         log.warn("Element node order is inverted.")
         f = u - np.identity(3)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=float))
-    return cast("Arr1[F]", res)
+    return cast("A1[F]", res)
 
 
-def normalize_by_row[F: np.floating](vals: Arr2[F]) -> Arr2[F]:
+def normalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]:
     norm = np.sqrt(np.einsum("...i,...i", vals, vals))
     norm[norm < _DBL_TOL] = 1.0
     return vals / norm[:, np.newaxis]
@@ -45,10 +48,10 @@ def normalize_by_row[F: np.floating](vals: Arr2[F]) -> Arr2[F]:
 
 def compute_normal_surface_at_center[F: np.floating, I: np.integer](
     kind: VtkElem,
-    space: Arr2[F],
-    elem: Arr2[I],
-    _log: ILogger = NULL_LOGGER,
-) -> Arr2[F]:
+    space: A2[F],
+    elem: A2[I],
+    _log: ILogger = NLOGGER,
+) -> A2[F]:
     centroid = np.mean(kind.ref, axis=0)
     interp_basis = kind.shape_dfunc(centroid)
     normals = np.array(
@@ -60,10 +63,10 @@ def compute_normal_surface_at_center[F: np.floating, I: np.integer](
 
 def compute_normal_surface_at_nodes[F: np.floating, I: np.integer](
     kind: VtkElem,
-    space: Arr2[F],
-    elem: Arr2[I],
-    log: ILogger = NULL_LOGGER,
-) -> dict[int, Arr2[F]]:
+    space: A2[F],
+    elem: A2[I],
+    log: ILogger = NLOGGER,
+) -> dict[int, A2[F]]:
     interp_basis = {k: kind.shape_dfunc(v) for k, v in enumerate(kind.ref)}
     log.debug(f"{interp_basis=}")
     normals = {
@@ -78,12 +81,12 @@ def compute_normal_surface_at_nodes[F: np.floating, I: np.integer](
 
 def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
-    log: ILogger = NULL_LOGGER,
-) -> Arr2[F]:
+    log: ILogger = NLOGGER,
+) -> A2[F]:
     vtkelem = get_vtk_elem(mesh.top.TYPE)
     log.debug(f"{vtkelem.body=}")
     interp_basis = {k: vtkelem.shape_dfunc(v) for k, v in enumerate(vtkelem.ref)}
-    node_normal: dict[int, list[Arr1[F]]] = defaultdict(list)
+    node_normal: dict[int, list[A1[F]]] = defaultdict(list)
     for elem in mesh.top.v:
         for i in range(len(interp_basis)):
             node_normal[elem[i]].append(

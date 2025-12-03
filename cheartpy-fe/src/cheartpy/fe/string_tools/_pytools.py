@@ -1,6 +1,11 @@
-__all__ = ["cline", "get_enum", "header", "hline", "join_fields", "splicegen"]
 import enum
-from collections.abc import Generator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+
+__all__ = ["cline", "get_enum", "header", "hline", "join_fields", "splicegen"]
 
 
 def join_fields(*terms: object, char: str = "|") -> str:
@@ -23,7 +28,7 @@ def header(msg: str = "Begin P file") -> str:
     return ls + f"% {'-' * 88}\n"
 
 
-def splicegen(maxchars: int, stringlist: list[str]) -> Generator[list[str], None, None]:
+def splicegen(maxchars: int, stringlist: list[str]) -> Generator[list[str]]:
     """Return a list of slices to print based on maxchars string-length boundary."""
     runningcount = 0  # start at 0
     tmpslice = []  # tmp list where we append slice numbers.

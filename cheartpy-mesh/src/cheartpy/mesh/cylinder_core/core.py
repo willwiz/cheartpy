@@ -1,18 +1,6 @@
-__all__ = [
-    "convert_cartesian_space_to_cylindrical",
-    "convert_to_cylindrical",
-    "cylindrical_to_cartesian",
-    "gen_end_node_mapping",
-    "merge_circ_ends",
-    "rotate_axis",
-    "update_boundary",
-    "update_elems",
-]
-
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr2
 from cheartpy.mesh.struct import (
     CheartMesh,
     CheartMeshBoundary,
@@ -24,6 +12,23 @@ from cheartpy.mesh.validation import remove_dangling_nodes
 from cheartpy.vtk.trait import VtkType
 
 from .data import CartesianDirection
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from pytools.arrays import A2
+
+
+__all__ = [
+    "convert_cartesian_space_to_cylindrical",
+    "convert_to_cylindrical",
+    "cylindrical_to_cartesian",
+    "gen_end_node_mapping",
+    "merge_circ_ends",
+    "rotate_axis",
+    "update_boundary",
+    "update_elems",
+]
 
 
 def gen_end_node_mapping[I: np.integer](
@@ -37,7 +42,7 @@ def gen_end_node_mapping[I: np.integer](
     return node_map
 
 
-def update_elems[I: np.integer](elems: Arr2[I], end_map: Mapping[int, int]) -> Arr2[I]:
+def update_elems[I: np.integer](elems: A2[I], end_map: Mapping[int, int]) -> A2[I]:
     new_elems = elems.copy()
     for i, row in enumerate(elems):
         for j, v in enumerate(row):
@@ -77,12 +82,12 @@ def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> Ch
 
 
 def convert_cartesian_space_to_cylindrical[F: np.floating](
-    x: Arr2[F],
+    x: A2[F],
     r_in: float,
     r_out: float,
     length: float,
     base: float,
-) -> Arr2[F]:
+) -> A2[F]:
     r = np.zeros_like(x)
     r[:, 0] = (r_out - r_in) * x[:, 0] ** 0.707 + r_in
     r[:, 1] = 2.0 * np.pi * x[:, 1]

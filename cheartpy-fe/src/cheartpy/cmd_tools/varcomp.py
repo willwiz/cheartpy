@@ -1,4 +1,3 @@
-__all__ = ["main"]
 import argparse
 
 from cheartpy.io.api import chread_d
@@ -6,6 +5,9 @@ from pytools.logging.api import BLogger
 
 from .funcs import compute_stats, get_variable_getter, get_variables
 from .traits import HEADER, HEADER_LEN, VarErrors, VarStats
+
+__all__ = ["main"]
+
 
 parser = argparse.ArgumentParser(
     description="""

@@ -1,7 +1,5 @@
-__all__ = ["PFile"]
 import dataclasses as dc
-from collections.abc import Collection, Mapping
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 from .string_tools import header, hline, splicegen
 from .trait import (
@@ -18,6 +16,11 @@ from .trait import (
     ITopInterface,
     IVariable,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
+
+__all__ = ["PFile"]
 
 
 @dc.dataclass(slots=True)

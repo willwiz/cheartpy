@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from cheartpy.mesh.struct import CheartMesh
 from pytools.logging.api import BLogger
 
@@ -12,7 +14,9 @@ from ._core import (
     topology_hashmap,
 )
 from ._readers import read_abaqus_meshes
-from .struct import InputArgs
+
+if TYPE_CHECKING:
+    from .struct import InputArgs
 
 
 def create_cheartmesh_from_abaqus(args: InputArgs) -> None:

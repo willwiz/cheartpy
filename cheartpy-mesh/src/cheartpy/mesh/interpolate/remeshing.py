@@ -1,9 +1,6 @@
-__all__ = ["create_quad_mesh_from_lin", "create_quad_mesh_from_lin_cylindrical"]
-
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.mesh.struct import (
     CheartMesh,
     CheartMeshBoundary,
@@ -14,10 +11,18 @@ from cheartpy.mesh.struct import (
 
 from .maps import L2QMAP, L2QMAPDICT, L2QTYPEDICT
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from pytools.arrays import A1, A2
+
+
+__all__ = ["create_quad_mesh_from_lin", "create_quad_mesh_from_lin_cylindrical"]
+
 
 def gen_quadtop_node_sets[T: np.integer](
     l2qmap: L2QMAP,
-    top: Arr1[T],
+    top: A1[T],
 ) -> Mapping[int, frozenset[int]]:
     return {k: frozenset([top[i] for i in elem]) for k, elem in enumerate(l2qmap)}
 
@@ -89,7 +94,7 @@ def create_quad_space_cartesian[T: np.floating](
     return CheartMeshSpace(len(new_space), new_space)
 
 
-def mean_cylindrical[T: np.floating](mat: Arr2[T]) -> Arr1[T]:
+def mean_cylindrical[T: np.floating](mat: A2[T]) -> A1[T]:
     """Return the cylindrical coordinates mapped from the cartesian coordinates.
 
     Difference in Angle between two vectors is more robustly given by:

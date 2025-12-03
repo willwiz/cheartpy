@@ -1,10 +1,13 @@
 from pathlib import Path
-
-__all__ = ["Variable0Getter", "Variable1Getter", "Variable2Getter"]
-from collections.abc import Iterator, Sequence
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from .traits import IVariableGetter
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+
+
+__all__ = ["Variable0Getter", "Variable1Getter", "Variable2Getter"]
 
 
 class Variable2Getter(IVariableGetter):

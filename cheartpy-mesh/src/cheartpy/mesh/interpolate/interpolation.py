@@ -1,17 +1,20 @@
-__all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]
 from collections.abc import Mapping
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.io.api import chread_d, chwrite_d_utf
-from cheartpy.mesh.struct import CheartMesh
-from pytools.logging.api import NULL_LOGGER
-from pytools.logging.trait import ILogger
+from pytools.logging.api import NLOGGER
 
 from .maps import L2QMAPDICT, L2QTYPEDICT
 
-type INTERP_MAP[T: np.integer] = Mapping[int, Arr1[T]]
+if TYPE_CHECKING:
+    from cheartpy.mesh.struct import CheartMesh
+    from pytools.arrays import A1, A2
+    from pytools.logging.trait import ILogger
+
+
+__all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]
+type INTERP_MAP[T: np.integer] = Mapping[int, A1[T]]
 
 
 def make_l2qmap[F: np.floating, I: np.integer](
@@ -44,7 +47,7 @@ def make_l2qmap[F: np.floating, I: np.integer](
     return interp_map
 
 
-def interp_var_l2q[T: np.floating, I: np.integer](l2qmap: INTERP_MAP[I], lin: Arr2[T]) -> Arr2[T]:
+def interp_var_l2q[T: np.floating, I: np.integer](l2qmap: INTERP_MAP[I], lin: A2[T]) -> A2[T]:
     quad_data = np.zeros((len(l2qmap), lin.shape[1]), dtype=lin.dtype)
     for k, v in l2qmap.items():
         quad_data[k] = lin[v].mean(axis=0)
@@ -55,7 +58,7 @@ def interpolate_var_on_lin_topology[I: np.integer](
     l2qmap: INTERP_MAP[I],
     lin_var: str,
     quad_var: str,
-    log: ILogger = NULL_LOGGER,
+    log: ILogger = NLOGGER,
 ) -> None:
     lin = chread_d(lin_var)
     if len(lin) == len(l2qmap):

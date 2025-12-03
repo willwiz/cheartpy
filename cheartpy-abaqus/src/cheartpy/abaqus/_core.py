@@ -1,10 +1,8 @@
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Unpack
+from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
-from arraystubs import Arr1, Arr2
 from cheartpy.io.api import chwrite_str_utf
 from cheartpy.mesh.struct import (
     CheartMeshBoundary,
@@ -17,6 +15,11 @@ from ._impl import get_vtktype_from_abaqus_type
 from .parser import gather_masks, split_argslist_to_nameddict
 from .struct import InputArgs, Mask, MeshElements, MeshNodes
 from .trait import AbaqusElement, CMDInputKwargs
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pytools.arrays import A1, A2
 
 
 def get_abaqus_element(tag: str, dim: int) -> AbaqusElement:
@@ -140,7 +143,7 @@ def topology_hashmap[I: np.integer](topology: CheartMeshTopology[I]) -> Mapping[
 
 def find_element_by_nodes[I: np.integer](
     top_hashmap: Mapping[int, set[int]],
-    nodes: Arr1[I],
+    nodes: A1[I],
 ) -> int:
     element_sets = [top_hashmap[int(node)] for node in nodes]
     elements = element_sets[0].intersection(*element_sets)
@@ -162,7 +165,7 @@ def create_boundary_patch[I: np.integer](
 ) -> CheartMeshPatch[I]:
     array_dim = elems.v.shape[1]
     abaqus_elem = get_abaqus_element(elems.kind, array_dim)
-    nodes: Arr2[I] = np.array(
+    nodes: A2[I] = np.array(
         [[elmap[int(node)] for node in patch[abaqus_elem.value.nodes]] for patch in elems.v],
         dtype=elems.v.dtype,
     )

@@ -1,13 +1,18 @@
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from pytools.arrays import A2, Arr
+
+
 __all__ = [
     "read_array_float",
     "read_array_int",
     "write_array_float",
     "write_array_int",
 ]
-from pathlib import Path
-
-import numpy as np
-from arraystubs import Arr, Arr2
 
 
 def read_array_int[I: np.integer](
@@ -28,14 +33,14 @@ def read_array_float[F: np.floating](
     return np.loadtxt(name, skiprows=skip, dtype=dtype)
 
 
-def write_array_int[T: np.integer](name: Path | str, arr: Arr2[T]) -> None:
+def write_array_int[T: np.integer](name: Path | str, arr: A2[T]) -> None:
     with Path(name).open("w") as f:
         for i in arr:
             f.writelines(f"{j:12d}" for j in i)
             f.write("\n")
 
 
-def write_array_float[T: np.floating](name: Path | str, arr: Arr2[T]) -> None:
+def write_array_float[T: np.floating](name: Path | str, arr: A2[T]) -> None:
     with Path(name).open("w") as f:
         for i in arr:
             f.writelines(f"{j:>24.12E}" for j in i)

@@ -1,11 +1,15 @@
-__all__ = ["ll_str"]
+from typing import TYPE_CHECKING
 
 import numpy as np
-from arraystubs import Arr1
 from cheartpy.fe.trait import IVariable
 
+if TYPE_CHECKING:
+    from pytools.arrays import A1
 
-def ll_str(v: IVariable, b: tuple[float, float, float] | Arr1[np.floating] | IVariable) -> str:
+__all__ = ["ll_str"]
+
+
+def ll_str(v: IVariable, b: tuple[float, float, float] | A1[np.floating] | IVariable) -> str:
     match b:
         case (l, c, r):
             return f"max(min(({v}.1{-l:+.8g})/({c - l:.8g}),({r:.8g}-{v}.1)/({r - c:.8g})), 0)"

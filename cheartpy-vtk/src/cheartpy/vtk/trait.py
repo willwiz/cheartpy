@@ -2,11 +2,13 @@ import dataclasses as dc
 
 __all__ = ["VTK_TYPE", "VtkElem", "VtkType"]
 import enum
-from collections.abc import Callable
-from typing import Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple
 
-import numpy as np
-from arraystubs import Arr1, Arr2
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    import numpy as np
+    from pytools.arrays import A1, A2
 
 
 class _Vtk(NamedTuple):
@@ -46,7 +48,7 @@ class VtkElem:
     body: VtkType
     surf: VtkType | None
     connectivity: tuple[int, ...]
-    nodes: Arr2[np.intc]
-    ref: Arr2[np.float64]
-    shape_func: Callable[[Arr1[np.floating]], Arr1[np.float64]]
-    shape_dfunc: Callable[[Arr1[np.floating]], Arr2[np.float64]]
+    nodes: A2[np.intc]
+    ref: A2[np.float64]
+    shape_func: Callable[[A1[np.floating]], A1[np.float64]]
+    shape_dfunc: Callable[[A1[np.floating]], A2[np.float64]]

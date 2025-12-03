@@ -1,12 +1,15 @@
 __all__ = ["create_time_series_file", "create_time_series_range"]
-from collections.abc import Sequence
-from pathlib import Path
-from typing import Final, ReadOnly, TypedDict, cast
+from typing import TYPE_CHECKING, Final, ReadOnly, TypedDict, cast
 
 import numpy as np
-from arraystubs import Arr1
 from cheartpy.io.api import read_array_float
 from cheartpy.search.api import get_var_index
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+
+    from pytools.arrays import A1
 
 _CURRENT_VERSION: Final[str] = "1.0.0"
 
@@ -25,7 +28,7 @@ TIME_SERIES = TypedDict(
 )
 
 
-def create_json(vtus: Sequence[str], times: Arr1[np.float64]) -> TIME_SERIES:
+def create_json(vtus: Sequence[str], times: A1[np.float64]) -> TIME_SERIES:
     return {
         "file-series-version": _CURRENT_VERSION,
         "files": [{"name": n, "time": t} for n, t in zip(vtus, times, strict=False)],
@@ -35,7 +38,7 @@ def create_json(vtus: Sequence[str], times: Arr1[np.float64]) -> TIME_SERIES:
 def create_time_series_core(
     prefix: str,
     vtus: Sequence[str],
-    times: Arr1[np.float64],
+    times: A1[np.float64],
 ) -> TIME_SERIES:
     idx = get_var_index(vtus, prefix, "vtu")
     times = times[idx]
@@ -48,7 +51,7 @@ def create_time_series_file(prefix: str, time: str, root: Path) -> TIME_SERIES:
     if times.ndim != 1:
         msg = f"Expected 1D array for time, got {times.ndim}D"
         raise ValueError(msg)
-    return create_time_series_core(prefix, [v.name for v in vtus], cast("Arr1[np.float64]", times))
+    return create_time_series_core(prefix, [v.name for v in vtus], cast("A1[np.float64]", times))
 
 
 def create_time_series_range(
@@ -58,4 +61,4 @@ def create_time_series_range(
 ) -> TIME_SERIES:
     vtus = root.glob(f"{prefix}-*.vtu")
     times = np.linspace(time[0], time[1], time[2], dtype=np.float64)
-    return create_time_series_core(prefix, [v.name for v in vtus], cast("Arr1[np.float64]", times))
+    return create_time_series_core(prefix, [v.name for v in vtus], cast("A1[np.float64]", times))
