@@ -5,7 +5,7 @@ import numpy as np
 from cheartpy.search.api import get_var_index
 
 from .impls import Variable0Getter, Variable1Getter, Variable2Getter
-from .traits import IVariable, IVariableGetter, VarErrors, VarStats
+from .traits import IVariableGetter, IVariableList, VarErrors, VarStats
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2
@@ -48,16 +48,16 @@ def remove_sfx(name: str) -> str:
     return name[: name.rfind("-")]
 
 
-def get_idx_for_var(var: str | None, root: Path | str | None = None) -> IVariable | None:
+def get_idx_for_var(var: str | None, root: Path | str | None = None) -> IVariableList | None:
     if var is None:
         return None
     root = Path(root) if root else Path()
     if var.endswith("*"):
-        return IVariable(
+        return IVariableList(
             remove_sfx(var),
             list(get_var_index([v.name for v in root.glob(var)], remove_sfx(var))),
         )
-    return IVariable(var, None)
+    return IVariableList(var, None)
 
 
 def log_var_error(
@@ -83,7 +83,7 @@ def get_variables(
     var1: str | None,
     var2: str | None,
     root: Path | str | None = None,
-) -> tuple[IVariable | None, IVariable | None]:
+) -> tuple[IVariableList | None, IVariableList | None]:
     root = Path(root) if root else Path()
     v1 = get_idx_for_var(var1, root)
     v2 = get_idx_for_var(var2, root)
@@ -120,15 +120,15 @@ def _get_getter2(
 
 
 def get_variable_getter(
-    var1: IVariable | None,
-    var2: IVariable | None,
+    var1: IVariableList | None,
+    var2: IVariableList | None,
     root: Path,
 ) -> IVariableGetter:
     match var1, var2:
         case None, None:
             msg = f"No Variable given for {var1} and {var2}"
             raise ValueError(msg)
-        case (IVariable(name, v), None) | (None, IVariable(name, v)):
+        case (IVariableList(name, v), None) | (None, IVariableList(name, v)):
             return _get_getter(name, v, root)
-        case (IVariable(name=n1, idx=v1), IVariable(name=n2, idx=v2)):
+        case (IVariableList(name=n1, idx=v1), IVariableList(name=n2, idx=v2)):
             return _get_getter2(n1, n2, v1, v2, root)

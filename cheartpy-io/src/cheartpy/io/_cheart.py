@@ -59,10 +59,11 @@ def fix_suffix[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
     return type(prefix)(_prefix)
 
 
-def check_for_meshes(*names: str, bc: bool = True) -> bool:
+def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> bool:
+    home = home or Path()
     sfx = ["X", "T", "B"] if bc else ["X", "T"]
     meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in sfx]]
-    return all(Path(s).exists() for s in meshes)
+    return all((home / s).exists() for s in meshes)
 
 
 def chread_d_utf[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:

@@ -1,6 +1,5 @@
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Literal, TextIO, TypedDict, Unpack
+from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
 
 from cheartpy.fe.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
 from cheartpy.fe.api import create_bc
@@ -13,6 +12,9 @@ from cheartpy.fe.trait import (
     IProblem,
     IVariable,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
 
 type SOLID_VARIABLES = Literal[
     "Space",

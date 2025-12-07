@@ -7,11 +7,13 @@ __all__ = [
 ]
 import re
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-from pytools.logging.trait import ILogger
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping, Sequence
+
+    from pytools.logging.trait import ILogger
 
 DFILE_TEMP = re.compile(r"(^.*)-(\d+|\d+\.\d+)\.(D|D\.gz)")
 
