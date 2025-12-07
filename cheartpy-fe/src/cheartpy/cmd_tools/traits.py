@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-__all__ = ["IVariable", "IVariableGetter", "VarErrors", "VarStats"]
+__all__ = ["IVariableGetter", "IVariableList", "VarErrors", "VarStats"]
 
 
 HEADER = ["mean", "std", "min", "min pos", "max", "max pos", "bias"]
@@ -17,7 +17,7 @@ HEADER_LEN = 8 + 10 + len(HEADER) * 11
 
 
 @dc.dataclass(slots=True)
-class IVariable:
+class IVariableList:
     name: Final[str]
     idx: list[int] | None
 

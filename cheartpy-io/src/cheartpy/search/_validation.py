@@ -1,10 +1,12 @@
-__all__ = ["check_for_var_files"]
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-from pytools.logging.trait import ILogger
+if TYPE_CHECKING:
+    from pytools.logging.trait import ILogger
 
-from .trait import IIndexIterator
+    from .trait import IIndexIterator
+
+__all__ = ["check_for_var_files"]
 
 
 def check_for_var_files(

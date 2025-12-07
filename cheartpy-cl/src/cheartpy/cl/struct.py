@@ -80,6 +80,8 @@ class CLTopology:
 
 @dc.dataclass(slots=True)
 class CLTopologies:
+    """Depreacated: use CLTopology instead."""
+
     prefix: str
     in_surf: int
     nn: int
