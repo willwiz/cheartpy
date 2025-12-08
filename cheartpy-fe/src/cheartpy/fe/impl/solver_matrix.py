@@ -7,7 +7,7 @@ from cheartpy.fe.trait import ICheartTopology, IExpression, IProblem, ISolverMat
 if TYPE_CHECKING:
     from collections.abc import ValuesView
 
-    from cheartpy.fe.aliases import MatrixSolverTypes
+    from cheartpy.fe.aliases import MatrixSolverOptions
 
 __all__ = ["SolverMatrix"]
 
@@ -15,7 +15,7 @@ __all__ = ["SolverMatrix"]
 @dc.dataclass(slots=True)
 class SolverMatrix(ISolverMatrix):
     name: str
-    solver: MatrixSolverTypes
+    solver: MatrixSolverOptions
     problem: dict[str, IProblem] = dc.field(default_factory=dict[str, IProblem])
     _suppress_output: bool = dc.field(default=True)
     settings: dict[str, list[str]] = dc.field(default_factory=dict[str, list[str]])

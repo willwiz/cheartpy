@@ -1,6 +1,6 @@
-import enum
-from typing import TYPE_CHECKING, Literal, TextIO
+from typing import TYPE_CHECKING, TextIO
 
+from cheartpy.fe.aliases import L2_SOLID_CALCULATION_TYPE, L2SolidCalculationType
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
@@ -11,14 +11,6 @@ if TYPE_CHECKING:
     from cheartpy.fe.physics.solid_mechanics.solid_problems import SolidProblem
 
 __all__ = ["L2SolidProjection"]
-
-
-class L2SolidCalculationType(enum.StrEnum):
-    cauchy_stress = "cauchy_stress"
-    deformation_gradient = "deformation_gradient"
-
-
-L2_SOLID_CALCULATION_TYPE = Literal["cauchy_stress", "deformation_gradient"]
 
 
 class L2SolidProjection(IProblem):

@@ -1,4 +1,5 @@
 import dataclasses as dc
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Self, TextIO, overload
 
 from cheartpy.fe.aliases import (
@@ -20,7 +21,7 @@ class Variable(IVariable):
     name: str
     topology: ICheartTopology
     dim: int
-    data: str | None = None
+    data: Path | None = None
     fmt: VariableExportFormat = VariableExportFormat.TXT
     freq: int = 1
     loop_step: int | None = None
@@ -82,10 +83,10 @@ class Variable(IVariable):
     def set_format(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None:
         self.fmt = VariableExportFormat[fmt]
 
-    def add_data(self, data: str | None) -> None:
-        self.data = data
+    def add_data(self, data: Path | str | None) -> None:
+        self.data = Path(data) if data is not None else None
 
-    def get_data(self) -> str | None:
+    def get_data(self) -> Path | None:
         return self.data
 
     def get_top(self) -> ICheartTopology:

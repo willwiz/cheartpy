@@ -2,8 +2,8 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
+    CheartTopInterfaceType,
     CheartTopologySetting,
-    TopologyInterfaceType,
     VariableExportFormat,
 )
 from cheartpy.fe.string_tools import join_fields
@@ -132,7 +132,7 @@ class NullTopology(ICheartTopology):
 @dc.dataclass(slots=True)
 class TopInterface(ITopInterface):
     name: str
-    _method: TopologyInterfaceType
+    _method: CheartTopInterfaceType
     topologies: list[ICheartTopology] = dc.field(default_factory=list[ICheartTopology])
 
     def write(self, f: TextIO) -> None:

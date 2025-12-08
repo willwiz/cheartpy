@@ -1,4 +1,5 @@
 import dataclasses as dc
+from pathlib import Path
 from typing import TYPE_CHECKING, TextIO
 
 from .string_tools import header, hline, splicegen
@@ -26,7 +27,7 @@ __all__ = ["PFile"]
 @dc.dataclass(slots=True)
 class PFile:
     h: str = ""
-    output_dir: str | None = None
+    output_dir: Path | None = None
     times: dict[str, ITimeScheme] = dc.field(default_factory=dict[str, ITimeScheme])
     data_pointers: dict[str, IDataPointer] = dc.field(default_factory=dict[str, IDataPointer])
     bases: dict[str, ICheartBasis] = dc.field(default_factory=dict[str, ICheartBasis])
@@ -38,8 +39,8 @@ class PFile:
     matrices: dict[str, ISolverMatrix] = dc.field(default_factory=dict[str, ISolverMatrix])
     solver_groups: dict[str, ISolverGroup] = dc.field(default_factory=dict[str, ISolverGroup])
 
-    def set_outputpath(self, path: str) -> None:
-        self.output_dir = path
+    def set_outputpath(self, path: Path | str) -> None:
+        self.output_dir = Path(path)
 
     # Add Time Scheme
     def add_timescheme(self, *time: ITimeScheme) -> None:
