@@ -1,11 +1,14 @@
-__all__ = ["BCPatch", "BoundaryCondition"]
 import dataclasses as dc
-from collections.abc import Sequence, ValuesView
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.fe.aliases import BOUNDARY_TYPE, BoundaryType
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence, ValuesView
+
+__all__ = ["BCPatch", "BoundaryCondition"]
 
 
 @dc.dataclass(init=False, slots=True)

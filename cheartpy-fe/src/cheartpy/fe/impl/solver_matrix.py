@@ -1,11 +1,15 @@
-__all__ = ["SolverMatrix"]
 import dataclasses as dc
-from collections.abc import ValuesView
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.fe.aliases import MatrixSolverTypes
 from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import ICheartTopology, IExpression, IProblem, ISolverMatrix
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+    from cheartpy.fe.aliases import MatrixSolverTypes
+
+__all__ = ["SolverMatrix"]
 
 
 @dc.dataclass(slots=True)

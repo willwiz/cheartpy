@@ -1,3 +1,10 @@
+from typing import TYPE_CHECKING, Final
+
+from .trait import IIndexIterator, ProgramMode
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping, Sequence
+
 __all__ = [
     "ListIndexer",
     "ListSubIndexer",
@@ -6,10 +13,6 @@ __all__ = [
     "TupleIndexer",
     "ZeroIndexer",
 ]
-from collections.abc import Iterator, Mapping, Sequence
-from typing import Final
-
-from .trait import IIndexIterator, ProgramMode
 
 
 class ZeroIndexer(IIndexIterator):

@@ -1,4 +1,3 @@
-__all__ = ["SolidProblem", "create_solid_mechanics_problem"]
 from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
 
 from cheartpy.fe.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
@@ -16,7 +15,9 @@ from cheartpy.fe.trait import (
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
 
-type SOLID_VARIABLES = Literal[
+__all__ = ["SolidProblem", "create_solid_mechanics_problem"]
+
+SOLID_VARIABLES = Literal[
     "Space",
     "Disp",
     "Velocity",
@@ -25,15 +26,14 @@ type SOLID_VARIABLES = Literal[
     "GenStruc",
 ]
 
-
-type SOLID_OPTIONS = Literal[
+SOLID_OPTIONS = Literal[
     "Density",
     "Perturbation-scale",
     "SetProblemTimeDiscretization",
     "UseStabilization",
 ]
 
-type SOLID_FLAGS = Literal["Inverse-mechanics"]
+SOLID_FLAGS = Literal["Inverse-mechanics", "No-buffering"]
 
 
 class _SolidProblemExtraArgs(TypedDict, total=False):

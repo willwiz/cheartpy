@@ -9,13 +9,7 @@ if TYPE_CHECKING:
 
     from .struct import CLPartition, CLTopology
 
-__all__ = [
-    "create_dm_on_cl",
-    "create_lm_on_cl",
-    "l2_norm",
-    "ll_interp",
-    "set_clvar_ic",
-]
+__all__ = ["create_dm_on_cl", "create_lm_on_cl", "l2_norm", "ll_interp", "set_clvar_ic"]
 
 
 @overload

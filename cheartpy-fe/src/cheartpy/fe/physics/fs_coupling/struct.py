@@ -1,7 +1,5 @@
-__all__ = ["FSCouplingProblem", "FSExpr"]
 import dataclasses as dc
-from collections.abc import Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import join_fields
@@ -13,6 +11,11 @@ from cheartpy.fe.trait import (
     IProblem,
     IVariable,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+__all__ = ["FSCouplingProblem", "FSExpr"]
 
 
 @dc.dataclass(slots=True)
@@ -155,7 +158,7 @@ class FSCouplingProblem(IProblem):
                     _expr_[str(t.mult)] = t.mult
         return {**self.aux_expr, **_expr_}.values()
 
-    def get_bc_patches(self) -> Sequence[IBCPatch]:
+    def get_bc_patches(self) -> list[IBCPatch]:
         patches = self.bc.get_patches()
         return [] if patches is None else list(patches)
 

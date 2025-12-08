@@ -1,9 +1,12 @@
-__all__ = ["Expression"]
 import dataclasses as dc
-from collections.abc import Sequence, ValuesView
-from typing import Self, TextIO
+from typing import TYPE_CHECKING, Self, TextIO
 
 from cheartpy.fe.trait import EXPRESSION_VALUE, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence, ValuesView
+
+__all__ = ["Expression"]
 
 
 @dc.dataclass(slots=True)

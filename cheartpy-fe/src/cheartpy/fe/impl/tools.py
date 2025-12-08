@@ -1,6 +1,9 @@
-from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
-from cheartpy.fe.trait import IExpression, IVariable
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from cheartpy.fe.trait import IExpression, IVariable
 
 
 def recurse_get_var_list_var(var: IVariable) -> Mapping[str, IVariable]:

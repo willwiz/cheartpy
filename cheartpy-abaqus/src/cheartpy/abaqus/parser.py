@@ -1,8 +1,12 @@
 import argparse
 from argparse import RawTextHelpFormatter
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from .struct import InputArgs, Mask
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 ################################################################################################
 # Check if multiprocessing is available
@@ -95,7 +99,7 @@ _MASK_ARG_LEN = 3
 
 
 def gather_masks(
-    cmd_arg_masks: list[list[str]] | None,
+    cmd_arg_masks: Sequence[Sequence[str]] | None,
 ) -> dict[str, Mask] | None:
     if cmd_arg_masks is None:
         return None
@@ -111,11 +115,11 @@ def gather_masks(
 
 
 def split_argslist_to_nameddict(
-    varlist: list[list[str]] | None,
-) -> dict[int, list[str]] | None:
+    varlist: Sequence[Sequence[str]] | None,
+) -> dict[int, Sequence[str]] | None:
     if varlist is None:
         return None
-    var: dict[int, list[str]] = {}
+    var: dict[int, Sequence[str]] = {}
     for items in varlist:
         if not len(items) > 1:
             msg = ">>>ERROR: Boundary or Topology must have at least 2 items, elem and label."

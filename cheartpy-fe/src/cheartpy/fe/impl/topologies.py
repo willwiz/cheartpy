@@ -1,13 +1,5 @@
-__all__ = [
-    "CheartTopology",
-    "ManyToOneTopInterface",
-    "NullTopology",
-    "OneToOneTopInterface",
-    "TopInterface",
-]
 import dataclasses as dc
-from collections.abc import Sequence
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
     CheartTopologySetting,
@@ -16,6 +8,17 @@ from cheartpy.fe.aliases import (
 )
 from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+__all__ = [
+    "CheartTopology",
+    "ManyToOneTopInterface",
+    "NullTopology",
+    "OneToOneTopInterface",
+    "TopInterface",
+]
 
 
 @dc.dataclass(slots=True)
@@ -43,7 +46,7 @@ class CheartTopology(ICheartTopology):
         return self._mesh
 
     @property
-    def order(self) -> Literal[0, 1, 2, None]:
+    def order(self) -> Literal[0, 1, 2] | None:
         if self.basis is None:
             return None
         return self.basis.order

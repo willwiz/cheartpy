@@ -14,7 +14,7 @@ from ._search import find_var_index, find_var_subindex
 from .trait import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Sequence
     from pathlib import Path
 
     from pytools.logging.trait import ILogger
@@ -30,7 +30,7 @@ def find_common_index(
     var: Sequence[str],
     root: Path | str | None = None,
     log: ILogger | None = None,
-) -> Sequence[int]:
+) -> list[int]:
     if log is None:
         log = BLogger("WARN")
     indices = find_var_index(var[0], root, log)
@@ -45,7 +45,7 @@ def find_common_subindex(
     root: Path | str | None = None,
     index: Sequence[int] | None = None,
     log: ILogger | None = None,
-) -> Mapping[int, Sequence[int]]:
+) -> dict[int, list[int]]:
     if log is None:
         log = BLogger("WARN")
     indices = find_var_subindex(var[0], root, log)

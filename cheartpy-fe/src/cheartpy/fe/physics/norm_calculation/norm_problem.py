@@ -1,6 +1,4 @@
-__all__ = ["NormProblem"]
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import join_fields
@@ -12,6 +10,11 @@ from cheartpy.fe.trait import (
     IProblem,
     IVariable,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
+
+__all__ = ["NormProblem"]
 
 
 class NormProblem(IProblem):

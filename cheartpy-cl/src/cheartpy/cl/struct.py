@@ -20,6 +20,7 @@ __all__ = [
     "CLTopology",
     "PatchNode2ElemMap",
 ]
+
 CL_NODAL_LM_TYPE = Mapping[int, IVariable]
 
 
