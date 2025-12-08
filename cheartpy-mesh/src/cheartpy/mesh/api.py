@@ -1,11 +1,10 @@
-__all__ = ["import_cheart_mesh"]
-
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.io.api import fix_suffix
 from cheartpy.vtk.api import guess_elem_type_from_dim
+from pytools.result import Err, Ok
 
 from .struct import (
     CheartMesh,
@@ -18,6 +17,9 @@ from .struct import (
 if TYPE_CHECKING:
     from cheartpy.vtk.trait import VtkElem, VtkType
     from pytools.arrays import A2
+
+
+__all__ = ["import_cheart_mesh"]
 
 
 def _create_bnd_surf[T: np.integer](v: A2[T], tag: int, kind: VtkType) -> CheartMeshPatch[T]:
@@ -44,7 +46,7 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     *,
     ftype: type[F] = np.float64,
     itype: type[I] = np.intc,
-) -> CheartMesh[F, I]:
+) -> Ok[CheartMesh[F, I]] | Err:
     prefix = fix_suffix(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
     raw_top = np.loadtxt(f"{prefix}T", dtype=itype, skiprows=1) - 1
@@ -55,8 +57,12 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     else:
         raw_bnd, bdim = None, None
     if forced_type is None:
-        forced_type = guess_elem_type_from_dim(edim, bdim)
+        match guess_elem_type_from_dim(edim, bdim):
+            case Ok(forced_type):
+                pass
+            case Err(e):
+                return Err(e)
     space = CheartMeshSpace(len(raw_space), raw_space)
     top = CheartMeshTopology(len(raw_top), raw_top, forced_type.body)
     bnd = _create_cheart_mesh_surf_from_raw(raw_bnd, forced_type.surf)
-    return CheartMesh(space, top, bnd)
+    return Ok(CheartMesh(space, top, bnd))

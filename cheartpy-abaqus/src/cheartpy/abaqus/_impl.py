@@ -1,6 +1,6 @@
 from cheartpy.vtk.trait import VtkType
 
-from .trait import AbaqusElement
+from ._trait import AbaqusElement
 
 _ABAQUS2VTK_TYPE_MAP = {
     AbaqusElement.T3D2: VtkType.LinLine,
@@ -16,8 +16,7 @@ _ABAQUS2VTK_TYPE_MAP = {
 
 
 def get_vtktype_from_abaqus_type(abaqus_elem: AbaqusElement) -> VtkType:
-    kind = _ABAQUS2VTK_TYPE_MAP.get(abaqus_elem)
-    if kind is None:
-        msg = f"Unsupported Abaqus element type: {abaqus_elem}"
-        raise ValueError(msg)
-    return kind
+    # kind = _ABAQUS2VTK_TYPE_MAP.get(abaqus_elem)
+    # if kind is None:
+    #     msg = f"Unsupported Abaqus element type: {abaqus_elem}"
+    return _ABAQUS2VTK_TYPE_MAP[abaqus_elem]

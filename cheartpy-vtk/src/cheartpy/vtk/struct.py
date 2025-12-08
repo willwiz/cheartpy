@@ -1,3 +1,13 @@
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+from ._lagrange_shape_funcs import dlagrange_2, lagrange_2
+from .trait import VTK_TYPE, VtkElem, VtkType
+
+if TYPE_CHECKING:
+    from pytools.arrays import A1, A2
+
 __all__ = [
     "VTKHEXAHEDRON1",
     "VTKHEXAHEDRON2",
@@ -10,17 +20,6 @@ __all__ = [
     "VTKTRIANGLE1",
     "VTKTRIANGLE2",
 ]
-
-
-from typing import TYPE_CHECKING
-
-import numpy as np
-
-from ._lagrange_shape_funcs import dlagrange_2, lagrange_2
-from .trait import VTK_TYPE, VtkElem, VtkType
-
-if TYPE_CHECKING:
-    from pytools.arrays import A1, A2
 
 
 def _shape_line_1[T: np.floating](pos: A1[T]) -> A1[np.float64]:

@@ -11,6 +11,7 @@ if TYPE_CHECKING:
         SolverSubgroupAlgorithm,
         TolSettings,
     )
+    from pytools.result import Err, Ok
 
     from .basic import IProblem, ITimeScheme, IVariable
     from .solver_matrix import ISolverMatrix
@@ -52,7 +53,7 @@ class ISolverGroup(abc.ABC):
     @abc.abstractmethod
     def get_time_scheme(self) -> ITimeScheme: ...
     @abc.abstractmethod
-    def get_aux_vars(self) -> ValuesView[IVariable]: ...
+    def get_aux_vars(self) -> Ok[ValuesView[IVariable]] | Err: ...
     @abc.abstractmethod
     def get_subgroups(self) -> Sequence[ISolverSubGroup]: ...
     @abc.abstractmethod

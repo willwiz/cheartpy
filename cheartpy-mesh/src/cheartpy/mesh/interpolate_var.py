@@ -39,13 +39,13 @@ def check_args_interp(args: argparse.Namespace) -> InterpInputArgs:
 
 
 def main_interp(inp: InterpInputArgs) -> None:
-    lin_mesh = import_cheart_mesh(inp.lin_mesh)
-    quad_mesh = import_cheart_mesh(inp.quad_mesh)
+    lin_mesh = import_cheart_mesh(inp.lin_mesh).unwrap()
+    quad_mesh = import_cheart_mesh(inp.quad_mesh).unwrap()
     l2qmap = make_l2qmap(lin_mesh, quad_mesh)
     items = get_var_index(
         [v.name for v in Path(inp.input_folder).glob(f"{inp.vars[0]}-*.{inp.suffix}")],
         f"{inp.vars[0]}",
-    )
+    ).unwrap()
     for v in inp.vars:
         for i in items:
             interpolate_var_on_lin_topology(

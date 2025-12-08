@@ -1,7 +1,6 @@
-__all__ = ["get_vtk_elem", "guess_elem_type_from_dim"]
-
-
 from typing import TYPE_CHECKING
+
+from pytools.result import Err, Ok
 
 from .struct import (
     VTKHEXAHEDRON1,
@@ -17,8 +16,10 @@ from .struct import (
 if TYPE_CHECKING:
     from .trait import VtkElem
 
+__all__ = ["get_vtk_elem", "guess_elem_type_from_dim"]
 
-def guess_elem_type_from_dim(edim: int, bdim: int | None) -> VtkElem:
+
+def guess_elem_type_from_dim(edim: int, bdim: int | None) -> Ok[VtkElem] | Err:
     match edim, bdim:
         case 3, 2 | None:
             elem = VTKTRIANGLE1
@@ -41,8 +42,8 @@ def guess_elem_type_from_dim(edim: int, bdim: int | None) -> VtkElem:
                 "Cannot detect between Bilinear quadrilateral and Trilinear tetrahedron,"
                 "need boundary dim"
             )
-            raise ValueError(msg)
+            return Err(ValueError(msg))
         case _:
             msg = f"Unsupported element dimensions: edim={edim}, bdim={bdim}"
-            raise ValueError(msg)
-    return elem
+            return Err(ValueError(msg))
+    return Ok(elem)

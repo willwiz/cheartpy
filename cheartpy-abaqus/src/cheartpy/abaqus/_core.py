@@ -1,6 +1,5 @@
 from collections import defaultdict
-from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.io.api import chwrite_str_utf
@@ -12,14 +11,14 @@ from cheartpy.mesh.struct import (
 )
 
 from ._impl import get_vtktype_from_abaqus_type
-from .parser import gather_masks, split_argslist_to_nameddict
-from .struct import InputArgs, Mask, MeshElements, MeshNodes
-from .trait import AbaqusElement, CMDInputKwargs
+from ._trait import AbaqusElement
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from pytools.arrays import A1, A2
+
+    from .struct import Mask, MeshElements, MeshNodes
 
 
 def get_abaqus_element(tag: str, dim: int) -> AbaqusElement:
@@ -46,23 +45,6 @@ def get_abaqus_element(tag: str, dim: int) -> AbaqusElement:
             msg: str = f"Element type '{type}' with dimension {dim} is not implemented. "
             raise ValueError(msg)
     return kind
-
-
-def parse_args(inputs: Sequence[str], **kwargs: Unpack[CMDInputKwargs]) -> InputArgs:
-    prefix = kwargs.get("prefix")
-    if prefix is None:
-        prefix = Path(inputs[0]).stem
-    boundaries = split_argslist_to_nameddict(kwargs.get("boundary"))
-    masks = gather_masks(kwargs.get("masks"))
-    return InputArgs(
-        inputs=inputs,
-        prefix=prefix,
-        dim=kwargs.get("dim", 3),
-        topology=kwargs.get("topology"),
-        boundary=boundaries,
-        masks=masks,
-        cores=kwargs.get("cores", 1),
-    )
 
 
 def check_for_elements[I: np.integer](

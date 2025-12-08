@@ -1,17 +1,8 @@
-from pathlib import Path
-
-__all__ = [
-    "CheartTopology",
-    "CmdLineArgs",
-    "IFormattedName",
-    "ProgramArgs",
-    "VariableCache",
-]
 import dataclasses as dc
+from pathlib import Path
 from typing import TYPE_CHECKING, Final, Literal, TypedDict
 
 import numpy as np
-from cheartpy.search.trait import SearchMode
 from cheartpy.vtk.api import guess_elem_type_from_dim
 from pytools.logging.trait import LogLevel
 
@@ -20,8 +11,17 @@ from .trait import IFormattedName
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
+    from cheartpy.search.trait import SearchMode
     from cheartpy.vtk.trait import VtkType
     from pytools.arrays import A1, A2
+
+__all__ = [
+    "CheartTopology",
+    "CmdLineArgs",
+    "IFormattedName",
+    "ProgramArgs",
+    "VariableCache",
+]
 
 
 class APIKwargs(TypedDict, total=False):
@@ -56,8 +56,8 @@ class CmdLineArgs:
     binary: Final[bool] = False
     compression: Final[bool] = True
     cores: Final[int] = 1
-    index: tuple[int, int, int] | SearchMode = SearchMode.none
-    subindex: tuple[int, int, int] | SearchMode = SearchMode.none
+    index: tuple[int, int, int] | SearchMode | None = None
+    subindex: tuple[int, int, int] | SearchMode | None = None
 
 
 @dc.dataclass(slots=True, frozen=True)
@@ -103,7 +103,7 @@ class CheartTopology[I: np.integer]:
                     bdim = len(next(f).strip().split()) - 2
             case None:
                 bdim = None
-        vtk = guess_elem_type_from_dim(self.nc, bdim)
+        vtk = guess_elem_type_from_dim(self.nc, bdim).unwrap()
         self.vtkelementtype, self.vtksurfacetype = vtk.body, vtk.surf
 
     def __setitem__(self, index: int, data: A1[I]) -> None:

@@ -15,6 +15,8 @@ import json
 import typing as tp
 from pathlib import Path
 
+from pytools.result import Err, Ok
+
 from .parser_time import CmdLineArgs, get_cmdline_args
 from .time_series import create_time_series_file
 
@@ -39,27 +41,23 @@ def xml_write_content(f: tp.TextIO, item: str, time: float) -> None:
     f.write(f'             file="{item}"/>\n')
 
 
-def import_time_data(file: Path | str) -> tuple[int, dict[int, float]]:
+def import_time_data(file: Path | str) -> Ok[dict[int, float]] | Err:
     arr: dict[int, float] = {}
     with Path(file).open("r") as f:
         try:
             n = int(next(f).strip())
         except ValueError:
-            print(">>>ERROR: check file format. Time series data has 1 int for header.")
-            raise
-        except Exception:
-            raise
+            return Err(ValueError("Invalid time series file format. Need 1 int for header."))
         for i, line in enumerate(f):
             s, v = line.strip().split()
             arr[int(s)] = float(v) + arr[i]
         if len(arr) != n:
-            print()
             msg = (
                 ">>>ERROR: Incorrect number of time steps in the file."
                 f"          check file format. Expected {n} lines, got {len(arr)}."
             )
-            raise ValueError(msg)
-    return len(arr), arr
+            return Err(ValueError(msg))
+    return Ok(arr)
 
 
 def print_cmd_header(inp: CmdLineArgs) -> None:

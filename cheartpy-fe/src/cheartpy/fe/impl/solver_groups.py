@@ -19,6 +19,7 @@ from cheartpy.fe.trait import (
     ITimeScheme,
     IVariable,
 )
+from pytools.result import Err, Ok
 
 from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
 
@@ -162,15 +163,14 @@ class SolverGroup(ISolverGroup):
     def get_time_scheme(self) -> ITimeScheme:
         return self.time
 
-    def get_aux_vars(self) -> ValuesView[IVariable]:
+    def get_aux_vars(self) -> Ok[ValuesView[IVariable]] | Err:
         _all_vars = {k: v for sg in self.sub_groups for k, v in sg.get_all_vars().items()}
         _dep_vars = {k: v for sg in self.sub_groups for k, v in sg.get_prob_vars().items()}
-        check = all(item in _all_vars.items() for item in _dep_vars.items())
-        if not check:
+        if not all(item in _all_vars.items() for item in _dep_vars.items()):
             msg = "Dependent Variables not in super set check implementation"
-            raise ValueError(msg)
+            return Err(ValueError(msg))
         _aux_vars = {k: v for k, v in _all_vars.items() if k not in _dep_vars}
-        return _aux_vars.values()
+        return Ok(_aux_vars.values())
 
     def get_subgroups(self) -> Sequence[ISolverSubGroup]:
         return self.sub_groups
@@ -237,7 +237,7 @@ class SolverGroup(ISolverGroup):
         f.write(hline("Solver Groups"))
         f.write(f"!DefSolverGroup={{{self}|{self.time}}}\n")
         # Handle Additional Vars
-        variables = [str(v) for v in self.get_aux_vars()]
+        variables = [str(v) for v in self.get_aux_vars().unwrap()]
         for s in splicegen(45, variables):
             if s:
                 f.write(

@@ -54,7 +54,7 @@ def main() -> None:
         log.fatal("Error: Please place quotes around the offender variable")
         return
     log.disp(f"{f'{args.var1} vs {args.var2}':^{HEADER_LEN}}")
-    v1, v2 = get_variables(args.var1, args.var2, root=args.folder)
+    v1, v2 = get_variables(args.var1, args.var2, root=args.folder).unwrap()
     getter = get_variable_getter(v1, v2, root=args.folder)
     log.disp(table_header())
     for k, i, j in getter:

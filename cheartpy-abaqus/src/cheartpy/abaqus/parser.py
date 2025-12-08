@@ -1,7 +1,10 @@
 import argparse
+import dataclasses as dc
 from argparse import RawTextHelpFormatter
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
+
+from pytools.result import Err, Ok
 
 from .struct import InputArgs, Mask
 
@@ -12,7 +15,7 @@ if TYPE_CHECKING:
 # Check if multiprocessing is available
 
 
-parser = argparse.ArgumentParser(
+_parser = argparse.ArgumentParser(
     description="""
     Convert Abaqus mesh to Cheart. Main() can be editted for convenience, see example at
     the bottom. Example inputs:
@@ -34,7 +37,7 @@ parser = argparse.ArgumentParser(
 """,
     formatter_class=RawTextHelpFormatter,
 )
-parser.add_argument(
+_parser.add_argument(
     "input",
     nargs="+",
     type=str,
@@ -42,23 +45,22 @@ parser.add_argument(
     optional arguments -t or -b, -- should be inserted in between to delineate.
     """,
 )
-parser.add_argument(
+_parser.add_argument(
     "-d",
     "--dim",
     type=int,
-    default=3,
     help="""dimension of the mesh, default 3""",
 )
-parser.add_argument(
+_parser.add_argument(
     "-p",
     "--prefix",
     type=str,
-    default=None,
     help="""Give the prefix for the output files.""",
 )
-parser.add_argument(
+_parser.add_argument(
     "-t",
     "--topology",
+    type=str,
     nargs="+",
     default=None,
     help="""Define which volume will be used as the topology. If multiple are given,
@@ -67,9 +69,10 @@ parser.add_argument(
     --topology Volume1 Volume2 Volume3 ...
     """,
 )
-parser.add_argument(
+_parser.add_argument(
     "-b",
     "--boundary",
+    type=str,
     action="append",
     nargs="+",
     default=None,
@@ -79,68 +82,91 @@ parser.add_argument(
     --boundary Surf1 Surf2 ... label
     """,
 )
-parser.add_argument(
+_parser.add_argument(
     "--add-mask",
+    type=str,
     action="append",
     nargs="+",
     default=None,
     help="""Add a mask with an given element""",
 )
-parser.add_argument(
-    "-c",
-    "--cores",
-    default=1,
-    type=int,
-    help="""Enable multiprocessing with n cores
-    """,
-)
+_parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing with n cores""")
 
 _MASK_ARG_LEN = 3
 
 
+@dc.dataclass(slots=True)
+class _AbaqusInput:
+    inputs: Sequence[str]
+    prefix: str | None
+    dim: int
+    topology: Sequence[str]
+    boundary: Sequence[str] | None
+    add_mask: Sequence[str]
+    cores: int
+
+
+def parse_cmdline_args(args: Sequence[str] | None = None) -> _AbaqusInput:
+    return _parser.parse_args(
+        args,
+        namespace=_AbaqusInput(
+            [], prefix=None, dim=3, topology=[], boundary=None, add_mask=[], cores=1
+        ),
+    )
+
+
+@overload
+def gather_masks(cmd_arg_masks: None) -> Ok[None]: ...
+@overload
+def gather_masks(cmd_arg_masks: Sequence[Sequence[str]]) -> Ok[dict[str, Mask]] | Err: ...
 def gather_masks(
     cmd_arg_masks: Sequence[Sequence[str]] | None,
-) -> dict[str, Mask] | None:
+) -> Ok[dict[str, Mask]] | Ok[None] | Err:
     if cmd_arg_masks is None:
-        return None
+        return Ok(None)
     masks: dict[str, Mask] = {}
     for m in cmd_arg_masks:
         if len(m) < _MASK_ARG_LEN:
             msg = (
                 ">>>ERROR: A Mask must have at least 3 args, e.g., name1, name2, ..., value, output"
             )
-            raise ValueError(msg)
+            return Err(ValueError(msg))
         masks[m[-1]] = Mask(m[-1], m[-2], m[:-2])
-    return masks
+    return Ok(masks)
+
+
+@overload
+def split_argslist_to_nameddict(varlist: None) -> Ok[None]: ...
+@overload
+def split_argslist_to_nameddict(
+    varlist: Sequence[Sequence[str]],
+) -> Ok[dict[int, Sequence[str]]] | Err: ...
 
 
 def split_argslist_to_nameddict(
     varlist: Sequence[Sequence[str]] | None,
-) -> dict[int, Sequence[str]] | None:
+) -> Ok[dict[int, Sequence[str]]] | Ok[None] | Err:
     if varlist is None:
-        return None
+        return Ok(None)
     var: dict[int, Sequence[str]] = {}
     for items in varlist:
         if not len(items) > 1:
             msg = ">>>ERROR: Boundary or Topology must have at least 2 items, elem and label."
-            raise ValueError(msg)
+            return Err(ValueError(msg))
         var[int(items[-1])] = items[:-1]
-    return var
+    return Ok(var)
 
 
-def check_args(args: argparse.Namespace) -> InputArgs:
-    if args.prefix is None:
-        name, _ = Path(args.input[0]).stem
-    else:
-        name: str = args.prefix
-    boundary = split_argslist_to_nameddict(args.boundary)
-    masks = gather_masks(args.add_mask)
-    return InputArgs(
-        args.input,
-        name,
-        args.dim,
-        args.topology,
-        boundary,
-        masks,
-        args.cores,
-    )
+def check_args(args: _AbaqusInput) -> Ok[InputArgs] | Err:
+    name = Path(args.inputs[0]).stem if args.prefix is None else args.prefix
+    match split_argslist_to_nameddict(args.boundary):
+        case Ok(boundary):
+            pass
+        case Err(e):
+            return Err(e)
+    match gather_masks(args.add_mask):
+        case Ok(masks):
+            pass
+        case Err(e):
+            return Err(e)
+    return Ok(InputArgs(args.inputs, name, args.dim, args.topology, boundary, masks, args.cores))

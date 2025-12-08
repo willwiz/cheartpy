@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
 
+from ._trait import AbaqusItem
 from .struct import AbaqusContent, MeshElements, MeshNodes
-from .trait import AbaqusItem
 
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
