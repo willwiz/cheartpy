@@ -13,8 +13,8 @@ if TYPE_CHECKING:
     )
     from pytools.result import Err, Ok
 
-    from .basic import IProblem, ITimeScheme, IVariable
-    from .solver_matrix import ISolverMatrix
+    from ._basic import IProblem, ITimeScheme, IVariable
+    from ._solver_matrix import ISolverMatrix
 
 
 __all__ = ["ISolverGroup", "ISolverSubGroup"]

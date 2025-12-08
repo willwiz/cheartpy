@@ -1,9 +1,11 @@
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, TypedDict, Unpack, overload
 
 import numpy as np
 from cheartpy.fe.api import create_variable
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from cheartpy.fe.trait import IVariable
     from pytools.arrays import A1, A2
 
@@ -12,37 +14,48 @@ if TYPE_CHECKING:
 __all__ = ["create_dm_on_cl", "create_lm_on_cl", "l2_norm", "ll_interp", "set_clvar_ic"]
 
 
+class _VaribleKwaargs(TypedDict, total=False):
+    freq: int
+    data: Path | str
+
+
 @overload
-def create_lm_on_cl(cl: None, dim: int, ex_freq: int, sfx: str = "LM") -> None: ...
-@overload
-def create_lm_on_cl(cl: CLTopology, dim: int, ex_freq: int, sfx: str = "LM") -> IVariable: ...
 def create_lm_on_cl(
-    cl: CLTopology | None,
-    dim: int,
-    ex_freq: int,
-    sfx: str = "LM",
+    cl: None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+) -> None: ...
+@overload
+def create_lm_on_cl(
+    cl: CLTopology, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+) -> IVariable: ...
+def create_lm_on_cl(
+    cl: CLTopology | None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
 ) -> IVariable | None:
     if cl is None:
         return None
-    return create_variable(f"{cl}{sfx}", cl.top_lm, dim, freq=ex_freq)
+    return create_variable(
+        f"{cl}{sfx}", cl.top_lm, dim, freq=kwargs.get("freq", 1), data=kwargs.get("data")
+    )
 
 
 @overload
-def create_dm_on_cl(cl: None, dim: int, ex_freq: int, sfx: str = "DM") -> None: ...
-@overload
-def create_dm_on_cl(cl: CLTopology, dim: int, ex_freq: int, sfx: str = "DM") -> IVariable: ...
 def create_dm_on_cl(
-    cl: CLTopology | None,
-    dim: int,
-    ex_freq: int,
-    sfx: str = "DM",
+    cl: None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+) -> None: ...
+@overload
+def create_dm_on_cl(
+    cl: CLTopology, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+) -> IVariable: ...
+def create_dm_on_cl(
+    cl: CLTopology | None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
 ) -> IVariable | None:
     if cl is None:
         return None
-    return create_variable(f"{cl}{sfx}", None, dim, freq=ex_freq)
+    return create_variable(
+        f"{cl}{sfx}", None, dim, freq=kwargs.get("freq", 1), data=kwargs.get("data")
+    )
 
 
-def set_clvar_ic(var: IVariable | None, file: str) -> None:
+def set_clvar_ic(var: IVariable | None, file: Path | str) -> None:
     """Set initial condition for a CL variable from a file."""
     if var is None:
         return

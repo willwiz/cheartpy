@@ -1,6 +1,12 @@
 from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
 
-from cheartpy.fe.aliases import SOLID_PROBLEM_TYPE, SolidProblemType
+from cheartpy.fe.aliases import (
+    SOLID_FLAGS,
+    SOLID_OPTIONS,
+    SOLID_PROBLEM_TYPE,
+    SOLID_VARIABLES,
+    SolidProblemType,
+)
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import (
@@ -17,24 +23,6 @@ if TYPE_CHECKING:
 
 __all__ = ["SolidProblem", "create_solid_mechanics_problem"]
 
-SOLID_VARIABLES = Literal[
-    "Space",
-    "Disp",
-    "Velocity",
-    "Pressure",
-    "Fibers",
-    "GenStruc",
-]
-
-SOLID_OPTIONS = Literal[
-    "Density",
-    "Perturbation-scale",
-    "SetProblemTimeDiscretization",
-    "UseStabilization",
-]
-
-SOLID_FLAGS = Literal["Inverse-mechanics", "No-buffering"]
-
 
 class _SolidProblemExtraArgs(TypedDict, total=False):
     vel: IVariable | None
@@ -46,7 +34,7 @@ class SolidProblem(IProblem):
     name: str
     problem: SolidProblemType
     matlaws: list[ILaw]
-    variables: dict[str, IVariable]
+    variables: dict[SOLID_VARIABLES, IVariable]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     state_vars: dict[str, IVariable]

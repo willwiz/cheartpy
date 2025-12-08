@@ -1,4 +1,5 @@
 import dataclasses as dc
+from pathlib import Path
 from typing import TextIO
 
 from .trait import (
@@ -20,8 +21,8 @@ __all__ = ["PFile"]
 @dc.dataclass(slots=True)
 class PFile:
     h: str = ""
-    output_dir: str | None = None
-    def set_outputpath(self, path: str) -> None: ...
+    output_dir: Path | None = None
+    def set_outputpath(self, path: Path | str) -> None: ...
     def add_timescheme(self, *time: ITimeScheme) -> None: ...
     def add_datapointer(self, *var: IDataPointer) -> None: ...
     def add_basis(self, *basis: ICheartBasis | None) -> None: ...

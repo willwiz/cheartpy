@@ -9,6 +9,7 @@ from cheartpy.mesh.struct import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
+from pytools.result import Err, Ok, all_ok
 
 from ._impl import get_vtktype_from_abaqus_type
 from ._trait import AbaqusElement
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from .struct import Mask, MeshElements, MeshNodes
 
 
-def get_abaqus_element(tag: str, dim: int) -> AbaqusElement:
+def get_abaqus_element(tag: str, dim: int) -> Ok[AbaqusElement] | Err:
     match tag, dim:
         case "T3D2", 2:
             kind = AbaqusElement.T3D2
@@ -42,9 +43,9 @@ def get_abaqus_element(tag: str, dim: int) -> AbaqusElement:
         case _, 4:
             kind = AbaqusElement.Tet3D
         case _:
-            msg: str = f"Element type '{type}' with dimension {dim} is not implemented. "
-            raise ValueError(msg)
-    return kind
+            msg = f"Element type '{type}' with dimension {dim} is not implemented. "
+            return Err(ValueError(msg))
+    return Ok(kind)
 
 
 def check_for_elements[I: np.integer](
@@ -76,17 +77,22 @@ def create_topology[I: np.integer](
     elmap: Mapping[int, int],
     elems: Mapping[str, MeshElements[I]],
     topology: str,
-) -> CheartMeshTopology[I]:
+) -> Ok[CheartMeshTopology[I]] | Err:
     data: list[list[int]] = []
     top = elems[topology]
-    el = get_abaqus_element(top.kind, top.v.shape[1])
-    data.extend([elmap[values[j]] for j in el.value.nodes] for values in top.v)
+    match get_abaqus_element(top.kind, top.v.shape[1]):
+        case Ok(el):
+            data.extend([elmap[values[j]] for j in el.value.nodes] for values in top.v)
+            kind = get_vtktype_from_abaqus_type(el)
+        case Err(e):
+            return Err(e)
     topology_data = np.array(data, dtype=int)
-    kind = get_vtktype_from_abaqus_type(el)
-    return CheartMeshTopology(
-        n=len(topology_data),
-        v=np.ascontiguousarray(topology_data),
-        TYPE=kind,
+    return Ok(
+        CheartMeshTopology(
+            n=len(topology_data),
+            v=np.ascontiguousarray(topology_data),
+            TYPE=kind,
+        )
     )
 
 
@@ -144,53 +150,59 @@ def create_boundary_patch[I: np.integer](
     top_hashmap: Mapping[int, set[int]],
     elems: MeshElements[I],
     tag: int,
-) -> CheartMeshPatch[I]:
+) -> Ok[CheartMeshPatch[I]] | Err:
     array_dim = elems.v.shape[1]
-    abaqus_elem = get_abaqus_element(elems.kind, array_dim)
-    nodes: A2[I] = np.array(
-        [[elmap[int(node)] for node in patch[abaqus_elem.value.nodes]] for patch in elems.v],
-        dtype=elems.v.dtype,
-    )
+    match get_abaqus_element(elems.kind, array_dim):
+        case Ok(abaqus_elem):
+            kind = get_vtktype_from_abaqus_type(abaqus_elem)
+            nodes: A2[I] = np.array(
+                [
+                    [elmap[int(node)] for node in patch[abaqus_elem.value.nodes]]
+                    for patch in elems.v
+                ],
+                dtype=elems.v.dtype,
+            )
+        case Err(e):
+            return Err(e)
     elements = np.array(
         [find_element_by_nodes(top_hashmap, row) for row in nodes],
         dtype=nodes.dtype,
     )
-    return CheartMeshPatch(
-        tag=tag,
-        n=len(elems.v),
-        k=elements,
-        v=nodes,
-        TYPE=get_vtktype_from_abaqus_type(abaqus_elem),
-    )
+    return Ok(CheartMeshPatch(tag=tag, n=len(elems.v), k=elements, v=nodes, TYPE=kind))
 
 
 def merge_boundary_patches[I: np.integer](
-    *patches: CheartMeshPatch[I],
-) -> CheartMeshPatch[I]:
-    types = {p.TYPE for p in patches}
+    *patches: Ok[CheartMeshPatch[I]] | Err,
+) -> Ok[CheartMeshPatch[I]] | Err:
+    match all_ok(patches):
+        case Ok(ok_patches):
+            pass
+        case Err(e):
+            return Err(e)
+    types = {p.TYPE for p in ok_patches}
     if len(types) != 1:
         msg = f"Boundary patches have different types, cannot merge them: {types}"
-        raise ValueError(msg)
-    tags = {p.tag for p in patches}
-    if len(tags) != len(patches):
+        return Err(ValueError(msg))
+    tags = {p.tag for p in ok_patches}
+    if len(tags) != len(ok_patches):
         msg = f"Boundary patches have different tags, cannot merge them: {tags}"
-        raise ValueError(msg)
-    keys = np.concatenate([p.k for p in patches], axis=0)
-    values = np.concatenate([p.v for p in patches], axis=0)
-    n = sum(p.n for p in patches)
+        return Err(ValueError(msg))
+    n = sum(p.n for p in ok_patches)
+    keys = np.concatenate([p.k for p in ok_patches], axis=0)
     if len(keys) != n:
         msg = (
             "Boundary patches have different number of elements, cannot merge them. "
             f"Total number of elements: {n}, but got {len(keys)}."
         )
         raise ValueError(msg)
+    values = np.concatenate([p.v for p in ok_patches], axis=0)
     if len(values) != n:
         msg = (
             "Boundary patches have different number of elements, cannot merge them. "
             f"Total number of elements: {n}, but got {len(values)}."
         )
         raise ValueError(msg)
-    return CheartMeshPatch(tag=tags.pop(), n=n, k=keys, v=values, TYPE=types.pop())
+    return Ok(CheartMeshPatch(tag=tags.pop(), n=n, k=keys, v=values, TYPE=types.pop()))
 
 
 def create_boundaries[F: np.floating, I: np.integer](
@@ -198,26 +210,32 @@ def create_boundaries[F: np.floating, I: np.integer](
     top_hashmap: Mapping[int, set[int]],
     elems: Mapping[str, MeshElements[I]],
     boundary: Mapping[int, Sequence[str]] | None,
-) -> CheartMeshBoundary[I] | None:
+) -> Ok[CheartMeshBoundary[I]] | Ok[None] | Err:
     if boundary is None:
-        return None
+        return Ok(None)
     patch_exists = {k: k in elems for k in boundary}
     if not all(patch_exists.values()):
         missing = [k for k, v in patch_exists.items() if not v]
         msg = f"Boundary patches {missing} are not defined in the elements."
-        raise ValueError(msg)
-    patches = [
-        merge_boundary_patches(
-            *[create_boundary_patch(elmap, top_hashmap, elems[v], k) for v in b],
-        )
-        for k, b in boundary.items()
-        if k in elems
-    ]
+        return Err(ValueError(msg))
+    match all_ok(
+        [
+            merge_boundary_patches(
+                *[create_boundary_patch(elmap, top_hashmap, elems[v], k) for v in b],
+            )
+            for k, b in boundary.items()
+            if k in elems
+        ]
+    ):
+        case Ok(patches):
+            pass
+        case Err(e):
+            return Err(e)
     types = {p.TYPE for p in patches}
     if len(types) != 1:
         msg = f"Boundary patches have different types, cannot merge them: {types}"
-        raise ValueError(msg)
-    return CheartMeshBoundary(n=len(patches), v={p.tag: p for p in patches}, TYPE=types.pop())
+        return Err(ValueError(msg))
+    return Ok(CheartMeshBoundary(n=len(patches), v={p.tag: p for p in patches}, TYPE=types.pop()))
 
 
 def create_mask[I: np.integer](

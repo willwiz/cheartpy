@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Literal, Self, TextIO
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
+    from pathlib import Path
 
     from cheartpy.fe.aliases import (
         VARIABLE_UPDATE_SETTING,
@@ -198,9 +199,9 @@ class IVariable(abc.ABC):
     @abc.abstractmethod
     def order(self) -> Literal[0, 1, 2] | None: ...
     @abc.abstractmethod
-    def add_data(self, data: str | None) -> None: ...
+    def add_data(self, data: Path | str | None) -> None: ...
     @abc.abstractmethod
-    def get_data(self) -> str | None: ...
+    def get_data(self) -> Path | str | None: ...
     @abc.abstractmethod
     def get_top(self) -> ICheartTopology: ...
     @abc.abstractmethod

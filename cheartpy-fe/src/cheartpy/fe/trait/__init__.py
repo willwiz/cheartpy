@@ -1,4 +1,4 @@
-from .basic import (
+from ._basic import (
     BC_VALUE,
     EXPRESSION_VALUE,
     IBasis,
@@ -16,8 +16,8 @@ from .basic import (
     ITopInterface,
     IVariable,
 )
-from .solver_group import ISolverGroup, ISolverSubGroup
-from .solver_matrix import ISolverMatrix
+from ._solver_group import ISolverGroup, ISolverSubGroup
+from ._solver_matrix import ISolverMatrix
 
 __all__ = [
     "BC_VALUE",

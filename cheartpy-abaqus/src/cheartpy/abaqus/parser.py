@@ -141,8 +141,6 @@ def split_argslist_to_nameddict(varlist: None) -> Ok[None]: ...
 def split_argslist_to_nameddict(
     varlist: Sequence[Sequence[str]],
 ) -> Ok[dict[int, Sequence[str]]] | Err: ...
-
-
 def split_argslist_to_nameddict(
     varlist: Sequence[Sequence[str]] | None,
 ) -> Ok[dict[int, Sequence[str]]] | Ok[None] | Err:

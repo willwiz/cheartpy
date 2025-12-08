@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, TextIO
 if TYPE_CHECKING:
     from collections.abc import ValuesView
 
-    from .basic import ICheartTopology, IExpression, IProblem
+    from ._basic import ICheartTopology, IExpression, IProblem
 
 __all__ = ["ISolverMatrix"]
 

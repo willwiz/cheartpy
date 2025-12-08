@@ -1,19 +1,20 @@
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Literal, overload
 
 from .aliases import (
     BOUNDARY_TYPE,
-    CHEART_BASES_TYPE,
+    CHEART_BASIS_TYPE,
     CHEART_ELEMENT_TYPE,
     CHEART_QUADRATURE_TYPE,
-    MATRIX_SOLVER_TYPES,
+    MATRIX_SOLVER_OPTIONS,
     SOLVER_SUBGROUP_ALGORITHM,
     VARIABLE_EXPORT_FORMAT,
     BoundaryType,
     CheartBasisType,
     CheartElementType,
     CheartQuadratureType,
-    MatrixSolverTypes,
+    MatrixSolverOptions,
     SolverSubgroupAlgorithm,
     VariableExportFormat,
 )
@@ -25,6 +26,7 @@ from .impl import (
 )
 from .trait import (
     BC_VALUE,
+    EXPRESSION_VALUE,
     IBCPatch,
     IBoundaryCondition,
     ICheartBasis,
@@ -37,7 +39,6 @@ from .trait import (
     ITimeScheme,
     IVariable,
 )
-from .trait.basic import EXPRESSION_VALUE
 
 __all__ = [
     "add_statevar",
@@ -66,7 +67,7 @@ def create_time_scheme(
 ) -> ITimeScheme: ...
 def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
-    kind: CHEART_BASES_TYPE | CheartBasisType,
+    kind: CHEART_BASIS_TYPE | CheartBasisType,
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: Literal[0, 1, 2],
     gp: int,
@@ -94,7 +95,7 @@ def create_embedded_topology(
 ) -> CheartTopology: ...
 def create_solver_matrix(
     name: str,
-    solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes,
+    solver: MATRIX_SOLVER_OPTIONS | MatrixSolverOptions,
     *probs: IProblem | None,
 ) -> ISolverMatrix: ...
 def create_solver_group(
@@ -131,7 +132,7 @@ def create_variable(
     name: str,
     top: ICheartTopology | None,
     dim: int = 3,
-    data: str | None = None,
+    data: Path | str | None = None,
     fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
     freq: int = 1,
     loop_step: int | None = None,

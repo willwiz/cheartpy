@@ -3,17 +3,17 @@ from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 from cheartpy.fe.aliases import (
     BOUNDARY_TYPE,
-    CHEART_BASES_TYPE,
+    CHEART_BASIS_TYPE,
     CHEART_ELEMENT_TYPE,
     CHEART_QUADRATURE_TYPE,
-    MATRIX_SOLVER_TYPES,
+    MATRIX_SOLVER_OPTIONS,
     SOLVER_SUBGROUP_ALGORITHM,
     VARIABLE_EXPORT_FORMAT,
     BoundaryType,
     CheartBasisType,
     CheartElementType,
     CheartQuadratureType,
-    MatrixSolverTypes,
+    MatrixSolverOptions,
     SolverSubgroupAlgorithm,
     VariableExportFormat,
 )
@@ -119,7 +119,7 @@ _ELEM = {
 
 def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
-    kind: CHEART_BASES_TYPE | CheartBasisType,
+    kind: CHEART_BASIS_TYPE | CheartBasisType,
     quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: Literal[0, 1, 2],
     gp: int,
@@ -182,14 +182,14 @@ def create_embedded_topology(
 
 def create_solver_matrix(
     name: str,
-    solver: MATRIX_SOLVER_TYPES | MatrixSolverTypes,
+    solver: MATRIX_SOLVER_OPTIONS | MatrixSolverOptions,
     *probs: IProblem | None,
 ) -> ISolverMatrix:
     problems: dict[str, IProblem] = {}
     for p in probs:
         if p is not None:
             problems[str(p)] = p
-    method = get_enum(solver, MatrixSolverTypes)
+    method = get_enum(solver, MatrixSolverOptions)
     return SolverMatrix(name, method, problems)
 
 
@@ -264,11 +264,12 @@ def create_variable(
     name: str,
     top: ICheartTopology | None,
     dim: int = 3,
-    data: str | None = None,
+    data: Path | str | None = None,
     **kwargs: Unpack[_ExtraCreateVarOptions],
 ) -> IVariable:
     fmt = get_enum(kwargs.get("fmt", VariableExportFormat.TXT), VariableExportFormat)
     top = NullTopology() if top is None else top
+    data = Path(data) if data is not None else None
     return Variable(name, top, dim, data, fmt, kwargs.get("freq", 1), kwargs.get("loop_step"))
 
 
