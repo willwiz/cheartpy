@@ -29,6 +29,7 @@ __all__ = [
     "create_cl_partition",
     "filter_mesh_normals",
 ]
+
 _SQRT2 = np.sqrt(2.0)
 
 

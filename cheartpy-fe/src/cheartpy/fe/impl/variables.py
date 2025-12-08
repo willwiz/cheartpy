@@ -1,7 +1,5 @@
-__all__ = ["Variable"]
 import dataclasses as dc
-from collections.abc import ValuesView
-from typing import Literal, Self, TextIO, overload
+from typing import TYPE_CHECKING, Literal, Self, TextIO, overload
 
 from cheartpy.fe.aliases import (
     VARIABLE_UPDATE_SETTING,
@@ -10,6 +8,11 @@ from cheartpy.fe.aliases import (
 )
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import ValuesView
+
+__all__ = ["Variable"]
 
 
 @dc.dataclass(slots=True)
@@ -34,7 +37,7 @@ class Variable(IVariable):
         return True
 
     @property
-    def order(self) -> Literal[0, 1, 2, None]:
+    def order(self) -> Literal[0, 1, 2] | None:
         return self.topology.order
 
     def idx(self, key: int) -> str:

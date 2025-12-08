@@ -84,7 +84,7 @@ def check_for_elements[I: np.integer](
 def build_element_map[I: np.integer](
     elems: Mapping[str, MeshElements[I]],
     topology: Sequence[str],
-) -> Mapping[int, int]:
+) -> dict[int, int]:
     unique_nodes = {int(v) for name in topology for elem in elems[name].v for v in elem}
     elmap: dict[int, int] = {}
     return {elmap[node]: i for i, node in enumerate(sorted(unique_nodes), start=1)}
@@ -132,7 +132,7 @@ def merge_topologies[I: np.integer](*top: CheartMeshTopology[I]) -> CheartMeshTo
     )
 
 
-def topology_hashmap[I: np.integer](topology: CheartMeshTopology[I]) -> Mapping[int, set[int]]:
+def topology_hashmap[I: np.integer](topology: CheartMeshTopology[I]) -> dict[int, set[int]]:
     """Return a hashmap of nodes and a set of the elements it is part of."""
     hashmap: dict[int, set[int]] = defaultdict(set)
     for i, elem in enumerate(topology.v):

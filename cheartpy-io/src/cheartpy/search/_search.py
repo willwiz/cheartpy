@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Iterable, Sequence
 
     from pytools.logging.trait import ILogger
 
@@ -22,7 +22,7 @@ def get_var_index(
     names: Sequence[str] | Iterable[str],
     prefix: str,
     suffix: Literal[r"D", r"D\.gz", r"vtu"] = r"D",
-) -> Sequence[int]:
+) -> list[int]:
     """Extract variable indices from a list of file names."""
     if r".\\" in prefix:
         msg = f"Prefix {prefix} should not contain '.\\'"
@@ -36,7 +36,7 @@ def get_var_subindex(
     names: Sequence[str] | Iterable[str],
     prefix: str,
     suffix: Literal[r"D", r"D\.gz"] = r"D",
-) -> Mapping[int, Sequence[int]]:
+) -> dict[int, list[int]]:
     if r".\\" in prefix:
         msg = f"Prefix {prefix} should not contain '.\\'"
         raise ValueError(msg)
@@ -53,13 +53,13 @@ def get_var_index_all(
     names: Sequence[str] | Iterable[str],
     prefix: str,
     suffix: Literal[r"D", r"D\.gz"] = r"D",
-) -> Sequence[str]:
+) -> list[str]:
     p = re.compile(rf"{prefix}-(\d+|\d+.\d+).{suffix}")
     matches = [p.fullmatch(s) for s in names]
     return [m.group(1) for m in matches if m]
 
 
-def find_var_index(prefix: str, root: Path | str | None, log: ILogger) -> Sequence[int]:
+def find_var_index(prefix: str, root: Path | str | None, log: ILogger) -> list[int]:
     root = Path(root) if root else Path()
     log.debug(f"Searching for files with prefix: {prefix} in {root=}")
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
@@ -73,7 +73,7 @@ def find_var_subindex(
     prefix: str,
     root: Path | str | None,
     log: ILogger,
-) -> Mapping[int, Sequence[int]]:
+) -> dict[int, list[int]]:
     root = Path(root) if root else Path()
     log.debug(f"Searching for files with prefix: {prefix} in {root=}")
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"

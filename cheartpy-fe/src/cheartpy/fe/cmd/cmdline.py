@@ -1,8 +1,8 @@
+import subprocess as sp
+from pathlib import Path
 from typing import TypedDict, Unpack
 
 __all__ = ["run_prep", "run_problem"]
-import subprocess as sp
-from pathlib import Path
 
 
 class _RunOptions(TypedDict, total=False):

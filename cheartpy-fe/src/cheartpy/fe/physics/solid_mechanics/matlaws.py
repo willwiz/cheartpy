@@ -1,4 +1,3 @@
-__all__ = ["FractionalDiffEQ", "FractionalVE", "Matlaw"]
 import dataclasses as dc
 from typing import TYPE_CHECKING, Literal
 
@@ -7,6 +6,7 @@ from cheartpy.fe.trait import IExpression, ILaw, IVariable
 if TYPE_CHECKING:
     from collections.abc import Mapping, ValuesView
 
+__all__ = ["FractionalDiffEQ", "FractionalVE", "Matlaw"]
 # Matlaws -----------------------------------------------------------------------------
 
 

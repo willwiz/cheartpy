@@ -1,4 +1,7 @@
-from .trait import IExpression, INumber, IOperator, ISymbol
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .trait import IExpression, INumber, IOperator, ISymbol
 
 
 def str_expr(

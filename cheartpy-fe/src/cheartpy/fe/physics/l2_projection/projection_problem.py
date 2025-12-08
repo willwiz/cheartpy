@@ -1,12 +1,16 @@
-__all__ = ["L2SolidProjection"]
 import enum
-from collections.abc import Mapping, Sequence, ValuesView
-from typing import Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.api import create_bc
-from cheartpy.fe.physics.solid_mechanics.solid_problems import SolidProblem
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
+
+    from cheartpy.fe.physics.solid_mechanics.solid_problems import SolidProblem
+
+__all__ = ["L2SolidProjection"]
 
 
 class L2SolidCalculationType(enum.StrEnum):

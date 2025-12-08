@@ -14,12 +14,7 @@ from ._cheart import (
     fix_suffix,
     is_binary,
 )
-from ._raw import (
-    read_array_float,
-    read_array_int,
-    write_array_float,
-    write_array_int,
-)
+from ._raw import read_array_float, read_array_int, write_array_float, write_array_int
 
 __all__ = [
     "check_for_meshes",

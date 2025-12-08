@@ -1,3 +1,16 @@
+import struct
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from pytools.arrays import A2, Arr
+
+"""
+CHeart Read Array functions
+"""
+
 __all__ = [
     "check_for_meshes",
     "chread_b_utf",
@@ -13,18 +26,6 @@ __all__ = [
     "fix_suffix",
     "is_binary",
 ]
-import struct
-from pathlib import Path
-from typing import TYPE_CHECKING
-
-import numpy as np
-
-if TYPE_CHECKING:
-    from pytools.arrays import A2, Arr
-
-"""
-CHeart Read Array functions
-"""
 
 
 def is_binary(filename: Path | str) -> bool:
