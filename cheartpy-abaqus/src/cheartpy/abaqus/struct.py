@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
     from pytools.arrays import A2
 
-    from .trait import AbaqusItem
+    from ._trait import AbaqusItem
 
 
 @dc.dataclass(slots=True)

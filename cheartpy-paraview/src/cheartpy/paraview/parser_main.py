@@ -1,15 +1,16 @@
-__all__ = ["get_api_args", "get_cmdline_args", "main_parser"]
 import argparse
 from typing import TYPE_CHECKING, Unpack
 
-from cheartpy.search.trait import SearchMode
+from cheartpy.search.trait import AUTO, SearchMode
 from pytools.logging.trait import LogLevel
+from pytools.result import Err, Ok
 
 from .struct import APIKwargs, CmdLineArgs
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+__all__ = ["get_api_args", "get_cmdline_args", "main_parser"]
 main_parser = argparse.ArgumentParser()
 
 parser = argparse.ArgumentParser(
@@ -268,20 +269,20 @@ def get_api_args(**kwargs: Unpack[APIKwargs]) -> CmdLineArgs:
         case (int(), int(), int()), _:
             args.index = index
         case None, (str(), str(), str()):
-            args.index = SearchMode.none if index is None else index
+            args.index = None if index is None else index
         case None, str():
             args.index = SearchMode.auto if index is None else index
     match kwargs.get("subindex", "none"):
         case "auto":
-            args.subindex = SearchMode.auto
+            args.subindex = AUTO
         case "none":
-            args.subindex = SearchMode.none
+            args.subindex = None
         case (int(i), int(j), int(k)):
             args.subindex = (i, j, k)
     return args
 
 
-def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
+def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> Ok[CmdLineArgs] | Err:
     nsp = main_parser.parse_args(args=cmd_args)
     match nsp.cmd:
         case "find":
@@ -290,7 +291,7 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
             mesh = (nsp.xfile, nsp.tfile, nsp.bfile)
         case _:
             msg = "No subprogram called, cannot proceed."
-            raise ValueError(msg)
+            return Err(ValueError(msg))
     kwargs: APIKwargs = {
         "prefix": nsp.prefix,
         "index": nsp.index,
@@ -307,4 +308,4 @@ def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
         "cores": nsp.cores,
         "log": LogLevel[nsp.log],
     }
-    return get_api_args(**kwargs)
+    return Ok(get_api_args(**kwargs))

@@ -1,8 +1,3 @@
-__all__ = [
-    "export_boundary",
-    "run_exports_in_parallel",
-    "run_exports_in_series",
-]
 from concurrent import futures
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -27,6 +22,12 @@ if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
 
     from .struct import CheartTopology, ProgramArgs, VariableCache
+
+__all__ = [
+    "export_boundary",
+    "run_exports_in_parallel",
+    "run_exports_in_series",
+]
 
 
 def create_xml_for_boundary[I: np.integer, F: np.floating](

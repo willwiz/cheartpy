@@ -46,16 +46,16 @@ def print_input_info(inp: CmdLineArgs) -> Sequence[str]:
             ]
 
     match inp.index:
-        case SearchMode.none:
+        case None:
             msg = [*msg, "No variable will be used for this run"]
-        case SearchMode.auto:
+        case SearchMode():
             msg = [*msg, "<<< Index search model is auto"]
         case (i, j, k):
             msg = [*msg, f"<<< Time step: From {i} to {j} in steps of {k}"]
     match inp.subindex:
-        case SearchMode.none:
+        case None:
             pass
-        case SearchMode.auto:
+        case SearchMode():
             msg = [*msg, "<<< Automatically finding subiterations"]
         case (i, j, k):
             msg = [*msg, f"<<< Sub iterations: From {i} to {j} in steps of {k}"]

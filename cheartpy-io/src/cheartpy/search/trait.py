@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-__all__ = ["IIndexIterator", "ProgramMode", "SearchMode"]
+__all__ = ["AUTO", "IIndexIterator", "ProgramMode", "SearchMode"]
 
 
 class ProgramMode(enum.StrEnum):
@@ -21,6 +21,9 @@ class ProgramMode(enum.StrEnum):
 class SearchMode(enum.Enum):
     none = 0
     auto = 1
+
+
+AUTO = SearchMode.auto
 
 
 class IIndexIterator(abc.ABC):

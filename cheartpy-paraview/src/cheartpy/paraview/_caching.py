@@ -1,13 +1,9 @@
 from pathlib import Path
-
-import numpy as np
-
-__all__ = ["init_variable_cache", "update_variable_cache"]
-
-
 from typing import TYPE_CHECKING
 
+import numpy as np
 from cheartpy.io.api import chread_d, chread_d_utf
+from pytools.result import Err, Ok
 
 from .struct import CheartTopology, ProgramArgs, VariableCache
 
@@ -18,13 +14,15 @@ if TYPE_CHECKING:
     from pytools.arrays import A2
     from pytools.logging.trait import ILogger
 
+__all__ = ["init_variable_cache", "update_variable_cache"]
+
 
 def init_variable_cache[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
     itype: type[I] = np.intc,
     ftype: type[F] = np.float64,
-) -> VariableCache[F, I]:
+) -> Ok[VariableCache[F, I]] | Err:
     i0 = next(iter(indexer))
     top = CheartTopology(inp.tfile, inp.bfile, dtype=itype)
     fx = inp.space[i0]
@@ -44,9 +42,9 @@ def init_variable_cache[F: np.floating, I: np.integer](
             fv[k] = name
         else:
             msg = f"initial value for {k} = {name} does not exist"
-            raise ValueError(msg)
+            return Err(ValueError(msg))
         var[k] = chread_d(name, dtype=ftype)
-    return VariableCache(top, i0, fx, fd, space, disp, x, fv, var)
+    return Ok(VariableCache(top, i0, fx, fd, space, disp, x, fv, var))
 
 
 def update_variable_cache[F: np.floating, I: np.integer](

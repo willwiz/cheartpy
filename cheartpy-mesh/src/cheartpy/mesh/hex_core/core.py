@@ -1,11 +1,3 @@
-__all__ = [
-    "create_boundary",
-    "create_space",
-    "create_square_element_index",
-    "create_square_nodal_index",
-    "create_topology",
-]
-
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -20,6 +12,14 @@ from cheartpy.vtk.trait import VtkType
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A3, T3
+
+__all__ = [
+    "create_boundary",
+    "create_space",
+    "create_square_element_index",
+    "create_square_nodal_index",
+    "create_topology",
+]
 
 
 def create_square_nodal_index(nx: int, ny: int, nz: int) -> A3[np.intc]:

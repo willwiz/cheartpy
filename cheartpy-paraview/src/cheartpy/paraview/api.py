@@ -1,4 +1,3 @@
-__all__ = ["cheart2vtu", "cheart2vtu_api", "cheart2vtu_cli", "process_cmdline_args"]
 from typing import TYPE_CHECKING, Unpack
 
 from pytools.logging.api import BLogger
@@ -18,13 +17,15 @@ if TYPE_CHECKING:
 
     from .struct import CmdLineArgs
 
+__all__ = ["cheart2vtu", "cheart2vtu_api", "cheart2vtu_cli", "process_cmdline_args"]
+
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None:
     log = BLogger(cmd_args.log)
     log.disp(*print_header())
-    inp, indexer = process_cmdline_args(cmd_args, log)
+    inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
     log.disp(print_index_info(indexer), print_guard())
-    cache = init_variable_cache(inp, indexer)
+    cache = init_variable_cache(inp, indexer).unwrap()
     log.debug(cache)
     export_boundary(inp, cache, log)
     if inp.cores > 1:
@@ -40,5 +41,5 @@ def cheart2vtu_api(**kwargs: Unpack[APIKwargs]) -> None:
 
 
 def cheart2vtu_cli(cmd_args: Sequence[str] | None = None) -> None:
-    args = get_cmdline_args(cmd_args)
+    args = get_cmdline_args(cmd_args).unwrap()
     cheart2vtu(args)

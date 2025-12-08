@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from cheartpy.search.api import get_var_index
+from pytools.result import Err, Ok
 
 from .impls import Variable0Getter, Variable1Getter, Variable2Getter
 from .traits import IVariableGetter, IVariableList, VarErrors, VarStats
@@ -48,16 +49,20 @@ def remove_sfx(name: str) -> str:
     return name[: name.rfind("-")]
 
 
-def get_idx_for_var(var: str | None, root: Path | str | None = None) -> IVariableList | None:
+def get_idx_for_var(
+    var: str | None, root: Path | str | None = None
+) -> Ok[IVariableList] | Ok[None] | Err:
     if var is None:
-        return None
+        return Ok(None)
     root = Path(root) if root else Path()
     if var.endswith("*"):
-        return IVariableList(
-            remove_sfx(var),
-            list(get_var_index([v.name for v in root.glob(var)], remove_sfx(var))),
-        )
-    return IVariableList(var, None)
+        stem = remove_sfx(var)
+        match get_var_index([v.name for v in root.glob(var)], stem):
+            case Ok(idx):
+                return Ok(IVariableList(stem, idx))
+            case Err(e):
+                return Err(e)
+    return Ok(IVariableList(var, None))
 
 
 def log_var_error(
@@ -83,11 +88,19 @@ def get_variables(
     var1: str | None,
     var2: str | None,
     root: Path | str | None = None,
-) -> tuple[IVariableList | None, IVariableList | None]:
+) -> Ok[tuple[IVariableList | None, IVariableList | None]] | Err:
     root = Path(root) if root else Path()
-    v1 = get_idx_for_var(var1, root)
-    v2 = get_idx_for_var(var2, root)
-    return v1, v2
+    match get_idx_for_var(var1, root):
+        case Err(e):
+            return Err(e)
+        case Ok(v1):
+            pass
+    match get_idx_for_var(var2, root):
+        case Err(e):
+            return Err(e)
+        case Ok(v2):
+            pass
+    return Ok((v1, v2))
 
 
 def _get_getter(name: str, value: list[int] | None, root: Path) -> IVariableGetter:

@@ -11,13 +11,13 @@ class _AbaqusElement(NamedTuple):
 
 
 class AbaqusElement(enum.Enum):
-    S3R = _AbaqusElement("S3R", [0, 1, 2])
     T3D2 = _AbaqusElement("T3D2", [0, 1])
     T3D3 = _AbaqusElement("T3D3", [0, 1, 2])
     CPS3 = _AbaqusElement("CPS3", [0, 1, 2])
     CPS4 = _AbaqusElement("CPS4", [0, 1, 3, 2])
     CPS4_3D = _AbaqusElement("CPS4_3D", [0, 1, 3, 2, 4, 7, 8, 5, 6])
     C3D4 = _AbaqusElement("C3D4", [0, 1, 3, 2])
+    S3R = _AbaqusElement("S3R", [0, 1, 2])
     TetQuad3D = _AbaqusElement("TetQuad3D", (0, 1, 3, 2, 4, 5, 7, 6))
     Tet3D = _AbaqusElement("Tet3D", [0, 1, 2, 3])
 
