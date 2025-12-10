@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from cheartpy.fe.aliases import (
+        CHEART_TOPINTERFACE_TYPE,
         VARIABLE_UPDATE_SETTING,
         CheartBasisType,
         CheartElementType,
@@ -153,7 +154,7 @@ class ICheartTopology(abc.ABC):
     def order(self) -> Literal[0, 1, 2] | None: ...
     @property
     @abc.abstractmethod
-    def mesh(self) -> str | None: ...
+    def mesh(self) -> Path | None: ...
     @property
     @abc.abstractmethod
     def discontinuous(self) -> bool: ...
@@ -179,7 +180,7 @@ class ITopInterface(abc.ABC):
     def __hash__(self) -> int: ...
     @property
     @abc.abstractmethod
-    def method(self) -> Literal["OneToOne", "ManyToOne"]: ...
+    def method(self) -> CHEART_TOPINTERFACE_TYPE: ...
     @abc.abstractmethod
     def get_tops(self) -> Sequence[ICheartTopology]: ...
     @abc.abstractmethod
@@ -218,7 +219,7 @@ class IVariable(abc.ABC):
     def add_setting(
         self,
         task: VARIABLE_UPDATE_SETTING,
-        val: str | IExpression,
+        val: Path | str | IExpression,
     ) -> None: ...
     @abc.abstractmethod
     def set_format(self, fmt: Literal["TXT", "BINARY", "MMAP"]) -> None: ...

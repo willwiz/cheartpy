@@ -8,8 +8,6 @@ from pytools.result import Err, Ok
 from .struct import CheartTopology, ProgramArgs, VariableCache
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from cheartpy.search.trait import IIndexIterator
     from pytools.arrays import A2
     from pytools.logging.trait import ILogger
@@ -52,7 +50,7 @@ def update_variable_cache[F: np.floating, I: np.integer](
     time: int | str,
     cache: VariableCache[F, I],
     log: ILogger,
-) -> tuple[A2[F], Mapping[str, A2[F]]]:
+) -> tuple[A2[F], dict[str, A2[F]]]:
     ftype = cache.space.dtype.type
     if time == cache.t:
         log.debug(f"time point {time} did not change")

@@ -1,4 +1,4 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 from cheartpy.fe.api import create_expr
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 __all__ = ["create_rotation_constraint"]
 
 
-ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Sequence[Literal["x", "y", "z"]]]
+ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Collection[Literal["x", "y", "z"]]]
 
 
 def create_rotation_operator_expr(
@@ -32,17 +32,14 @@ def create_rotation_operator_expr(
         },
     }
     dof = [j for k, v in choice.items() for i in v for j in rotational_dof[k][i]]
-    if "R" not in choice:
-        return {"p": create_expr(name, dof), "m": create_expr(name, dof)}
-    if total_dof == 1:
-        return {"p": create_expr(name, dof), "m": create_expr(name, dof)}
-    return {
-        "p": create_expr(name, dof),
-        "m": create_expr(
-            name + "_T",
-            [dof[3 * i + j] for j in range(3) for i in range(total_dof)],
-        ),
-    }
+    p_expr = create_expr(name, dof)
+    if ("R" not in choice) or (total_dof == 1):
+        return {"p": p_expr, "m": p_expr}
+    m_expr = create_expr(
+        name + "_T",
+        [dof[3 * i + j] for j in range(3) for i in range(total_dof)],
+    )
+    return {"p": p_expr, "m": m_expr}
 
 
 class _RotationConstraintVariable(TypedDict, total=True):

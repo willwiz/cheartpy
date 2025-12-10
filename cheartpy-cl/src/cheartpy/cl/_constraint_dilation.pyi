@@ -3,9 +3,7 @@ from typing import overload
 from cheartpy.fe.physics.fs_coupling.struct import FSCouplingProblem
 from cheartpy.fe.trait import IVariable
 
-from .struct import CLTopology
-
-__all__ = ["create_cl_dilation_constraint_problem"]
+from .struct import CLStructure
 
 @overload
 def create_cl_dilation_constraint_problem(
@@ -18,7 +16,7 @@ def create_cl_dilation_constraint_problem(
 ) -> None: ...
 @overload
 def create_cl_dilation_constraint_problem(
-    cl: CLTopology | None,
+    cl: CLStructure | None,
     space: IVariable,
     lm: None,
     disp: IVariable,
@@ -27,7 +25,7 @@ def create_cl_dilation_constraint_problem(
 ) -> None: ...
 @overload
 def create_cl_dilation_constraint_problem(
-    cl: CLTopology,
+    cl: CLStructure,
     space: IVariable,
     lm: IVariable,
     disp: IVariable,

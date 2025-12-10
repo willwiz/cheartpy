@@ -142,7 +142,7 @@ class SolidProblem(IProblem):
                 self.state_vars[str(v)] = v
                 self.aux_vars[str(v)] = v
 
-    def use_option(self, opt: SOLID_OPTIONS, val: str, *sub_val: str) -> None:
+    def use_option(self, opt: SOLID_OPTIONS, val: str | float, *sub_val: str) -> None:
         self.options[opt] = [val, *sub_val]
 
     def stabilize(

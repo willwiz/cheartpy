@@ -21,7 +21,7 @@ from pytools.logging.api import NLOGGER
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
 
 if TYPE_CHECKING:
-    from pytools.arrays import A1, A2
+    from pytools.arrays import A1, A2, DType
     from pytools.logging.trait import ILogger
 
 __all__ = [
@@ -70,17 +70,27 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
     return elems
 
 
-def create_cl_partition(
-    prefix: str,
-    in_surf: int,
+class _CreateCLPartKwargs(TypedDict, total=False):
+    log: ILogger
+
+
+def create_cl_partition[F: np.floating, I: np.integer](
+    surf: tuple[str, int],
     ne: int,
     bc: tuple[float, float] = (0.0, 1.0),
-    log: ILogger = NLOGGER,
-) -> CLPartition[np.float64, np.intc]:
+    *,
+    ftype: DType[F] = np.float64,
+    dtype: DType[I] = np.intc,
+    **kwargs: Unpack[_CreateCLPartKwargs],
+) -> CLPartition[F, I]:
+    log = kwargs.get("log", NLOGGER)
+    prefix, in_surf = surf
+    ftype = kwargs.get("ftype", np.float64)
+    dtype = kwargs.get("dtype", np.intc)
     nn = ne + 1
-    nodes = np.linspace(*bc, nn, dtype=float)
-    elems = np.array([[i, i + 1] for i in range(ne)], dtype=int)
-    support = np.zeros((nn, 3), dtype=float)
+    nodes = np.linspace(*bc, nn, dtype=ftype)
+    elems = np.array([[i, i + 1] for i in range(ne)], dtype=dtype)
+    support = np.zeros((nn, 3), dtype=ftype)
     support[0, 0] = nodes[0] - (nodes[1] - nodes[0])
     support[1:, 0] = nodes[:-1]
     support[:, 1] = nodes
@@ -93,17 +103,7 @@ def create_cl_partition(
     elem_prefix = dict(enumerate([f"{prefix}{k}E" for k in range(ne)]))
     log.debug(f"{node_prefix=}")
     log.debug(f"{elem_prefix=}")
-    return CLPartition(
-        prefix,
-        in_surf,
-        nn,
-        ne,
-        node_prefix,
-        elem_prefix,
-        nodes,
-        elems,
-        support,
-    )
+    return CLPartition(prefix, in_surf, nn, ne, node_prefix, elem_prefix, nodes, elems, support)
 
 
 def create_boundarynode_map[F: np.floating, I: np.integer](
@@ -172,25 +172,26 @@ type NODAL_MESHES[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I
 
 
 def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
-    mesh_dir: str,
-    mesh: CheartMesh[F, I],
+    mesh_dir: Path | str,
+    cheart_mesh: CheartMesh[F, I],
     cl: A2[F],
     cl_top: CLPartition[F, I],
     surf_id: int,
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> NODAL_MESHES[F, I]:
     # Unpack the kwargs
+    mesh_dir = Path(mesh_dir)
     log = kwargs.get("log", NLOGGER)
     normal_check = kwargs.get("normal_check")
     # Main logic
-    if mesh.bnd is None:
+    if cheart_mesh.bnd is None:
         msg = "Mesh has not boundary"
         raise ValueError(msg)
-    surf = mesh.bnd.v[surf_id]
+    surf = cheart_mesh.bnd.v[surf_id]
     bnd_map = create_boundarynode_map(cl, surf)
     tops = {
         k: create_cheartmesh_in_clrange(
-            mesh,
+            cheart_mesh,
             surf,
             bnd_map,
             (m, r),
@@ -202,7 +203,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     log.debug("Computing mesh outer normals at every node.")
     return {
         k: CLNodalData(
-            file=Path(mesh_dir, v),
+            file=mesh_dir / v,
             mesh=tops[k],
             n=compute_mesh_outer_normal_at_nodes(tops[k], log),
         )
@@ -262,7 +263,7 @@ def assemble_interface_cl_mesh[F: np.floating, I: np.integer](
 
 
 def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
-    mesh_dir: str,
+    mesh_dir: Path | str,
     mesh: CheartMesh[F, I],
     cl: A2[F],
     cl_top: CLPartition[F, I],

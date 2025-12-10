@@ -77,20 +77,20 @@ def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis: ...
 def create_topology(
     name: str,
     basis: ICheartBasis,
-    mesh: str,
+    mesh: Path | str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> CheartTopology: ...
 @overload
 def create_topology(
     name: str,
     basis: None,
-    mesh: str,
+    mesh: Path | str,
     format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> NullTopology: ...
 def create_embedded_topology(
     name: str,
     embedded_top: CheartTopology,
-    mesh: str,
+    mesh: Path | str,
     fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
 ) -> CheartTopology: ...
 def create_solver_matrix(
@@ -118,7 +118,7 @@ def create_top_interface(
     method: Literal["ManyToOne"],
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology,
-    interface_file: str,
+    interface_file: Path | str,
     nest_in_boundary: int | None = None,
 ) -> ManyToOneTopInterface: ...
 def create_bcpatch(

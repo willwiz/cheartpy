@@ -6,8 +6,6 @@ from cheartpy.fe.trait import IVariable
 if TYPE_CHECKING:
     from pytools.arrays import A1
 
-__all__ = ["ll_str"]
-
 
 def ll_str(v: IVariable, b: tuple[float, float, float] | A1[np.floating] | IVariable) -> str:
     match b:
