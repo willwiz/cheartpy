@@ -76,8 +76,8 @@ def ll_basis[F: np.floating](
     return (domain, var[0] * basis[0][domain, None] + var[1] * basis[1][domain, None])
 
 
-def ll_interp[F: np.floating](
-    top: CLPartition[F, np.integer],
+def ll_interp[F: np.floating, I: np.integer](
+    top: CLPartition[F, I],
     var: A2[F],
     cl: A1[F],
 ) -> A2[F]:
