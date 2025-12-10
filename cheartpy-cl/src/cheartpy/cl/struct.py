@@ -16,8 +16,8 @@ __all__ = [
     "CLBasis",
     "CLNodalData",
     "CLPartition",
+    "CLStructure",
     "CLTopologies",
-    "CLTopology",
     "PatchNode2ElemMap",
 ]
 
@@ -63,7 +63,7 @@ class CLBasis:
 
 
 @dc.dataclass(slots=True)
-class CLTopology:
+class CLStructure:
     prefix: str
     in_surf: int
     nn: int
@@ -81,7 +81,7 @@ class CLTopology:
 
 @dc.dataclass(slots=True)
 class CLTopologies:
-    """Depreacated: use CLTopology instead."""
+    """Depreacated: use CLStructure instead."""
 
     prefix: str
     in_surf: int

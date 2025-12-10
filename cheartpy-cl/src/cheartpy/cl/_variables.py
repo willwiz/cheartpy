@@ -9,9 +9,7 @@ if TYPE_CHECKING:
     from cheartpy.fe.trait import IVariable
     from pytools.arrays import A1, A2
 
-    from .struct import CLPartition, CLTopology
-
-__all__ = ["create_dm_on_cl", "create_lm_on_cl", "l2_norm", "ll_interp", "set_clvar_ic"]
+    from .struct import CLPartition, CLStructure
 
 
 class _VaribleKwaargs(TypedDict, total=False):
@@ -25,10 +23,10 @@ def create_lm_on_cl(
 ) -> None: ...
 @overload
 def create_lm_on_cl(
-    cl: CLTopology, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
 ) -> IVariable: ...
 def create_lm_on_cl(
-    cl: CLTopology | None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure | None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
 ) -> IVariable | None:
     if cl is None:
         return None
@@ -43,10 +41,10 @@ def create_dm_on_cl(
 ) -> None: ...
 @overload
 def create_dm_on_cl(
-    cl: CLTopology, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
 ) -> IVariable: ...
 def create_dm_on_cl(
-    cl: CLTopology | None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure | None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
 ) -> IVariable | None:
     if cl is None:
         return None

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from pytools.arrays import A2, Arr
+    from pytools.arrays import A2, Arr, DType
 
 """
 CHeart Read Array functions
@@ -67,11 +67,11 @@ def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> 
     return all((home / s).exists() for s in meshes)
 
 
-def chread_d_utf[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:
+def chread_d_utf[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
-def chread_d_bin[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:
+def chread_d_bin[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
     with Path(file).open("rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
@@ -86,13 +86,13 @@ def chread_d_bin[F: np.floating](file: Path | str, *, dtype: type[F] = np.float6
     return arr
 
 
-def chread_d[F: np.floating](file: Path | str, *, dtype: type[F] = np.float64) -> A2[F]:
+def chread_d[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
     if is_binary(file):
         return chread_d_bin(file, dtype=dtype)
     return chread_d_utf(file, dtype=dtype)
 
 
-def chread_t_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> A2[I]:
+def chread_t_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
@@ -104,7 +104,7 @@ def chread_header_utf(file: Path | str) -> tuple[int, int]:
     return nelem, nnode
 
 
-def chread_b_utf[I: np.integer](file: Path | str, *, dtype: type[I] = np.intc) -> A2[I]:
+def chread_b_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 

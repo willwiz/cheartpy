@@ -11,6 +11,7 @@ from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
 __all__ = [
     "CheartTopology",
@@ -25,7 +26,7 @@ __all__ = [
 class CheartTopology(ICheartTopology):
     name: str
     basis: ICheartBasis | None
-    _mesh: str
+    _mesh: Path
     fmt: VariableExportFormat = VariableExportFormat.TXT
     embedded: ICheartTopology | None = None
     partitioning_weight: int | None = None
@@ -42,7 +43,7 @@ class CheartTopology(ICheartTopology):
         return True
 
     @property
-    def mesh(self) -> str:
+    def mesh(self) -> Path:
         return self._mesh
 
     @property
@@ -100,7 +101,7 @@ class NullTopology(ICheartTopology):
         return True
 
     @property
-    def mesh(self) -> str | None:
+    def mesh(self) -> Path | None:
         return None
 
     @property
@@ -171,7 +172,7 @@ class ManyToOneTopInterface(ITopInterface):
     name: str
     topologies: list[ICheartTopology]
     master_topology: ICheartTopology
-    interface_file: str
+    interface_file: Path
     nested_in_boundary: int | None = None
 
     def __repr__(self) -> str:

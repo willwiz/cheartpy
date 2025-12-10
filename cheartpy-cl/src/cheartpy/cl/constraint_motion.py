@@ -6,14 +6,11 @@ from cheartpy.fe.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
 if TYPE_CHECKING:
     from cheartpy.fe.trait import IVariable
 
-    from .struct import CLTopology
-
-
-__all__ = ["create_cl_motion_constraint_problem"]
+    from .struct import CLStructure
 
 
 def create_cl_motion_constraint_problem(
-    cl: CLTopology | None,
+    cl: CLStructure | None,
     space: IVariable,
     lm: IVariable | None,
     disp: IVariable,

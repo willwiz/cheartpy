@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
-from cheartpy.fe.aliases import (
+from .aliases import (
     BOUNDARY_TYPE,
     CHEART_BASIS_TYPE,
     CHEART_ELEMENT_TYPE,
     CHEART_QUADRATURE_TYPE,
+    CHEART_TOPINTERFACE_TYPE,
     MATRIX_SOLVER_OPTIONS,
     SOLVER_SUBGROUP_ALGORITHM,
     VARIABLE_EXPORT_FORMAT,
@@ -17,7 +18,7 @@ from cheartpy.fe.aliases import (
     SolverSubgroupAlgorithm,
     VariableExportFormat,
 )
-from cheartpy.fe.impl import (
+from .impl import (
     Basis,
     BCPatch,
     BoundaryCondition,
@@ -34,7 +35,6 @@ from cheartpy.fe.impl import (
     TimeScheme,
     Variable,
 )
-
 from .string_tools import get_enum
 
 if TYPE_CHECKING:
@@ -161,23 +161,23 @@ def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
 def create_topology(
     name: str,
     basis: ICheartBasis | None,
-    mesh: str,
+    mesh: Path | str,
     fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> ICheartTopology:
     if basis is None:
         return NullTopology()
     fmt = get_enum(fmt, VariableExportFormat)
-    return CheartTopology(name, basis, mesh, fmt)
+    return CheartTopology(name, basis, Path(mesh), fmt)
 
 
 def create_embedded_topology(
     name: str,
     embedded_top: ICheartTopology,
-    mesh: str,
+    mesh: Path | str,
     fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
 ) -> ICheartTopology:
     fmt = get_enum(fmt, VariableExportFormat)
-    return CheartTopology(name, None, mesh, fmt, embedded=embedded_top)
+    return CheartTopology(name, None, Path(mesh), fmt, embedded=embedded_top)
 
 
 def create_solver_matrix(
@@ -212,10 +212,10 @@ def create_solver_subgroup(
 
 
 def create_top_interface(
-    method: Literal["OneToOne", "ManyToOne"],
+    method: CHEART_TOPINTERFACE_TYPE,
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology | None = None,
-    interface_file: str | None = None,
+    interface_file: Path | str | None = None,
     nest_in_boundary: int | None = None,
 ) -> ITopInterface:
     match method:
@@ -234,7 +234,7 @@ def create_top_interface(
                 name,
                 topologies,
                 master_topology,
-                interface_file,
+                Path(interface_file),
                 nest_in_boundary,
             )
 

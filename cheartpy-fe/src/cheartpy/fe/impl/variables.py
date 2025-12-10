@@ -25,7 +25,7 @@ class Variable(IVariable):
     fmt: VariableExportFormat = VariableExportFormat.TXT
     freq: int = 1
     loop_step: int | None = None
-    setting: tuple[VariableUpdateSetting, str | IExpression] | None = None
+    setting: tuple[VariableUpdateSetting, Path | str | IExpression] | None = None
     deps_expr: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
 
     def __repr__(self) -> str:
@@ -58,21 +58,21 @@ class Variable(IVariable):
     def add_setting(
         self,
         task: Literal["TEMPORAL_UPDATE_FILE", "TEMPORAL_UPDATE_FILE_LOOP"],
-        val: str,
+        val: Path | str,
     ) -> None: ...
 
     def add_setting(
         self,
         task: VARIABLE_UPDATE_SETTING,
-        val: str | IExpression,
+        val: Path | str | IExpression,
     ):
         match task, val:
             case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", IExpression():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
                 self.deps_expr[str(val)] = val
-            case "TEMPORAL_UPDATE_FILE", str():
+            case "TEMPORAL_UPDATE_FILE", str() | Path():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
-            case "TEMPORAL_UPDATE_FILE_LOOP", str():
+            case "TEMPORAL_UPDATE_FILE_LOOP", str() | Path():
                 self.setting = (get_enum(task, VariableUpdateSetting), val)
                 if self.loop_step is None:
                     self.loop_step = self.freq
