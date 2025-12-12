@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.io.api import fix_suffix
+from cheartpy.io.api import fix_ch_sfx
 from cheartpy.vtk.api import guess_elem_type_from_dim
 from pytools.result import Err, Ok
 
@@ -15,7 +15,7 @@ from .struct import (
 )
 
 if TYPE_CHECKING:
-    from cheartpy.vtk.trait import VtkElem, VtkType
+    from cheartpy.vtk.types import VtkElem, VtkType
     from pytools.arrays import A2
 
 
@@ -47,11 +47,11 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     ftype: type[F] = np.float64,
     itype: type[I] = np.intc,
 ) -> Ok[CheartMesh[F, I]] | Err:
-    prefix = fix_suffix(str(name))
+    prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
     raw_top = np.loadtxt(f"{prefix}T", dtype=itype, skiprows=1) - 1
     edim = raw_top.shape[1]
-    if Path(f"{prefix}B").exists():
+    if Path(f"{prefix}B").is_file():
         raw_bnd = np.loadtxt(f"{prefix}B", dtype=itype, skiprows=1)
         bdim = raw_bnd.shape[1] - 2
     else:

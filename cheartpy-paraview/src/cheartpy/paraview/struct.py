@@ -1,78 +1,31 @@
 import dataclasses as dc
 from pathlib import Path
-from typing import TYPE_CHECKING, Final, Literal, TypedDict
+from typing import TYPE_CHECKING, Final
 
 import numpy as np
 from cheartpy.vtk.api import guess_elem_type_from_dim
-from pytools.logging.trait import LogLevel
-
-from .trait import IFormattedName
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
 
-    from cheartpy.search.trait import SearchMode
-    from cheartpy.vtk.trait import VtkType
+    from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
 
-__all__ = [
-    "CheartTopology",
-    "CmdLineArgs",
-    "IFormattedName",
-    "ProgramArgs",
-    "VariableCache",
-]
-
-
-class APIKwargs(TypedDict, total=False):
-    prefix: str | None
-    index: tuple[int, int, int] | None
-    subindex: tuple[int, int, int] | Literal["auto", "none"]
-    vars: Sequence[str]
-    input_dir: str
-    output_dir: str
-    mesh: str | tuple[str, str, str]
-    space: str | None
-    time_series: str | None
-    binary: bool
-    compression: bool
-    progress_bar: bool
-    cores: int
-    cmd: Literal["index", "find"]
-    log: LogLevel
-
-
-@dc.dataclass(slots=True)
-class CmdLineArgs:
-    mesh: Final[str | tuple[str, str, str]]
-    var: Final[Sequence[str]]
-    space: Final[str | None] = None
-    prefix: Final[str | None] = None
-    input_dir: Final[str] = ""
-    output_dir: Final[str] = ""
-    time_series: Final[str | None] = None
-    progress_bar: Final[bool] = True
-    log: Final[LogLevel] = LogLevel.INFO
-    binary: Final[bool] = False
-    compression: Final[bool] = True
-    cores: Final[int] = 1
-    index: tuple[int, int, int] | SearchMode | None = None
-    subindex: tuple[int, int, int] | SearchMode | None = None
+    from ._trait import IFormattedName
 
 
 @dc.dataclass(slots=True, frozen=True)
 class ProgramArgs:
     prefix: Final[str]
-    input_folder: Final[Path]
-    output_folder: Final[Path]
-    time_series: Final[str | None]
-    progress_bar: Final[bool]
+    input_dir: Final[Path]
+    output_dir: Final[Path]
+    prog_bar: Final[bool]
     binary: Final[bool]
-    compression: Final[bool]
+    compress: Final[bool]
     cores: Final[int]
     tfile: Final[Path]
     bfile: Final[Path | None]
-    space: Final[IFormattedName]
+    xfile: Final[IFormattedName]
     disp: Final[IFormattedName | None]
     var: Final[Mapping[str, IFormattedName]]
 

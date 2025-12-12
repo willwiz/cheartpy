@@ -30,7 +30,7 @@ __all__ = [
     "filter_mesh_normals",
 ]
 
-_SQRT2 = np.sqrt(2.0)
+_1_SQRT2 = 1.0 / np.sqrt(2.0)
 
 
 def check_normal[F: np.floating](
@@ -39,7 +39,7 @@ def check_normal[F: np.floating](
     patch_normals: A1[F],
     log: ILogger = NLOGGER,
 ) -> bool:
-    check = all(abs(node_normals[i] @ patch_normals) > _SQRT2 for i in elem)
+    check = all(abs(node_normals[i] @ patch_normals) > _1_SQRT2 for i in elem)
     if not check:
         log.debug(
             f"Normal check failed for elem = {elem}, patch normals of:",
@@ -62,12 +62,12 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
         raise ValueError(msg)
     surf_type = get_vtk_elem(top_body_elem.surf)
     normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems, log)
-    elems = np.array(
+    new_elems = np.array(
         [i for i, v in zip(elems, normals, strict=False) if check_normal(normal_check, i, v, log)],
         dtype=int,
     )
-    log.debug(f"The number of elements in patch normal filtering is {len(elems)}")
-    return elems
+    log.debug(f"The number of elements in patch normal filtering is {len(new_elems)}")
+    return new_elems
 
 
 class _CreateCLPartKwargs(TypedDict, total=False):

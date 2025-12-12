@@ -2,6 +2,16 @@ from typing import TYPE_CHECKING
 
 from pytools.result import Err, Ok
 
+from ._elements import (
+    dlagrange_1,
+    dlagrange_2,
+    dtri_lagrange_1,
+    dtri_lagrange_2,
+    lagrange_1,
+    lagrange_2,
+    tri_lagrange_1,
+    tri_lagrange_2,
+)
 from .struct import (
     VTKHEXAHEDRON1,
     VTKHEXAHEDRON2,
@@ -14,9 +24,20 @@ from .struct import (
 )
 
 if TYPE_CHECKING:
-    from .trait import VtkElem
+    from ._elements import VtkElem
 
-__all__ = ["get_vtk_elem", "guess_elem_type_from_dim"]
+__all__ = [
+    "dlagrange_1",
+    "dlagrange_2",
+    "dtri_lagrange_1",
+    "dtri_lagrange_2",
+    "get_vtk_elem",
+    "guess_elem_type_from_dim",
+    "lagrange_1",
+    "lagrange_2",
+    "tri_lagrange_1",
+    "tri_lagrange_2",
+]
 
 
 def guess_elem_type_from_dim(edim: int, bdim: int | None) -> Ok[VtkElem] | Err:

@@ -8,7 +8,7 @@ from pytools.logging.api import NLOGGER
 
 if TYPE_CHECKING:
     from cheartpy.mesh.struct import CheartMesh
-    from cheartpy.vtk.trait import VtkElem
+    from cheartpy.vtk.types import VtkElem
     from pytools.arrays import A1, A2
     from pytools.logging.trait import ILogger
 
@@ -31,7 +31,7 @@ def compute_normal_patch[F: np.floating, I: np.integer](
     log: ILogger = NLOGGER,
 ) -> A1[F]:
     nodes = space[elem] - ref_space
-    u = np.array([[nodes[:, i] @ basis[j] for j in range(3)] for i in range(3)])
+    u = np.array([[nodes[:, i] @ b for b in basis] for i in range(3)])
     f = u + np.identity(3)
     if np.linalg.det(f) < _REGRESS_TOL:
         log.warn("Element node order is inverted.")
@@ -42,7 +42,7 @@ def compute_normal_patch[F: np.floating, I: np.integer](
 
 def normalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]:
     norm = np.sqrt(np.einsum("...i,...i", vals, vals))
-    norm[norm < _DBL_TOL] = 1.0
+    # norm[norm < _DBL_TOL] = 1.0
     return vals / norm[:, np.newaxis]
 
 
@@ -56,7 +56,7 @@ def compute_normal_surface_at_center[F: np.floating, I: np.integer](
     interp_basis = kind.shape_dfunc(centroid)
     normals = np.array(
         [compute_normal_patch(interp_basis, space, i, kind.ref) for i in elem],
-        dtype=float,
+        dtype=space.dtype,
     )
     return normalize_by_row(normals)
 

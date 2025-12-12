@@ -5,13 +5,15 @@ from cheartpy.search.trait import AUTO, SearchMode
 from pytools.logging.trait import LogLevel
 from pytools.result import Err, Ok
 
-from .struct import APIKwargs, CmdLineArgs
+from ._parser import SUBPARSER_MODES, APIKwargs, CmdLineArgs
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 __all__ = ["get_api_args", "get_cmdline_args", "main_parser"]
-main_parser = argparse.ArgumentParser()
+
+
+main_parser = argparse.ArgumentParser(add_help=False)
 
 parser = argparse.ArgumentParser(
     description="converts cheart output Dfiles into vtu files for paraview",
@@ -245,12 +247,13 @@ sub_index_fin.add_argument(
 parser_find.set_defaults(subindex="none")
 
 
-def get_api_args(**kwargs: Unpack[APIKwargs]) -> CmdLineArgs:
+def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> CmdLineArgs:
     log = kwargs.get("log", LogLevel.INFO)
     mesh = kwargs.get("mesh", "mesh")
     index = kwargs.get("index")
     args = CmdLineArgs(
-        mesh=mesh,
+        cmd=cmd,
+        mesh_or_top=mesh,
         var=kwargs.get("vars", []),
         space=kwargs.get("space"),
         prefix=kwargs.get("prefix"),

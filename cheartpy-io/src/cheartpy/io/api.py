@@ -11,7 +11,7 @@ from ._cheart import (
     chwrite_iarr_utf,
     chwrite_str_utf,
     chwrite_t_utf,
-    fix_suffix,
+    fix_ch_sfx,
     is_binary,
 )
 from ._raw import read_array_float, read_array_int, write_array_float, write_array_int
@@ -29,7 +29,7 @@ __all__ = [
     "chwrite_iarr_utf",
     "chwrite_str_utf",
     "chwrite_t_utf",
-    "fix_suffix",
+    "fix_ch_sfx",
     "is_binary",
     "read_array_float",
     "read_array_int",

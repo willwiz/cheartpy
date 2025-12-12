@@ -42,6 +42,10 @@ def xml_write_content(f: tp.TextIO, item: str, time: float) -> None:
 
 
 def import_time_data(file: Path | str) -> Ok[dict[int, float]] | Err:
+    file = Path(file)
+    if not file.is_file():
+        msg = f"Time series file {file} does not exist."
+        return Err(FileNotFoundError(msg))
     arr: dict[int, float] = {}
     with Path(file).open("r") as f:
         try:

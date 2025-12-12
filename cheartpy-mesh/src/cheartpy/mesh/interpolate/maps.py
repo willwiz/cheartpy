@@ -17,7 +17,7 @@ from cheartpy.vtk.struct import (
     VTKTETRAHEDRON2,
     VTKTRIANGLE2,
 )
-from cheartpy.vtk.trait import VtkType
+from cheartpy.vtk.types import VtkType
 
 type L2QMAP = Sequence[Collection[int]]
 

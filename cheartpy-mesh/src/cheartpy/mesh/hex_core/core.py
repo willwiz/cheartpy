@@ -8,7 +8,7 @@ from cheartpy.mesh.struct import (
     CheartMeshTopology,
 )
 from cheartpy.vtk.struct import VTKHEXAHEDRON1, VTKQUADRILATERAL1
-from cheartpy.vtk.trait import VtkType
+from cheartpy.vtk.types import VtkType
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A3, T3

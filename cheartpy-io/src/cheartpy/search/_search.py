@@ -20,7 +20,7 @@ DFILE_TEMP = re.compile(r"(^.*)-(\d+|\d+\.\d+)\.(D|D\.gz)")
 
 
 def get_var_index(
-    names: Sequence[str] | Iterable[str],
+    names: Iterable[str],
     prefix: str,
     suffix: Literal[r"D", r"D\.gz", r"vtu"] = r"D",
 ) -> Ok[list[int]] | Err:
@@ -30,11 +30,14 @@ def get_var_index(
         return Err(ValueError(msg))
     p = re.compile(rf"{prefix}-(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]
+    if not any(matches):
+        msg = f"No matching variable files found with prefix {prefix} and suffix {suffix}"
+        return Err(ValueError(msg))
     return Ok(sorted([int(m.group(1)) for m in matches if m]))
 
 
 def get_var_subindex(
-    names: Sequence[str] | Iterable[str],
+    names: Iterable[str],
     prefix: str,
     suffix: Literal[r"D", r"D\.gz"] = r"D",
 ) -> Ok[dict[int, list[int]]] | Err:
@@ -43,6 +46,9 @@ def get_var_subindex(
         return Err(ValueError(msg))
     p = re.compile(rf"{prefix}-(\d+)\.(\d+)\.{suffix}")
     matches = [p.fullmatch(s) for s in names]
+    if not any(matches):
+        msg = f"No matching variable files found with prefix {prefix} and suffix {suffix}"
+        return Err(ValueError(msg))
     matches = sorted([m.groups() for m in matches if m])
     index_lists: dict[int, list[int]] = defaultdict(list)
     for k, i in matches:

@@ -4,20 +4,28 @@ from pytools.logging.api import BLogger
 
 from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
+from ._deprecated_parser_main import APIKwargs, get_api_args, get_cmdline_args
 from ._headers import (
     print_guard,
     print_header,
     print_index_info,
 )
+from ._parser.main_parser import get_cmd_args, main_parser
 from .core import export_boundary, run_exports_in_parallel, run_exports_in_series
-from .parser_main import APIKwargs, get_api_args, get_cmdline_args
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from .struct import CmdLineArgs
+    from ._parser import SUBPARSER_MODES, CmdLineArgs
 
-__all__ = ["cheart2vtu", "cheart2vtu_api", "cheart2vtu_cli", "process_cmdline_args"]
+__all__ = [
+    "cheart2vtu",
+    "cheart2vtu_api",
+    "cheart2vtu_cli",
+    "get_cmd_args",
+    "main_parser",
+    "process_cmdline_args",
+]
 
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None:
@@ -35,8 +43,8 @@ def cheart2vtu(cmd_args: CmdLineArgs) -> None:
     log.disp(print_guard())
 
 
-def cheart2vtu_api(**kwargs: Unpack[APIKwargs]) -> None:
-    args = get_api_args(**kwargs)
+def cheart2vtu_api(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> None:
+    args = get_api_args(cmd=cmd, **kwargs)
     cheart2vtu(args)
 
 
