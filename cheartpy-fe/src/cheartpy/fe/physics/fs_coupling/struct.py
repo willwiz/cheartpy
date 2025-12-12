@@ -168,14 +168,14 @@ class FSCouplingProblem(IProblem):
         f.writelines(
             (
                 f"  !Addterms={{TestVariable[{t.test_var}]|"
-                "{' '.join([s.to_str() for s in t.terms])}}}\n"
+                f"{' '.join([s.to_str() for s in t.terms])}}}\n"
             )
             for t in self.m_terms.values()
         )
         if self.lm is not None:
             f.write(
                 f"  !Addterms={{TestVariable[{self.lm.test_var}*]|"
-                "{' '.join([s.to_str() for s in self.lm.terms])}}}\n",
+                f"{' '.join([s.to_str() for s in self.lm.terms])}}}\n",
             )
         else:
             msg = "Lagrange multiplier not set for FSCouplingProblem"

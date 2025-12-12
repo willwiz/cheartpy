@@ -1,4 +1,4 @@
-from cheartpy.vtk.trait import VtkType
+from cheartpy.vtk.types import VtkType
 
 from ._trait import AbaqusElement
 

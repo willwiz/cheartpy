@@ -7,14 +7,14 @@ from cheartpy.io.api import (
     chwrite_d_utf,
     chwrite_iarr_utf,
     chwrite_t_utf,
-    fix_suffix,
+    fix_ch_sfx,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from cheartpy.vtk.trait import VtkType
+    from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
 
 
@@ -81,7 +81,7 @@ class CheartMesh[F: np.floating, I: np.integer]:
     def save(self, prefix: Path | str, *, forced: bool = False) -> None:
         if check_for_meshes("prefix") and not forced:
             return
-        prefix = fix_suffix(prefix)
+        prefix = fix_ch_sfx(prefix)
         self.space.save(f"{prefix}X")
         self.top.save(f"{prefix}T")
         if self.bnd is not None:

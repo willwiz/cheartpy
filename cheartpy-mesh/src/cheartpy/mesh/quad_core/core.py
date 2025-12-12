@@ -1,5 +1,3 @@
-__all__ = ["create_square_mesh"]
-
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -11,10 +9,13 @@ from cheartpy.mesh.struct import (
     CheartMeshTopology,
 )
 from cheartpy.vtk.struct import VTKLINE1, VTKQUADRILATERAL1
-from cheartpy.vtk.trait import VtkType
+from cheartpy.vtk.types import VtkType
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2, T2
+
+
+__all__ = ["create_square_mesh"]
 
 
 def create_square_nodal_index(nx: int, ny: int) -> A2[np.intc]:

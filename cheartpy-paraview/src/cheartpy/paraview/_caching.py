@@ -23,7 +23,7 @@ def init_variable_cache[F: np.floating, I: np.integer](
 ) -> Ok[VariableCache[F, I]] | Err:
     i0 = next(iter(indexer))
     top = CheartTopology(inp.tfile, inp.bfile, dtype=itype)
-    fx = inp.space[i0]
+    fx = inp.xfile[i0]
     space = chread_d(fx, dtype=ftype)
     if inp.disp is None:
         fd = None
@@ -36,7 +36,7 @@ def init_variable_cache[F: np.floating, I: np.integer](
     var: dict[str, A2[F]] = {}
     for k, fn in inp.var.items():
         name = fn[i0]
-        if name.exists():
+        if name.is_file():
             fv[k] = name
         else:
             msg = f"initial value for {k} = {name} does not exist"
@@ -55,7 +55,7 @@ def update_variable_cache[F: np.floating, I: np.integer](
     if time == cache.t:
         log.debug(f"time point {time} did not change")
         return cache.x, cache.var
-    fx = inp.space[time]
+    fx = inp.xfile[time]
     update_space = fx != cache.space_i
     if update_space:
         log.debug(f"updating space to file {fx}")
@@ -80,7 +80,7 @@ def update_variable_cache[F: np.floating, I: np.integer](
     for k, var in inp.var.items():
         new_v = var[time]
         log.debug(f"updating var {k} to file {new_v} from {cache.var_i[k]}")
-        if (cache.var_i[k] != new_v) and new_v.exists():
+        if (cache.var_i[k] != new_v) and new_v.is_file():
             log.debug(f"updating var {k} to file {new_v}")
             cache.var[k] = chread_d(new_v, dtype=ftype)
             cache.var_i[k] = new_v

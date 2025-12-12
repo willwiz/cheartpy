@@ -21,7 +21,7 @@ def check_for_var_files(
     root = Path(root) if root else Path()
     for v in var:
         for i in idx:
-            if (root / f"{v}-{i}.{suffix}").exists():
+            if (root / f"{v}-{i}.{suffix}").is_file():
                 continue
             okay = False
             log.error(f"{v}-{i}.{suffix} could not be found") if log else ...

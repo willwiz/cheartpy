@@ -1,14 +1,12 @@
 import dataclasses as dc
-
-__all__ = ["VTK_TYPE", "VtkElem", "VtkType"]
 import enum
-from typing import TYPE_CHECKING, Literal, NamedTuple
+from typing import TYPE_CHECKING, Literal, NamedTuple, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     import numpy as np
     from pytools.arrays import A1, A2
+
+__all__ = ["VTK_TYPE", "VtkElem", "VtkType"]
 
 
 class _Vtk(NamedTuple):
@@ -43,6 +41,14 @@ type VTK_TYPE = Literal[
 ]
 
 
+class _ShapeFunc(Protocol):
+    def __call__[F: np.floating](self, pos: A1[F]) -> A1[F]: ...
+
+
+class _ShapeFuncDeriv(Protocol):
+    def __call__[F: np.floating](self, pos: A1[F]) -> A2[F]: ...
+
+
 @dc.dataclass(slots=True, frozen=True)
 class VtkElem:
     body: VtkType
@@ -50,5 +56,5 @@ class VtkElem:
     connectivity: tuple[int, ...]
     nodes: A2[np.intc]
     ref: A2[np.float64]
-    shape_func: Callable[[A1[np.floating]], A1[np.float64]]
-    shape_dfunc: Callable[[A1[np.floating]], A2[np.float64]]
+    shape_func: _ShapeFunc
+    shape_dfunc: _ShapeFuncDeriv

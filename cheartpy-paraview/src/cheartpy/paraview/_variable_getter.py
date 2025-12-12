@@ -1,8 +1,7 @@
-__all__ = ["CheartMeshFormat", "CheartVarFormat", "CheartZipFormat"]
 from pathlib import Path
 from typing import Final
 
-from .trait import IFormattedName
+from ._trait import IFormattedName
 
 
 class CheartMeshFormat(IFormattedName):

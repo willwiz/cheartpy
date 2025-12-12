@@ -1,21 +1,19 @@
 from pprint import pformat
 from typing import TYPE_CHECKING
 
-from cheartpy.io.api import fix_suffix
+from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.trait import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from .struct import CmdLineArgs
+    from ._parser import CmdLineArgs
 
 
 def print_guard() -> str:
     return f"\n{'#' * 100}\n"
 
 
-def print_header() -> Sequence[str]:
-    return (
+def print_header() -> list[str]:
+    return [
         "#" * 100,
         "    Program for converting CHeart data to vtk unstructured grid format",
         "    This program is part of the CHeart project, which is FE solver for cardiac mechanics.",
@@ -23,25 +21,25 @@ def print_header() -> Sequence[str]:
         "    Modified by: Will Zhang",
         "    Data: 12/24/2024",
         "#" * 100,
-    )
+    ]
 
 
-def print_input_info(inp: CmdLineArgs) -> Sequence[str]:
-    msg = ["The retrieving data from ", inp.input_dir]
-    match inp.mesh:
-        case str():
+def print_input_info(inp: CmdLineArgs) -> list[str]:
+    msg = ["The retrieving data from ", str(inp.input_dir)]
+    match inp.cmd:
+        case "find":
             msg = [
                 *msg,
                 "<<< Running Program with Mode: find",
-                f"The prefix for the mesh to use is {fix_suffix(inp.mesh)}",
+                f"The prefix for the mesh to use is {fix_ch_sfx(inp.mesh_or_top)}",
             ]
-        case (x, t, b):
+        case "index":
             msg = [
                 *msg,
                 "<<< Running Program with Mode: index",
-                f"The space file to use is {x}",
-                f"The topology file to use is {t}",
-                f"The boundary file to use is {b}",
+                f"The space file to use is {inp.space}",
+                f"The topology file to use is {inp.mesh_or_top}",
+                f"The boundary file to use is {inp.boundary}",
                 "<<< The varibles to add are: ",
             ]
 
@@ -63,13 +61,10 @@ def print_input_info(inp: CmdLineArgs) -> Sequence[str]:
         *msg,
         f"<<< Output file name prefix: {inp.prefix}",
         f"<<< Output folder:           {inp.output_dir}",
-        f"<<< Compress VTU:            {inp.compression}",
+        f"<<< Compress VTU:            {inp.compress}",
         f"<<< Import data as binary:   {inp.binary}",
     ]
-    msg = [*msg, "<<< Variables to be added are:", pformat(inp.var, compact=True)]
-    if inp.time_series is not None:
-        msg = [*msg, f"<<< Adding time series from {inp.time_series}"]
-    return msg
+    return [*msg, "<<< Variables to be added are:", pformat(inp.var, compact=True)]
 
 
 def print_index_info(indexer: IIndexIterator) -> str:

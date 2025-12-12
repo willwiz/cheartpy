@@ -6,7 +6,7 @@ import numpy as np
 from cheartpy.io.api import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
-from pytools.parallel.parallel_exec import PEXEC_ARGS, parallel_exec
+from pytools.parallel import PEXEC_ARGS, parallel_exec
 from pytools.progress import ProgressBar
 
 from ._caching import update_variable_cache
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from cheartpy.search.trait import IIndexIterator
-    from cheartpy.vtk.trait import VtkType
+    from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
     from pytools.logging.trait import ILogger
 
@@ -89,10 +89,10 @@ def export_boundary[F: np.floating, I: np.integer](
         log.error(">>> Boundary file does not have a valid surface type")
         return
     vtk_xml = create_xml_for_boundary(inp.prefix, dx, cache.top.vtksurfacetype, db, dbid)
-    foutfile = inp.output_folder / f"{inp.prefix}_boundary.vtu"
+    foutfile = inp.output_dir / f"{inp.prefix}_boundary.vtu"
     with Path(foutfile).open("w") as fout:
         vtk_xml.write(fout)
-    if inp.compression:
+    if inp.compress:
         compress_vtu(foutfile, log=log)
     log.disp(f"<<< Exported the boundary to {foutfile}")
 
@@ -172,8 +172,8 @@ def run_exports_in_series[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     log.disp("Processing vtus")
-    name = CheartVTUFormat(inp.output_folder, inp.prefix)
-    bart = ProgressBar(len(indexer)) if inp.progress_bar else None
+    name = CheartVTUFormat(inp.output_dir, inp.prefix)
+    bart = ProgressBar(len(indexer)) if inp.prog_bar else None
     for t in indexer:
         export_mesh_iter(name[t], t, inp, cache, log)
         bart.next() if bart else print(f"<<< Completed {name[t]}")
@@ -186,7 +186,7 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     log.disp("Processing vtus")
-    name = CheartVTUFormat(inp.output_folder, inp.prefix)
+    name = CheartVTUFormat(inp.output_dir, inp.prefix)
     args: PEXEC_ARGS = [([name[t], t, inp, cache, log], {}) for t in indexer]
     with futures.ProcessPoolExecutor(inp.cores) as executor:
         parallel_exec(executor, export_mesh_iter, args, prog_bar=True)

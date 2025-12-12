@@ -23,7 +23,7 @@ __all__ = [
     "chwrite_d_utf",
     "chwrite_iarr_utf",
     "chwrite_t_utf",
-    "fix_suffix",
+    "fix_ch_sfx",
     "is_binary",
 ]
 
@@ -49,7 +49,7 @@ def is_binary(filename: Path | str) -> bool:
         return False
 
 
-def fix_suffix[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
+def fix_ch_sfx[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
     _prefix = str(prefix)
     for i in range(len(suffix), 0, -1):
         if _prefix.endswith(suffix[:i]):
@@ -64,7 +64,7 @@ def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> 
     home = home or Path()
     sfx = ["X", "T", "B"] if bc else ["X", "T"]
     meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in sfx]]
-    return all((home / s).exists() for s in meshes)
+    return all((home / s).is_file() for s in meshes)
 
 
 def chread_d_utf[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:

@@ -43,8 +43,8 @@ MATRIX_SOLVER_OPTIONS = Literal["SOLVER_MUMPS", "SOLVER_PETSC"]
 
 
 class MatrixSolverOptions(enum.StrEnum):
-    MUMPS = "SOLVER_MUMPS"
-    PETSC = "SOLVER_PETSC"
+    SOLVER_MUMPS = "SOLVER_MUMPS"
+    SOLVER_PETSC = "SOLVER_PETSC"
 
 
 # Solver Algorithms

@@ -9,7 +9,7 @@ from cheartpy.mesh.struct import (
     CheartMeshTopology,
 )
 from cheartpy.mesh.validation import remove_dangling_nodes
-from cheartpy.vtk.trait import VtkType
+from cheartpy.vtk.types import VtkType
 
 from .data import CartesianDirection
 

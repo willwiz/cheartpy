@@ -24,7 +24,7 @@ def run_problem(pfile: str, **kwargs: Unpack[_RunOptions]) -> int:
         cmd = [*cmd, "--pedantic-printing"]
     if kwargs.get("dump_matrix", False):
         cmd = [*cmd, "--dump-matrix"]
-    if not kwargs.get("output", False):
+    if not kwargs.get("output", True):
         cmd = [*cmd, "--no-output"]
     print(" ".join(cmd))
     log = kwargs.get("log")

@@ -1,10 +1,10 @@
-__all__ = ["CmdLineArgs", "get_cmdline_args"]
 import argparse
 import dataclasses as dc
 from typing import TYPE_CHECKING, Final, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+__all__ = ["CmdLineArgs", "get_cmdline_args"]
 
 ################################################################################################
 # The argument parse

@@ -46,4 +46,9 @@ def splicegen(maxchars: int, stringlist: list[str]) -> Generator[list[str]]:
 def get_enum[T: enum.Enum](v: str | T, e: type[T]) -> T:
     if not isinstance(v, str):
         return v
-    return e[v]
+    if v in e:
+        return e(v)
+    if v in e.__members__:
+        return e[v]
+    msg = f"Value {v} not found in enum {e}"
+    raise ValueError(msg)

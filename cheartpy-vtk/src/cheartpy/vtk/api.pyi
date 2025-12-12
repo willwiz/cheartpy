@@ -1,6 +1,0 @@
-from pytools.result import Err, Ok
-
-from .trait import VTK_TYPE, VtkElem, VtkType
-
-def get_vtk_elem(elem: VTK_TYPE | VtkType) -> VtkElem: ...
-def guess_elem_type_from_dim(edim: int, bdim: int | None) -> Ok[VtkElem] | Err: ...
