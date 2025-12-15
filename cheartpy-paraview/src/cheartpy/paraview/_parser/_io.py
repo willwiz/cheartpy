@@ -16,7 +16,6 @@ _iogroup.add_argument(
     "--folder",
     "-f",
     dest="input_dir",
-    default=Path(),
     action="store",
     type=Path,
     help=(

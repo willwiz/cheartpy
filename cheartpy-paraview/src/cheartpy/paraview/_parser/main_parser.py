@@ -51,26 +51,28 @@ def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
         args,
         namespace=CmdLineArgs(
             None,  # pyright: ignore[reportArgumentType]
-            None,
+            None,  # NOTE: default from parser
             None,
             None,
             Path(),
             "",
-            "mesh",
+            "",
             None,
             None,
             prog_bar=True,
-            log=LogLevel.DEBUG,
+            log=LogLevel.INFO,
             binary=False,
             compress=True,
             cores=1,
             var=["okay"],
         ),
     )
-    print(parsed_args)
     if parsed_args.cmd is None:  # pyright: ignore[reportUnnecessaryComparison]
         main_parser.print_help()
         raise SystemExit(0)
+    if not parsed_args.mesh_or_top:
+        msg: str = "Never: Mesh or topology file is a required arg. [Unreachable]"
+        raise ValueError(msg)
     return parsed_args
 
 
@@ -78,6 +80,8 @@ def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
 def get_api_args(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> CmdLineArgs: ...
 @overload
 def get_api_args(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> CmdLineArgs: ...
+@overload
+def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> CmdLineArgs: ...
 def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> CmdLineArgs:
     match kwargs.get("subindex"):
         case "auto":
@@ -86,10 +90,19 @@ def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> CmdLineAr
             subindex = None
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
-    mesh_or_top = kwargs.get("top") or kwargs.get("mesh", "mesh")
+    match cmd:
+        case "find":
+            mesh_or_top = kwargs.get("mesh", "mesh")
+            index = kwargs.get("index", AUTO)
+        case "index":
+            mesh_or_top = kwargs.get("top")
+            if mesh_or_top is None:
+                msg = "Topology file must be specified for 'index' command."
+                raise ValueError(msg)
+            index = kwargs.get("index")
     return CmdLineArgs(
         cmd=cmd,
-        index=kwargs.get("index"),
+        index=index,
         subindex=subindex,
         prefix=kwargs.get("prefix"),
         input_dir=Path(kwargs.get("input_dir", "")),

@@ -10,7 +10,7 @@ _index_group.add_argument(
     nargs=3,
     dest="index",
     action="store",
-    default=None,
+    default=AUTO,
     type=int,
     metavar=("start", "end", "step"),
     help=(
@@ -25,7 +25,6 @@ _index_group_sub.add_argument(
     dest="subindex",
     nargs=3,
     action="store",
-    default=None,
     type=int,
     metavar=("start", "end", "step"),
     help=(

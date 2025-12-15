@@ -22,7 +22,6 @@ _index_group.add_argument(
     dest="subindex",
     nargs=3,
     action="store",
-    default=None,
     type=int,
     metavar=("start", "end", "step"),
     help=(

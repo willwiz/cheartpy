@@ -8,7 +8,6 @@ _topology_group.add_argument(
     required=True,
     dest="mesh_or_top",
     action="store",
-    default="mesh",
     type=str,
     help="OPTIONAL: supply a prefix for the mesh files",
 )
@@ -17,7 +16,6 @@ _topology_group.add_argument(
     "-x",
     dest="space",
     action="store",
-    default=None,
     type=str,
     help="OPTIONAL: supply a prefix for the mesh files",
 )
@@ -26,7 +24,6 @@ _topology_group.add_argument(
     "-b",
     dest="boundary",
     action="store",
-    default=None,
     type=Path,
     help=(
         "MANDATORY: supply a relative path and file name from the current directory "
@@ -43,7 +40,6 @@ _topology_group.add_argument(
     required=True,
     dest="space",
     action="store",
-    default=None,
     type=str,
     help="OPTIONAL: supply a prefix for the mesh files",
 )
@@ -53,7 +49,6 @@ _topology_group.add_argument(
     required=True,
     dest="mesh_or_top",
     action="store",
-    default=None,
     type=str,
     help=(
         "MANDATORY: supply a relative path and file name from the current directory "
@@ -65,7 +60,6 @@ _topology_group.add_argument(
     "-b",
     dest="boundary",
     action="store",
-    default=None,
     type=Path,
     help=(
         "MANDATORY: supply a relative path and file name from the current directory "
