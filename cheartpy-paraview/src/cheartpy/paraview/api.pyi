@@ -1,10 +1,8 @@
 from collections.abc import Sequence
-from typing import Literal
-
-from pytools.logging.trait import LogLevel
+from typing import Literal, Unpack, overload
 
 from ._arg_validation import process_cmdline_args
-from ._parser import CmdLineArgs
+from ._parser import APIKwargsFind, APIKwargsIndex, CmdLineArgs
 from ._parser.main_parser import get_cmd_args, main_parser
 
 __all__ = [
@@ -17,20 +15,8 @@ __all__ = [
 ]
 
 def cheart2vtu(cmd_args: CmdLineArgs) -> None: ...
-def cheart2vtu_api(
-    prefix: str | None = None,
-    index: tuple[int, int, int] | None = None,
-    subindex: tuple[int, int, int] | Literal["auto", "none"] | None = "none",
-    variables: Sequence[str] = ...,
-    input_dir: str = "",
-    output_dir: str = "",
-    mesh: str | tuple[str, str, str] = "mesh",
-    space: str | None = None,
-    time_series: str | None = None,
-    binary: bool = False,
-    compression: bool = True,
-    progress_bar: bool = True,
-    cores: int = 1,
-    log: LogLevel = ...,
-) -> None: ...
+@overload
+def cheart2vtu_api(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> None: ...
+@overload
+def cheart2vtu_api(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> None: ...
 def cheart2vtu_cli(cmd_args: Sequence[str] | None = None) -> None: ...

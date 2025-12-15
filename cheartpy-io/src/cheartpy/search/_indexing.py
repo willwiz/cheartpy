@@ -100,6 +100,8 @@ def get_file_name_indexer(
         log.info(
             f"Variable index will be determined from the first variable: {variables[0]}",
         )
+    if not variables:
+        return Ok(ZeroIndexer())
     match index, subindex:
         case None, _:
             return Ok(ZeroIndexer())
