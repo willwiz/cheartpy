@@ -1,9 +1,12 @@
+# ruff: noqa: PLR0911
 from cheartpy.symbolic.trait import (
     ALL_TYPES,
+    IMMUTABLE_TYPES,
     ExpressionTrait,
     ExpressionTuple,
     FunctionTrait,
     MathOperator,
+    SymbolTrait,
 )
 
 
@@ -11,18 +14,16 @@ def add_expression(left: ExpressionTrait, right: ALL_TYPES) -> ExpressionTuple:
     match right:
         case float() | int():
             return _add_expression_to_float_(left, right)
-        case FunctionTrait():
-            return _add_expression_to_function_(left, right)
-        case _:
-            raise NotImplementedError
+        case FunctionTrait() | SymbolTrait():
+            return _add_expression_to_functionsymbol_(left, right)
+        case ExpressionTrait():
+            return _add_expression_to_expression_(left, right)
 
 
 def _add_expression_to_float_(left: ExpressionTrait, right: float) -> ExpressionTuple:
     match left.op:
-        case MathOperator.ADD:
-            return _add_expression_to_float_add_(left, right)
-        case MathOperator.SUB:
-            return _add_expression_to_float_sub_(left, right)
+        case MathOperator.ADD | MathOperator.SUB:
+            return _add_expression_to_float_addsub_(left, right)
         case MathOperator.MUL:
             return _add_expression_to_float_mul_(left, right)
         case MathOperator.DIV:
@@ -33,24 +34,10 @@ def _add_expression_to_float_(left: ExpressionTrait, right: float) -> Expression
             return _add_expression_to_float_mod_(left, right)
 
 
-def _add_expression_to_float_add_(left: ExpressionTrait, right: float) -> ExpressionTuple:
+def _add_expression_to_float_addsub_(left: ExpressionTrait, right: float) -> ExpressionTuple:
     if left.op != MathOperator.ADD:
         msg = (
             "add_expression_to_float_add_ can only handle addition expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
-    if isinstance(left.left, float | int):
-        return ExpressionTuple(left.left + right, left.op, left.right)
-    if isinstance(left.right, float | int):
-        return ExpressionTuple(left.left, left.op, left.right + right)
-    return ExpressionTuple(left, MathOperator.ADD, right)
-
-
-def _add_expression_to_float_sub_(left: ExpressionTrait, right: float) -> ExpressionTuple:
-    if left.op != MathOperator.SUB:
-        msg = (
-            "add_expression_to_float_sub_ can only handle subtraction expressions. "
             "Use add_expression instead."
         )
         raise ValueError(msg)
@@ -68,6 +55,14 @@ def _add_expression_to_float_mul_(left: ExpressionTrait, right: float) -> Expres
             "Use add_expression instead."
         )
         raise ValueError(msg)
+    if left.left == -1:
+        return ExpressionTuple(right, MathOperator.SUB, left.right)
+    if left.right == -1:
+        return ExpressionTuple(right, MathOperator.SUB, left.left)
+    if left.left == 1:
+        return ExpressionTuple(left.right, MathOperator.ADD, right)
+    if left.right == 1:
+        return ExpressionTuple(left.left, MathOperator.ADD, right)
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
@@ -88,6 +83,8 @@ def _add_expression_to_float_pow_(left: ExpressionTrait, right: float) -> Expres
             "Use add_expression instead."
         )
         raise ValueError(msg)
+    if left.left == right:
+        return ExpressionTuple(right, left.op, left.right + 1)
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
@@ -101,24 +98,24 @@ def _add_expression_to_float_mod_(left: ExpressionTrait, right: float) -> Expres
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
-def _add_expression_to_function_(left: ExpressionTrait, right: FunctionTrait) -> ExpressionTuple:
+def _add_expression_to_functionsymbol_(
+    left: ExpressionTrait, right: IMMUTABLE_TYPES
+) -> ExpressionTuple:
     match left.op:
-        case MathOperator.ADD:
-            return _add_expression_to_function_add_(left, right)
-        case MathOperator.SUB:
-            return _add_expression_to_function_sub_(left, right)
+        case MathOperator.ADD | MathOperator.SUB:
+            return _add_expression_to_functionsymbol_addsub_(left, right)
         case MathOperator.MUL:
-            return _add_expression_to_function_mul_(left, right)
+            return _add_expression_to_functionsymbol_mul_(left, right)
         case MathOperator.DIV:
-            return _add_expression_to_function_div_(left, right)
+            return _add_expression_to_functionsymbol_div_(left, right)
         case MathOperator.POW:
-            return _add_expression_to_function_pow_(left, right)
+            return _add_expression_to_functionsymbol_pow_(left, right)
         case MathOperator.MOD:
-            return _add_expression_to_function_mod_(left, right)
+            return _add_expression_to_functionsymbol_mod_(left, right)
 
 
-def _add_expression_to_function_add_(
-    left: ExpressionTrait, right: FunctionTrait
+def _add_expression_to_functionsymbol_addsub_(
+    left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
     if left.op != MathOperator.ADD:
         msg = (
@@ -126,31 +123,15 @@ def _add_expression_to_function_add_(
             "Use add_expression instead."
         )
         raise ValueError(msg)
-    if isinstance(left.left, FunctionTrait) and left.left == right:
+    if left.left == right:
         return ExpressionTuple(left.left + right, left.op, left.right)
-    if isinstance(left.right, FunctionTrait) and left.right == right:
+    if left.right == right:
         return ExpressionTuple(left.left, left.op, left.right + right)
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
-def _add_expression_to_function_sub_(
-    left: ExpressionTrait, right: FunctionTrait
-) -> ExpressionTuple:
-    if left.op != MathOperator.SUB:
-        msg = (
-            "add_expression_to_function_sub_ can only handle subtraction expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
-    if isinstance(left.left, FunctionTrait) and left.left == right:
-        return ExpressionTuple(left.left + right, left.op, left.right)
-    if isinstance(left.right, FunctionTrait) and left.right == right:
-        return ExpressionTuple(left.left, left.op, left.right + right)
-    return ExpressionTuple(left, MathOperator.ADD, right)
-
-
-def _add_expression_to_function_mul_(
-    left: ExpressionTrait, right: FunctionTrait
+def _add_expression_to_functionsymbol_mul_(
+    left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
     if left.op != MathOperator.MUL:
         msg = (
@@ -158,6 +139,14 @@ def _add_expression_to_function_mul_(
             "Use add_expression instead."
         )
         raise ValueError(msg)
+    if left.left == -1:
+        return ExpressionTuple(right, MathOperator.SUB, left.right)
+    if left.right == -1:
+        return ExpressionTuple(right, MathOperator.SUB, left.left)
+    if left.left == 1:
+        return ExpressionTuple(left.right, MathOperator.ADD, right)
+    if left.right == 1:
+        return ExpressionTuple(left.left, MathOperator.ADD, right)
     if left.left == right:
         return ExpressionTuple(right, left.op, left.right + 1)
     if left.right == right:
@@ -165,8 +154,8 @@ def _add_expression_to_function_mul_(
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
-def _add_expression_to_function_div_(
-    left: ExpressionTrait, right: FunctionTrait
+def _add_expression_to_functionsymbol_div_(
+    left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
     if left.op != MathOperator.DIV:
         msg = (
@@ -179,8 +168,8 @@ def _add_expression_to_function_div_(
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
-def _add_expression_to_function_pow_(
-    left: ExpressionTrait, right: FunctionTrait
+def _add_expression_to_functionsymbol_pow_(
+    left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
     if left.op != MathOperator.POW:
         msg = (
@@ -193,8 +182,8 @@ def _add_expression_to_function_pow_(
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
-def _add_expression_to_function_mod_(
-    left: ExpressionTrait, right: FunctionTrait
+def _add_expression_to_functionsymbol_mod_(
+    left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
     if left.op != MathOperator.MOD:
         msg = (
@@ -202,4 +191,74 @@ def _add_expression_to_function_mod_(
             "Use add_expression instead."
         )
         raise ValueError(msg)
+    return ExpressionTuple(left, MathOperator.ADD, right)
+
+
+def _add_expression_to_expression_(
+    left: ExpressionTrait, right: ExpressionTrait
+) -> ExpressionTuple:
+    match left.op:
+        case MathOperator.ADD | MathOperator.SUB:
+            return _add_expression_to_expression_add_(left, right)
+        case MathOperator.MUL:
+            # return _add_expression_to_expression_mul_(left, right)
+            raise NotImplementedError
+        case MathOperator.DIV:
+            # return _add_expression_to_expression_div_(left, right)
+            raise NotImplementedError
+        case MathOperator.POW:
+            # return _add_expression_to_expression_pow_(left, right)
+            raise NotImplementedError
+        case MathOperator.MOD:
+            # return _add_expression_to_expression_mod_(left, right)
+            raise NotImplementedError
+
+
+def _add_add_lsimplifiable(left: ExpressionTrait, right: ExpressionTrait) -> bool:
+    # left.op == ADD
+    if (isinstance(left.left, float | int) or isinstance(left.right, float | int)) and isinstance(
+        right.left, float | int
+    ):
+        return True
+    if left.left == right.left:
+        return True
+    return left.right == right.left
+
+
+def _add_add_rsimplifiable(left: ExpressionTrait, right: ExpressionTrait) -> bool:
+    # left.op == ADD
+    if (isinstance(left.left, float | int) or isinstance(left.right, float | int)) and isinstance(
+        right.right, float | int
+    ):
+        return True
+    if left.left == right.right:
+        return True
+    return left.right == right.right
+
+
+def _add_expression_to_expression_add_(
+    left: ExpressionTrait, right: ExpressionTrait
+) -> ExpressionTuple:
+    if left.op != MathOperator.ADD:
+        msg = (
+            "add_expression_to_expression_add_ can only handle addition expressions. "
+            "Use add_expression instead."
+        )
+        raise ValueError(msg)
+    if _add_add_lsimplifiable(left, right):
+        v = left + right.left
+        if isinstance(v, ExpressionTrait):
+            return add_expression(v, right.right)
+        expr = v + right.right
+        if isinstance(expr, float | int | SymbolTrait | FunctionTrait):
+            return ExpressionTuple(1, MathOperator.MUL, expr)
+        return ExpressionTuple(expr.left, expr.op, expr.right)
+    if _add_add_rsimplifiable(left, right):
+        v = left + right.right
+        if isinstance(v, ExpressionTrait):
+            return add_expression(v, right.left)
+        expr = v + right.left
+        if isinstance(expr, float | int | SymbolTrait | FunctionTrait):
+            return ExpressionTuple(expr, right.op, right.left)
+        return ExpressionTuple(expr.left, expr.op, expr.right)
     return ExpressionTuple(left, MathOperator.ADD, right)
