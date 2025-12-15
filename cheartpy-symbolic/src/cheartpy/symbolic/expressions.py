@@ -1,7 +1,5 @@
-from typing import Self
-
-from .negatives import Negative
-from .trait import ALL_TYPES, ExpressionTrait, MathOperator
+from ._expression_algebra import add_expression
+from .trait import ALL_TYPES, ExpressionTrait, ExpressionTuple, MathOperator
 
 
 class Expression[L: ALL_TYPES, O: MathOperator, R: ALL_TYPES](ExpressionTrait):
@@ -23,15 +21,27 @@ class Expression[L: ALL_TYPES, O: MathOperator, R: ALL_TYPES](ExpressionTrait):
 
     def __eq__(self, other: object) -> bool: ...
 
-    def __neg__(self) -> Negative[Self]:
-        return Negative(self)
+    def __neg__(self) -> ExpressionTrait:
+        return Expression(-1, MathOperator.MUL, self)
 
-    def __add__(self, other: ALL_TYPES) -> ExpressionTrait: ...
+    def __add__(self, other: ALL_TYPES) -> ExpressionTrait:
+        vals = add_expression(self, other)
+        return Expression(*vals)
+
+    def __radd__(self, other: ALL_TYPES) -> ExpressionTrait:
+        vals = add_expression(self, other)
+        return Expression(vals.right, vals.op, vals.left)
+
     def __sub__(self, other: ALL_TYPES) -> ExpressionTrait: ...
+    def __rsub__(self, other: ALL_TYPES) -> ExpressionTrait: ...
     def __mul__(self, other: ALL_TYPES) -> ExpressionTrait: ...
+    def __rmul__(self, other: ALL_TYPES) -> ExpressionTrait: ...
     def __div__(self, other: ALL_TYPES) -> ExpressionTrait: ...
+    def __rtruediv__(self, other: ALL_TYPES) -> ExpressionTrait: ...
     def __pow__(self, other: ALL_TYPES) -> ExpressionTrait: ...
+    def __rpow__(self, other: ALL_TYPES) -> ExpressionTrait: ...
     def __mod__(self, other: ALL_TYPES) -> ExpressionTrait: ...
+    def __rmod__(self, other: ALL_TYPES) -> ExpressionTrait: ...
 
     @property
     def left(self) -> ALL_TYPES:
@@ -44,3 +54,14 @@ class Expression[L: ALL_TYPES, O: MathOperator, R: ALL_TYPES](ExpressionTrait):
     @property
     def right(self) -> ALL_TYPES:
         return self._right
+
+
+def convert_to_expression(val: ExpressionTuple, *, rside: bool) -> ALL_TYPES:
+    if val.op is MathOperator.MUL:
+        if val.left == 1:
+            return val.right
+        if val.right == 1:
+            return val.left
+    if rside:
+        return Expression(val.right, val.op, val.left)
+    return Expression(val.left, val.op, val.right)
