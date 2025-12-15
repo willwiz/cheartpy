@@ -4,14 +4,12 @@ from cheartpy.symbolic.trait import ExpressionTrait, FunctionTrait, MathOperator
 
 def sub_function_to_immutable(
     left: FunctionTrait, right: FunctionTrait | SymbolTrait | float
-) -> ExpressionTrait:
-    return Expression(left, MathOperator.SUB, right)
+) -> ExpressionTrait: ...
 
 
 def sub_symbol_to_immutable(
     left: SymbolTrait, right: FunctionTrait | SymbolTrait | float
-) -> ExpressionTrait:
-    return Expression(left, MathOperator.SUB, right)
+) -> ExpressionTrait: ...
 
 
 def sub_number_to_function_or_symbol(

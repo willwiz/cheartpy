@@ -1,7 +1,5 @@
-from typing import Self
-
-from .negatives import Negative
-from .trait import ALL_TYPES, ExpressionTrait, FunctionTrait
+from .expressions import Expression
+from .trait import ALL_TYPES, ExpressionTrait, FunctionTrait, MathOperator
 
 
 class Function(FunctionTrait):
@@ -24,8 +22,8 @@ class Function(FunctionTrait):
             return False
         return self._name == other._name and self._arg == other._arg
 
-    def __neg__(self) -> Negative[Self]:
-        return Negative(self)
+    def __neg__(self) -> ExpressionTrait:
+        return Expression(-1, MathOperator.MUL, self)
 
     def __add__(self, other: ALL_TYPES) -> ExpressionTrait: ...
     def __radd__(self, other: ALL_TYPES) -> ExpressionTrait: ...

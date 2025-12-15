@@ -1,53 +1,28 @@
 from cheartpy.symbolic.expressions import Expression
-from cheartpy.symbolic.symbols import ScaledSymbol
 from cheartpy.symbolic.trait import (
     IMMUTABLE_TYPES,
     ExpressionTrait,
     FunctionTrait,
     MathOperator,
-    ScaledSymbolTrait,
     SymbolTrait,
 )
 
 
 def add_function_to_immutable(left: FunctionTrait, right: IMMUTABLE_TYPES) -> ExpressionTrait:
-    if isinstance(right, ScaledSymbolTrait) and (right.scale < 0):
-        right = ScaledSymbol(-right.scale, right.value)
-        return Expression(left, MathOperator.SUB, right)
     return Expression(left, MathOperator.ADD, right)
 
 
-def add_function_to_number(left: FunctionTrait, right: float) -> ExpressionTrait:
-    return Expression(left, MathOperator.ADD, right)
+def add_function_to_number(left: FunctionTrait, right: float) -> ExpressionTrait: ...
 
 
 def add_symbol_to_immutable(left: SymbolTrait, right: IMMUTABLE_TYPES) -> ExpressionTrait:
-    if isinstance(right, ScaledSymbolTrait) and (right.scale < 0):
-        right = ScaledSymbol(-right.scale, right.value)
-        return Expression(left, MathOperator.SUB, right)
     return Expression(left, MathOperator.ADD, right)
 
 
-def add_symbol_to_number(left: SymbolTrait, right: float) -> ExpressionTrait:
-    return Expression(left, MathOperator.ADD, right)
+def add_symbol_to_number(left: SymbolTrait, right: float) -> ExpressionTrait: ...
 
 
-def add_s_symbol_to_immutable(left: ScaledSymbolTrait, right: IMMUTABLE_TYPES) -> ExpressionTrait:
-    if isinstance(right, ScaledSymbolTrait) and (right.scale < 0):
-        right = ScaledSymbol(-right.scale, right.value)
-        return Expression(left, MathOperator.SUB, right)
-    return Expression(left, MathOperator.ADD, right)
-
-
-def add_s_symbol_to_number(left: ScaledSymbolTrait, right: float) -> ExpressionTrait:
-    return Expression(left, MathOperator.ADD, right)
-
-
-def add_number_to_immutable(left: float, right: IMMUTABLE_TYPES) -> float | ExpressionTrait:
-    if isinstance(right, ScaledSymbolTrait) and (right.scale < 0):
-        right = ScaledSymbol(-right.scale, right.value)
-        return Expression(left, MathOperator.SUB, right)
-    return Expression(left, MathOperator.ADD, right)
+def add_number_to_immutable(left: float, right: IMMUTABLE_TYPES) -> float | ExpressionTrait: ...
 
 
 def add_number_to_number(left: float, right: float) -> float:
@@ -82,25 +57,6 @@ def basic_add_symbol_to_(
             return add_symbol_to_immutable(left, right)
 
 
-def basic_add_s_symbol_to_(
-    left: ScaledSymbolTrait, right: IMMUTABLE_TYPES | float
-) -> float | ExpressionTrait:
-    match left, right:
-        case (ScaledSymbolTrait(), float() | int()):
-            return add_s_symbol_to_number(left, right)
-        case (ScaledSymbolTrait(), _):
-            return add_s_symbol_to_immutable(left, right)
-
-
 def basic_add_(
     left: IMMUTABLE_TYPES | float, right: IMMUTABLE_TYPES | float
-) -> float | ExpressionTrait:
-    match left:
-        case float() | int():
-            return basic_add_number_to_(left, right)
-        case FunctionTrait():
-            return basic_add_function_to_(left, right)
-        case SymbolTrait():
-            return basic_add_symbol_to_(left, right)
-        case ScaledSymbolTrait():
-            return basic_add_s_symbol_to_(left, right)
+) -> float | ExpressionTrait: ...

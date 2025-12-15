@@ -1,7 +1,12 @@
-from typing import Self
-
-from .negatives import Negative
-from .trait import ALL_TYPES, ExpressionTrait, ScaledSymbolTrait, SymbolTrait, SymbolVal
+from .expressions import Expression
+from .trait import (
+    ALL_TYPES,
+    ExpressionTrait,
+    MathOperator,
+    ScaledSymbolTrait,
+    SymbolTrait,
+    SymbolVal,
+)
 
 
 class Symbol[T: SymbolVal](SymbolTrait):
@@ -22,8 +27,8 @@ class Symbol[T: SymbolVal](SymbolTrait):
             return False
         return self._value == other.value
 
-    def __neg__(self) -> Negative[Self]:
-        return Negative(self)
+    def __neg__(self) -> ExpressionTrait:
+        return Expression(-1, MathOperator.MUL, self)
 
     def __add__(self, other: ALL_TYPES) -> ExpressionTrait: ...
     def __radd__(self, other: ALL_TYPES) -> ExpressionTrait: ...
