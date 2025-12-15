@@ -31,6 +31,7 @@ all = [
   "cheartpy-mesh",
   "cheartpy-paraview",
   "cheartpy-vtk",
+  "cheartpy-symbolic",
 ]
 mesh = ["cheartpy-mesh"]
 vtu = ["cheartpy-mesh", "cheartpy-paraview"]
