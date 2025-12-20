@@ -98,9 +98,7 @@ def symbol_add_expression_(left: SymbolTrait, right: ExpressionTrait) -> ALL_TYP
 
 
 def _symbol_add_expression_add_(left: SymbolTrait, right: ExpressionTrait) -> ALL_TYPES:
-    if right.op is not MathOperator.ADD:
-        msg = "Right expression must be an addition expression. Use _sym_add_ instead."
-        raise ValueError(msg)
+    # assert right.op is MathOperator.ADD
     if right.left == left:
         return Expression(Scaled(2, left), right.op, right.right)
     if right.right == left:

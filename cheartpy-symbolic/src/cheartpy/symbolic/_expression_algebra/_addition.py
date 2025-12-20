@@ -6,6 +6,7 @@ from cheartpy.symbolic.trait import (
     ExpressionTuple,
     FunctionTrait,
     MathOperator,
+    ScaledTrait,
     SymbolTrait,
 )
 
@@ -16,6 +17,8 @@ def add_expression(left: ExpressionTrait, right: ALL_TYPES) -> ExpressionTuple:
             return _add_expression_to_float_(left, right)
         case FunctionTrait() | SymbolTrait():
             return _add_expression_to_functionsymbol_(left, right)
+        case ScaledTrait():
+            raise NotImplementedError
         case ExpressionTrait():
             return _add_expression_to_expression_(left, right)
 
@@ -239,18 +242,13 @@ def _add_add_rsimplifiable(left: ExpressionTrait, right: ExpressionTrait) -> boo
 def _add_expression_to_expression_add_(
     left: ExpressionTrait, right: ExpressionTrait
 ) -> ExpressionTuple:
-    if left.op != MathOperator.ADD:
-        msg = (
-            "add_expression_to_expression_add_ can only handle addition expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.ADD
     if _add_add_lsimplifiable(left, right):
         v = left + right.left
         if isinstance(v, ExpressionTrait):
             return add_expression(v, right.right)
         expr = v + right.right
-        if isinstance(expr, float | int | SymbolTrait | FunctionTrait):
+        if isinstance(expr, float | int | SymbolTrait | FunctionTrait | ScaledTrait):
             return ExpressionTuple(1, MathOperator.MUL, expr)
         return ExpressionTuple(expr.left, expr.op, expr.right)
     if _add_add_rsimplifiable(left, right):
@@ -258,7 +256,7 @@ def _add_expression_to_expression_add_(
         if isinstance(v, ExpressionTrait):
             return add_expression(v, right.left)
         expr = v + right.left
-        if isinstance(expr, float | int | SymbolTrait | FunctionTrait):
+        if isinstance(expr, float | int | SymbolTrait | FunctionTrait | ScaledTrait):
             return ExpressionTuple(expr, right.op, right.left)
         return ExpressionTuple(expr.left, expr.op, expr.right)
     return ExpressionTuple(left, MathOperator.ADD, right)
