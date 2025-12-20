@@ -52,16 +52,17 @@ def check_for_elements[I: np.integer](
     elems: Mapping[str, MeshElements[I]],
     topology: Sequence[str],
     boundary: Mapping[int, Sequence[str]] | None = None,
-) -> None:
+) -> Ok[None] | Err:
     for name in topology:
         if name not in elems:
             msg = f"Topology '{name}' is not defined in the elements."
-            raise ValueError(msg)
+            return Err(ValueError(msg))
     if boundary is not None:
         for name in boundary.values():
             if name not in elems:
                 msg = f"Boundary '{name}' is not defined in the elements."
-                raise ValueError(msg)
+                return Err(ValueError(msg))
+    return Ok(None)
 
 
 def build_element_map[I: np.integer](
@@ -96,15 +97,15 @@ def create_topology[I: np.integer](
     )
 
 
-def merge_topologies[I: np.integer](*top: CheartMeshTopology[I]) -> CheartMeshTopology[I]:
+def merge_topologies[I: np.integer](*top: CheartMeshTopology[I]) -> Ok[CheartMeshTopology[I]] | Err:
     types = {t.TYPE for t in top}
     if len(types) != 1:
         msg = f"Topologies have different types, cannot merge them: {types}"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     dims = {t.v.shape[1] for t in top}
     if len(dims) != 1:
         msg = f"Topologies have different dimensions: {dims}There most likely is a bug in the code."
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     n = sum(t.n for t in top)
     v = np.concatenate([t.v for t in top], axis=0)
     if len(v) != n:
@@ -112,11 +113,13 @@ def merge_topologies[I: np.integer](*top: CheartMeshTopology[I]) -> CheartMeshTo
             "Topologies have different number of elements, cannot merge them. "
             f"Total number of elements: {n}, but got {len(v)}."
         )
-        raise ValueError(msg)
-    return CheartMeshTopology(
-        n=n,
-        v=np.ascontiguousarray(v, dtype=int),
-        TYPE=types.pop(),
+        return Err(ValueError(msg))
+    return Ok(
+        CheartMeshTopology(
+            n=n,
+            v=np.ascontiguousarray(v, dtype=int),
+            TYPE=types.pop(),
+        )
     )
 
 

@@ -68,9 +68,9 @@ def ll_basis[F: np.floating](
     var: A2[F] | A1[F],
     nodes: A1[F],
     x: A1[F],
-) -> tuple[A1[np.intc], A2[F]]:
+) -> tuple[A1[np.bool_], A2[F]]:
     basis = {i: np.zeros_like(x) for i in range(2)}
-    domain = (nodes[0] <= x) & (x <= nodes[1]).astype(np.intc)
+    domain = (nodes[0] <= x) & (x <= nodes[1]).astype(np.bool_)
     basis[0][domain] = 1 - (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
     basis[1][domain] = (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
     return (domain, var[0] * basis[0][domain, None] + var[1] * basis[1][domain, None])
@@ -82,7 +82,7 @@ def ll_interp[F: np.floating, I: np.integer](
     cl: A1[F],
 ) -> A2[F]:
     x_bar = [ll_basis(var[elem], top.node[elem], cl) for elem in top.elem]
-    res = np.zeros((len(cl), var.shape[1]), dtype=float)
+    res = np.zeros((len(cl), var.shape[1]), dtype=cl.dtype)
     for k, v in x_bar:
         res[k] = v
     return res

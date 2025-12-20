@@ -23,6 +23,7 @@ __all__ = [
     "cheart2vtu",
     "cheart2vtu_api",
     "cheart2vtu_cli",
+    "get_api_args",
     "get_cmd_args",
     "main_parser",
     "process_cmdline_args",
