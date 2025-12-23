@@ -60,7 +60,7 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(fb, get_vtk_elem(vtk_id).connectivity)
+    dataarr.add_data(fb, order=get_vtk_elem(vtk_id).connectivity)
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
@@ -123,7 +123,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(tp.get_data(), get_vtk_elem(tp.vtkelementtype).connectivity)
+    dataarr.add_data(tp.get_data(), order=get_vtk_elem(tp.vtkelementtype).connectivity)
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )

@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Unpack, overload
+from typing import TYPE_CHECKING, Literal, Never, Unpack, assert_never, cast, overload
 
 from cheartpy.search.trait import AUTO
 from pytools.logging.trait import LogLevel
@@ -72,7 +72,7 @@ def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
         raise SystemExit(0)
     if not parsed_args.mesh_or_top:
         msg: str = "Never: Mesh or topology file is a required arg. [Unreachable]"
-        raise ValueError(msg)
+        assert_never(cast("Never", msg))
     return parsed_args
 
 
