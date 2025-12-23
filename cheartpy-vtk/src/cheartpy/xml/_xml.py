@@ -122,7 +122,7 @@ class XMLElement:
                 return Err(e)
 
     def write(self, fout: TextIO, level: int = 0) -> None:
-        fout.write(f"{' ' * level}<{self.tag}{self.attribs}>\n")
+        fout.write(f"{' ' * level}<{self.tag} {self.attribs}>\n")
         for elem in self.subelems:
             elem.write(fout, level + 2)
         if self.data is not None:
