@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from pytools.arrays import A2, Arr
+    from pytools.arrays import A2, Arr, DType
 
 
 __all__ = [
@@ -19,7 +19,7 @@ def read_array_int[I: np.integer](
     name: Path | str,
     skip: int = 0,
     *,
-    dtype: type[I] = np.intc,
+    dtype: DType[I] = np.intc,
 ) -> Arr[tuple[int, ...], I]:
     return np.loadtxt(name, skiprows=skip, dtype=dtype)
 
@@ -28,7 +28,7 @@ def read_array_float[F: np.floating](
     name: Path | str,
     skip: int = 0,
     *,
-    dtype: type[F] = np.float64,
+    dtype: DType[F] = np.float64,
 ) -> Arr[tuple[int, ...], F]:
     return np.loadtxt(name, skiprows=skip, dtype=dtype)
 

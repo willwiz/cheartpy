@@ -16,7 +16,7 @@ from .struct import (
 
 if TYPE_CHECKING:
     from cheartpy.vtk.types import VtkElem, VtkType
-    from pytools.arrays import A2
+    from pytools.arrays import A2, DType
 
 
 __all__ = ["import_cheart_mesh"]
@@ -44,8 +44,8 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     name: Path | str,
     forced_type: VtkElem | None = None,
     *,
-    ftype: type[F] = np.float64,
-    itype: type[I] = np.intc,
+    ftype: DType[F] = np.float64,
+    itype: DType[I] = np.intc,
 ) -> Ok[CheartMesh[F, I]] | Err:
     prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
