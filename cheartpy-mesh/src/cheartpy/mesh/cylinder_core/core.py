@@ -70,7 +70,7 @@ def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> Ch
         raise ValueError(msg)
     node_map = gen_end_node_mapping(cube.bnd.v[3], cube.bnd.v[4])
     new_t = update_elems(cube.top.v, node_map)
-    new_b: dict[int, CheartMeshPatch[I]] = {
+    new_b = {
         n: update_boundary(cube.bnd.v[k], node_map, n) for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
     }
     mesh = CheartMesh(

@@ -8,11 +8,11 @@ if TYPE_CHECKING:
     from ._parser import CmdLineArgs
 
 
-def print_guard() -> str:
+def header_guard() -> str:
     return f"\n{'#' * 100}\n"
 
 
-def print_header() -> list[str]:
+def compose_header() -> list[str]:
     return [
         "#" * 100,
         "    Program for converting CHeart data to vtk unstructured grid format",
@@ -67,7 +67,7 @@ def print_input_info(inp: CmdLineArgs) -> list[str]:
     return [*msg, "<<< Variables to be added are:", pformat(inp.var, compact=True)]
 
 
-def print_index_info(indexer: IIndexIterator) -> str:
+def compose_index_info(indexer: IIndexIterator) -> str:
     first = _last = next(iter(indexer))
     for _last in indexer:
         pass

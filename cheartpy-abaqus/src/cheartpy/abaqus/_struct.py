@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Any, TypeIs
+from typing import TYPE_CHECKING, Any, NamedTuple, TypeIs
 
 import numpy as np
 
@@ -67,3 +67,8 @@ class MeshElements[I: np.integer]:
 class AbaqusContent:
     key: AbaqusItem
     value: tuple[str, str] | None = None
+
+
+class AbaqusMeshTuple[F: np.floating, I: np.integer](NamedTuple):
+    nodes: MeshNodes[F]
+    elements: dict[str, MeshElements[I]]

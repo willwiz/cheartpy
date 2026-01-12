@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, overload
 
 from pytools.result import Err, Ok
 
-from .struct import InputArgs, Mask
+from ._struct import InputArgs, Mask
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

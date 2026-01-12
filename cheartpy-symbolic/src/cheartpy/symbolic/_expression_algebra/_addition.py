@@ -38,12 +38,7 @@ def _add_expression_to_float_(left: ExpressionTrait, right: float) -> Expression
 
 
 def _add_expression_to_float_addsub_(left: ExpressionTrait, right: float) -> ExpressionTuple:
-    if left.op != MathOperator.ADD:
-        msg = (
-            "add_expression_to_float_add_ can only handle addition expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.ADD
     if isinstance(left.left, float | int):
         return ExpressionTuple(left.left + right, left.op, left.right)
     if isinstance(left.right, float | int):
@@ -52,12 +47,7 @@ def _add_expression_to_float_addsub_(left: ExpressionTrait, right: float) -> Exp
 
 
 def _add_expression_to_float_mul_(left: ExpressionTrait, right: float) -> ExpressionTuple:
-    if left.op != MathOperator.MUL:
-        msg = (
-            "add_expression_to_float_mul_ can only handle multiplication expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.MUL
     if left.left == -1:
         return ExpressionTuple(right, MathOperator.SUB, left.right)
     if left.right == -1:
@@ -70,34 +60,19 @@ def _add_expression_to_float_mul_(left: ExpressionTrait, right: float) -> Expres
 
 
 def _add_expression_to_float_div_(left: ExpressionTrait, right: float) -> ExpressionTuple:
-    if left.op != MathOperator.DIV:
-        msg = (
-            "add_expression_to_float_div_ can only handle division expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.DIV
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
 def _add_expression_to_float_pow_(left: ExpressionTrait, right: float) -> ExpressionTuple:
-    if left.op != MathOperator.POW:
-        msg = (
-            "add_expression_to_float_pow_ can only handle power expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.POW
     if left.left == right:
         return ExpressionTuple(right, left.op, left.right + 1)
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
 def _add_expression_to_float_mod_(left: ExpressionTrait, right: float) -> ExpressionTuple:
-    if left.op != MathOperator.MOD:
-        msg = (
-            "add_expression_to_float_mod_ can only handle modulus expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.MOD
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 
@@ -120,12 +95,7 @@ def _add_expression_to_functionsymbol_(
 def _add_expression_to_functionsymbol_addsub_(
     left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
-    if left.op != MathOperator.ADD:
-        msg = (
-            "add_expression_to_immutable_add_ can only handle addition expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.ADD
     if left.left == right:
         return ExpressionTuple(left.left + right, left.op, left.right)
     if left.right == right:
@@ -136,12 +106,7 @@ def _add_expression_to_functionsymbol_addsub_(
 def _add_expression_to_functionsymbol_mul_(
     left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
-    if left.op != MathOperator.MUL:
-        msg = (
-            "add_expression_to_function_mul_ can only handle multiplication expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.MUL
     if left.left == -1:
         return ExpressionTuple(right, MathOperator.SUB, left.right)
     if left.right == -1:
@@ -160,12 +125,7 @@ def _add_expression_to_functionsymbol_mul_(
 def _add_expression_to_functionsymbol_div_(
     left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
-    if left.op != MathOperator.DIV:
-        msg = (
-            "add_expression_to_function_div_ can only handle division expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.DIV
     if left.left == right:
         return ExpressionTuple(right, left.op, 1 / left.right + 1)
     return ExpressionTuple(left, MathOperator.ADD, right)
@@ -174,12 +134,7 @@ def _add_expression_to_functionsymbol_div_(
 def _add_expression_to_functionsymbol_pow_(
     left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
-    if left.op != MathOperator.POW:
-        msg = (
-            "add_expression_to_function_pow_ can only handle power expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.POW
     if left.left == right:
         return ExpressionTuple(right, left.op, left.right + 1)
     return ExpressionTuple(left, MathOperator.ADD, right)
@@ -188,12 +143,7 @@ def _add_expression_to_functionsymbol_pow_(
 def _add_expression_to_functionsymbol_mod_(
     left: ExpressionTrait, right: IMMUTABLE_TYPES
 ) -> ExpressionTuple:
-    if left.op != MathOperator.MOD:
-        msg = (
-            "add_expression_to_function_mod_ can only handle modulus expressions. "
-            "Use add_expression instead."
-        )
-        raise ValueError(msg)
+    # assert left.op is MathOperator.MOD
     return ExpressionTuple(left, MathOperator.ADD, right)
 
 

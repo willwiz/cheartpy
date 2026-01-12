@@ -17,12 +17,12 @@ from ._core import (
 from ._readers import read_abaqus_meshes
 
 if TYPE_CHECKING:
-    from .struct import InputArgs
+    from ._struct import InputArgs
 
 
 def create_cheartmesh_from_abaqus(args: InputArgs) -> None:
     log = BLogger("INFO")
-    nodes, elems = read_abaqus_meshes(*args.inputs, log=log)
+    nodes, elems = read_abaqus_meshes(*args.inputs, log=log).unwrap()
     check_for_elements(elems, args.topology, args.boundary).unwrap()
     elmap = build_element_map(elems, args.topology)
     individual_topologies = all_ok(
