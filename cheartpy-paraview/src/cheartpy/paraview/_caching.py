@@ -9,7 +9,7 @@ from .struct import CheartTopology, ProgramArgs, VariableCache
 
 if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
-    from pytools.arrays import A2
+    from pytools.arrays import A2, DType
     from pytools.logging.trait import ILogger
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
@@ -18,8 +18,8 @@ __all__ = ["init_variable_cache", "update_variable_cache"]
 def init_variable_cache[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
-    itype: type[I] = np.intc,
-    ftype: type[F] = np.float64,
+    itype: DType[I] = np.intc,
+    ftype: DType[F] = np.float64,
 ) -> Ok[VariableCache[F, I]] | Err:
     i0 = next(iter(indexer))
     top = CheartTopology(inp.tfile, inp.bfile, dtype=itype)

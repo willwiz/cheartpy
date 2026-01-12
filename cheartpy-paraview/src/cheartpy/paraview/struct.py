@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from cheartpy.vtk.types import VtkType
-    from pytools.arrays import A1, A2
+    from pytools.arrays import A1, A2, DType
 
     from ._trait import IFormattedName
 
@@ -39,7 +39,7 @@ class CheartTopology[I: np.integer]:
     vtkelementtype: VtkType
     vtksurfacetype: VtkType | None
 
-    def __init__(self, tfile: Path | str, bfile: Path | None, *, dtype: type[I] = np.intc) -> None:
+    def __init__(self, tfile: Path | str, bfile: Path | None, *, dtype: DType[I] = np.intc) -> None:
         ################################################################################################
         # read topology and get number of elements, number of nodes per elements
         self._ft = np.loadtxt(tfile, skiprows=1, dtype=dtype) - 1
