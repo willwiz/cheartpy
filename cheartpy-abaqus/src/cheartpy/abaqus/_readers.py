@@ -1,51 +1,82 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, TextIO
+from typing import TYPE_CHECKING, NamedTuple, TextIO
 
 import numpy as np
+from pytools.result import Err, Ok, all_ok
 
+from ._struct import AbaqusContent, AbaqusMeshTuple, MeshElements, MeshNodes
 from ._trait import AbaqusItem
-from .struct import AbaqusContent, MeshElements, MeshNodes
 
 if TYPE_CHECKING:
     from pytools.logging.trait import ILogger
 
 
-def get_next_contect(line: str, log: ILogger) -> AbaqusContent | None:
+class _ElementHeader(NamedTuple):
+    setname: str
+    settype: str
+
+
+def read_elements_header(line: str, log: ILogger) -> Ok[_ElementHeader] | Err:
+    values = line.strip().split(",")
+    setname = None
+    settype = None
+    for v in values:
+        lvalue, rvalue = v.split("=")
+        if lvalue.strip().lower() == "type":
+            settype = rvalue.strip()
+        elif lvalue.strip().lower() == "name":
+            setname = rvalue.strip()
+        log.debug(f"Found element header: {lvalue.strip()} = {rvalue.strip()}")
+    if setname is None:
+        msg = "Element header does not contain 'elset' field."
+        return Err(ValueError(msg))
+    if settype is None:
+        msg = "Element header does not contain 'type' field."
+        return Err(ValueError(msg))
+    return Ok(_ElementHeader(setname, settype))
+
+
+def get_next_content(line: str, log: ILogger) -> AbaqusContent | None:
     line = line.strip().lower()
     if line.startswith(AbaqusItem.HEADING.value):
         return AbaqusContent(AbaqusItem.HEADING)
     if line.startswith(AbaqusItem.NODES.value):
         return AbaqusContent(AbaqusItem.NODES)
     if line.startswith(AbaqusItem.ELEMENTS.value):
-        return AbaqusContent(AbaqusItem.ELEMENTS, read_elements_header(line, log))
+        match read_elements_header(line, log):
+            case Ok((name, kind)):
+                return AbaqusContent(AbaqusItem.ELEMENTS, (name, kind))
+            case Err(e):
+                raise e
     if line.startswith(AbaqusItem.COMMENTS.value):
         return AbaqusContent(AbaqusItem.COMMENTS)
     return None
 
 
-def get_first_content(f: TextIO, log: ILogger) -> AbaqusContent:
+def get_first_content(f: TextIO, log: ILogger) -> Ok[AbaqusContent] | Err:
     for line in f:
-        content = get_next_contect(line, log)
+        content = get_next_content(line, log)
         if content is not None:
-            return content
-        log.disp(f"Skipping line: {line}")
+            return Ok(content)
+        log.debug(f"Skipping line: {line}")
     msg = "No valid Abaqus mesh content found in the file."
-    raise ValueError(msg)
+    return Err(ValueError(msg))
 
 
-def print_headings(f: TextIO, log: ILogger) -> AbaqusContent | None:
+def read_comments(f: TextIO, log: ILogger) -> AbaqusContent | None:
     """Return the next Abaqus mesh content from the file if found else None if at  end of file.
 
     This function will print the headings of the Abaqus mesh file
     Args:
         f (TextIO): A file-like object to read lines from.
+        log (ILogger): Logger to log messages.
 
     Returns:
         AbaqusMeshContent | None: The extracted mesh content if found, otherwise None.
 
     """
     for line in f:
-        content = get_next_contect(line, log)
+        content = get_next_content(line, log)
         if content is not None:
             return content
         log.disp(line)
@@ -72,31 +103,11 @@ def read_nodes[F: np.floating](
     log.info("Reading nodes from Abaqus mesh file.")
     nodes: list[list[float]] = []
     for line in f:
-        content = get_next_contect(line, log)
+        content = get_next_content(line, log)
         if content is not None:
             return MeshNodes(len(nodes), np.array(nodes, dtype=dtype)), content
         nodes.append([float(i) for i in line.strip().split(",")])
     return MeshNodes(len(nodes), np.array(nodes, dtype=dtype)), None
-
-
-def read_elements_header(line: str, log: ILogger) -> tuple[str, str]:
-    values = line.strip().split(",")
-    setname = None
-    settype = None
-    for v in values:
-        lvalue, rvalue = v.split("=")
-        if lvalue.strip().lower() == "type":
-            setname = rvalue.strip()
-        elif lvalue.strip().lower() == "name":
-            settype = rvalue.strip()
-        log.debug(f"Found element header: {lvalue.strip()} = {rvalue.strip()}")
-    if setname is None:
-        log.error("Element header does not contain 'elset' field.")
-        raise ValueError
-    if settype is None:
-        log.error("Element header does not contain 'type' field.")
-        raise ValueError
-    return setname, settype
 
 
 def read_elements[I: np.integer](
@@ -123,11 +134,16 @@ def read_elements[I: np.integer](
     log.info(f"Reading elements {name}, type {kind} from Abaqus mesh file.")
     elems: list[list[int]] = []
     for line in f:
-        content = get_next_contect(line, log)
+        content = get_next_content(line, log)
         if content is not None:
             return MeshElements(name, kind, len(elems), np.array(elems, dtype=dtype)), content
         elems.append([int(i) for i in line.strip().split(",")])
     return MeshElements(name, kind, len(elems), np.array(elems, dtype=dtype)), None
+
+
+class _RawAbaqusMeshTuple[F: np.floating, I: np.integer](NamedTuple):
+    nodes: MeshNodes[F] | None
+    elements: dict[str, MeshElements[I]]
 
 
 def abaqus_importer[F: np.floating, I: np.integer](
@@ -136,7 +152,7 @@ def abaqus_importer[F: np.floating, I: np.integer](
     *,
     ftype: type[F] = np.float64,
     itype: type[I] = np.intc,
-) -> tuple[MeshNodes[F] | None, dict[str, MeshElements[I]]]:
+) -> Ok[_RawAbaqusMeshTuple[F, I]] | Err:
     """Import Abaqus mesh from a file-like object.
 
     Args:
@@ -151,17 +167,19 @@ def abaqus_importer[F: np.floating, I: np.integer](
 
     """
     with file.open("r") as f:
-        content = get_first_content(f, log)
-
-        nodes: MeshNodes[F] | None = None
-        elements: dict[str, MeshElements[I]] = {}
+        match get_first_content(f, log):
+            case Ok(content):
+                nodes: MeshNodes[F] | None = None
+                elements: dict[str, MeshElements[I]] = {}
+            case Err(e):
+                return Err(e)
 
         while content is not None:
             match content:
                 case AbaqusContent(key=AbaqusItem.HEADING):
-                    content = print_headings(f, log)
+                    content = read_comments(f, log)
                 case AbaqusContent(key=AbaqusItem.COMMENTS):
-                    content = print_headings(f, log)
+                    content = read_comments(f, log)
                 case AbaqusContent(key=AbaqusItem.ELEMENTS, value=(name, kind)):
                     elem, content = read_elements((name, kind), f, log, dtype=itype)
                     elements[name] = elem
@@ -169,16 +187,16 @@ def abaqus_importer[F: np.floating, I: np.integer](
                     nodes, content = read_nodes(f, log, dtype=ftype)
                 case AbaqusContent(key=AbaqusItem.NODES):
                     msg = "Duplicate nodes section found in the Abaqus mesh file."
-                    raise ValueError(msg)
+                    return Err(ValueError(msg))
                 case _:
                     msg = f"Unexpected content type: {content}. Probably implementation error."
                     raise NotImplementedError(msg)
-    return nodes, elements
+    return Ok(_RawAbaqusMeshTuple(nodes, elements))
 
 
 def merge_abaqus_meshes[F: np.floating, I: np.integer](
     *meshes: tuple[MeshNodes[F] | None, dict[str, MeshElements[I]]],
-) -> tuple[MeshNodes[F], dict[str, MeshElements[I]]]:
+) -> Ok[AbaqusMeshTuple[F, I]] | Err:
     nodes = [m[0] for m in meshes if m[0] is not None]
     elems = [m[1] for m in meshes if m[1]]
     dimensions = {n.v.shape[1] for n in nodes}
@@ -187,7 +205,7 @@ def merge_abaqus_meshes[F: np.floating, I: np.integer](
             "All meshes must have the same number of dimensions."
             f"Instead dimensions found were: {dimensions}"
         )
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     space = MeshNodes(
         n=sum(n.n for n in nodes),
         v=np.concatenate([n.v for n in nodes], axis=0).astype(nodes[0].v.dtype, copy=False),
@@ -204,8 +222,8 @@ def merge_abaqus_meshes[F: np.floating, I: np.integer](
                     f"{elements[name].v.shape} vs {elem.v.shape}"
                     f"Please check the Abaqus mesh files for consistency."
                 )
-                raise ValueError(msg)
-    return space, elements
+                return Err(ValueError(msg))
+    return Ok(AbaqusMeshTuple(space, elements))
 
 
 def read_abaqus_meshes[F: np.floating, I: np.integer](
@@ -213,7 +231,9 @@ def read_abaqus_meshes[F: np.floating, I: np.integer](
     log: ILogger,
     ftype: type[F] = np.float64,
     itype: type[I] = np.intc,
-) -> tuple[MeshNodes[F], dict[str, MeshElements[I]]]:
-    abaqus_meshes = [abaqus_importer(Path(f), log, ftype=ftype, itype=itype) for f in files]
-    space, elements = merge_abaqus_meshes(*abaqus_meshes)
-    return space, elements
+) -> Ok[AbaqusMeshTuple[F, I]] | Err:
+    match all_ok([abaqus_importer(Path(f), log, ftype=ftype, itype=itype) for f in files]):
+        case Ok(abaqus_meshes):
+            return merge_abaqus_meshes(*abaqus_meshes)
+        case Err(e):
+            return Err(e)

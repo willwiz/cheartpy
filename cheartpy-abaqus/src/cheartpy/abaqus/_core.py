@@ -1,4 +1,6 @@
+import operator as op
 from collections import defaultdict
+from functools import reduce
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 
     from pytools.arrays import A1, A2
 
-    from .struct import Mask, MeshElements, MeshNodes
+    from ._struct import Mask, MeshElements, MeshNodes
 
 
 def get_abaqus_element(tag: str, dim: int) -> Ok[AbaqusElement] | Err:
@@ -135,17 +137,17 @@ def topology_hashmap[I: np.integer](topology: CheartMeshTopology[I]) -> dict[int
 def find_element_by_nodes[I: np.integer](
     top_hashmap: Mapping[int, set[int]],
     nodes: A1[I],
-) -> int:
+) -> Ok[int] | Err:
     element_sets = [top_hashmap[int(node)] for node in nodes]
-    elements = element_sets[0].intersection(*element_sets)
+    elements: set[int] = reduce(op.and_, element_sets)
     if len(elements) != 1:
         msg = (
             f"Nodes {nodes} are not unique in the topology"
             f"Found {len(elements)} elements: {elements}. "
             "Please check the Abaqus mesh files for consistency."
         )
-        raise ValueError(msg)
-    return elements.pop()
+        return Err(ValueError(msg))
+    return Ok(elements.pop())
 
 
 def create_boundary_patch[I: np.integer](
@@ -167,10 +169,11 @@ def create_boundary_patch[I: np.integer](
             )
         case Err(e):
             return Err(e)
-    elements = np.array(
-        [find_element_by_nodes(top_hashmap, row) for row in nodes],
-        dtype=nodes.dtype,
-    )
+    match all_ok([find_element_by_nodes(top_hashmap, row) for row in nodes]):
+        case Ok(vals):
+            elements = np.array(vals, dtype=nodes.dtype)
+        case Err(e):
+            return Err(e)
     return Ok(CheartMeshPatch(tag=tag, n=len(elems.v), k=elements, v=nodes, TYPE=kind))
 
 
@@ -197,14 +200,14 @@ def merge_boundary_patches[I: np.integer](
             "Boundary patches have different number of elements, cannot merge them. "
             f"Total number of elements: {n}, but got {len(keys)}."
         )
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     values = np.concatenate([p.v for p in ok_patches], axis=0)
     if len(values) != n:
         msg = (
             "Boundary patches have different number of elements, cannot merge them. "
             f"Total number of elements: {n}, but got {len(values)}."
         )
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     return Ok(CheartMeshPatch(tag=tags.pop(), n=n, k=keys, v=values, TYPE=types.pop()))
 
 

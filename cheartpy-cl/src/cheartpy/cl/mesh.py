@@ -17,6 +17,7 @@ from cheartpy.mesh.surface_core.surface import (
 )
 from cheartpy.vtk.api import get_vtk_elem
 from pytools.logging.api import NLOGGER
+from pytools.result import Err, Ok, all_ok
 
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
 
@@ -52,22 +53,22 @@ def check_normal[F: np.floating](
 def filter_mesh_normals[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     elems: A2[I],
-    normal_check: A2[F],
+    normal_check: A2[F] | None,
     log: ILogger = NLOGGER,
-) -> A2[I]:
-    log.debug(f"The number of elements in patch is {len(elems)}")
+) -> Ok[A2[I]] | Err:
+    if normal_check is None:
+        return Ok(elems)
     top_body_elem = get_vtk_elem(mesh.top.TYPE)
     if top_body_elem.surf is None:
         msg = "Attempting to compute normal from a 1D mesh, not possible"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     surf_type = get_vtk_elem(top_body_elem.surf)
     normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems, log)
     new_elems = np.array(
         [i for i, v in zip(elems, normals, strict=False) if check_normal(normal_check, i, v, log)],
         dtype=int,
     )
-    log.debug(f"The number of elements in patch normal filtering is {len(new_elems)}")
-    return new_elems
+    return Ok(new_elems)
 
 
 class _CreateCLPartKwargs(TypedDict, total=False):
@@ -143,7 +144,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     bnd_map: PatchNode2ElemMap,
     domain: tuple[F, F] | A1[F],
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
-) -> CheartMesh[F, I]:
+) -> Ok[CheartMesh[F, I]] | Err:
     # Unpack the kwargs
     log = kwargs.get("log", NLOGGER)
     normal_check = kwargs.get("normal_check")
@@ -155,8 +156,13 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     log.debug(f"{domain=}")
     elems: A2[I] = surf.v[get_boundaryelems_in_clrange(bnd_map, domain)]
     log.debug(f"{len(elems)=}")
-    if normal_check is not None:
-        elems = filter_mesh_normals(mesh, elems, normal_check, log)
+    log.debug(f"The number of elements in patch is {len(elems)}")
+    match filter_mesh_normals(mesh, elems, normal_check, log):
+        case Ok(elems):
+            pass
+        case Err(e):
+            return Err(e)
+    log.debug(f"The number of elements in patch normal filtering is {len(elems)}")
     nodes = np.unique(elems)
     node_map: Mapping[int, int] = {int(v): i for i, v in enumerate(nodes)}
     space = CheartMeshSpace(len(nodes), mesh.space.v[nodes])
@@ -165,7 +171,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
         np.array([[node_map[int(i)] for i in e] for e in elems], dtype=int),
         body_elem.surf,
     )
-    return CheartMesh(space, top, None)
+    return Ok(CheartMesh(space, top, None))
 
 
 type NODAL_MESHES[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I]]
@@ -178,7 +184,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     cl_top: CLPartition[F, I],
     surf_id: int,
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
-) -> NODAL_MESHES[F, I]:
+) -> Ok[NODAL_MESHES[F, I]] | Err:
     # Unpack the kwargs
     mesh_dir = Path(mesh_dir)
     log = kwargs.get("log", NLOGGER)
@@ -189,26 +195,31 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
         raise ValueError(msg)
     surf = cheart_mesh.bnd.v[surf_id]
     bnd_map = create_boundarynode_map(cl, surf)
-    tops = {
-        k: create_cheartmesh_in_clrange(
-            cheart_mesh,
-            surf,
-            bnd_map,
-            (m, r),
-            normal_check=normal_check,
-            log=log,
-        )
-        for k, (m, _, r) in enumerate(cl_top.support)
-    }
-    log.debug("Computing mesh outer normals at every node.")
-    return {
-        k: CLNodalData(
-            file=mesh_dir / v,
-            mesh=tops[k],
-            n=compute_mesh_outer_normal_at_nodes(tops[k], log),
-        )
-        for k, v in cl_top.n_prefix.items()
-    }
+    match all_ok(
+        {
+            k: create_cheartmesh_in_clrange(
+                cheart_mesh,
+                surf,
+                bnd_map,
+                (m, r),
+                normal_check=normal_check,
+                log=log,
+            )
+            for k, (m, _, r) in enumerate(cl_top.support)
+        }
+    ):
+        case Ok(tops):
+            nodal_meshes = {
+                k: CLNodalData(
+                    file=mesh_dir / v,
+                    mesh=tops[k],
+                    n=compute_mesh_outer_normal_at_nodes(tops[k], log),
+                )
+                for k, v in cl_top.n_prefix.items()
+            }
+        case Err(e):
+            return Err(e)
+    return Ok(nodal_meshes)
 
 
 def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
@@ -269,12 +280,12 @@ def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
     cl_top: CLPartition[F, I],
     surf_id: int,
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
-) -> tuple[CheartMesh[F, I], CheartMesh[F, I]]:
+) -> Ok[tuple[CheartMesh[F, I], CheartMesh[F, I]]] | Err:
     # Unpack kwargs
     log = kwargs.get("log", NLOGGER)
     normal_check = kwargs.get("normal_check")
     # Main Logic
-    nodal_meshes = create_cheart_cl_nodal_meshes(
+    match create_cheart_cl_nodal_meshes(
         mesh_dir,
         mesh,
         cl,
@@ -282,11 +293,15 @@ def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
         surf_id,
         normal_check=normal_check,
         log=log,
-    )
+    ):
+        case Ok(nodal_meshes):
+            pass
+        case Err(e):
+            return Err(e)
     node_count = [len(x["mesh"].space.v) for x in nodal_meshes.values()]
     node_offset = np.add.accumulate(np.insert(node_count, 0, 0))
     linear_mesh = assemble_linear_cl_mesh(nodal_meshes, node_offset)
     # const_mesh = assemble_const_cl_mesh(linear_mesh)
     elem_count = np.array([x["mesh"].top.n for x in nodal_meshes.values()])
     interface_mesh = assemble_interface_cl_mesh(cl_top, linear_mesh, elem_count)
-    return linear_mesh, interface_mesh
+    return Ok((linear_mesh, interface_mesh))

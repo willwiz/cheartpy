@@ -1,5 +1,5 @@
+from ._struct import AbaqusContent, InputArgs, Mask, MeshElements, MeshNodes
 from ._trait import AbaqusElement, AbaqusItem, CMDInputKwargs
-from .struct import AbaqusContent, InputArgs, Mask, MeshElements, MeshNodes
 
 __all__ = [
     "AbaqusContent",

@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Never, Unpack, assert_never, cast, overload
+from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, overload
 
 from cheartpy.search.trait import AUTO
 from pytools.logging.trait import LogLevel
@@ -31,6 +31,35 @@ index = subparsers.add_parser(
 index.add_argument("var", nargs="*", type=str, help="Optional: variables")
 
 
+class _DefaultArgs(TypedDict):
+    prefix: str | None
+    input_dir: Path
+    output_dir: str
+    space: str | None
+    boundary: Path | None
+    prog_bar: bool
+    log: LogLevel
+    binary: bool
+    compress: bool
+    cores: int
+    var: Sequence[str]
+
+
+_DEFAULT_ARGS: _DefaultArgs = {
+    "prefix": None,
+    "input_dir": Path(),
+    "output_dir": "",
+    "space": None,
+    "boundary": None,
+    "prog_bar": True,
+    "log": LogLevel.INFO,
+    "binary": False,
+    "compress": True,
+    "cores": 1,
+    "var": [],
+}
+
+
 def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
     """Parse command line arguments.
 
@@ -53,26 +82,19 @@ def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
             None,  # pyright: ignore[reportArgumentType]
             None,  # NOTE: default from parser
             None,
-            None,
-            Path(),
-            "",
-            "",
-            None,
-            None,
-            prog_bar=True,
-            log=LogLevel.INFO,
-            binary=False,
-            compress=True,
-            cores=1,
-            var=["okay"],
+            mesh_or_top=None,  # pyright: ignore[reportArgumentType], NOTE: default from parser
+            **_DEFAULT_ARGS,
         ),
     )
     if parsed_args.cmd is None:  # pyright: ignore[reportUnnecessaryComparison]
         main_parser.print_help()
         raise SystemExit(0)
+    if parsed_args.mesh_or_top is None:  # pyright: ignore[reportUnnecessaryComparison]
+        print(f"Argparse failed, got mesh_or_top: {parsed_args.mesh_or_top}")
+        raise SystemExit(1)
     if not parsed_args.mesh_or_top:
         msg: str = "Never: Mesh or topology file is a required arg. [Unreachable]"
-        assert_never(cast("Never", msg))
+        raise AssertionError(msg)
     return parsed_args
 
 
@@ -97,17 +119,17 @@ def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> CmdLineAr
         case "index":
             mesh_or_top = kwargs.get("top")
             if mesh_or_top is None:
-                msg = "Topology file must be specified for 'index' command."
-                raise ValueError(msg)
+                msg = "`top` is a required keyword argument."
+                raise TypeError(msg)
             index = kwargs.get("index")
     return CmdLineArgs(
         cmd=cmd,
         index=index,
         subindex=subindex,
+        mesh_or_top=mesh_or_top,
         prefix=kwargs.get("prefix"),
         input_dir=Path(kwargs.get("input_dir", "")),
         output_dir=kwargs.get("output_dir", ""),
-        mesh_or_top=mesh_or_top,
         space=kwargs.get("space"),
         boundary=kwargs.get("boundary"),
         prog_bar=kwargs.get("prog_bar", True),

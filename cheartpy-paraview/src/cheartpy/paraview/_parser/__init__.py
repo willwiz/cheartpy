@@ -32,10 +32,10 @@ class APIKwargs(TypedDict, total=False):
 class APIKwargsFind(TypedDict, total=False):
     index: tuple[int, int, int] | None
     subindex: tuple[int, int, int] | Literal["auto", "none"]
+    mesh: Required[str]
     prefix: str | None
     input_dir: Path | str
     output_dir: str
-    mesh: Required[str]
     space: str | None
     boundary: Path | None
     prog_bar: bool
@@ -49,10 +49,10 @@ class APIKwargsFind(TypedDict, total=False):
 class APIKwargsIndex(TypedDict, total=False):
     index: tuple[int, int, int] | None
     subindex: tuple[int, int, int] | Literal["auto", "none"]
+    top: Required[str]
     prefix: str | None
     input_dir: Path | str
     output_dir: str
-    top: Required[str]
     space: Required[str]
     boundary: Path | None
     prog_bar: bool
