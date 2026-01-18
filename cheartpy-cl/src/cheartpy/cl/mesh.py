@@ -151,8 +151,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     # Main logic
     body_elem = get_vtk_elem(mesh.top.TYPE)
     if body_elem.surf is None:
-        e = log.exception(ValueError("Mesh is 1D, normal not defined"))
-        raise e
+        return Err(ValueError("Mesh is 1D, normal not defined"))
     log.debug(f"{domain=}")
     elems: A2[I] = surf.v[get_boundaryelems_in_clrange(bnd_map, domain)]
     log.debug(f"{len(elems)=}")
@@ -192,7 +191,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     # Main logic
     if cheart_mesh.bnd is None:
         msg = "Mesh has not boundary"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     surf = cheart_mesh.bnd.v[surf_id]
     bnd_map = create_boundarynode_map(cl, surf)
     match all_ok(
