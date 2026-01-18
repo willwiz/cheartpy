@@ -74,7 +74,7 @@ def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 VTKLINE2 = VtkElem(
     VtkType.QuadLine,
     None,
-    (0, 1, 2),
+    (0, 2, 1),
     np.array([[0, 0, 0], [2, 0, 0], [1, 0, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0.5, 0, 0]], dtype=np.float64),
     _shape_line_2,

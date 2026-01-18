@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from cheartpy.io.api import chread_d, chwrite_d_utf
+from pytools.result import Err, Ok
 from scipy.interpolate import interpn
 
 if TYPE_CHECKING:
@@ -76,10 +77,10 @@ def compute_bc_w[F: np.floating, I: np.integer](
     surfs: list[int],
     mult: float = 0.5,
     nest: int = 3,
-) -> A1[F]:
+) -> Ok[A1[F]] | Err:
     if mesh.bnd is None:
         msg = "No boundary vertices found"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     bc_w = np.zeros(mesh.space.n, dtype=mesh.space.v.dtype)
     bc_nodes: A1[I] = np.unique(
         [mesh.bnd.v[i].v for i in surfs],
@@ -99,7 +100,7 @@ def compute_bc_w[F: np.floating, I: np.integer](
         current = current | new_nodes
         new_nodes = new_nodes.union(*[neighbors[n] for n in current]) - current
     bc_w[bc_w > 1] = 1
-    return (1 - bc_w).astype(bc_w.dtype)
+    return Ok((1 - bc_w).astype(bc_w.dtype))
 
 
 def diffuse_bc_w[F: np.floating, I: np.integer](
@@ -107,10 +108,10 @@ def diffuse_bc_w[F: np.floating, I: np.integer](
     surfs: list[int],
     mult: float = 1.0,
     nest: int = 20,
-) -> A1[F]:
+) -> Ok[A1[F]] | Err:
     if mesh.bnd is None:
         msg = "No boundary vertices found"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     bc_w: A1[F] = np.zeros(mesh.space.n, dtype=mesh.space.v.dtype)
     bc_nodes: A1[I] = np.unique(
         [n for i in surfs for n in mesh.bnd.v[i].v.flatten()],
@@ -126,4 +127,4 @@ def diffuse_bc_w[F: np.floating, I: np.integer](
             nw = list(neighbors[k])
             bc_w[k] = mult * snap_shot[nw].mean()
         bc_w[bc_nodes] = 1.0
-    return (1.0 - bc_w).astype(bc_w.dtype)
+    return Ok((1.0 - bc_w).astype(bc_w.dtype))

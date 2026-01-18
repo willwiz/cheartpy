@@ -65,25 +65,6 @@ def get_idx_for_var(
     return Ok(IVariableList(var, None))
 
 
-def log_var_error(
-    var1: str | None,
-    var2: str | None,
-) -> None:
-    match var1, var2:
-        case None, None:
-            msg = "No Variable given"
-            raise ValueError(msg)
-        case None, _:
-            msg = f"Variable {var2} not found"
-            raise ValueError(msg)
-        case _, None:
-            msg = f"Variable {var1} not found"
-            raise ValueError(msg)
-        case _:
-            msg = f"Variables {var1} and {var2} not found"
-            raise ValueError(msg)
-
-
 def get_variables(
     var1: str | None,
     var2: str | None,

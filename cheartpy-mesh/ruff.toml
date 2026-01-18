@@ -1,0 +1,2 @@
+exclude = ["./src/cheartpy/meshio/_javi.py"]
+target-version = "py314"
