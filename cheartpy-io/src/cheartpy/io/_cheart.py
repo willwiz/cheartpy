@@ -1,3 +1,4 @@
+import re
 import struct
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -90,6 +91,18 @@ def chread_d[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) 
     if is_binary(file):
         return chread_d_bin(file, dtype=dtype)
     return chread_d_utf(file, dtype=dtype)
+
+
+def chread_data[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
+    file = Path(file)
+    if is_binary(file):
+        return chread_d_bin(file, dtype=dtype)
+    with file.open("r") as f:
+        first_line = f.readline().strip("\n")
+    matched = re.match(r"\s*(\d+)\s+(\d+)\s*$", first_line)
+    if matched:
+        return chread_d_utf(file, dtype=dtype)
+    return np.loadtxt(file, dtype=dtype)
 
 
 def chread_t_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
