@@ -15,8 +15,8 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["numpy"]
+dependencies = ["pytools", "numpy"]
 
 [tool.uv.build-backend]
-module-name = "cheartpy"
+module-name = "cheartpy.vtk"
 namespace = true

@@ -15,8 +15,8 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["pytools@git+https://github.com/willwiz/pytools", "numpy"]
+dependencies = ["pytools", "numpy"]
 
 [tool.uv.build-backend]
-module-name = "cheartpy"
+module-name = "cheartpy.fe"
 namespace = true

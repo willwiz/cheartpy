@@ -16,12 +16,12 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 dependencies = [
-  "pytools@git+https://github.com/willwiz/pytools",
+  "pytools",
   "numpy",
   "cheartpy-mesh",
   "cheartpy-io",
   "cheartpy-vtk",
 ]
 [tool.uv.build-backend]
-module-name = "cheartpy"
+module-name = "cheartpy.abaqus"
 namespace = true

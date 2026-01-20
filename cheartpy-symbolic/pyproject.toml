@@ -15,8 +15,8 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = []
+dependencies = ["pytools"]
 
 [tool.uv.build-backend]
-module-name = "cheartpy"
+module-name = "cheartpy.symbolic"
 namespace = true
