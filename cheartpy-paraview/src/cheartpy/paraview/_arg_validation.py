@@ -6,14 +6,14 @@ from cheartpy.search.api import get_file_name_indexer
 from pytools.result import Err, Ok
 
 from ._headers import compose_index_info, format_input_info
+from ._struct import ProgramArgs
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
-from .struct import ProgramArgs
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
     from cheartpy.search.trait import IIndexIterator
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
     from ._parser import SUBPARSER_MODES, CmdLineArgs
     from ._trait import IFormattedName
@@ -124,32 +124,6 @@ def _check_variable_format(
         return CheartZipFormat(root, u)
     msg = f"Variable {u} not recognized as mesh, var, or zip"
     return ValueError(msg)
-
-
-# def _check_boundary_file(
-#     bnd: Path | str | None,
-#     prefix: str,
-#     log: ILogger,
-# ) -> Path | None | ValueError:
-#     if bnd is None:
-#         log.disp("<<< No boundary file specified. Skipping boundary export.")
-#         return None
-#     bnd = Path(bnd)
-#     log.info(f"Looking for boundary file: {bnd}")
-#     if bnd.is_file():
-#         log.disp(f"<<< Output file name (boundary): {prefix}_boundary.vtu")
-#         return bnd
-
-#     log.info(f"Boundary file = {bnd} not found.")
-#     return ValueError()
-
-
-# def _check_for_file(file: Path | str, msg: str) -> Path | ValueError:
-#     file = Path(file)
-#     if not file.is_file():
-#         msg = msg.format(file=file)
-#         return ValueError(msg)
-#     return file
 
 
 def _capture_err[T](var: T | ValueError, log: ILogger) -> TypeIs[T]:

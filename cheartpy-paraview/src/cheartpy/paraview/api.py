@@ -1,31 +1,32 @@
 from typing import TYPE_CHECKING, Literal, Unpack, overload
 
-from pytools.logging.api import BLogger
+from pytools.logging import BLogger
 
 from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
-from ._headers import (
-    compose_header,
-    header_guard,
+from ._core import export_boundary, run_exports_in_parallel, run_exports_in_series
+from ._headers import compose_header, header_guard
+from ._parser.main_parser import get_api_args, get_cmd_args
+from ._time_series import (
+    create_time_series_api,
+    create_time_series_cli,
+    create_time_series_core,
+    create_time_series_json,
 )
-from ._parser.main_parser import get_api_args, get_cmd_args, main_parser
-from .core import export_boundary, run_exports_in_parallel, run_exports_in_series
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from cheartpy.paraview._parser import APIKwargs, APIKwargsFind, APIKwargsIndex
-
-    from ._parser import SUBPARSER_MODES, CmdLineArgs
+    from ._parser import SUBPARSER_MODES, APIKwargs, APIKwargsFind, APIKwargsIndex, CmdLineArgs
 
 __all__ = [
     "cheart2vtu",
     "cheart2vtu_api",
     "cheart2vtu_cli",
-    "get_api_args",
-    "get_cmd_args",
-    "main_parser",
-    "process_cmdline_args",
+    "create_time_series_api",
+    "create_time_series_cli",
+    "create_time_series_core",
+    "create_time_series_json",
 ]
 
 
@@ -58,3 +59,7 @@ def cheart2vtu_api(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> None:
 def cheart2vtu_cli(cmd_args: Sequence[str] | None = None) -> None:
     args = get_cmd_args(cmd_args)
     cheart2vtu(args)
+
+
+def main_cli(cmdline: Sequence[str] | None = None) -> None:
+    cheart2vtu_cli(cmdline)

@@ -19,9 +19,9 @@ if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
-    from .struct import CheartTopology, ProgramArgs, VariableCache
+    from ._struct import ParaviewTopology, ProgramArgs, VariableCache
 
 __all__ = [
     "export_boundary",
@@ -99,7 +99,7 @@ def export_boundary[F: np.floating, I: np.integer](
 
 def create_xml_for_mesh[F: np.floating, I: np.integer](
     prefix: str,
-    tp: CheartTopology[I],
+    tp: ParaviewTopology[I],
     fx: A2[F],
     var: Mapping[str, A2[F]],
 ) -> XMLElement:

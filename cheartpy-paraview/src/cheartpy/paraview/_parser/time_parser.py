@@ -1,10 +1,13 @@
 import argparse
 import dataclasses as dc
-from typing import TYPE_CHECKING, Final, Literal
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-__all__ = ["CmdLineArgs", "get_cmdline_args"]
+
+
+__all__ = ["_CmdLineArgs", "get_cmdline_args"]
 
 ################################################################################################
 # The argument parse
@@ -22,8 +25,22 @@ parser.add_argument(
     dest="folder",
     action="store",
     default="",
-    type=str,
+    type=Path,
     help="supply a name for the folder to store the vtu outputs",
+)
+time_group = parser.add_mutually_exclusive_group(required=True)
+time_group.add_argument(
+    "--time-step",
+    dest="time",
+    type=float,
+    help="Time step (float). Disp-100.D would correspond to time = 100 * time_step",
+)
+time_group.add_argument(
+    "--time-file",
+    "-t",
+    dest="time",
+    type=str,
+    help="File (Path). File containing a 1D array of floats",
 )
 parser.add_argument(
     "prefix",
@@ -32,27 +49,14 @@ parser.add_argument(
     metavar=("prefix"),
     help="supply a name for the folder to store the vtu outputs",
 )
-parser.add_argument(
-    "time",
-    type=str,
-    metavar=("time"),
-    help="supply a name for the folder to store the vtu outputs",
-)
 
 
 @dc.dataclass(slots=True)
-class CmdLineArgs:
-    cmd: Literal["index", "find"]
-    folder: str
-    prefix: Final[str]
-    time_series: str
+class _CmdLineArgs:
+    prefix: str
+    time: str | float
+    root: Path
 
 
-def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> CmdLineArgs:
-    args = main_parser.parse_args(cmd_args)
-    return CmdLineArgs(
-        cmd=args.cmd,
-        folder=args.folder,
-        prefix=args.prefix,
-        time_series=args.time,
-    )
+def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> _CmdLineArgs:
+    return main_parser.parse_args(cmd_args, namespace=_CmdLineArgs("", 1.0, Path()))

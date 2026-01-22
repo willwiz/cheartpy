@@ -5,12 +5,12 @@ import numpy as np
 from cheartpy.io.api import chread_d, chread_d_utf
 from pytools.result import Err, Ok
 
-from .struct import CheartTopology, ProgramArgs, VariableCache
+from ._struct import ParaviewTopology, ProgramArgs, VariableCache
 
 if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from pytools.arrays import A2, DType
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
 
@@ -22,7 +22,7 @@ def init_variable_cache[F: np.floating, I: np.integer](
     ftype: DType[F] = np.float64,
 ) -> Ok[VariableCache[F, I]] | Err:
     i0 = next(iter(indexer))
-    top = CheartTopology(inp.tfile, inp.bfile, dtype=itype)
+    top = ParaviewTopology(inp.tfile, inp.bfile, dtype=itype)
     fx = inp.xfile[i0]
     space = chread_d(fx, dtype=ftype)
     if inp.disp is None:
