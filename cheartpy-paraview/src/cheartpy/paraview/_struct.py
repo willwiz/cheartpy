@@ -32,7 +32,7 @@ class ProgramArgs:
     var: Final[Mapping[str, IFormattedName]]
 
 
-class CheartTopology[I: np.integer]:
+class ParaviewTopology[I: np.integer]:
     __slots__ = ["_ft", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
 
     _ft: A2[I]
@@ -73,7 +73,7 @@ class CheartTopology[I: np.integer]:
 
 @dc.dataclass(slots=True)
 class VariableCache[F: np.floating, I: np.integer]:
-    top: Final[CheartTopology[I]]
+    top: Final[ParaviewTopology[I]]
     t: str | int
     space_i: Path
     disp_i: Path | None

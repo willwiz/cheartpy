@@ -6,8 +6,8 @@ from cheartpy.search.api import get_file_name_indexer
 from pytools.result import Err, Ok
 
 from ._headers import compose_index_info, format_input_info
+from ._struct import ProgramArgs
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
-from .struct import ProgramArgs
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
