@@ -1,7 +1,4 @@
-.vscode
-.venv
 
-**/__pycache__
 **~$*
 **.mp4
 **.png
@@ -10,7 +7,17 @@
 **.so
 **/__init__.pyc
 
-
-**/*.egg-info
 example/**/*.P
 
+# Python-generated files
+__pycache__/
+*.py[oc]
+**build/
+dist/
+wheels/
+**/*.egg-info
+
+
+# Virtual environments
+.venv
+.vscode

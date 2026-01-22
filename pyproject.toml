@@ -4,21 +4,49 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cheartpy"
-version = "0.0.1"
+version = "0.2.0"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.14"
 classifiers = [
   "Programming Language :: Python :: 3",
   "License :: OSI Approved :: MIT License",
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["numpy", "meshio", "scipy", "matplotlib", "pandas"]
+dependencies = ["pytools", "numpy", "meshio", "cheartpy-io"]
+
+[project.optional-dependencies]
+all = [
+  "cheartpy-abaqus",
+  "cheartpy-cl",
+  "cheartpy-fe",
+  "cheartpy-io",
+  "cheartpy-mesh",
+  "cheartpy-paraview",
+  "cheartpy-vtk",
+]
+mesh = ["cheartpy-mesh"]
+vtu = ["cheartpy-mesh", "cheartpy-paraview"]
+abaqus = ["cheartpy-abaqus"]
+fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
+
 
 [project.scripts]
-abaqus2cheart = "cheartpy.abaqus2cheart_converter2D:main"
-cheart2vtu = "cheartpy.cli_cheart2vtu:main_cli"
-makemesh = "cheartpy.cli_mesh:main_cli"
-maketimeseries = "cheartpy.cli_vtu_series:main_cli"
+cheart2vtu = "cheartpy.paraview.__main__:cheart2vtu_cli"
+
+
+[tool.uv.sources]
+cheartpy-abaqus = { path = "cheartpy-abaqus", editable = true }
+cheartpy-cl = { path = "cheartpy-cl", editable = true }
+cheartpy-fe = { path = "cheartpy-fe", editable = true }
+cheartpy-io = { path = "cheartpy-io", editable = true }
+cheartpy-mesh = { path = "cheartpy-mesh", editable = true }
+cheartpy-paraview = { path = "cheartpy-paraview", editable = true }
+cheartpy-vtk = { path = "cheartpy-vtk", editable = true }
+cheartpy-symbolic = { path = "cheartpy-symbolic", editable = true }
+pytools = { git = "https://github.com/willwiz/pytools" }
+
+[tool.uv.build-backend]
+namespace = true

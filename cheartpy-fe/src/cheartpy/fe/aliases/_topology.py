@@ -1,0 +1,102 @@
+import enum
+from typing import Literal
+
+CHEART_BASIS_TYPE = Literal[
+    "NODAL_LAGRANGE",
+    "NL",
+    "MODAL_BASIS",
+    "PNODAL_BASIS",
+    "MINI_BASIS",
+    "NURBS_BASIS",
+    "SPECTRAL_BASIS",
+]
+
+
+class CheartBasisType(enum.StrEnum):
+    NODAL_LAGRANGE = "NODAL_LAGRANGE"
+    NL = "NL"
+    MODAL_BASIS = "MODAL_BASIS"
+    PNODAL_BASIS = "PNODAL_BASIS"
+    MINI_BASIS = "MINI_BASIS"
+    NURBS_BASIS = "NURBS_BASIS"
+    SPECTRAL_BASIS = "SPECTRAL_BASIS"
+
+
+CHEART_QUADRATURE_TYPE = Literal[
+    "GAUSS_LEGENDRE",
+    "GL",
+    "KEAST_LYNESS",
+    "KL",
+]
+
+
+class CheartQuadratureType(enum.StrEnum):
+    GAUSS_LEGENDRE = "GAUSS_LEGENDRE"
+    GL = "GAUSS_LEGENDRE"
+    KEAST_LYNESS = "KEAST_LYNESS"
+    KL = "KEAST_LYNESS"
+
+
+CHEART_ELEMENT_TYPE = Literal[
+    "POINT_ELEMENT",
+    "point",
+    "ONED_ELEMENT",
+    "line",
+    "TRIANGLE_ELEMENT",
+    "tri",
+    "QUADRILATERAL_ELEMENT",
+    "quad",
+    "TETRAHEDRAL_ELEMENT",
+    "tet",
+    "HEXAHEDRAL_ELEMENT",
+    "hex",
+]
+
+
+class CheartElementType(enum.StrEnum):
+    POINT_ELEMENT = "POINT_ELEMENT"
+    point = "POINT_ELEMENT"
+    ONED_ELEMENT = "ONED_ELEMENT"
+    line = "ONED_ELEMENT"
+    TRIANGLE_ELEMENT = "TRIANGLE_ELEMENT"
+    tri = "TRIANGLE_ELEMENT"
+    QUADRILATERAL_ELEMENT = "QUADRILATERAL_ELEMENT"
+    quad = "QUADRILATERAL_ELEMENT"
+    TETRAHEDRAL_ELEMENT = "TETRAHEDRAL_ELEMENT"
+    tet = "TETRAHEDRAL_ELEMENT"
+    HEXAHEDRAL_ELEMENT = "HEXAHEDRAL_ELEMENT"
+    hex = "HEXAHEDRAL_ELEMENT"
+
+
+CHEART_TOPOLOGY_SETTING = Literal[
+    "PartitioningWeight",
+    "UseInPartitioning",
+    "ReadBinary",
+    "ReadMMap",
+    "MakeDiscontinuous",
+    "SpatialConstant",
+    "CreateInBoundary",
+    "EmbeddedInTopology",
+]
+
+
+class CheartTopologySetting(enum.StrEnum):
+    PartitioningWeight = "PartitioningWeight"
+    UseInPartitioning = "UseInPartitioning"
+    ReadBinary = "ReadBinary"
+    ReadMMap = "ReadMMap"
+    MakeDiscontinuous = "MakeDiscontinuous"
+    SpatialConstant = "SpatialConstant"
+    CreateInBoundary = "CreateInBoundary"
+    EmbeddedInTopology = "EmbeddedInTopology"
+
+
+CHEART_TOPINTERFACE_TYPE = Literal[
+    "OneToOne",
+    "ManyToOne",
+]
+
+
+class CheartTopInterfaceType(enum.StrEnum):
+    OneToOne = "OneToOne"
+    ManyToOne = "ManyToOne"

@@ -1,0 +1,47 @@
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from pytools.arrays import A2, Arr, DType
+
+
+__all__ = [
+    "read_array_float",
+    "read_array_int",
+    "write_array_float",
+    "write_array_int",
+]
+
+
+def read_array_int[I: np.integer](
+    name: Path | str,
+    skip: int = 0,
+    *,
+    dtype: DType[I] = np.intc,
+) -> Arr[tuple[int, ...], I]:
+    return np.loadtxt(name, skiprows=skip, dtype=dtype)
+
+
+def read_array_float[F: np.floating](
+    name: Path | str,
+    skip: int = 0,
+    *,
+    dtype: DType[F] = np.float64,
+) -> Arr[tuple[int, ...], F]:
+    return np.loadtxt(name, skiprows=skip, dtype=dtype)
+
+
+def write_array_int[T: np.integer](name: Path | str, arr: A2[T]) -> None:
+    with Path(name).open("w") as f:
+        for i in arr:
+            f.writelines(f"{j:12d}" for j in i)
+            f.write("\n")
+
+
+def write_array_float[T: np.floating](name: Path | str, arr: A2[T]) -> None:
+    with Path(name).open("w") as f:
+        for i in arr:
+            f.writelines(f"{j:>24.12E}" for j in i)
+            f.write("\n")
