@@ -19,7 +19,7 @@ class InterpInputArgs:
     quad_mesh: str
     input_folder: str = ""
     suffix: str = "Quad"
-    sfx: Literal["D", "D.gz"] = "D"
+    ext: Literal["D", "D.gz"] = "D"
     index: tuple[int, int, int] | None = None
     sub_index: tuple[int, int, int] | None = None
     sub_auto: bool = False
@@ -43,15 +43,15 @@ def main_interp(inp: InterpInputArgs) -> None:
     quad_mesh = import_cheart_mesh(inp.quad_mesh).unwrap()
     l2qmap = make_l2qmap(lin_mesh, quad_mesh)
     items = get_var_index(
-        [v.name for v in Path(inp.input_folder).glob(f"{inp.vars[0]}-*.{inp.suffix}")],
+        [v.name for v in Path(inp.input_folder).glob(f"{inp.vars[0]}-*.{inp.ext}")],
         f"{inp.vars[0]}",
     ).unwrap()
     for v in inp.vars:
         for i in items:
             interpolate_var_on_lin_topology(
                 l2qmap,
-                f"{inp.input_folder}/{v}-{i}.{inp.sfx}",
-                f"{inp.input_folder}/{v}_{inp.suffix}-{i}.{inp.sfx}",
+                f"{inp.input_folder}/{v}-{i}.{inp.ext}",
+                f"{inp.input_folder}/{v}_{inp.suffix}-{i}.{inp.ext}",
             )
 
 
