@@ -5,7 +5,6 @@ from .aliases import (
     BOUNDARY_TYPE,
     CHEART_BASIS_TYPE,
     CHEART_ELEMENT_TYPE,
-    CHEART_QUADRATURE_TYPE,
     CHEART_TOPINTERFACE_TYPE,
     MATRIX_SOLVER_OPTIONS,
     SOLVER_SUBGROUP_ALGORITHM,
@@ -116,18 +115,37 @@ _ELEM = {
     CheartElementType.hex: "Hex",
 }
 
+_QUADRATURE_FOR_ELEM: dict[CheartElementType, CheartQuadratureType] = {
+    CheartElementType.POINT_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.point: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.ONED_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.line: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.TRIANGLE_ELEMENT: CheartQuadratureType.KEAST_LYNESS,
+    CheartElementType.tri: CheartQuadratureType.KEAST_LYNESS,
+    CheartElementType.QUADRILATERAL_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.quad: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.TETRAHEDRAL_ELEMENT: CheartQuadratureType.KEAST_LYNESS,
+    CheartElementType.tet: CheartQuadratureType.KEAST_LYNESS,
+    CheartElementType.HEXAHEDRAL_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
+    CheartElementType.hex: CheartQuadratureType.GAUSS_LEGENDRE,
+}
+
+
+class _CreateBasisKwargs(TypedDict, total=False):
+    gp: int
+
 
 def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
     kind: CHEART_BASIS_TYPE | CheartBasisType,
-    quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: Literal[0, 1, 2],
-    gp: int,
+    **kwargs: Unpack[_CreateBasisKwargs],
 ) -> ICheartBasis:
     elem = get_enum(elem, CheartElementType)
     kind = get_enum(kind, CheartBasisType)
-    quadrature = get_enum(quadrature, CheartQuadratureType)
+    quadrature = _QUADRATURE_FOR_ELEM[elem]
     name = f"{_ORDER[order]}{_ELEM[elem]}"
+    gp = kwargs.get("gp", 9 if quadrature is CheartQuadratureType.GAUSS_LEGENDRE else 4)
     if 2 * gp < order + 1:
         msg = f"For {name}, order {2 * gp} < {order + 1}"
         raise ValueError(msg)
@@ -155,7 +173,7 @@ def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
         case CheartElementType.POINT_ELEMENT | CheartElementType.point:
             msg = "No such thing as boundary for point elements"
             raise ValueError(msg)
-    return CheartBasis(f"{vol}_surf", elem, vol.basis, vol.quadrature)
+    return create_basis(elem, vol.basis.kind, vol.basis.order, gp=vol.quadrature.gp)
 
 
 def create_topology(

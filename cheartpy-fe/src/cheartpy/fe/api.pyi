@@ -1,19 +1,17 @@
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Literal, overload
+from typing import Literal, TypedDict, Unpack, overload
 
 from .aliases import (
     BOUNDARY_TYPE,
     CHEART_BASIS_TYPE,
     CHEART_ELEMENT_TYPE,
-    CHEART_QUADRATURE_TYPE,
     MATRIX_SOLVER_OPTIONS,
     SOLVER_SUBGROUP_ALGORITHM,
     VARIABLE_EXPORT_FORMAT,
     BoundaryType,
     CheartBasisType,
     CheartElementType,
-    CheartQuadratureType,
     MatrixSolverOptions,
     SolverSubgroupAlgorithm,
     VariableExportFormat,
@@ -58,6 +56,9 @@ __all__ = [
     "hash_tops",
 ]
 
+class _CreateBasisKwargs(TypedDict, total=False):
+    gp: int
+
 def hash_tops(tops: list[ICheartTopology] | list[str]) -> str: ...
 def create_time_scheme(
     name: str,
@@ -68,9 +69,8 @@ def create_time_scheme(
 def create_basis(
     elem: CHEART_ELEMENT_TYPE | CheartElementType,
     kind: CHEART_BASIS_TYPE | CheartBasisType,
-    quadrature: CHEART_QUADRATURE_TYPE | CheartQuadratureType,
     order: Literal[0, 1, 2],
-    gp: int,
+    **kwargs: Unpack[_CreateBasisKwargs],
 ) -> ICheartBasis: ...
 def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis: ...
 @overload
