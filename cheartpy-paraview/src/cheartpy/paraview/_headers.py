@@ -7,68 +7,77 @@ from cheartpy.search.trait import IIndexIterator, SearchMode
 if TYPE_CHECKING:
     from ._parser import CmdLineArgs
 
+_H_STR_LEN_ = 30
+
 
 def header_guard() -> str:
-    return f"\n{'#' * 100}\n"
+    return f"{'#' * 100}"
 
 
 def compose_header() -> list[str]:
     return [
-        "#" * 100,
+        header_guard(),
         "    Program for converting CHeart data to vtk unstructured grid format",
         "    This program is part of the CHeart project, which is FE solver for cardiac mechanics.",
-        "    Author: Andreas Hessenthaler",
-        "    Modified by: Will Zhang",
-        "    Data: 12/24/2024",
-        "#" * 100,
+        "    Author: Andreas Hessenthaler (Original)",
+        "            Will Zhang",
+        "    Date: 1/20/2026",
+        header_guard(),
     ]
 
 
-def print_input_info(inp: CmdLineArgs) -> list[str]:
-    msg = ["The retrieving data from ", str(inp.input_dir)]
+def format_input_info(inp: CmdLineArgs) -> list[str]:
+    msg = [f"{'<<< Retrieving data from:':<{_H_STR_LEN_}} {inp.input_dir}"]
     match inp.cmd:
         case "find":
             msg = [
                 *msg,
-                "<<< Running Program with Mode: find",
-                f"The prefix for the mesh to use is {fix_ch_sfx(inp.mesh_or_top)}",
+                f"{'<<< Running Program with Mode:':<{_H_STR_LEN_}} find",
+                f"{'<<< The mesh prefix is:':<{_H_STR_LEN_}} {fix_ch_sfx(inp.mesh_or_top)}",
             ]
         case "index":
             msg = [
                 *msg,
-                "<<< Running Program with Mode: index",
-                f"The space file to use is {inp.space}",
-                f"The topology file to use is {inp.mesh_or_top}",
-                f"The boundary file to use is {inp.boundary}",
-                "<<< The varibles to add are: ",
+                f"{'<<< Running Program with Mode:':<{_H_STR_LEN_}} index",
+                f"{'<<< The space file to use is:':<{_H_STR_LEN_}} {inp.space}",
+                f"{'<<< The topology file to use is:':<{_H_STR_LEN_}} {inp.mesh_or_top}",
+                f"{'<<< The boundary file to use is:':<{_H_STR_LEN_}} {inp.boundary}",
+                f"{'<<< The varibles to add are:':<{_H_STR_LEN_}} ",
             ]
 
     match inp.index:
         case None:
-            msg = [*msg, "No variable will be used for this run"]
+            msg = [*msg, f"{'<<< No variable will be used for this run.':<{_H_STR_LEN_}}"]
         case SearchMode():
-            msg = [*msg, "<<< Index search model is auto"]
+            msg = [*msg, f"{'<<< Index search model is:':<{_H_STR_LEN_}} {'auto'}"]
         case (i, j, k):
-            msg = [*msg, f"<<< Time step: From {i} to {j} in steps of {k}"]
+            msg = [*msg, f"{f'<<< Time step: From {i} to {j} in steps of {k}':<{_H_STR_LEN_}}"]
     match inp.subindex:
         case None:
             pass
         case SearchMode():
-            msg = [*msg, "<<< Automatically finding subiterations"]
+            msg = [*msg, f"{'<<< Automatically finding subiterations.':<{_H_STR_LEN_}}"]
         case (i, j, k):
-            msg = [*msg, f"<<< Sub iterations: From {i} to {j} in steps of {k}"]
+            msg = [
+                *msg,
+                f"{'<<< Sub iterations:':<{_H_STR_LEN_}} {f'From {i} to {j} in steps of {k}'}",
+            ]
     msg = [
         *msg,
-        f"<<< Output file name prefix: {inp.prefix}",
-        f"<<< Output folder:           {inp.output_dir}",
-        f"<<< Compress VTU:            {inp.compress}",
-        f"<<< Import data as binary:   {inp.binary}",
+        f"{'<<< Output file name prefix:':<{_H_STR_LEN_}} {inp.prefix}",
+        f"{'<<< Output folder:':<{_H_STR_LEN_}} {inp.output_dir}",
+        f"{'<<< Compress VTU:':<{_H_STR_LEN_}} {inp.compress}",
+        f"{'<<< Import data as binary:':<{_H_STR_LEN_}} {inp.binary}",
     ]
-    return [*msg, "<<< Variables to be added are:", pformat(inp.var, compact=True)]
+    return [
+        *msg,
+        f"{'<<< Variables to be added are:':<{_H_STR_LEN_}}",
+        pformat(inp.var, compact=True),
+    ]
 
 
 def compose_index_info(indexer: IIndexIterator) -> str:
     first = _last = next(iter(indexer))
     for _last in indexer:
         pass
-    return f"<<<     Time step found: From {first} to {_last}"
+    return f"{f'<<<     Time step found: From {first} to {_last}':<35}"

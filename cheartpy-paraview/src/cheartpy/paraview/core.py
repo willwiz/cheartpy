@@ -94,7 +94,7 @@ def export_boundary[F: np.floating, I: np.integer](
         vtk_xml.write(fout)
     if inp.compress:
         compress_vtu(foutfile, log=log)
-    log.disp(f"<<< Exported the boundary to {foutfile}")
+    log.info(f"<<< Exported the boundary to {foutfile}")
 
 
 def create_xml_for_mesh[F: np.floating, I: np.integer](
@@ -171,7 +171,6 @@ def run_exports_in_series[F: np.floating, I: np.integer](
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
-    log.disp("Processing vtus")
     name = CheartVTUFormat(inp.output_dir, inp.prefix)
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
     for t in indexer:
@@ -185,7 +184,6 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
-    log.disp("Processing vtus")
     name = CheartVTUFormat(inp.output_dir, inp.prefix)
     args: PEXEC_ARGS = [([name[t], t, inp, cache, log], {}) for t in indexer]
     with futures.ProcessPoolExecutor(inp.cores) as executor:

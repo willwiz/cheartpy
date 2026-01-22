@@ -5,7 +5,7 @@ from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.api import get_file_name_indexer
 from pytools.result import Err, Ok
 
-from ._headers import print_input_info
+from ._headers import compose_index_info, format_input_info
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 from .struct import ProgramArgs
 
@@ -173,7 +173,7 @@ def process_cmdline_args(
     log: ILogger,
 ) -> Ok[tuple[ProgramArgs, IIndexIterator]] | Err:
     """Process command line arguments raw into program structs."""
-    log.info(*print_input_info(args))
+    log.info(*format_input_info(args))
     prefix = _get_prefix(args)
     match _check_dirs_inputs(args):
         case Ok((input_dir, output_dir)):
@@ -185,10 +185,12 @@ def process_cmdline_args(
             ifirst = next(iter(indexer))
         case Err(e):
             return Err(e)
+    log.disp(compose_index_info(indexer))
     """x: space, t: topology, b: boundary, u: displacement"""
     match _get_mesh_names(args):
         case Ok((x, top, bnd, u)):
-            log.disp("<<< No boundary file specified. Skipping boundary export.")
+            if bnd is None:
+                log.disp("<<< No boundary file specified/found.")
         case Err(e):
             return Err(e)
     space = _check_variable_format(x, ifirst, Path())

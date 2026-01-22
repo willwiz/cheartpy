@@ -6,7 +6,6 @@ from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
 from ._headers import (
     compose_header,
-    compose_index_info,
     header_guard,
 )
 from ._parser.main_parser import get_api_args, get_cmd_args, main_parser
@@ -34,15 +33,17 @@ def cheart2vtu(cmd_args: CmdLineArgs) -> None:
     log = BLogger(cmd_args.log)
     log.disp(*compose_header())
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
-    log.disp(compose_index_info(indexer), header_guard())
+    log.disp("", header_guard())
     cache = init_variable_cache(inp, indexer).unwrap()
     log.debug(cache)
     export_boundary(inp, cache, log)
+    log.disp("", header_guard())
+    log.info("<<< Processing vtus.")
     if inp.cores > 1:
         run_exports_in_parallel(inp, indexer, cache, log)
     else:
         run_exports_in_series(inp, indexer, cache, log)
-    log.disp(header_guard())
+    log.disp("", header_guard())
 
 
 @overload

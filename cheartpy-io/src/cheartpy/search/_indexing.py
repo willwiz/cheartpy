@@ -100,7 +100,7 @@ def get_file_name_indexer(
         return Ok(ZeroIndexer())
     if isinstance(index, SearchMode) or isinstance(subindex, SearchMode):
         log.info(
-            f"Variable index will be determined from the first variable: {variables[0]}",
+            f"<<< Variable index will be determined from the first variable: {variables[0]}",
         )
     match index, subindex:
         case None, _:
