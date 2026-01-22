@@ -46,7 +46,7 @@ cheartpy-mesh = { path = "cheartpy-mesh", editable = true }
 cheartpy-paraview = { path = "cheartpy-paraview", editable = true }
 cheartpy-vtk = { path = "cheartpy-vtk", editable = true }
 cheartpy-symbolic = { path = "cheartpy-symbolic", editable = true }
-
+pytools = { git = "https://github.com/willwiz/pytools" }
 
 [tool.uv.build-backend]
 namespace = true
