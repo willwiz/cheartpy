@@ -126,32 +126,6 @@ def _check_variable_format(
     return ValueError(msg)
 
 
-# def _check_boundary_file(
-#     bnd: Path | str | None,
-#     prefix: str,
-#     log: ILogger,
-# ) -> Path | None | ValueError:
-#     if bnd is None:
-#         log.disp("<<< No boundary file specified. Skipping boundary export.")
-#         return None
-#     bnd = Path(bnd)
-#     log.info(f"Looking for boundary file: {bnd}")
-#     if bnd.is_file():
-#         log.disp(f"<<< Output file name (boundary): {prefix}_boundary.vtu")
-#         return bnd
-
-#     log.info(f"Boundary file = {bnd} not found.")
-#     return ValueError()
-
-
-# def _check_for_file(file: Path | str, msg: str) -> Path | ValueError:
-#     file = Path(file)
-#     if not file.is_file():
-#         msg = msg.format(file=file)
-#         return ValueError(msg)
-#     return file
-
-
 def _capture_err[T](var: T | ValueError, log: ILogger) -> TypeIs[T]:
     """Capture errors in variable formats."""
     if isinstance(var, ValueError):

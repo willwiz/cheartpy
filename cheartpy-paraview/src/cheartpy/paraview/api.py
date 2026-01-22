@@ -4,12 +4,9 @@ from pytools.logging.api import BLogger
 
 from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
-from ._headers import (
-    compose_header,
-    header_guard,
-)
+from ._core import export_boundary, run_exports_in_parallel, run_exports_in_series
+from ._headers import compose_header, header_guard
 from ._parser.main_parser import get_api_args, get_cmd_args, main_parser
-from .core import export_boundary, run_exports_in_parallel, run_exports_in_series
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
