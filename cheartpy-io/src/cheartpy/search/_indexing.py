@@ -96,12 +96,12 @@ def get_file_name_indexer(
 ) -> Ok[IIndexIterator] | Err:
     if log is None:
         log = BLogger("WARN")
+    if not variables:
+        return Ok(ZeroIndexer())
     if isinstance(index, SearchMode) or isinstance(subindex, SearchMode):
         log.info(
             f"Variable index will be determined from the first variable: {variables[0]}",
         )
-    if not variables:
-        return Ok(ZeroIndexer())
     match index, subindex:
         case None, _:
             return Ok(ZeroIndexer())
