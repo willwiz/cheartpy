@@ -8,15 +8,23 @@ class _RunOptions(TypedDict, total=False):
     dump_matrix: bool
     output: bool
     cores: int
-    log: str | None
+    log: Path | str
 
 
-def run_prep(pfile: str) -> None:
-    sp.run(["cheartsolver.out", pfile, "--prep"], check=False)
+def run_prep(pfile: Path | str, **kwargs: Unpack[_RunOptions]) -> int:
+    cmd = ["cheartsolver.out", str(pfile), "--prep"]
+    if kwargs.get("output", True) is False:
+        cmd = [*cmd, "--no-output"]
+    if (log := kwargs.get("log")) is not None:
+        with Path(log).open("w") as f:
+            err = sp.run(cmd, stdout=f, stderr=sp.STDOUT, check=False).returncode
+    else:
+        err = sp.run(cmd, check=False).returncode
+    return err
 
 
-def run_problem(pfile: str, **kwargs: Unpack[_RunOptions]) -> int:
-    cmd = ["cheartsolver.out", pfile]
+def run_problem(pfile: Path | str, **kwargs: Unpack[_RunOptions]) -> int:
+    cmd = ["cheartsolver.out", str(pfile)]
     cores = kwargs.get("cores", 1)
     if cores > 1:
         cmd = ["mpiexec", "-n", f"{cores}", *cmd]
@@ -24,14 +32,14 @@ def run_problem(pfile: str, **kwargs: Unpack[_RunOptions]) -> int:
         cmd = [*cmd, "--pedantic-printing"]
     if kwargs.get("dump_matrix", False):
         cmd = [*cmd, "--dump-matrix"]
-    if not kwargs.get("output", True):
+    if kwargs.get("output", True) is False:
         cmd = [*cmd, "--no-output"]
     print(" ".join(cmd))
-    log = kwargs.get("log")
-    if log:
+
+    if (log := kwargs.get("log")) is not None:
         with Path(log).open("w") as f:
-            err = sp.check_call(cmd, stdout=f, stderr=sp.STDOUT)
+            err = sp.run(cmd, stdout=f, stderr=sp.STDOUT, check=False).returncode
     else:
-        err = sp.check_call(cmd)
+        err = sp.run(cmd, check=False).returncode
     print("cheartsolver.out has finished!")
     return err
