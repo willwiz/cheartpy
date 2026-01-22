@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
     from cheartpy.search.trait import IIndexIterator
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
     from ._parser import SUBPARSER_MODES, CmdLineArgs
     from ._trait import IFormattedName

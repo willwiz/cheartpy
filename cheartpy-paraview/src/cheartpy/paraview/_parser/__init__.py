@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from cheartpy.search.trait import SearchMode
-    from pytools.logging.trait import LOG_LEVEL, LogLevel
+    from pytools.logging import LOG_LEVEL, LogLevel
 
 SUBPARSER_MODES = Literal["index", "find"]
 

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
     from .struct import CheartTopology, ProgramArgs, VariableCache
 

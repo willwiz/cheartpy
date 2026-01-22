@@ -10,7 +10,7 @@ from .struct import CheartTopology, ProgramArgs, VariableCache
 if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from pytools.arrays import A2, DType
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
 

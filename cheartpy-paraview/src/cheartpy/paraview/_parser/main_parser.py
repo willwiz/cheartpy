@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, overload
 
 from cheartpy.search.trait import AUTO
-from pytools.logging.trait import LogLevel
+from pytools.logging import LogLevel
 
 from . import SUBPARSER_MODES, APIKwargs, APIKwargsFind, APIKwargsIndex, CmdLineArgs
 from ._find import find_subparser

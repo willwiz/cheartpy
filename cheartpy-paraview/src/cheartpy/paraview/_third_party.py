@@ -2,16 +2,10 @@
 
 from pathlib import Path
 
-__all__ = ["compress_vtu"]
-
-
-from typing import TYPE_CHECKING
-
 import meshio
-from pytools.logging.api import BLogger
+from pytools.logging import BLogger, ILogger
 
-if TYPE_CHECKING:
-    from pytools.logging.trait import ILogger
+__all__ = ["compress_vtu"]
 
 
 def compress_vtu(name: Path | str, log: ILogger | None = None) -> None:

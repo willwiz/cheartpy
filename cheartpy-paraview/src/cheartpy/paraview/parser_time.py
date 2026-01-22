@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Final, Literal
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+
 __all__ = ["CmdLineArgs", "get_cmdline_args"]
 
 ################################################################################################

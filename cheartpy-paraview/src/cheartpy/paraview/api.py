@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Literal, Unpack, overload
 
-from pytools.logging.api import BLogger
+from pytools.logging import BLogger
 
 from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
