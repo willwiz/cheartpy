@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
+from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack, overload
 
 from cheartpy.fe.aliases import (
     SOLID_FLAGS,
@@ -39,6 +39,7 @@ class SolidProblem(IProblem):
     aux_expr: dict[str, IExpression]
     state_vars: dict[str, IVariable]
     options: dict[str, list[float | int | str]]
+    gravity: tuple[float, tuple[float, float, float]] | IExpression | None
     flags: dict[str, bool]
     _buffering: bool
     bc: IBoundaryCondition
@@ -116,7 +117,9 @@ class SolidProblem(IProblem):
         _vars_ = self.get_prob_vars()
         _w_vars_ = {str(v): v for w in self.matlaws for v in w.get_var_deps()}
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
-        return {**self.aux_vars, **_w_vars_, **_vars_, **_b_vars_}.values()
+        _s_vars_ = {str(v): v for v in self.state_vars.values()}
+        _e_vars_ = {str(v): v for e in self.get_expr_deps() for v in e.get_var_deps()}
+        return {**self.aux_vars, **_w_vars_, **_vars_, **_b_vars_, **_s_vars_, **_e_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
@@ -153,6 +156,23 @@ class SolidProblem(IProblem):
     ) -> None:
         self.options[mode] = [val, *order]
 
+    @overload
+    def add_gravity(self, g: float, direction: tuple[float, float, float]) -> None: ...
+    @overload
+    def add_gravity(self, g: IExpression) -> None: ...
+    def add_gravity(
+        self, g: float | IExpression, direction: tuple[float, float, float] | None = None
+    ) -> None:
+        match g, direction:
+            case float(), tuple():
+                self.gravity = (g, direction)
+            case IExpression(), None:
+                self.gravity = g
+                self.aux_expr[str(g)] = g
+            case _:
+                msg = "Gravity must be either (float, tuple) or IExpression"
+                raise ValueError(msg)
+
     def set_flags(self, flag: SOLID_FLAGS) -> None:
         self.flags[flag] = True
 
@@ -168,6 +188,15 @@ class SolidProblem(IProblem):
         for k, v in self.options.items():
             string = join_fields(*v)
             f.write(f"  !{k}={{{string}}}\n")
+        match self.gravity:
+            case tuple():
+                a, d = self.gravity
+                f.write("  !Gravity-loading\n")
+                f.write(f"    {'  '.join([str(x) for x in [*d, a]])}\n")
+            case IExpression() as expr:
+                f.write(f"  !Gravity-loading={{{expr}}}\n")
+            case None:
+                pass
         if not self._buffering:
             f.write("  !No-buffering\n")
         for k, v in self.flags.items():
