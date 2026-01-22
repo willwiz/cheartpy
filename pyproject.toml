@@ -35,7 +35,7 @@ fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
 
 [project.scripts]
 cheart2vtu = "cheartpy.paraview.__main__:cheart2vtu_cli"
-
+timeseries = "cheartpy.paraview._time_series:create_time_series_cli"
 
 [tool.uv.sources]
 cheartpy-abaqus = { path = "cheartpy-abaqus", editable = true }

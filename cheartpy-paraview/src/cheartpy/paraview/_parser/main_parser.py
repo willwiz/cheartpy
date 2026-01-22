@@ -15,8 +15,8 @@ from ._topology import find_topology_parser, index_topology_parser
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-main_parser = argparse.ArgumentParser()
-subparsers = main_parser.add_subparsers(dest="cmd")
+cheart2vtu_parser = argparse.ArgumentParser()
+subparsers = cheart2vtu_parser.add_subparsers(dest="cmd")
 find = subparsers.add_parser(
     "find",
     help="determine settings automatically",
@@ -76,7 +76,7 @@ def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
     """
     # Require subparsers to be called, which sets args.cmd
     # If args.cmd is None, print help message and exit
-    parsed_args = main_parser.parse_args(
+    parsed_args = cheart2vtu_parser.parse_args(
         args,
         namespace=CmdLineArgs(
             None,  # pyright: ignore[reportArgumentType]
@@ -87,7 +87,7 @@ def get_cmd_args(args: Sequence[str] | None = None) -> CmdLineArgs:
         ),
     )
     if parsed_args.cmd is None:  # pyright: ignore[reportUnnecessaryComparison]
-        main_parser.print_help()
+        cheart2vtu_parser.print_help()
         raise SystemExit(0)
     if parsed_args.mesh_or_top is None:  # pyright: ignore[reportUnnecessaryComparison]
         print(f"Argparse failed, got mesh_or_top: {parsed_args.mesh_or_top}")

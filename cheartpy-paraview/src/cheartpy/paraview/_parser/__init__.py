@@ -5,7 +5,9 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+    import numpy as np
     from cheartpy.search.trait import SearchMode
+    from pytools.arrays import DType
     from pytools.logging import LOG_LEVEL, LogLevel
 
 SUBPARSER_MODES = Literal["index", "find"]
@@ -61,6 +63,12 @@ class APIKwargsIndex(TypedDict, total=False):
     compress: bool
     cores: int
     var: Sequence[str]
+
+
+class TimeSeriesKwargs(TypedDict, total=False):
+    root: Path
+    log: LOG_LEVEL
+    dtype: DType[np.floating]
 
 
 @dc.dataclass(slots=True)
