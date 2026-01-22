@@ -11,7 +11,7 @@ from cheartpy.mesh.struct import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.mesh.surface_core.surface import (
+from cheartpy.mesh.surface_core.normals import (
     compute_mesh_outer_normal_at_nodes,
     compute_normal_surface_at_center,
 )
@@ -240,11 +240,13 @@ def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
 def assemble_const_cl_mesh[F: np.floating, I: np.integer](
     linear_mesh: CheartMesh[F, I],
 ) -> CheartMesh[F, I]:
+    itype = linear_mesh.top.v.dtype
+    ftype = linear_mesh.space.v.dtype
     cl_0_x = np.ascontiguousarray(
         [linear_mesh.space.v[k].mean(axis=0) for k in linear_mesh.top.v],
-        dtype=float,
+        dtype=ftype,
     )
-    cl_0_t = np.arange(0, linear_mesh.top.v.shape[0], dtype=int).reshape(-1, 1)
+    cl_0_t = np.arange(0, linear_mesh.top.v.shape[0], dtype=itype).reshape(-1, 1)
     return CheartMesh(
         CheartMeshSpace(len(cl_0_x), cl_0_x),
         CheartMeshTopology(len(cl_0_t), cl_0_t, linear_mesh.top.TYPE),
