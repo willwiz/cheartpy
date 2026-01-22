@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 
     from cheartpy.fe.aliases import (
         CHEART_TOPINTERFACE_TYPE,
+        CHEART_TOPOLOGY_SETTING,
         VARIABLE_UPDATE_SETTING,
         CheartBasisType,
         CheartElementType,
@@ -166,8 +167,8 @@ class ICheartTopology(abc.ABC):
     @abc.abstractmethod
     def add_setting(
         self,
-        task: CheartTopologySetting,
-        val: int | tuple[ICheartTopology, int] | None = None,
+        task: CheartTopologySetting | CHEART_TOPOLOGY_SETTING,
+        val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
