@@ -19,7 +19,7 @@ __all__ = ["NormProblem"]
 
 class NormProblem(IProblem):
     name: str
-    variables: dict[str, IVariable]
+    variables: dict[str, IVariable | IExpression]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     bc: IBoundaryCondition
@@ -38,16 +38,15 @@ class NormProblem(IProblem):
         self,
         name: str,
         space: IVariable,
-        term1: IVariable,
-        term2: IVariable | None = None,
+        term1: IExpression | IVariable,
+        term2: IExpression | IVariable | None = None,
         boundary_n: int | None = None,
     ) -> None:
         self.name = name
         self.variables = {"Space": space, "Term1": term1}
         if term2 is not None:
             self.variables["Term2"] = term2
-        if boundary_n is not None:
-            self.boundary_normal = boundary_n
+        self.boundary_normal = boundary_n
         if term2 is not None != boundary_n is not None:
             msg = "One of Term2 or Boundary normal must be None"
             raise ValueError(msg)
@@ -55,7 +54,6 @@ class NormProblem(IProblem):
         self.aux_expr = {}
         self.bc = create_bc()
         self.root_top = None
-        self.boundary_normal = None
         self.scale_by_measure = False
         self.absolute_value = False
         self.output_filename = None
@@ -71,7 +69,11 @@ class NormProblem(IProblem):
         self._buffering = val
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
-        _self_vars_ = {str(v): v for v in self.variables.values()}
+        _self_vars_ = {str(v): v for v in self.variables.values() if isinstance(v, IVariable)}
+        for v in self.variables.values():
+            if isinstance(v, IExpression):
+                for dep in v.get_var_deps():
+                    _self_vars_[str(dep)] = dep
         # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         return {**_self_vars_}
 
@@ -102,8 +104,9 @@ class NormProblem(IProblem):
         return {**_vars_, **_b_vars_, **self.aux_vars}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
-        _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
-        return {**_expr_, **self.aux_expr}.values()
+        _expr_ = {str(e): e for e in self.variables.values() if isinstance(e, IExpression)}
+        _b_expr_ = {str(e): e for e in self.bc.get_expr_deps()}
+        return {**_expr_, **_b_expr_, **self.aux_expr}.values()
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
