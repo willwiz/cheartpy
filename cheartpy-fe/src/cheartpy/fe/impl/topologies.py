@@ -2,11 +2,12 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
+    CHEART_TOPOLOGY_SETTING,
     CheartTopInterfaceType,
     CheartTopologySetting,
     VariableExportFormat,
 )
-from cheartpy.fe.string_tools import join_fields
+from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 
 if TYPE_CHECKING:
@@ -65,10 +66,13 @@ class CheartTopology(ICheartTopology):
 
     def add_setting(
         self,
-        task: CheartTopologySetting,
-        val: int | tuple[ICheartTopology, int] | None = None,
+        task: CheartTopologySetting | CHEART_TOPOLOGY_SETTING,
+        val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None:
+        task = get_enum(task, CheartTopologySetting)
         match task, val:
+            case CheartTopologySetting.EmbeddedInTopology, ICheartTopology() as topology:
+                self.embedded = topology
             case _:
                 msg = f"Setting for topology {self} {task} does not have a match value type"
                 raise ValueError(msg)
@@ -121,8 +125,8 @@ class NullTopology(ICheartTopology):
 
     def add_setting(
         self,
-        task: CheartTopologySetting,
-        val: int | tuple[ICheartTopology, int] | None = None,
+        task: CheartTopologySetting | CHEART_TOPOLOGY_SETTING,
+        val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None:
         pass
 
