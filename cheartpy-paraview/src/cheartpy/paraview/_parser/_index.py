@@ -24,6 +24,7 @@ _index_group.add_argument(
     action="store",
     type=int,
     metavar=("start", "end", "step"),
+    default=None,
     help=(
         "OPTIONAL: specify the start, end, and step for the range of data files. "
         "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
