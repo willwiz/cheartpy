@@ -46,6 +46,66 @@ class Matlaw(ILaw):
         )
 
 
+@dc.dataclass(slots=True)
+class MaxwellBranch(ILaw):
+    tau: float
+    store: IVariable
+    name: Literal["maxwell-branch"] = "maxwell-branch"
+    InitPK2: int | bool = True
+    ZeroPK2: bool = True
+    Order: Literal[1] = 1
+    laws: list[Matlaw] = dc.field(default_factory=list[Matlaw])
+    deps_var: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
+    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
+
+    def __post_init__(self) -> None:
+        self.deps_var[str(self.store)] = self.store
+
+    def get_prob_vars(self) -> Mapping[str, IVariable]:
+        return {}
+
+    def add_var_deps(self, *var: IVariable) -> None:
+        for v in var:
+            if str(v) not in self.deps_var:
+                self.deps_var[str(v)] = v
+
+    def add_expr_deps(self, *expr: IExpression) -> None:
+        for e in expr:
+            if str(e) not in self.deps_expr:
+                self.deps_expr[str(e)] = e
+
+    def get_var_deps(self) -> ValuesView[IVariable]:
+        _vars_ = {str(self.store): self.store}
+        for d in self.laws:
+            _vars_.update({str(v): v for v in d.get_var_deps()})
+            _vars_.update(d.get_prob_vars())
+        return {**_vars_, **self.deps_var}.values()
+
+    def get_expr_deps(self) -> ValuesView[IExpression]:
+        _expr_ = {str(e): e for d in self.laws for e in d.get_expr_deps()}
+        return {**_expr_, **self.deps_expr}.values()
+
+    def add_law(self, *laws: Matlaw) -> None:
+        for v in laws:
+            self.laws.append(v)
+            for k, x in v.deps_var.items():
+                self.deps_var[k] = x
+
+    def string(self) -> str:
+        s = f"  !ConstitutiveLaw={{{self.name}}}\n"
+        s += f"    {self.store!s}\n"
+        s += f"    {self.tau}\n"
+        if self.InitPK2:
+            s = s + f"    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ''}\n"
+        if self.ZeroPK2:
+            s = s + "    ZeroPK2\n"
+        if self.Order != 1:
+            s = s + f"    Order {self.Order}\n"
+        for v in self.laws:
+            s = s + f"    {v.name}  [{' '.join([str(i) for i in v.parameters])}]\n"
+        return s
+
+
 @dc.dataclass
 class FractionalVE(ILaw):
     alpha: float
@@ -54,7 +114,7 @@ class FractionalVE(ILaw):
     store: IVariable
     Tscale: float | None = 10.0
     name: Literal["fractional-ve"] = "fractional-ve"
-    InitPK2: bool = True
+    InitPK2: int | bool = True
     ZeroPK2: bool = True
     Order: Literal[1, 2] = 2
     laws: list[Matlaw] = dc.field(default_factory=list[Matlaw])
