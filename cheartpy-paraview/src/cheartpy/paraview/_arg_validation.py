@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from pytools.logging import ILogger
 
-    from ._parser import SUBPARSER_MODES, CmdLineArgs
+    from ._parser.types import SUBPARSER_MODES, VTUProgArgs
     from ._trait import IFormattedName
 
 
@@ -80,13 +80,13 @@ _MESH_FILE_PARSER: Mapping[
 }
 
 
-def _get_prefix(args: CmdLineArgs) -> str:
+def _get_prefix(args: VTUProgArgs) -> str:
     if args.prefix:
         return args.prefix
     return Path(args.output_dir).name.replace("_vtu", "") if args.output_dir else "paraview"
 
 
-def _check_dirs_inputs(args: CmdLineArgs) -> Ok[tuple[Path, Path]] | Err:
+def _check_dirs_inputs(args: VTUProgArgs) -> Ok[tuple[Path, Path]] | Err:
     if not args.input_dir.is_dir():
         msg = f"Input folder = {args.input_dir} does not exist"
         return Err(ValueError(msg))
@@ -96,7 +96,7 @@ def _check_dirs_inputs(args: CmdLineArgs) -> Ok[tuple[Path, Path]] | Err:
 
 
 def _get_mesh_names(
-    args: CmdLineArgs,
+    args: VTUProgArgs,
 ) -> Ok[_MeshTopologyFiles] | Err:
     match _MESH_FILE_PARSER[args.cmd](args.mesh_or_top, args.space, args.boundary):
         case Ok(mesh):
@@ -143,7 +143,7 @@ def _capture_err_sequence[T](
 
 
 def process_cmdline_args(
-    args: CmdLineArgs,
+    args: VTUProgArgs,
     log: ILogger,
 ) -> Ok[tuple[ProgramArgs, IIndexIterator]] | Err:
     """Process command line arguments raw into program structs."""

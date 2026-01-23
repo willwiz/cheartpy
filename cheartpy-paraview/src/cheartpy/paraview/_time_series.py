@@ -7,18 +7,19 @@ from typing import TYPE_CHECKING, Final, Unpack, cast
 import numpy as np
 from cheartpy.io.api import read_array_float
 from cheartpy.search.api import get_var_index
-from pytools.logging import BLogger
+from pytools.logging import NLOGGER, BLogger, ILogger
 from pytools.result import Err, Ok
 
 from ._headers import header_guard
 from ._parser.time_parser import get_cmdline_args
+from ._parser.types import TimeProgArgs
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
     from pytools.arrays import A1, DType
 
-    from ._parser import TimeSeriesKwargs
+    from ._parser.types import TimeSeriesKwargs
     from ._trait import TIME_SERIES
 
 __all__ = ["_create_time_series_file", "_create_time_series_range"]
@@ -86,37 +87,33 @@ def _create_time_series_range[F: np.floating](
 
 
 def create_time_series_core[F: np.floating](
-    prefix: str,
-    root: Path,
-    time: float | str,
+    args: TimeProgArgs,
     *,
     dtype: DType[F] = np.float64,
 ) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
-    vtus = (v for v in root.glob(f"{prefix}-*.vtu"))
-    match get_var_index((v.name for v in vtus), prefix, "vtu"):
+    vtus = (v for v in args.root.glob(f"{args.prefix}-*.vtu"))
+    match get_var_index((v.name for v in vtus), args.prefix, "vtu"):
         case Ok(idx):
             pass
         case Err(e):
             return Err(e)
-    match time:
+    match args.time:
         case str():
-            return _create_time_series_file(vtus, idx, time, dtype=dtype).next()
+            return _create_time_series_file(vtus, idx, args.time, dtype=dtype).next()
         case float() | int():
-            return _create_time_series_range(vtus, idx, time, dtype=dtype).next()
+            return _create_time_series_range(vtus, idx, args.time, dtype=dtype).next()
 
 
-def create_time_series_api(
-    prefix: str,
-    time: float | str,
-    **kwargs: Unpack[TimeSeriesKwargs],
+def create_time_series[F: np.floating](
+    args: TimeProgArgs,
+    *,
+    log: ILogger = NLOGGER,
+    dtype: DType[F] = np.float64,
 ) -> Ok[None] | Err:
-    root = kwargs.get("root", Path.cwd())
-    dtype = kwargs.get("dtype", np.float64)
-    log = BLogger(kwargs.get("log", "INFO"))
     log.disp(*compose_time_header())
-    log.info(*format_input_info(prefix, root))
+    log.info(*format_input_info(args.prefix, args.root))
     log.disp("", header_guard())
-    match create_time_series_core(prefix, root, time, dtype=dtype):
+    match create_time_series_core(args, dtype=dtype):
         case Ok((idx, vtus, time_array)):
             msg = (
                 f"<<< Found {len(idx)} VTU files for time series, from:",
@@ -126,11 +123,25 @@ def create_time_series_api(
         case Err(e):
             return Err(e)
     time_series = create_time_series_json(vtus, time_array)
-    with (root / (prefix + ".series")).open("w") as f:
+    with (args.root / (args.prefix + ".series")).open("w") as f:
         json.dump(time_series, f)
     return Ok(None)
 
 
+def create_time_series_api(
+    **kwargs: Unpack[TimeSeriesKwargs],
+) -> Ok[None] | Err:
+    args = TimeProgArgs(
+        cmd="time",
+        prefix=kwargs["prefix"],
+        time=kwargs["time"],
+        root=kwargs.get("root", Path()),
+    )
+    dtype = kwargs.get("dtype", np.float64)
+    log = BLogger(kwargs.get("log", "INFO"))
+    return create_time_series(args, log=log, dtype=dtype).next()
+
+
 def create_time_series_cli(cmdline: Sequence[str] | None = None) -> None:
     args = get_cmdline_args(cmdline)
-    create_time_series_api(args.prefix, args.time, root=args.root).unwrap()
+    create_time_series_core(args).unwrap()

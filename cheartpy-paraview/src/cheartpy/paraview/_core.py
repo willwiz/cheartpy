@@ -186,5 +186,6 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
 ) -> None:
     name = CheartVTUFormat(inp.output_dir, inp.prefix)
     args: PEXEC_ARGS = [([name[t], t, inp, cache, log], {}) for t in indexer]
+    bart = ProgressBar(len(indexer)) if inp.prog_bar else None
     with futures.ProcessPoolExecutor(inp.cores) as executor:
-        parallel_exec(executor, export_mesh_iter, args, prog_bar=True)
+        parallel_exec(executor, export_mesh_iter, args, prog_bar=bart)

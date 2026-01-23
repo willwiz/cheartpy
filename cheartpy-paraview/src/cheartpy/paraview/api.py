@@ -6,8 +6,23 @@ from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
 from ._core import export_boundary, run_exports_in_parallel, run_exports_in_series
 from ._headers import compose_header, header_guard
-from ._parser.main_parser import get_api_args, get_cmd_args
+from ._parser.main_parser import (
+    get_api_args,
+    get_api_args_find,
+    get_api_args_index,
+    get_cmd_args,
+    get_vtu_cmd_args,
+)
+from ._parser.types import (
+    SUBPARSER_MODES,
+    APIKwargs,
+    APIKwargsFind,
+    APIKwargsIndex,
+    TimeProgArgs,
+    VTUProgArgs,
+)
 from ._time_series import (
+    create_time_series,
     create_time_series_api,
     create_time_series_cli,
     create_time_series_core,
@@ -17,12 +32,12 @@ from ._time_series import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from ._parser import SUBPARSER_MODES, APIKwargs, APIKwargsFind, APIKwargsIndex, CmdLineArgs
 
 __all__ = [
-    "cheart2vtu",
     "cheart2vtu_api",
     "cheart2vtu_cli",
+    "cheart2vtu_find",
+    "cheart2vtu_index",
     "create_time_series_api",
     "create_time_series_cli",
     "create_time_series_core",
@@ -30,7 +45,7 @@ __all__ = [
 ]
 
 
-def cheart2vtu(cmd_args: CmdLineArgs) -> None:
+def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log = BLogger(cmd_args.log)
     log.disp(*compose_header())
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
@@ -56,10 +71,25 @@ def cheart2vtu_api(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> None:
     cheart2vtu(args)
 
 
+def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:
+    args = get_api_args_find(**kwargs)
+    cheart2vtu(args)
+
+
+def cheart2vtu_index(**kwargs: Unpack[APIKwargsIndex]) -> None:
+    args = get_api_args_index(**kwargs)
+    cheart2vtu(args)
+
+
 def cheart2vtu_cli(cmd_args: Sequence[str] | None = None) -> None:
-    args = get_cmd_args(cmd_args)
+    args = get_vtu_cmd_args(cmd_args)
     cheart2vtu(args)
 
 
 def main_cli(cmdline: Sequence[str] | None = None) -> None:
-    cheart2vtu_cli(cmdline)
+    args = get_cmd_args(cmdline)
+    match args:
+        case VTUProgArgs():
+            cheart2vtu(args)
+        case TimeProgArgs():
+            create_time_series(args)

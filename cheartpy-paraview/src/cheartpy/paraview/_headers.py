@@ -5,7 +5,7 @@ from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.trait import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
-    from ._parser import CmdLineArgs
+    from ._parser.types import VTUProgArgs
 
 _H_STR_LEN_ = 30
 
@@ -26,7 +26,7 @@ def compose_header() -> list[str]:
     ]
 
 
-def format_input_info(inp: CmdLineArgs) -> list[str]:
+def format_input_info(inp: VTUProgArgs) -> list[str]:
     msg = [f"{'<<< Retrieving data from:':<{_H_STR_LEN_}} {inp.input_dir}"]
     match inp.cmd:
         case "find":
