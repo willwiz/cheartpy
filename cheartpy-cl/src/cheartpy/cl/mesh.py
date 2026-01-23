@@ -16,14 +16,14 @@ from cheartpy.mesh.surface_core.normals import (
     compute_normal_surface_at_center,
 )
 from cheartpy.vtk.api import get_vtk_elem
-from pytools.logging.api import NLOGGER
+from pytools.logging import NLOGGER
 from pytools.result import Err, Ok, all_ok
 
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2, DType
-    from pytools.logging.trait import ILogger
+    from pytools.logging._trait import ILogger
 
 __all__ = [
     "create_cheart_cl_nodal_meshes",

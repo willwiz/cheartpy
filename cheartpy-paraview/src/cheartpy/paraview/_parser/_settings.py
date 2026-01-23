@@ -1,6 +1,6 @@
 import argparse
 
-from pytools.logging.trait import LogLevel
+from pytools.logging import LogLevel
 from pytools.parsing import EnumGetter
 
 setting_parser = argparse.ArgumentParser(add_help=False)

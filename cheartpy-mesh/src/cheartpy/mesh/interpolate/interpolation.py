@@ -3,14 +3,14 @@ from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from cheartpy.io.api import chread_d, chwrite_d_utf
-from pytools.logging.api import NLOGGER
+from pytools.logging import NLOGGER
 
 from .maps import L2QMAPDICT, L2QTYPEDICT
 
 if TYPE_CHECKING:
     from cheartpy.mesh.struct import CheartMesh
     from pytools.arrays import A1, A2
-    from pytools.logging.trait import ILogger
+    from pytools.logging._trait import ILogger
 
 
 __all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]

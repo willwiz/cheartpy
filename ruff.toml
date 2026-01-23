@@ -1,0 +1,1 @@
+extend-exclude = ["**/cheartpy/meshio/_javi.py"]

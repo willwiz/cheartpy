@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
-    from pytools.logging.trait import ILogger
+    from pytools.logging import ILogger
 
     from .trait import IIndexIterator
 

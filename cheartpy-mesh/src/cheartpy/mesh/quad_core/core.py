@@ -138,8 +138,8 @@ def create_boundary[I: np.integer](
     node_index: A2[I],
     elem_index: A2[I],
 ) -> CheartMeshBoundary[I]:
-    ix = np.arange(nx, dtype=int)
-    iy = np.arange(ny, dtype=int)
+    ix = np.arange(nx, dtype=node_index.dtype)
+    iy = np.arange(ny, dtype=node_index.dtype)
     bnds: dict[int, CheartMeshPatch[I]] = {
         1: create_boundary_side_x_ccw(1, 0, iy, node_index, elem_index),
         2: create_boundary_side_x_cw(2, nx - 1, iy, node_index, elem_index),

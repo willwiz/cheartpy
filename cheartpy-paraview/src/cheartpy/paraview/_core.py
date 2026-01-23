@@ -162,7 +162,7 @@ def export_mesh_iter[F: np.floating, I: np.integer](
     with prefix.open("w") as fout:
         vtk_xml.write(fout)
     if inp.compress:
-        compress_vtu(prefix, log)
+        compress_vtu(prefix, log=log)
 
 
 def run_exports_in_series[F: np.floating, I: np.integer](
