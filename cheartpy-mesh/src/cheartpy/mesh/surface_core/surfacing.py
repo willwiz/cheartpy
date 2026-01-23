@@ -126,11 +126,13 @@ def find_unique_surf_patches[I: np.integer](
 
 def find_surface_in_mesh[F: np.floating, I: np.integer](
     bnd: CheartMeshBoundary[I], node_map: _NodeMap[F, I], label: int
-) -> CheartMeshPatch[I]:
+) -> CheartMeshPatch[I] | None:
     nodes_set = set(node_map.idx)
     surf_patches_index = find_unique_surf_patches(bnd)
     dtype = bnd.v[next(iter(bnd.v))].v.dtype
     patchs = {e: b for (e, b) in surf_patches_index.values() if set(b).issubset(nodes_set)}
+    if not patchs:
+        return None
     k = np.array(list(patchs.keys()), dtype=dtype)
     v = np.array(list(patchs.values()), dtype=dtype)
     return CheartMeshPatch(tag=label, n=len(patchs), k=k, v=v, TYPE=bnd.TYPE)
@@ -153,6 +155,8 @@ def create_new_surface_in_mesh[F: np.floating, I: np.integer](
             new_bnd = find_surface_in_mesh(mesh.bnd, node_map, label)
         case Err(e):
             return Err(e)
+    if new_bnd is None:
+        return Ok(mesh)
     new_mesh = CheartMesh(
         space=mesh.space,
         top=mesh.top,
@@ -186,6 +190,8 @@ def create_new_surface_in_surf[F: np.floating, I: np.integer](
             new_bnd = find_surface_in_mesh(mesh.bnd, node_map, label)
         case Err(e):
             return Err(e)
+    if new_bnd is None:
+        return Ok(mesh)
     new_mesh = CheartMesh(
         space=mesh.space,
         top=mesh.top,
