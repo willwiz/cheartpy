@@ -6,6 +6,7 @@ import numpy as np
 from cheartpy.io.api import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
+from pytools.logging import NLOGGER, ILogger
 from pytools.parallel import PEXEC_ARGS, parallel_exec
 from pytools.progress import ProgressBar
 
@@ -19,7 +20,6 @@ if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
-    from pytools.logging import ILogger
 
     from ._struct import ParaviewTopology, ProgramArgs, VariableCache
 
@@ -182,10 +182,9 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
     cache: VariableCache[F, I],
-    log: ILogger,
 ) -> None:
     name = CheartVTUFormat(inp.output_dir, inp.prefix)
-    args: PEXEC_ARGS = [([name[t], t, inp, cache, log], {}) for t in indexer]
+    args: PEXEC_ARGS = [([name[t], t, inp, cache, NLOGGER], {}) for t in indexer]
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
     with futures.ProcessPoolExecutor(inp.cores) as executor:
         parallel_exec(executor, export_mesh_iter, args, prog_bar=bart)

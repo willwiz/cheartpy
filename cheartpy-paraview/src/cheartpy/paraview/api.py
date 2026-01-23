@@ -54,10 +54,11 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log.debug(cache)
     export_boundary(inp, cache, log)
     log.disp("", header_guard())
-    log.info("<<< Processing vtus.")
     if inp.cores > 1:
-        run_exports_in_parallel(inp, indexer, cache, log)
+        log.info(f"<<< Processing vtus with {inp.cores} cores.")
+        run_exports_in_parallel(inp, indexer, cache)
     else:
+        log.info("<<< Processing vtus in series.")
         run_exports_in_series(inp, indexer, cache, log)
     log.disp("", header_guard())
 
