@@ -72,7 +72,7 @@ def find_var_index(prefix: str, root: Path | str | None) -> Ok[list[int]] | Err:
     var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
-    return get_var_index([v.name for v in var], prefix, suffix)
+    return get_var_index([v.name for v in var], prefix, suffix).next()
 
 
 def find_var_subindex(prefix: str, root: Path | str | None) -> Ok[dict[int, list[int]]] | Err:
@@ -81,4 +81,4 @@ def find_var_subindex(prefix: str, root: Path | str | None) -> Ok[dict[int, list
     var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
-    return get_var_subindex([v.name for v in var], prefix, suffix)
+    return get_var_subindex([v.name for v in var], prefix, suffix).next()
