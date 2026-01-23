@@ -38,6 +38,7 @@ cheart2vtu = "cheartpy.paraview.__main__:cheart2vtu_cli"
 timeseries = "cheartpy.paraview._time_series:create_time_series_cli"
 
 [tool.uv.sources]
+cheartpy = { path = ".", package = false }
 cheartpy-abaqus = { path = "cheartpy-abaqus", editable = true }
 cheartpy-cl = { path = "cheartpy-cl", editable = true }
 cheartpy-fe = { path = "cheartpy-fe", editable = true }

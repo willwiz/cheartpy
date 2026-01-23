@@ -1,8 +1,9 @@
 from collections.abc import Collection, Mapping, Sequence
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
-from cheartpy.fe.api import create_expr
-from cheartpy.fe.physics.fs_coupling.struct import FSCouplingProblem, FSExpr
+from cheartpy.fe.api import create_expr, create_variable
+
+from ._struct import FSCouplingProblem, FSExpr
 
 if TYPE_CHECKING:
     from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
@@ -45,7 +46,7 @@ def create_rotation_operator_expr(
 class _RotationConstraintVariable(TypedDict, total=True):
     space: IVariable
     disp: IVariable
-    lm: IVariable
+    freq: int
 
 
 def create_rotation_constraint(
@@ -55,10 +56,11 @@ def create_rotation_constraint(
     **kwargs: Unpack[_RotationConstraintVariable],
 ) -> FSCouplingProblem:
     """Create a rotation constraint for a given space and displacement variable."""
-    # rot_dof = Expression("RotMat", [0, f"{space}.3", f"-{space}.2"])
-    space, disp, lm = kwargs["space"], kwargs["disp"], kwargs["lm"]
-    rot_dof = create_rotation_operator_expr(f"{prefix}_matexpr", space, choice)
-    rot_bc = FSCouplingProblem(f"{prefix}", space, root)
+    rot_dof = sum(len(v) for v in choice.values())
+    space, disp, freq = kwargs["space"], kwargs["disp"], kwargs["freq"]
+    lm = create_variable(f"RLM{prefix}", None, rot_dof, freq=freq)
+    rot_dof = create_rotation_operator_expr(f"PBRot{prefix}_Mexpr", space, choice)
+    rot_bc = FSCouplingProblem(f"PRRot{prefix}", space, root)
     rot_bc.set_lagrange_mult(lm, FSExpr(disp, rot_dof["p"]))
     rot_bc.add_term(disp, FSExpr(lm, rot_dof["m"]))
     rot_bc.add_expr_deps(*rot_dof.values())
