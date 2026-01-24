@@ -77,7 +77,8 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
 
 
 def compose_index_info(indexer: IIndexIterator) -> str:
-    first = _last = next(iter(indexer))
-    for _last in indexer:
-        pass
-    return f"{f'<<<     Time step found: From {first} to {_last}':<35}"
+    indicies = sorted(indexer)
+    return (
+        f"{'<<<     Time step found:':<{_H_STR_LEN_}}"
+        f" From {indicies[0]} to {indicies[-1]} in {len(indicies)} steps"
+    )

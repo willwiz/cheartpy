@@ -7,12 +7,11 @@ from cheartpy.io.api import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
 from pytools.logging import NLOGGER, ILogger
-from pytools.parallel import PEXEC_ARGS, parallel_exec
+from pytools.parallel import parallel_exec
 from pytools.progress import ProgressBar
 
-from ._caching import update_variable_cache
+from ._caching import get_arguments, get_variables
 from ._third_party import compress_vtu
-from ._variable_getter import CheartVTUFormat
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -21,7 +20,7 @@ if TYPE_CHECKING:
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
 
-    from ._struct import ParaviewTopology, ProgramArgs, VariableCache
+    from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
 
 __all__ = [
     "export_boundary",
@@ -74,21 +73,17 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
 
 def export_boundary[F: np.floating, I: np.integer](
     inp: ProgramArgs,
-    cache: VariableCache[F, I],
+    top: ParaviewTopology[F, I],
     log: ILogger,
 ) -> None:
     log.debug("<<< Working on", inp.bfile)
-    if inp.bfile is None:
+    if inp.bfile is None or top.vtksurfacetype is None:
         log.info(">>> NOTICE: No boundary file given, export is skipped")
         return
-    dx = cache.space
     raw = chread_b_utf(inp.bfile)
     db = raw[:, 1:-1] - 1
     dbid = raw[:, -1]
-    if cache.top.vtksurfacetype is None:
-        log.error(">>> Boundary file does not have a valid surface type")
-        return
-    vtk_xml = create_xml_for_boundary(inp.prefix, dx, cache.top.vtksurfacetype, db, dbid)
+    vtk_xml = create_xml_for_boundary(inp.prefix, top.x, top.vtksurfacetype, db, dbid)
     foutfile = inp.output_dir / f"{inp.prefix}_boundary.vtu"
     with Path(foutfile).open("w") as fout:
         vtk_xml.write(fout)
@@ -99,8 +94,8 @@ def export_boundary[F: np.floating, I: np.integer](
 
 def create_xml_for_mesh[F: np.floating, I: np.integer](
     prefix: str,
-    tp: ParaviewTopology[I],
-    fx: A2[F],
+    top: ParaviewTopology[F, I],
+    x: A2[F],
     var: Mapping[str, A2[F]],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
@@ -109,29 +104,29 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
         XMLElement(
             "Piece",
             Name=f"{prefix}",
-            NumberOfPoints=f"{fx.shape[0]}",
-            NumberOfCells=f"{tp.ne}",
+            NumberOfPoints=f"{x.shape[0]}",
+            NumberOfCells=f"{top.ne}",
         ),
     )
     points = piece.create_elem(XMLElement("Points"))
     dataarr = points.create_elem(
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
-    dataarr.add_data(fx)
+    dataarr.add_data(x)
 
     cell = piece.create_elem(XMLElement("Cells"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(tp.get_data(), order=get_vtk_elem(tp.vtkelementtype).connectivity)
+    dataarr.add_data(top.t, order=get_vtk_elem(top.vtkelementtype).connectivity)
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
-    dataarr.add_data(np.arange(tp.nc, tp.nc * (tp.ne + 1), tp.nc))
+    dataarr.add_data(np.arange(top.nc, top.nc * (top.ne + 1), top.nc))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
-    dataarr.add_data(np.full((tp.ne,), tp.vtkelementtype.value.idx))
+    dataarr.add_data(np.full((top.ne,), top.vtkelementtype.value.idx))
     points = piece.create_elem(XMLElement("PointData", Scalars="scalars"))
     for v, dv in var.items():
         dataarr = points.create_elem(
@@ -148,21 +143,16 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
 
 
 def export_mesh_iter[F: np.floating, I: np.integer](
-    prefix: Path,
-    t: str | int,
-    inp: ProgramArgs,
-    cache: VariableCache[F, I],
+    path: Path,
+    args: XMLDataInputs[F, I],
     log: ILogger,
 ) -> None:
-    log.debug("<<< Working on", prefix.name)
-    x, var = update_variable_cache(inp, t, cache, log)
-    log.debug("<<< showing cache")
-    log.debug(cache)
-    vtk_xml = create_xml_for_mesh(inp.prefix, cache.top, x, var)
-    with prefix.open("w") as fout:
+    x, var = get_variables(args.top, args.x, args.u, args.var)
+    vtk_xml = create_xml_for_mesh(args.prefix, args.top, x, var)
+    with path.open("w") as fout:
         vtk_xml.write(fout)
-    if inp.compress:
-        compress_vtu(prefix, log=log)
+    if args.compress:
+        compress_vtu(path, log=log)
 
 
 def run_exports_in_series[F: np.floating, I: np.integer](
@@ -171,11 +161,11 @@ def run_exports_in_series[F: np.floating, I: np.integer](
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
-    name = CheartVTUFormat(inp.output_dir, inp.prefix)
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    for t in indexer:
-        export_mesh_iter(name[t], t, inp, cache, log)
-        bart.next() if bart else print(f"<<< Completed {name[t]}")
+    for (path, arg), _ in get_arguments(inp, cache, indexer, log=log):
+        log.debug("<<< Working on", path.name)
+        export_mesh_iter(path, arg, log)
+        bart.next() if bart else print(f"<<< Completed {path}")
 
 
 def run_exports_in_parallel[F: np.floating, I: np.integer](
@@ -183,8 +173,11 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     indexer: IIndexIterator,
     cache: VariableCache[F, I],
 ) -> None:
-    name = CheartVTUFormat(inp.output_dir, inp.prefix)
-    args: PEXEC_ARGS = [([name[t], t, inp, cache, NLOGGER], {}) for t in indexer]
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    with futures.ProcessPoolExecutor(inp.cores) as executor:
-        parallel_exec(executor, export_mesh_iter, args, prog_bar=bart)
+    with futures.ThreadPoolExecutor(inp.cores) as executor:
+        parallel_exec(
+            executor,
+            export_mesh_iter,
+            get_arguments(inp, cache, indexer, log=NLOGGER),
+            prog_bar=bart,
+        )

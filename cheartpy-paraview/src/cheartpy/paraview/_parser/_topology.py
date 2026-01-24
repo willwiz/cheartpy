@@ -8,7 +8,7 @@ _topology_group.add_argument(
     required=True,
     dest="mesh_or_top",
     action="store",
-    type=str,
+    type=Path,
     help="OPTIONAL: supply a prefix for the mesh files",
 )
 _topology_group.add_argument(
@@ -16,7 +16,7 @@ _topology_group.add_argument(
     "-x",
     dest="space",
     action="store",
-    type=str,
+    type=Path,
     default=None,
     help="OPTIONAL: supply a prefix for the mesh files",
 )
@@ -51,7 +51,7 @@ _topology_group.add_argument(
     required=True,
     dest="mesh_or_top",
     action="store",
-    type=str,
+    type=Path,
     help=(
         "MANDATORY: supply a relative path and file name from the current directory "
         "to the topology file, the default is mesh_FE.T"

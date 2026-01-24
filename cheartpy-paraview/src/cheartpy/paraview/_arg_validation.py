@@ -1,16 +1,16 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, TypeIs, overload
+from typing import TYPE_CHECKING, NamedTuple, overload
 
 from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.api import get_file_name_indexer
-from pytools.result import Err, Ok
+from pytools.result import Err, Ok, all_ok
 
 from ._headers import compose_index_info, format_input_info
 from ._struct import ProgramArgs
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable, Mapping, Sequence
 
     from cheartpy.search.trait import IIndexIterator
     from pytools.logging import ILogger
@@ -20,60 +20,63 @@ if TYPE_CHECKING:
 
 
 class _MeshTopologyFiles(NamedTuple):
-    x: str
+    x: Path
     t: Path
     b: Path | None
-    u: str | None
+    u: Path | None
 
 
 def _parse_findmode_args(
-    mesh: str, space: str | None, bnd: Path | None
+    mesh: Path, space: Path | None, bnd: Path | None
 ) -> Ok[_MeshTopologyFiles] | Err:
-    subs: str = fix_ch_sfx(mesh)
-    space = space or (subs + "X")
-    match space.split("+"):
-        case (str(_space),):
-            x, u = _space, None
+    subs = fix_ch_sfx(mesh)
+    space = space or (subs.with_suffix(".X"))
+    match space.name.split("+"):
+        case (str(),):
+            x, u = space, None
         case str(_space), str(_disp):
-            x, u = _space, _disp
+            x, u = space.parent / _space, space.parent / _disp
         case _:
             msg = "Invalid space name format, expected 'name' or 'name+disp'."
             return Err(ValueError(msg))
-    t = Path(subs + "T")
+    t = subs.with_suffix(".T")
     if not t.is_file():
         msg = f"Mesh topology file = {t} not found."
         return Err(ValueError(msg))
-    b = Path(bnd or (subs + "B"))
+    if isinstance(bnd, Path) and not bnd.is_file():
+        msg = f"Boundary file = {bnd} not found."
+        return Err(ValueError(msg))
+    b = bnd or (subs.with_suffix(".B"))
     b = b if b.is_file() else None
     return Ok(_MeshTopologyFiles(space or x, t, b, u))
 
 
 def _parse_indexmode_args(
-    top: str, space: str | None, bnd: Path | None
+    top: Path, space: Path | None, bnd: Path | None
 ) -> Ok[_MeshTopologyFiles] | Err:
-    if not space:
+    if space is None:
         msg = "In index mode, space name must be provided."
         return Err(ValueError(msg))
-    spacename: list[str] = space.split("+")
-    match spacename:
-        case (str(_space),):
-            x, u = _space, None
-        case str(_space), str(u):
-            x = _space
+    match space.name.split("+"):
+        case (str(),):
+            x, u = space, None
+        case str(_space), str(_disp):
+            x = space.parent / _space
+            u = space.parent / _disp
         case _:
             msg = "Invalid space name format, expected 'name' or 'name+disp'."
             return Err(ValueError(msg))
-    if not (t := Path(top)).is_file():
-        msg = f"Topology file = {t} not found."
+    if not top.is_file():
+        msg = f"Topology file = {top} not found."
         return Err(ValueError(msg))
     if bnd and not bnd.is_file():
         msg = f"Boundary file = {bnd} not found."
         return Err(ValueError(msg))
-    return Ok(_MeshTopologyFiles(x, t, bnd, u))
+    return Ok(_MeshTopologyFiles(x, top, bnd, u))
 
 
 _MESH_FILE_PARSER: Mapping[
-    SUBPARSER_MODES, Callable[[str, str | None, Path | None], Ok[_MeshTopologyFiles] | Err]
+    SUBPARSER_MODES, Callable[[Path, Path | None, Path | None], Ok[_MeshTopologyFiles] | Err]
 ] = {
     "find": _parse_findmode_args,
     "index": _parse_indexmode_args,
@@ -83,7 +86,7 @@ _MESH_FILE_PARSER: Mapping[
 def _get_prefix(args: VTUProgArgs) -> str:
     if args.prefix:
         return args.prefix
-    return Path(args.output_dir).name.replace("_vtu", "") if args.output_dir else "paraview"
+    return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
 
 
 def _check_dirs_inputs(args: VTUProgArgs) -> Ok[tuple[Path, Path]] | Err:
@@ -106,40 +109,63 @@ def _get_mesh_names(
 
 
 @overload
-def _check_variable_format(u: None, first: str | int, root: Path) -> None: ...
+def _check_variable_format(u: None, first: str | int, root: Path | None = None) -> Ok[None]: ...
 @overload
-def _check_variable_format(u: str, first: str | int, root: Path) -> IFormattedName | ValueError: ...
 def _check_variable_format(
-    u: str | None,
+    u: Path, first: str | int, root: Path | None = None
+) -> Ok[IFormattedName] | Err: ...
+@overload
+def _check_variable_format(
+    u: str, first: str | int, root: Path | None = None
+) -> Ok[IFormattedName] | Err: ...
+def _check_variable_format(
+    u: Path | str | None,
     first: str | int,
-    root: Path,
-) -> IFormattedName | ValueError | None:
-    if u is None:
-        return u
-    if (root / u).is_file():
-        return CheartMeshFormat(root, u)
-    if (root / f"{u}-{first}.D").is_file():
-        return CheartVarFormat(root, u)
-    if (root / f"{u}-{first}.D.gz").is_file():
-        return CheartZipFormat(root, u)
-    msg = f"Variable {u} not recognized as mesh, var, or zip"
-    return ValueError(msg)
+    root: Path | None = None,
+) -> Ok[IFormattedName] | Ok[None] | Err:
+    match u:
+        case None:
+            return Ok(None)
+        case Path():
+            u = (root / u) if root else u
+        case str():
+            u = (root / u) if root else Path(u)
+    if u.is_file():
+        return Ok(CheartMeshFormat(u.parent, u.name))
+    if (u.parent / f"{u.name}-{first}.D").is_file():
+        return Ok(CheartVarFormat(u.parent, u.name))
+    if (u.parent / f"{u.name}-{first}.D.gz").is_file():
+        return Ok(CheartZipFormat(u.parent, u.name))
+    msg = f"Variable {u} not recognized as one of:"
+    msg += f" Mesh = {u}"
+    msg += f" Var  = {u.parent / f'{u.name}-{first}.D'}"
+    msg += f" Zip  = {u.parent / f'{u.name}-{first}.D.gz'}"
+    return Err(ValueError(msg))
 
 
-def _capture_err[T](var: T | ValueError, log: ILogger) -> TypeIs[T]:
-    """Capture errors in variable formats."""
-    if isinstance(var, ValueError):
-        log.error(var)
-        return False
-    return True
-
-
-def _capture_err_sequence[T](
-    var: tuple[T | ValueError, ...],
-    log: ILogger,
-) -> TypeIs[tuple[T, ...]]:
-    """Capture errors in variable formats."""
-    return all(_capture_err(v, log) for v in var)
+def find_variable_formats(
+    x: Path,
+    u: Path | None,
+    variables: Sequence[str],
+    ifirst: str | int,
+    input_dir: Path,
+) -> Ok[tuple[IFormattedName, IFormattedName | None, Sequence[IFormattedName]]] | Err:
+    match _check_variable_format(x, ifirst):
+        case Ok(space):
+            ...
+        case Err(e):
+            return Err(e)
+    match _check_variable_format(u, ifirst):
+        case Ok(disp):
+            ...
+        case Err(e):
+            return Err(e)
+    match all_ok([_check_variable_format(v, ifirst, input_dir) for v in variables]):
+        case Ok(var):
+            ...
+        case Err(e):
+            return Err(e)
+    return Ok((space, disp, var))
 
 
 def process_cmdline_args(
@@ -167,17 +193,12 @@ def process_cmdline_args(
                 log.disp("<<< No boundary file specified/found.")
         case Err(e):
             return Err(e)
-    space = _check_variable_format(x, ifirst, Path())
-    disp = _check_variable_format(u, ifirst, Path())
-    var = tuple([_check_variable_format(v, ifirst, input_dir) for v in args.var])
-    if not (
-        _capture_err(space, log)
-        and _capture_err(disp, log)
-        and _capture_err(top, log)
-        and _capture_err(bnd, log)
-        and _capture_err_sequence(var, log)
-    ):
-        return Err(ValueError("Invalid command line arguments"))
+    match find_variable_formats(x, u, args.var, ifirst, input_dir):
+        case Ok((xfile, disp, var)):
+            pass
+        case Err(e):
+            return Err(e)
+    space = None if isinstance(xfile, CheartMeshFormat) else xfile
     return Ok(
         (
             ProgramArgs(
@@ -190,7 +211,8 @@ def process_cmdline_args(
                 cores=args.cores,
                 tfile=top,
                 bfile=bnd,
-                xfile=space,
+                xfile=xfile[ifirst],
+                space=space,
                 disp=disp,
                 var={v.name: v for v in var},
             ),

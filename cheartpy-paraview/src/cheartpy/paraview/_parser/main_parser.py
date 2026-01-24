@@ -143,16 +143,19 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
             subindex = None
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
+    space = kwargs.get("space") or None
+    boundary = kwargs.get("boundary") or None
+    output_dir = kwargs.get("output_dir")
     return VTUProgArgs(
         cmd="find",
         index=index,
         subindex=subindex,
-        mesh_or_top=mesh_or_top,
+        mesh_or_top=Path(mesh_or_top),
         prefix=kwargs.get("prefix"),
         input_dir=Path(kwargs.get("input_dir", "")),
-        output_dir=kwargs.get("output_dir", ""),
-        space=kwargs.get("space"),
-        boundary=kwargs.get("boundary"),
+        output_dir=Path(output_dir) if output_dir is not None else None,
+        space=Path(space) if space is not None else None,
+        boundary=Path(boundary) if boundary is not None else None,
         prog_bar=kwargs.get("prog_bar", True),
         log=LogLevel[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
@@ -172,16 +175,19 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
             subindex = None
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
+    space = kwargs.get("space") or None
+    boundary = kwargs.get("boundary") or None
+    output_dir = kwargs.get("output_dir")
     return VTUProgArgs(
         cmd="index",
         index=index,
         subindex=subindex,
-        mesh_or_top=mesh_or_top,
+        mesh_or_top=Path(mesh_or_top),
         prefix=kwargs.get("prefix"),
         input_dir=Path(kwargs.get("input_dir", "")),
-        output_dir=kwargs.get("output_dir", ""),
-        space=kwargs.get("space"),
-        boundary=kwargs.get("boundary"),
+        output_dir=Path(output_dir) if output_dir is not None else None,
+        space=Path(space) if space is not None else None,
+        boundary=Path(boundary) if boundary is not None else None,
         prog_bar=kwargs.get("prog_bar", True),
         log=LogLevel[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),

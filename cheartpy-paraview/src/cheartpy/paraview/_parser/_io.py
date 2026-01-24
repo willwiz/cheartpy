@@ -30,8 +30,8 @@ _iogroup.add_argument(
     "-o",
     dest="output_dir",
     action="store",
-    type=str,
-    default="",
+    type=Path,
+    default=None,
     help=(
         "OPTIONAL: supply the path to the folder where the vtu outputs should be saved to. "
         "If -f is not supplied, then the path is assumed to be the current folder."

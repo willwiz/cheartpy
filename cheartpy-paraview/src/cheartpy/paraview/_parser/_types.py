@@ -16,13 +16,13 @@ SUBPARSER_MODES = Literal["index", "find"]
 class APIKwargs(TypedDict, total=False):
     index: tuple[int, int, int] | None
     subindex: tuple[int, int, int] | Literal["auto", "none"]
+    mesh: Path | str
     prefix: str | None
     input_dir: Path | str
-    output_dir: str
-    mesh: str
-    top: str
-    space: str | None
-    boundary: Path | None
+    output_dir: Path | str | None
+    top: Path | str
+    space: Path | str | None
+    boundary: Path | str | None
     prog_bar: bool
     log: LOG_LEVEL
     binary: bool
@@ -34,12 +34,12 @@ class APIKwargs(TypedDict, total=False):
 class APIKwargsFind(TypedDict, total=False):
     index: tuple[int, int, int] | None
     subindex: tuple[int, int, int] | Literal["auto", "none"]
-    mesh: Required[str]
+    mesh: Required[Path | str]
     prefix: str | None
     input_dir: Path | str
-    output_dir: str
-    space: str | None
-    boundary: Path | None
+    output_dir: Path | str | None
+    space: Path | str | None
+    boundary: Path | str | None
     prog_bar: bool
     log: LOG_LEVEL
     binary: bool
@@ -51,12 +51,12 @@ class APIKwargsFind(TypedDict, total=False):
 class APIKwargsIndex(TypedDict, total=False):
     index: tuple[int, int, int] | None
     subindex: tuple[int, int, int] | Literal["auto", "none"]
-    top: Required[str]
+    top: Required[Path | str]
     prefix: str | None
     input_dir: Path | str
-    output_dir: str
-    space: Required[str]
-    boundary: Path | None
+    output_dir: Path | str | None
+    space: Required[Path | str]
+    boundary: Path | str | None
     prog_bar: bool
     log: LOG_LEVEL
     binary: bool
@@ -67,7 +67,7 @@ class APIKwargsIndex(TypedDict, total=False):
 
 class TimeSeriesKwargs(TypedDict, total=False):
     prefix: Required[str]
-    time: Required[str | float]
+    time: Required[Path | float]
     root: Path
     log: LOG_LEVEL
     dtype: DType[np.floating]
@@ -80,9 +80,9 @@ class VTUProgArgs:
     subindex: tuple[int, int, int] | SearchMode | None
     prefix: Final[str | None]
     input_dir: Final[Path]
-    output_dir: Final[str]
-    mesh_or_top: Final[str]
-    space: Final[str | None]
+    output_dir: Final[Path | None]
+    mesh_or_top: Final[Path]
+    space: Final[Path | None]
     boundary: Final[Path | None]
     prog_bar: Final[bool]
     log: Final[LogLevel]
@@ -96,5 +96,5 @@ class VTUProgArgs:
 class TimeProgArgs:
     cmd: Final[str]
     prefix: str
-    time: str | float
+    time: Path | float
     root: Path

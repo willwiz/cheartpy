@@ -40,7 +40,7 @@ time_group.add_argument(
     "--time-file",
     "-t",
     dest="time",
-    type=str,
+    type=Path,
     help="File (Path). File containing a 1D array of floats",
 )
 parser.add_argument(
@@ -48,7 +48,7 @@ parser.add_argument(
     action="store",
     type=str,
     metavar=("prefix"),
-    help="supply a name for the folder to store the vtu outputs",
+    help="supply the name of the vtu outputs",
 )
 
 

@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from cheartpy.vtk.types import VtkType
-    from pytools.arrays import A1, A2, DType
+    from pytools.arrays import A2, DType
 
     from ._trait import IFormattedName
 
@@ -25,32 +25,47 @@ class ProgramArgs:
     binary: Final[bool]
     compress: Final[bool]
     cores: Final[int]
+    xfile: Final[Path]
     tfile: Final[Path]
     bfile: Final[Path | None]
-    xfile: Final[IFormattedName]
+    space: Final[IFormattedName | None]
     disp: Final[IFormattedName | None]
     var: Final[Mapping[str, IFormattedName]]
 
 
-class ParaviewTopology[I: np.integer]:
-    __slots__ = ["_ft", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
+@dc.dataclass(slots=True, frozen=True)
+class ExportArgs:
+    time: Final[str | int]
+    space: Final[Path]
+    disp: Final[Path | None]
+    var: Final[Mapping[str, Path]]
+    output_prefix: Final[str]
+    binary: Final[bool]
+    compress: Final[bool]
 
-    _ft: A2[I]
-    ne: int
-    nc: int
-    vtkelementtype: VtkType
-    vtksurfacetype: VtkType | None
 
-    def __init__(self, tfile: Path | str, bfile: Path | None, *, dtype: DType[I] = np.intc) -> None:
-        ################################################################################################
+class ParaviewTopology[F: np.floating, I: np.integer]:
+    __slots__ = ["_ft", "_fx", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
+
+    _ft: Final[A2[I]]
+    _fx: Final[A2[F]]
+    ne: Final[int]
+    nc: Final[int]
+    vtkelementtype: Final[VtkType]
+    vtksurfacetype: Final[VtkType | None]
+
+    def __init__(
+        self, x: A2[F], tfile: Path | str, bfile: Path | None, *, dtype: DType[I] = np.intc
+    ) -> None:
+        ############################################################################################
         # read topology and get number of elements, number of nodes per elements
         self._ft = np.loadtxt(tfile, skiprows=1, dtype=dtype) - 1
         if self._ft.ndim == 1:
             self._ft = self._ft[:, np.newaxis]
+        self._fx = x
         self.ne = self._ft.shape[0]
         self.nc = self._ft.shape[1]
         # guess the VTK element type
-        # bilinear triangle
         match bfile:
             case Path():
                 with Path(bfile).open("r") as f:
@@ -61,32 +76,38 @@ class ParaviewTopology[I: np.integer]:
         vtk = guess_elem_type_from_dim(self.nc, bdim).unwrap()
         self.vtkelementtype, self.vtksurfacetype = vtk.body, vtk.surf
 
-    def __setitem__(self, index: int, data: A1[I]) -> None:
-        self._ft[index] = data
+    # def __setitem__(self, index: int, data: A1[I]) -> None:
+    #     self._ft[index] = data
 
-    def __getitem__(self, index: int) -> int | A1[I]:
-        return self._ft[index]
+    # def __getitem__(self, index: int) -> A1[I]:
+    #     return self._ft[index]
 
-    def get_data(self) -> A2[I]:
+    @property
+    def x(self) -> A2[F]:
+        return self._fx
+
+    @property
+    def t(self) -> A2[I]:
         return self._ft
 
 
 @dc.dataclass(slots=True)
 class VariableCache[F: np.floating, I: np.integer]:
-    top: Final[ParaviewTopology[I]]
-    t: str | int
-    space_i: Path
-    disp_i: Path | None
-    space: A2[F]
-    disp: A2[F]
-    x: A2[F]
-    var_i: dict[str, Path] = dc.field(default_factory=dict[str, Path])
-    var: dict[str, A2[F]] = dc.field(default_factory=dict[str, "A2[F]"])
+    top: Final[ParaviewTopology[F, I]]
+    time: str | int
+    fx: Path | None
+    fd: Path | None
+    fv: dict[str, Path]
+    ftype: Final[DType[F]]
+    dtype: Final[DType[I]]
 
 
-@dc.dataclass(slots=True)
-class InputArguments:
-    space: str | A2[np.float64]
-    disp: str | None
-    var: dict[str, str]
-    prefix: str
+@dc.dataclass(slots=True, frozen=True)
+class XMLDataInputs[F: np.floating, I: np.integer]:
+    prefix: Final[str]
+    time: Final[str | int]
+    top: Final[ParaviewTopology[F, I]]
+    x: Final[Path | None]
+    u: Final[Path | None]
+    var: Final[Mapping[str, A2[F]]] | Final[Mapping[str, Path]]
+    compress: Final[bool]

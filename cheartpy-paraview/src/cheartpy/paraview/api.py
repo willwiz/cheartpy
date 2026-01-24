@@ -52,7 +52,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log.disp("", header_guard())
     cache = init_variable_cache(inp, indexer).unwrap()
     log.debug(cache)
-    export_boundary(inp, cache, log)
+    export_boundary(inp, cache.top, log)
     log.disp("", header_guard())
     if inp.cores > 1:
         log.info(f"<<< Processing vtus with {inp.cores} cores.")

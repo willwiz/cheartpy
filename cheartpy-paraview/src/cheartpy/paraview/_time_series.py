@@ -59,7 +59,7 @@ def create_time_series_json[F: np.floating](
 
 
 def _create_time_series_file[F: np.floating](
-    vtus: Iterable[Path], idx: Sequence[int], time: str, *, dtype: DType[F] = np.float64
+    vtus: Iterable[Path], idx: Sequence[int], time: Path, *, dtype: DType[F] = np.float64
 ) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
     time_array = read_array_float(time, dtype=dtype)
     match time_array.shape:
@@ -98,7 +98,7 @@ def create_time_series_core[F: np.floating](
         case Err(e):
             return Err(e)
     match args.time:
-        case str():
+        case Path():
             return _create_time_series_file(vtus, idx, args.time, dtype=dtype).next()
         case float() | int():
             return _create_time_series_range(vtus, idx, args.time, dtype=dtype).next()
