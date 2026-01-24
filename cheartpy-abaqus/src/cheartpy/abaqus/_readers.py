@@ -9,7 +9,7 @@ from ._trait import AbaqusItem
 
 if TYPE_CHECKING:
     from pytools.arrays import DType
-    from pytools.logging.trait import ILogger
+    from pytools.logging._trait import ILogger
 
 
 class _ElementHeader(NamedTuple):

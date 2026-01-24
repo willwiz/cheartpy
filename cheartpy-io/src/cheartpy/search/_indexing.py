@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from pytools.logging.api import BLogger
+from pytools.logging import BLogger, ILogger
 from pytools.result import Err, Ok
 
 from ._impl_indexers import (
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
     from pathlib import Path
 
-    from pytools.logging.trait import ILogger
 
 __all__ = [
     "find_common_index",

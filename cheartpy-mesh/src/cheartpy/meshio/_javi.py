@@ -1,5 +1,5 @@
+# ruff: noqa: PGH003
 # type: ignore
-# -*- coding: utf-8 -*-
 """
 Created on Thu Mar  9 14:49:36 2023
 

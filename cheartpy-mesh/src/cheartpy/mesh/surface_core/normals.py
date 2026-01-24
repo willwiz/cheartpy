@@ -4,13 +4,13 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 from cheartpy.vtk.api import get_vtk_elem
 from numpy.linalg import lstsq
-from pytools.logging.api import NLOGGER
+from pytools.logging import NLOGGER
 
 if TYPE_CHECKING:
     from cheartpy.mesh.struct import CheartMesh
     from cheartpy.vtk.types import VtkElem
     from pytools.arrays import A1, A2
-    from pytools.logging.trait import ILogger
+    from pytools.logging._trait import ILogger
 
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",

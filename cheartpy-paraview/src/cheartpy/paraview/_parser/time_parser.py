@@ -1,17 +1,18 @@
 import argparse
-import dataclasses as dc
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from ._types import TimeProgArgs
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-__all__ = ["_CmdLineArgs", "get_cmdline_args"]
+__all__ = ["get_cmdline_args"]
 
 ################################################################################################
 # The argument parse
-main_parser = argparse.ArgumentParser()
+time_parser = argparse.ArgumentParser("time", add_help=False)
 
 ################################################################################################
 # The shared parser
@@ -39,7 +40,7 @@ time_group.add_argument(
     "--time-file",
     "-t",
     dest="time",
-    type=str,
+    type=Path,
     help="File (Path). File containing a 1D array of floats",
 )
 parser.add_argument(
@@ -47,16 +48,9 @@ parser.add_argument(
     action="store",
     type=str,
     metavar=("prefix"),
-    help="supply a name for the folder to store the vtu outputs",
+    help="supply the name of the vtu outputs",
 )
 
 
-@dc.dataclass(slots=True)
-class _CmdLineArgs:
-    prefix: str
-    time: str | float
-    root: Path
-
-
-def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> _CmdLineArgs:
-    return main_parser.parse_args(cmd_args, namespace=_CmdLineArgs("", 1.0, Path()))
+def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> TimeProgArgs:
+    return time_parser.parse_args(cmd_args, namespace=TimeProgArgs("time", "", 1.0, Path()))

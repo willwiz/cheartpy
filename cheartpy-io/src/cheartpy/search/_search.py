@@ -69,16 +69,22 @@ def get_var_index_all(
 def find_var_index(prefix: str, root: Path | str | None) -> Ok[list[int]] | Err:
     root = Path(root) if root else Path()
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
-    var = list(var)
+    # var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
-    return get_var_index([v.name for v in var], prefix, suffix)
+    if not any(var):
+        msg = f"No matching variable files found with prefix {prefix} in {root}"
+        return Err(ValueError(msg))
+    return get_var_index([v.name for v in var], prefix, suffix).next()
 
 
 def find_var_subindex(prefix: str, root: Path | str | None) -> Ok[dict[int, list[int]]] | Err:
     root = Path(root) if root else Path()
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
-    var = list(var)
+    # var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
-    return get_var_subindex([v.name for v in var], prefix, suffix)
+    if not any(var):
+        msg = f"No matching variable files found with prefix {prefix} in {root}"
+        return Err(ValueError(msg))
+    return get_var_subindex([v.name for v in var], prefix, suffix).next()

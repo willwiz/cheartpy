@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from cheartpy.mesh.struct import CheartMesh
-from pytools.logging.api import BLogger
+from pytools.logging import BLogger
 from pytools.result import all_ok
 
 from ._core import (

@@ -2,13 +2,11 @@ import abc
 from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
 
 import numpy as np
-from pytools.arrays import SAny
+from pytools.arrays import A1, A2, Arr, SAny
 from pytools.result import Err, Ok
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-    from pytools.arrays import A1, A2, Arr
 
 
 def create_xml_data[S: SAny, T: np.number](

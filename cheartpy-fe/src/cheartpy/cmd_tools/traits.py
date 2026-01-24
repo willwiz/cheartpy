@@ -2,7 +2,7 @@ import abc
 import dataclasses as dc
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from pytools.logging.trait import BColors
+from pytools.logging import BColors
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

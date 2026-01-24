@@ -5,7 +5,7 @@ from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.trait import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
-    from ._parser import CmdLineArgs
+    from ._parser.types import VTUProgArgs
 
 _H_STR_LEN_ = 30
 
@@ -26,7 +26,7 @@ def compose_header() -> list[str]:
     ]
 
 
-def format_input_info(inp: CmdLineArgs) -> list[str]:
+def format_input_info(inp: VTUProgArgs) -> list[str]:
     msg = [f"{'<<< Retrieving data from:':<{_H_STR_LEN_}} {inp.input_dir}"]
     match inp.cmd:
         case "find":
@@ -77,7 +77,8 @@ def format_input_info(inp: CmdLineArgs) -> list[str]:
 
 
 def compose_index_info(indexer: IIndexIterator) -> str:
-    first = _last = next(iter(indexer))
-    for _last in indexer:
-        pass
-    return f"{f'<<<     Time step found: From {first} to {_last}':<35}"
+    indicies = sorted(indexer)
+    return (
+        f"{'<<<     Time step found:':<{_H_STR_LEN_}}"
+        f" From {indicies[0]} to {indicies[-1]} in {len(indicies)} steps"
+    )
