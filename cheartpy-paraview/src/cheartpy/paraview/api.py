@@ -56,7 +56,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log.disp("", header_guard())
     if inp.cores > 1:
         log.info(f"<<< Processing vtus with {inp.cores} cores.")
-        run_exports_in_parallel(inp, indexer, cache)
+        run_exports_in_parallel(inp, indexer, cache, log)
     else:
         log.info("<<< Processing vtus in series.")
         run_exports_in_series(inp, indexer, cache, log)

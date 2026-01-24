@@ -105,6 +105,7 @@ class VariableCache[F: np.floating, I: np.integer]:
 @dc.dataclass(slots=True, frozen=True)
 class XMLDataInputs[F: np.floating, I: np.integer]:
     prefix: Final[str]
+    path: Final[Path]
     time: Final[str | int]
     top: Final[ParaviewTopology[F, I]]
     x: Final[Path | None]

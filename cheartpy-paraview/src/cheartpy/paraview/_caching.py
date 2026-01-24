@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NamedTuple, overload
+from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
 from cheartpy.io.api import chread_d
@@ -86,12 +86,13 @@ class _TExportVariable[F: np.floating](NamedTuple):
 
 def get_arguments[F: np.floating, I: np.integer](
     inp: ProgramArgs, cache: VariableCache[F, I], indexer: IIndexIterator, *, log: ILogger
-) -> Generator[tuple[tuple[Path, XMLDataInputs[F, I]], Mapping[str, Any]]]:
+) -> Generator[XMLDataInputs[F, I]]:
     path_getter = CheartVTUFormat(inp.output_dir, inp.prefix)
     for t in indexer:
         cache = update_variable_cache(inp, t, cache, log=log)
-        args = XMLDataInputs(
+        yield XMLDataInputs(
             prefix=inp.prefix,
+            path=path_getter[t],
             time=t,
             top=cache.top,
             x=cache.fx,
@@ -99,7 +100,6 @@ def get_arguments[F: np.floating, I: np.integer](
             var=cache.fv,
             compress=inp.compress,
         )
-        yield (path_getter[t], args), {}
 
 
 def get_variables[F: np.floating, I: np.integer](

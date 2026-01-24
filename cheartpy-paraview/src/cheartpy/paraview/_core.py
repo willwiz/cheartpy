@@ -1,4 +1,3 @@
-from concurrent import futures
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -7,7 +6,7 @@ from cheartpy.io.api import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
 from pytools.logging import NLOGGER, ILogger
-from pytools.parallel import parallel_exec
+from pytools.parallel import ThreadedRunner
 from pytools.progress import ProgressBar
 
 from ._caching import get_arguments, get_variables
@@ -143,16 +142,16 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
 
 
 def export_mesh_iter[F: np.floating, I: np.integer](
-    path: Path,
+    # path: Path,
     args: XMLDataInputs[F, I],
     log: ILogger,
 ) -> None:
     x, var = get_variables(args.top, args.x, args.u, args.var)
     vtk_xml = create_xml_for_mesh(args.prefix, args.top, x, var)
-    with path.open("w") as fout:
+    with args.path.open("w") as fout:
         vtk_xml.write(fout)
     if args.compress:
-        compress_vtu(path, log=log)
+        compress_vtu(args.path, log=log)
 
 
 def run_exports_in_series[F: np.floating, I: np.integer](
@@ -162,22 +161,19 @@ def run_exports_in_series[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    for (path, arg), _ in get_arguments(inp, cache, indexer, log=log):
-        log.debug("<<< Working on", path.name)
-        export_mesh_iter(path, arg, log)
-        bart.next() if bart else print(f"<<< Completed {path}")
+    for arg in get_arguments(inp, cache, indexer, log=log):
+        log.debug("<<< Working on", arg.path.name)
+        export_mesh_iter(arg, log)
+        bart.next() if bart else print(f"<<< Completed {arg.path}")
 
 
 def run_exports_in_parallel[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
     cache: VariableCache[F, I],
+    log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    with futures.ThreadPoolExecutor(inp.cores) as executor:
-        parallel_exec(
-            executor,
-            export_mesh_iter,
-            get_arguments(inp, cache, indexer, log=NLOGGER),
-            prog_bar=bart,
-        )
+    with ThreadedRunner(inp.cores, mode="core", prog_bar=bart) as executor:
+        for arg in get_arguments(inp, cache, indexer, log=log):
+            executor.submit(export_mesh_iter, arg, log=NLOGGER)
