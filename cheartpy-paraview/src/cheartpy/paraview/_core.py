@@ -103,7 +103,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
         XMLElement(
             "Piece",
             Name=f"{prefix}",
-            NumberOfPoints=f"{x.shape[0]}",
+            NumberOfPoints=f"{len(x)}",
             NumberOfCells=f"{top.ne}",
         ),
     )
