@@ -1,4 +1,7 @@
+import sys
 from typing import TYPE_CHECKING, Final
+
+from pytools.logging._trait import BColors
 
 from .trait import IIndexIterator, ProgramMode
 
@@ -102,6 +105,21 @@ class ListIndexer[T: (int, str)](IIndexIterator):
 
     def __init__(self, values: Sequence[T]) -> None:
         self.values = values
+        indicies = {int(i) for i in sorted(values)}
+        ideal_indicies = set(
+            range(
+                min(indicies),
+                max(indicies),
+                int((max(indicies) - min(indicies)) / (len(indicies) - 1)),
+            )
+        )
+        diff = ideal_indicies - indicies
+        if len(diff) > 0:
+            msg = (
+                f"{BColors.WARN}<<< WARNING: Some indicies may be missing:{BColors.ENDC}\n"
+                f"{sorted(diff)}\n"
+            )
+            sys.stderr.write(msg)
 
     def __iter__(self) -> Iterator[T]:
         yield from self.values
