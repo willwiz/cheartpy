@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, overload
+from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack, overload
 
 from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.api import get_file_name_indexer
 from pytools.result import Err, Ok, all_ok
 
 from ._headers import compose_index_info, format_input_info
-from ._struct import ProgramArgs
+from ._struct import MPIDef, ProgramArgs
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 
 if TYPE_CHECKING:
@@ -168,6 +168,21 @@ def find_variable_formats(
     return Ok((space, disp, var))
 
 
+class _MPITypeModeArgs(TypedDict, total=False):
+    core: int | None
+    thread: int | None
+
+
+def _parse_mpi_mode(**kwargs: Unpack[_MPITypeModeArgs]) -> MPIDef | None:
+    if not kwargs:
+        return None
+    if (n := kwargs.get("core")) is not None:
+        return MPIDef("core", n)
+    if (n := kwargs.get("thread")) is not None:
+        return MPIDef("thread", n)
+    return None
+
+
 def process_cmdline_args(
     args: VTUProgArgs,
     log: ILogger,
@@ -199,6 +214,7 @@ def process_cmdline_args(
         case Err(e):
             return Err(e)
     space = None if isinstance(xfile, CheartMeshFormat) else xfile
+    mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
     return Ok(
         (
             ProgramArgs(
@@ -208,7 +224,7 @@ def process_cmdline_args(
                 prog_bar=args.prog_bar,
                 binary=args.binary,
                 compress=args.compress,
-                cores=args.cores,
+                mpi=mpi_mode,
                 tfile=top,
                 bfile=bnd,
                 xfile=xfile[ifirst],

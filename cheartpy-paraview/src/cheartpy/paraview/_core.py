@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
 
-    from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
+    from ._struct import MPIDef, ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
 
 __all__ = [
     "export_boundary",
@@ -168,12 +168,13 @@ def run_exports_in_series[F: np.floating, I: np.integer](
 
 
 def run_exports_in_parallel[F: np.floating, I: np.integer](
+    mpi: MPIDef,
     inp: ProgramArgs,
     indexer: IIndexIterator,
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    with ThreadedRunner(inp.cores, mode="core", prog_bar=bart) as executor:
+    with ThreadedRunner(mpi.n, mode=mpi.mode, prog_bar=bart) as executor:
         for arg in get_arguments(inp, cache, indexer, log=log):
             executor.submit(export_mesh_iter, arg, log=NLOGGER)
