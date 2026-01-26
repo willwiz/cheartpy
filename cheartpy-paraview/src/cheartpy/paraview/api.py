@@ -58,7 +58,9 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
         log.info("<<< Processing vtus in series.")
         run_exports_in_series(inp, indexer, cache, log)
     else:
-        log.info(f"<<< Processing vtus with {inp.mpi.n} {inp.mpi.mode}.")
+        for k, v in inp.mpi.items():
+            log.info(f"<<< Processing vtus with {v} {k}.")
+            break
         run_exports_in_parallel(inp.mpi, inp, indexer, cache, log)
     log.disp("", header_guard())
 

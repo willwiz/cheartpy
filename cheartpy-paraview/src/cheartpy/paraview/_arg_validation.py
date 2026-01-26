@@ -3,10 +3,11 @@ from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack, overload
 
 from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.api import get_file_name_indexer
+from pytools.parallel._parallel_exec import ThreadMethods
 from pytools.result import Err, Ok, all_ok
 
 from ._headers import compose_index_info, format_input_info
-from ._struct import MPIDef, ProgramArgs
+from ._struct import ProgramArgs
 from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 
 if TYPE_CHECKING:
@@ -173,13 +174,13 @@ class _MPITypeModeArgs(TypedDict, total=False):
     thread: int | None
 
 
-def _parse_mpi_mode(**kwargs: Unpack[_MPITypeModeArgs]) -> MPIDef | None:
+def _parse_mpi_mode(**kwargs: Unpack[_MPITypeModeArgs]) -> ThreadMethods | None:
     if not kwargs:
         return None
     if (n := kwargs.get("core")) is not None:
-        return MPIDef("core", n)
+        return ThreadMethods(core=n)
     if (n := kwargs.get("thread")) is not None:
-        return MPIDef("thread", n)
+        return ThreadMethods(thread=n)
     return None
 
 

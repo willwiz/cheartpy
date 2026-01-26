@@ -6,7 +6,7 @@ from cheartpy.io.api import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
 from pytools.logging import NLOGGER, ILogger
-from pytools.parallel import ThreadedRunner
+from pytools.parallel import ThreadedRunner, ThreadMethods
 from pytools.progress import ProgressBar
 
 from ._caching import get_arguments, get_variables
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A1, A2
 
-    from ._struct import MPIDef, ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
+    from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
 
 __all__ = [
     "export_boundary",
@@ -167,13 +167,13 @@ def run_exports_in_series[F: np.floating, I: np.integer](
 
 
 def run_exports_in_parallel[F: np.floating, I: np.integer](
-    mpi: MPIDef,
+    mpi: ThreadMethods,
     inp: ProgramArgs,
     indexer: IIndexIterator,
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    with ThreadedRunner(mpi.n, mode=mpi.mode, prog_bar=bart) as executor:
+    with ThreadedRunner(**mpi, prog_bar=bart) as executor:
         for arg in get_arguments(inp, cache, indexer, log=log):
             executor.submit(export_mesh_iter, arg, log=NLOGGER)

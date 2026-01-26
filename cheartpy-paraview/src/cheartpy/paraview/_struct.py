@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses as dc
 from pathlib import Path
-from typing import TYPE_CHECKING, Final, Literal, NamedTuple
+from typing import TYPE_CHECKING, Final
 
 import numpy as np
 from cheartpy.vtk.api import guess_elem_type_from_dim
@@ -12,13 +12,9 @@ if TYPE_CHECKING:
 
     from cheartpy.vtk.types import VtkType
     from pytools.arrays import A2, DType
+    from pytools.parallel import ThreadMethods
 
     from ._trait import IFormattedName
-
-
-class MPIDef(NamedTuple):
-    mode: Literal["core", "thread"]
-    n: int
 
 
 @dc.dataclass(slots=True, frozen=True)
@@ -29,7 +25,7 @@ class ProgramArgs:
     prog_bar: Final[bool]
     binary: Final[bool]
     compress: Final[bool]
-    mpi: Final[MPIDef | None]
+    mpi: Final[ThreadMethods | None]
     xfile: Final[Path]
     tfile: Final[Path]
     bfile: Final[Path | None]
