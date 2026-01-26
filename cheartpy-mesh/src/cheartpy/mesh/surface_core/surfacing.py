@@ -4,8 +4,9 @@ from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Literal
 
 import numpy as np
-from cheartpy.mesh.struct import CheartMesh, CheartMeshBoundary, CheartMeshPatch
 from pytools.result import Err, Ok
+
+from cheartpy.mesh.struct import CheartMesh, CheartMeshBoundary, CheartMeshPatch
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2

@@ -77,6 +77,7 @@ class SolidProblem(IProblem):
         self.state_vars = {}
         self.options = {}
         self.flags = {}
+        self.gravity = None
         self._buffering = True
         self.bc = create_bc()
 
