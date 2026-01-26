@@ -96,7 +96,7 @@ class MaxwellBranch(ILaw):
         s += f"    {self.store!s}\n"
         s += f"    {self.tau}\n"
         if self.InitPK2:
-            s = s + f"    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ''}\n"
+            s = s + f"    InitPK2{f'  {self.InitPK2}' if (type(self.InitPK2) is int) else ''}\n"
         if self.ZeroPK2:
             s = s + "    ZeroPK2\n"
         if self.Order != 1:
@@ -163,7 +163,7 @@ class FractionalVE(ILaw):
             }\n"
         )
         if self.InitPK2:
-            s = s + f"    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ''}\n"
+            s = s + f"    InitPK2{f'  {self.InitPK2}' if (type(self.InitPK2) is int) else ''}\n"
         if self.ZeroPK2:
             s = s + "    ZeroPK2\n"
         if self.Order == 1:
@@ -234,7 +234,7 @@ class FractionalDiffEQ(ILaw):
             }\n"
         )
         if self.InitPK2:
-            s = s + f"    InitPK2  {self.InitPK2 if (type(self.InitPK2) is int) else ''}\n"
+            s = s + f"    InitPK2{f'  {self.InitPK2}' if (type(self.InitPK2) is int) else ''}\n"
         if self.ZeroPK2:
             s = s + "    ZeroPK2\n"
         if self.Order == 1:
