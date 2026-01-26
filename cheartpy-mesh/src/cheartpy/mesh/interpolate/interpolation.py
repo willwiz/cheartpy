@@ -8,9 +8,11 @@ from pytools.logging import NLOGGER
 from .maps import L2QMAPDICT, L2QTYPEDICT
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from cheartpy.mesh.struct import CheartMesh
     from pytools.arrays import A1, A2
-    from pytools.logging._trait import ILogger
+    from pytools.logging import ILogger
 
 
 __all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]
@@ -56,12 +58,17 @@ def interp_var_l2q[T: np.floating, I: np.integer](l2qmap: INTERP_MAP[I], lin: A2
 
 def interpolate_var_on_lin_topology[I: np.integer](
     l2qmap: INTERP_MAP[I],
-    lin_var: str,
-    quad_var: str,
+    lin_var: Path,
+    quad_var: Path,
+    *,
     log: ILogger = NLOGGER,
+    overwrite: bool = False,
 ) -> None:
     lin = chread_d(lin_var)
     if len(lin) == len(l2qmap):
+        log.debug("Variable invalid l2qmap")
+        return
+    if quad_var.is_file() and not overwrite:
         log.debug(f"Variable {lin_var} already interpolated")
         return
     quad = interp_var_l2q(l2qmap, lin)

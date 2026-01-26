@@ -142,7 +142,6 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
 
 
 def export_mesh_iter[F: np.floating, I: np.integer](
-    # path: Path,
     args: XMLDataInputs[F, I],
     log: ILogger,
 ) -> None:

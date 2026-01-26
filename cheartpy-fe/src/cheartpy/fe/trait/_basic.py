@@ -46,7 +46,7 @@ type EXPRESSION_VALUE = (
     | tuple[IDataInterp, int]
 )
 
-type BC_VALUE = IExpression | IVariable | str | int | float | tuple[IVariable, int]
+type BC_VALUE = IExpression | IVariable | tuple[IVariable, int] | str | int | float
 
 
 class ITimeScheme(abc.ABC):

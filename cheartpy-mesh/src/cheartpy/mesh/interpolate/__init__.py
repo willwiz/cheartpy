@@ -1,4 +1,4 @@
-from .interpolation import INTERP_MAP, interp_var_l2q, make_l2qmap
+from .interpolation import INTERP_MAP, interp_var_l2q, interpolate_var_on_lin_topology, make_l2qmap
 from .maps import L2QMAPDICT, L2QTYPEDICT
 from .remeshing import create_quad_mesh_from_lin, create_quad_mesh_from_lin_cylindrical
 
@@ -9,5 +9,6 @@ __all__ = [
     "create_quad_mesh_from_lin",
     "create_quad_mesh_from_lin_cylindrical",
     "interp_var_l2q",
+    "interpolate_var_on_lin_topology",
     "make_l2qmap",
 ]
