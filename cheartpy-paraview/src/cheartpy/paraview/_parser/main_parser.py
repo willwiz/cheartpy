@@ -8,7 +8,7 @@ from pytools.logging import LogLevel
 from ._find import find_subparser
 from ._index import index_subparser
 from ._io import io_parser
-from ._settings import setting_parser
+from ._settings import multiprocessing_parser, setting_parser
 from ._topology import find_topology_parser, index_topology_parser
 from ._types import (
     SUBPARSER_MODES,
@@ -28,13 +28,25 @@ _subparsers = cheart2vtu_parser.add_subparsers(dest="cmd")
 find = _subparsers.add_parser(
     "find",
     help="determine settings automatically",
-    parents=[find_subparser, io_parser, find_topology_parser, setting_parser],
+    parents=[
+        find_subparser,
+        io_parser,
+        find_topology_parser,
+        setting_parser,
+        multiprocessing_parser,
+    ],
 )
 find.add_argument("var", nargs="*", type=str, help="Optional: variables")
 index = _subparsers.add_parser(
     "index",
     help="determine settings automatically",
-    parents=[index_subparser, io_parser, index_topology_parser, setting_parser],
+    parents=[
+        index_subparser,
+        io_parser,
+        index_topology_parser,
+        setting_parser,
+        multiprocessing_parser,
+    ],
 )
 index.add_argument("var", nargs="*", type=str, help="Optional: variables")
 
@@ -44,13 +56,25 @@ _subparsers = main_parser.add_subparsers(dest="cmd")
 find = _subparsers.add_parser(
     "find",
     help="determine settings automatically",
-    parents=[find_subparser, io_parser, find_topology_parser, setting_parser],
+    parents=[
+        find_subparser,
+        io_parser,
+        find_topology_parser,
+        setting_parser,
+        multiprocessing_parser,
+    ],
 )
 find.add_argument("var", nargs="*", type=str, help="Optional: variables")
 index = _subparsers.add_parser(
     "index",
     help="determine settings automatically",
-    parents=[index_subparser, io_parser, index_topology_parser, setting_parser],
+    parents=[
+        index_subparser,
+        io_parser,
+        index_topology_parser,
+        setting_parser,
+        multiprocessing_parser,
+    ],
 )
 index.add_argument("var", nargs="*", type=str, help="Optional: variables")
 time = _subparsers.add_parser(
@@ -160,7 +184,9 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
         log=LogLevel[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
         compress=kwargs.get("compress", True),
-        cores=kwargs.get("cores", 1),
+        core=kwargs.get("core"),
+        thread=kwargs.get("thread"),
+        interpreter=kwargs.get("interpreter"),
         var=kwargs.get("var", []),
     )
 
@@ -192,6 +218,8 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
         log=LogLevel[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
         compress=kwargs.get("compress", True),
-        cores=kwargs.get("cores", 1),
+        core=kwargs.get("core"),
+        thread=kwargs.get("thread"),
+        interpreter=kwargs.get("interpreter"),
         var=kwargs.get("var", []),
     )

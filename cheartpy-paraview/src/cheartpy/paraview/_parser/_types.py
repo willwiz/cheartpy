@@ -27,7 +27,9 @@ class APIKwargs(TypedDict, total=False):
     log: LOG_LEVEL
     binary: bool
     compress: bool
-    cores: int
+    core: int | None
+    thread: int | None
+    interpreter: int | None
     var: Sequence[str]
 
 
@@ -44,7 +46,9 @@ class APIKwargsFind(TypedDict, total=False):
     log: LOG_LEVEL
     binary: bool
     compress: bool
-    cores: int
+    core: int | None
+    thread: int | None
+    interpreter: int | None
     var: Sequence[str]
 
 
@@ -61,7 +65,9 @@ class APIKwargsIndex(TypedDict, total=False):
     log: LOG_LEVEL
     binary: bool
     compress: bool
-    cores: int
+    core: int | None
+    thread: int | None
+    interpreter: int | None
     var: Sequence[str]
 
 
@@ -88,7 +94,9 @@ class VTUProgArgs:
     log: Final[LogLevel]
     binary: Final[bool]
     compress: Final[bool]
-    cores: Final[int]
+    core: Final[int | None]
+    thread: Final[int | None]
+    interpreter: Final[int | None]
     var: Final[Sequence[str]]
 
 
