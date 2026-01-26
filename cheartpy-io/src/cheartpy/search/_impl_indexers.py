@@ -105,6 +105,8 @@ class ListIndexer[T: (int, str)](IIndexIterator):
 
     def __init__(self, values: Sequence[T]) -> None:
         self.values = values
+        if len(values) <= 1:
+            return
         indicies = {int(i) for i in sorted(values)}
         ideal_indicies = set(
             range(

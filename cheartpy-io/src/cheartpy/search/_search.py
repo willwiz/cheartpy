@@ -68,10 +68,9 @@ def get_var_index_all(
 
 def find_var_index(prefix: str, root: Path | str | None) -> Ok[list[int]] | Err:
     root = Path(root) if root else Path()
-    var, suffix = root.glob(f"{prefix}-*.D"), r"D"
-    # var = list(var)
+    var, suffix = sorted(root.glob(f"{prefix}-*.D")), r"D"
     if not any(var):
-        var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
+        var, suffix = sorted(root.glob(f"{prefix}-*.D.gz")), r"D\.gz"
     if not any(var):
         msg = f"No matching variable files found with prefix {prefix} in {root}"
         return Err(ValueError(msg))
