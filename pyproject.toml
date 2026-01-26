@@ -50,3 +50,15 @@ pytools = { git = "https://github.com/willwiz/pytools" }
 
 [tool.uv.build-backend]
 namespace = true
+
+[dependency-groups]
+dev = [
+  "cheartpy-abaqus",
+  "cheartpy-cl",
+  "cheartpy-fe",
+  "cheartpy-io",
+  "cheartpy-mesh",
+  "cheartpy-paraview",
+  "cheartpy-symbolic",
+  "cheartpy-vtk",
+]
