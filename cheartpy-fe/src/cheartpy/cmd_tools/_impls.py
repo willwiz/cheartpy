@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
-from .traits import IVariableGetter
+from ._traits import IVariableGetter
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
@@ -95,4 +95,4 @@ class Variable0Getter(IVariableGetter):
         self._var2 = root / var2 if var2 else None
 
     def __iter__(self) -> Iterator[tuple[str, Path | None, Path | None]]:
-        yield "", self._var1, self._var2
+        yield "N/A", self._var1, self._var2

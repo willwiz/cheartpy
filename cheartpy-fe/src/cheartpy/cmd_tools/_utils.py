@@ -5,26 +5,26 @@ import numpy as np
 from cheartpy.search.api import get_var_index
 from pytools.result import Err, Ok
 
-from .impls import Variable0Getter, Variable1Getter, Variable2Getter
-from .traits import IVariableGetter, IVariableList, VarErrors, VarStats
+from ._impls import Variable0Getter, Variable1Getter, Variable2Getter
+from ._traits import IVariableGetter, IVariableList, VarErrors, VarStats
 
 if TYPE_CHECKING:
-    from pytools.arrays import A1, A2
+    from pytools.arrays import A2
 
 
 __all__ = ["compute_stats", "get_variable_getter"]
 
 
-def moving_average[T: np.floating](x: A2[T], w: int) -> A1[T]:
+def moving_average[T: np.floating](x: A2[T], w: int) -> A2[T]:
     dim = x.shape
-    mu = np.zeros(dim[0], dtype=x.dtype)
+    mu = np.zeros((dim[0], 1), dtype=x.dtype)
     for i in range(dim[0]):
         if i < w + 1:
-            mu[i] = np.mean(x[: i + w], axis=0)
+            mu[i] = np.mean(x[: i + w])
         elif i > dim[0] - w:
-            mu[i] = np.mean(x[i - w - 1 :], axis=0)
+            mu[i] = np.mean(x[i - w - 1 :])
         else:
-            mu[i] = np.mean(x[i - w - 1 : i + w], axis=0)
+            mu[i] = np.mean(x[i - w - 1 : i + w])
     return mu
 
 

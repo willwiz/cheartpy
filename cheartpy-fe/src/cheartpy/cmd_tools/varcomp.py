@@ -3,10 +3,10 @@ import argparse
 from cheartpy.io.api import chread_d
 from pytools.logging import BLogger
 
-from .funcs import compute_stats, get_variable_getter, get_variables
-from .traits import HEADER, HEADER_LEN, VarErrors, VarStats
+from ._traits import HEADER, HEADER_LEN, VarErrors, VarStats
+from ._utils import compute_stats, get_variable_getter, get_variables
 
-__all__ = ["main"]
+__all__ = ["main_cli"]
 
 
 parser = argparse.ArgumentParser(
@@ -38,14 +38,15 @@ parser.add_argument(
 
 
 def table_header() -> str:
-    return f"{r'#':^8}|{'Mag':^8}|||".join([f"{s:^10}" for s in HEADER]) + "\n" + (HEADER_LEN * "─")
+    header = f"{'iter':^8}\u2016{'avg':^9}\u2016" + "|".join([f"{s:^9}" for s in HEADER])
+    return header + "\n" + ("─" * len(header))
 
 
 def table_row(it: int | str, res: VarStats) -> str:
-    return f"{it:>8}|{res}"
+    return f"{it:>8}\u2016{res}"
 
 
-def main() -> None:
+def main_cli() -> None:
     args = parser.parse_args()
     VarErrors.tol = args.tol
     log = BLogger("INFO")
@@ -65,4 +66,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    main_cli()

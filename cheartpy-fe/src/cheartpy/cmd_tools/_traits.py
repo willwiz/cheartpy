@@ -48,14 +48,14 @@ class VarStats:
     err: VarErrors
 
     def __repr__(self) -> str:
-        return f"{self.avg:>8.1E}||{self.err}"
+        return f"{self.avg:>9.2E}\u2016{self.err}"
 
 
 def hstr(x: float | tuple[int, int], tol: float = 1e-10) -> str:
     match x:
         case tuple():
-            return f"{f'{x[0]},{x[1]}':^10}"
+            return f"{f'{x[0]},{x[1]}':^9}"
         case _:
             if x > tol:
-                return f"{BColors.WARN}{x:>10.3E}{BColors.ENDC}"
-            return f"{x:>10.3E}"
+                return f"{BColors.WARN}{x:>9.2E}{BColors.ENDC}"
+            return f"{x:>9.2E}"
