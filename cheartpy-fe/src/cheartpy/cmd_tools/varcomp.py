@@ -59,6 +59,12 @@ def main_cli() -> None:
     getter = get_variable_getter(v1, v2, root=args.folder)
     log.disp(table_header())
     for k, i, j in getter:
+        if i and not i.is_file():
+            log.fatal(f"File {i} does not exist")
+            raise SystemExit(1)
+        if j and not j.is_file():
+            log.fatal(f"File {j} does not exist")
+            raise SystemExit(1)
         x = 0.0 if i is None else chread_d(i)
         y = 0.0 if j is None else chread_d(j)
         res = compute_stats(x, y)
