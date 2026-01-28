@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     import numpy as np
     from cheartpy.search.trait import SearchMode
     from pytools.arrays import DType
-    from pytools.logging import LOG_LEVEL, LogLevel
+    from pytools.logging import LogLevel, LogLevelType
 
-SUBPARSER_MODES = Literal["index", "find"]
+SubparserModes = Literal["index", "find"]
 
 
 class APIKwargs(TypedDict, total=False):
@@ -24,7 +24,7 @@ class APIKwargs(TypedDict, total=False):
     space: Path | str | None
     boundary: Path | str | None
     prog_bar: bool
-    log: LOG_LEVEL
+    log: LogLevelType
     binary: bool
     compress: bool
     core: int | None
@@ -43,7 +43,7 @@ class APIKwargsFind(TypedDict, total=False):
     space: Path | str | None
     boundary: Path | str | None
     prog_bar: bool
-    log: LOG_LEVEL
+    log: LogLevelType
     binary: bool
     compress: bool
     core: int | None
@@ -62,7 +62,7 @@ class APIKwargsIndex(TypedDict, total=False):
     space: Required[Path | str]
     boundary: Path | str | None
     prog_bar: bool
-    log: LOG_LEVEL
+    log: LogLevelType
     binary: bool
     compress: bool
     core: int | None
@@ -75,13 +75,13 @@ class TimeSeriesKwargs(TypedDict, total=False):
     prefix: Required[str]
     time: Required[Path | float]
     root: Path
-    log: LOG_LEVEL
+    log: LogLevelType
     dtype: DType[np.floating]
 
 
 @dc.dataclass(slots=True)
 class VTUProgArgs:
-    cmd: Final[SUBPARSER_MODES]
+    cmd: Final[SubparserModes]
     index: tuple[int, int, int] | SearchMode | None
     subindex: tuple[int, int, int] | SearchMode | None
     prefix: Final[str | None]

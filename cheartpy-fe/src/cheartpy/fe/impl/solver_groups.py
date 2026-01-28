@@ -2,12 +2,12 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
-    ITERATION_SETTINGS,
-    SOLVER_SUBGROUP_ALGORITHM,
-    TOL_SETTINGS,
-    IterationSettings,
-    SolverSubgroupAlgorithm,
-    TolSettings,
+    IterationEnum,
+    IterationSetting,
+    SolverSubgroupMethod,
+    SolverSubgroupMethodEnum,
+    TolEnum,
+    TolSetting,
 )
 from cheartpy.fe.string_tools import get_enum, hline, join_fields, splicegen
 from cheartpy.fe.trait import (
@@ -72,13 +72,13 @@ PFile
 # Define Solver SubGroup
 @dc.dataclass(slots=True)
 class SolverSubGroup(ISolverSubGroup):
-    method: SolverSubgroupAlgorithm
+    method: SolverSubgroupMethodEnum
     problems: dict[str, ISolverMatrix | IProblem] = dc.field(
         default_factory=dict[str, ISolverMatrix | IProblem],
     )
     _scale_first_residual: float | None = None
 
-    def get_method(self) -> SolverSubgroupAlgorithm:
+    def get_method(self) -> SolverSubgroupMethodEnum:
         return self.method
 
     def get_all_vars(self) -> Mapping[str, IVariable]:
@@ -136,11 +136,11 @@ class SolverGroup(ISolverGroup):
     time: ITimeScheme
     sub_groups: list[ISolverSubGroup] = dc.field(default_factory=list[ISolverSubGroup])
     settings: dict[
-        TolSettings | IterationSettings | Literal["CatchSolverErrors"],
+        TolEnum | IterationEnum | Literal["CatchSolverErrors"],
         list[str | int | float | IExpression | IVariable],
     ] = dc.field(
         default_factory=dict[
-            TolSettings | IterationSettings | Literal["CatchSolverErrors"],
+            TolEnum | IterationEnum | Literal["CatchSolverErrors"],
             list[str | int | float | IExpression | IVariable],
         ],
     )
@@ -177,18 +177,18 @@ class SolverGroup(ISolverGroup):
 
     def set_convergence(
         self,
-        task: TolSettings | TOL_SETTINGS,
+        task: TolSetting,
         val: float | str,
     ) -> None:
-        task = get_enum(task, TolSettings)
+        task = get_enum(task, TolEnum)
         self.settings[task] = [val]
 
     def set_iteration(
         self,
-        task: IterationSettings | ITERATION_SETTINGS,
+        task: IterationEnum | IterationSetting,
         val: int | str,
     ) -> None:
-        task = get_enum(task, IterationSettings)
+        task = get_enum(task, IterationEnum)
         self.settings[task] = [val]
 
     def catch_solver_errors(
@@ -222,12 +222,12 @@ class SolverGroup(ISolverGroup):
 
     def make_solversubgroup(
         self,
-        method: SOLVER_SUBGROUP_ALGORITHM,
+        method: SolverSubgroupMethod,
         *problems: ISolverMatrix | IProblem,
     ) -> None:
         self.sub_groups.append(
             SolverSubGroup(
-                method=get_enum(method, SolverSubgroupAlgorithm),
+                method=get_enum(method, SolverSubgroupMethodEnum),
                 problems={str(p): p for p in problems},
             ),
         )

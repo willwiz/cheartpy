@@ -1,7 +1,7 @@
 import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.fe.aliases import BOUNDARY_TYPE, BoundaryType
+from cheartpy.fe.aliases import BoundaryEnum, BoundaryType
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IExpression, IVariable
 
@@ -15,7 +15,7 @@ __all__ = ["BCPatch", "BoundaryCondition"]
 class BCPatch(IBCPatch):
     id: int | str
     component: tuple[IVariable, int | None]
-    bctype: BoundaryType
+    bctype: BoundaryEnum
     values: list[BC_VALUE]
     options: list[str | int | float]
 
@@ -35,7 +35,7 @@ class BCPatch(IBCPatch):
         self,
         i: int,
         component: IVariable | tuple[IVariable, int | None],
-        bctype: BOUNDARY_TYPE | BoundaryType,
+        bctype: BoundaryType | BoundaryEnum,
         *val: BC_VALUE,
     ) -> None:
         self.id = i
@@ -44,7 +44,7 @@ class BCPatch(IBCPatch):
         else:
             idx = None
         self.component = component[idx]
-        self.bctype = get_enum(bctype, BoundaryType)
+        self.bctype = get_enum(bctype, BoundaryEnum)
         self.values = list(val)
         self.options = []
 

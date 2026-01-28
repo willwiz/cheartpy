@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from cheartpy.search.trait import IIndexIterator
     from pytools.logging import ILogger
 
-    from ._parser.types import SUBPARSER_MODES, VTUProgArgs
+    from ._parser.types import SubparserModes, VTUProgArgs
     from ._trait import IFormattedName
 
 
@@ -77,7 +77,7 @@ def _parse_indexmode_args(
 
 
 _MESH_FILE_PARSER: Mapping[
-    SUBPARSER_MODES, Callable[[Path, Path | None, Path | None], Ok[_MeshTopologyFiles] | Err]
+    SubparserModes, Callable[[Path, Path | None, Path | None], Ok[_MeshTopologyFiles] | Err]
 ] = {
     "find": _parse_findmode_args,
     "index": _parse_indexmode_args,

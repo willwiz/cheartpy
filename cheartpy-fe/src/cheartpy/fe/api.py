@@ -2,19 +2,19 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
 
 from .aliases import (
-    BOUNDARY_TYPE,
-    CHEART_BASIS_TYPE,
-    CHEART_ELEMENT_TYPE,
-    CHEART_TOPINTERFACE_TYPE,
-    MATRIX_SOLVER_OPTIONS,
-    SOLVER_SUBGROUP_ALGORITHM,
-    VARIABLE_EXPORT_FORMAT,
+    BoundaryEnum,
     BoundaryType,
+    CheartBasisEnum,
     CheartBasisType,
+    CheartElementEnum,
     CheartElementType,
-    CheartQuadratureType,
-    MatrixSolverOptions,
-    SolverSubgroupAlgorithm,
+    CheartQuadratureEnum,
+    CheartTopInterfaceType,
+    MatrixSolverEnum,
+    MatrixSolverOption,
+    SolverSubgroupMethod,
+    SolverSubgroupMethodEnum,
+    VariableExportEnum,
     VariableExportFormat,
 )
 from .impl import (
@@ -101,33 +101,33 @@ _ORDER = {
 }
 
 _ELEM = {
-    CheartElementType.POINT_ELEMENT: "Point",
-    CheartElementType.point: "Point",
-    CheartElementType.ONED_ELEMENT: "Line",
-    CheartElementType.line: "Line",
-    CheartElementType.TRIANGLE_ELEMENT: "Tri",
-    CheartElementType.tri: "Tri",
-    CheartElementType.QUADRILATERAL_ELEMENT: "Quad",
-    CheartElementType.quad: "Quad",
-    CheartElementType.TETRAHEDRAL_ELEMENT: "Tet",
-    CheartElementType.tet: "Tet",
-    CheartElementType.HEXAHEDRAL_ELEMENT: "Hex",
-    CheartElementType.hex: "Hex",
+    CheartElementEnum.POINT_ELEMENT: "Point",
+    CheartElementEnum.point: "Point",
+    CheartElementEnum.ONED_ELEMENT: "Line",
+    CheartElementEnum.line: "Line",
+    CheartElementEnum.TRIANGLE_ELEMENT: "Tri",
+    CheartElementEnum.tri: "Tri",
+    CheartElementEnum.QUADRILATERAL_ELEMENT: "Quad",
+    CheartElementEnum.quad: "Quad",
+    CheartElementEnum.TETRAHEDRAL_ELEMENT: "Tet",
+    CheartElementEnum.tet: "Tet",
+    CheartElementEnum.HEXAHEDRAL_ELEMENT: "Hex",
+    CheartElementEnum.hex: "Hex",
 }
 
-_QUADRATURE_FOR_ELEM: dict[CheartElementType, CheartQuadratureType] = {
-    CheartElementType.POINT_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.point: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.ONED_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.line: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.TRIANGLE_ELEMENT: CheartQuadratureType.KEAST_LYNESS,
-    CheartElementType.tri: CheartQuadratureType.KEAST_LYNESS,
-    CheartElementType.QUADRILATERAL_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.quad: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.TETRAHEDRAL_ELEMENT: CheartQuadratureType.KEAST_LYNESS,
-    CheartElementType.tet: CheartQuadratureType.KEAST_LYNESS,
-    CheartElementType.HEXAHEDRAL_ELEMENT: CheartQuadratureType.GAUSS_LEGENDRE,
-    CheartElementType.hex: CheartQuadratureType.GAUSS_LEGENDRE,
+_QUADRATURE_FOR_ELEM: dict[CheartElementEnum, CheartQuadratureEnum] = {
+    CheartElementEnum.POINT_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.point: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.ONED_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.line: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.TRIANGLE_ELEMENT: CheartQuadratureEnum.KEAST_LYNESS,
+    CheartElementEnum.tri: CheartQuadratureEnum.KEAST_LYNESS,
+    CheartElementEnum.QUADRILATERAL_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.quad: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.TETRAHEDRAL_ELEMENT: CheartQuadratureEnum.KEAST_LYNESS,
+    CheartElementEnum.tet: CheartQuadratureEnum.KEAST_LYNESS,
+    CheartElementEnum.HEXAHEDRAL_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
+    CheartElementEnum.hex: CheartQuadratureEnum.GAUSS_LEGENDRE,
 }
 
 
@@ -136,22 +136,22 @@ class _CreateBasisKwargs(TypedDict, total=False):
 
 
 def create_basis(
-    elem: CHEART_ELEMENT_TYPE | CheartElementType,
-    kind: CHEART_BASIS_TYPE | CheartBasisType,
+    elem: CheartElementType | CheartElementEnum,
+    kind: CheartBasisType | CheartBasisEnum,
     order: Literal[0, 1, 2],
     **kwargs: Unpack[_CreateBasisKwargs],
 ) -> ICheartBasis:
-    elem = get_enum(elem, CheartElementType)
-    kind = get_enum(kind, CheartBasisType)
+    elem = get_enum(elem, CheartElementEnum)
+    kind = get_enum(kind, CheartBasisEnum)
     quadrature = _QUADRATURE_FOR_ELEM[elem]
     name = f"{_ORDER[order]}{_ELEM[elem]}"
-    gp = kwargs.get("gp", 9 if quadrature is CheartQuadratureType.GAUSS_LEGENDRE else 4)
+    gp = kwargs.get("gp", 9 if quadrature is CheartQuadratureEnum.GAUSS_LEGENDRE else 4)
     if 2 * gp < order + 1:
         msg = f"For {name}, order {2 * gp} < {order + 1}"
         raise ValueError(msg)
-    if quadrature is CheartQuadratureType.KEAST_LYNESS and elem not in [
-        CheartElementType.TETRAHEDRAL_ELEMENT,
-        CheartElementType.TRIANGLE_ELEMENT,
+    if quadrature is CheartQuadratureEnum.KEAST_LYNESS and elem not in [
+        CheartElementEnum.TETRAHEDRAL_ELEMENT,
+        CheartElementEnum.TRIANGLE_ELEMENT,
     ]:
         msg = f"For {name} Basis, KEAST_LYNESS can only be used with tetrahedral or triangles"
         raise ValueError(msg)
@@ -160,17 +160,17 @@ def create_basis(
 
 def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
     match vol.elem:
-        case CheartElementType.HEXAHEDRAL_ELEMENT | CheartElementType.hex:
-            elem = CheartElementType.QUADRILATERAL_ELEMENT
-        case CheartElementType.TETRAHEDRAL_ELEMENT | CheartElementType.tet:
-            elem = CheartElementType.TRIANGLE_ELEMENT
-        case CheartElementType.QUADRILATERAL_ELEMENT | CheartElementType.quad:
-            elem = CheartElementType.ONED_ELEMENT
-        case CheartElementType.TRIANGLE_ELEMENT | CheartElementType.tri:
-            elem = CheartElementType.ONED_ELEMENT
-        case CheartElementType.ONED_ELEMENT | CheartElementType.line:
-            elem = CheartElementType.POINT_ELEMENT
-        case CheartElementType.POINT_ELEMENT | CheartElementType.point:
+        case CheartElementEnum.HEXAHEDRAL_ELEMENT | CheartElementEnum.hex:
+            elem = CheartElementEnum.QUADRILATERAL_ELEMENT
+        case CheartElementEnum.TETRAHEDRAL_ELEMENT | CheartElementEnum.tet:
+            elem = CheartElementEnum.TRIANGLE_ELEMENT
+        case CheartElementEnum.QUADRILATERAL_ELEMENT | CheartElementEnum.quad:
+            elem = CheartElementEnum.ONED_ELEMENT
+        case CheartElementEnum.TRIANGLE_ELEMENT | CheartElementEnum.tri:
+            elem = CheartElementEnum.ONED_ELEMENT
+        case CheartElementEnum.ONED_ELEMENT | CheartElementEnum.line:
+            elem = CheartElementEnum.POINT_ELEMENT
+        case CheartElementEnum.POINT_ELEMENT | CheartElementEnum.point:
             msg = "No such thing as boundary for point elements"
             raise ValueError(msg)
     return create_basis(elem, vol.basis.kind, vol.basis.order, gp=vol.quadrature.gp)
@@ -180,11 +180,11 @@ def create_topology(
     name: str,
     basis: ICheartBasis | None,
     mesh: Path | str,
-    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    fmt: VariableExportFormat | VariableExportEnum = VariableExportEnum.TXT,
 ) -> ICheartTopology:
     if basis is None:
         return NullTopology()
-    fmt = get_enum(fmt, VariableExportFormat)
+    fmt = get_enum(fmt, VariableExportEnum)
     return CheartTopology(name, basis, Path(mesh), fmt)
 
 
@@ -192,22 +192,22 @@ def create_embedded_topology(
     name: str,
     embedded_top: ICheartTopology,
     mesh: Path | str,
-    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = VariableExportFormat.TXT,
+    fmt: VariableExportFormat | VariableExportEnum = VariableExportEnum.TXT,
 ) -> ICheartTopology:
-    fmt = get_enum(fmt, VariableExportFormat)
+    fmt = get_enum(fmt, VariableExportEnum)
     return CheartTopology(name, None, Path(mesh), fmt, embedded=embedded_top)
 
 
 def create_solver_matrix(
     name: str,
-    solver: MATRIX_SOLVER_OPTIONS | MatrixSolverOptions,
+    solver: MatrixSolverOption | MatrixSolverEnum,
     *probs: IProblem | None,
 ) -> ISolverMatrix:
     problems: dict[str, IProblem] = {}
     for p in probs:
         if p is not None:
             problems[str(p)] = p
-    method = get_enum(solver, MatrixSolverOptions)
+    method = get_enum(solver, MatrixSolverEnum)
     return SolverMatrix(name, method, problems)
 
 
@@ -220,17 +220,17 @@ def create_solver_group(
 
 
 def create_solver_subgroup(
-    method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
+    method: SolverSubgroupMethod | SolverSubgroupMethodEnum,
     *probs: ISolverMatrix | IProblem,
 ) -> ISolverSubGroup:
     problems: dict[str, ISolverMatrix | IProblem] = {}
     for p in probs:
         problems[str(p)] = p
-    return SolverSubGroup(get_enum(method, SolverSubgroupAlgorithm), problems)
+    return SolverSubGroup(get_enum(method, SolverSubgroupMethodEnum), problems)
 
 
 def create_top_interface(
-    method: CHEART_TOPINTERFACE_TYPE,
+    method: CheartTopInterfaceType,
     topologies: list[ICheartTopology],
     master_topology: ICheartTopology | None = None,
     interface_file: Path | str | None = None,
@@ -260,10 +260,10 @@ def create_top_interface(
 def create_bcpatch(
     label: int,
     var: IVariable | tuple[IVariable, int | None],
-    kind: BOUNDARY_TYPE | BoundaryType,
+    kind: BoundaryType | BoundaryEnum,
     *val: BC_VALUE,
 ) -> IBCPatch:
-    return BCPatch(label, var, get_enum(kind, BoundaryType), *val)
+    return BCPatch(label, var, get_enum(kind, BoundaryEnum), *val)
 
 
 def create_bc(*val: IBCPatch) -> IBoundaryCondition:
@@ -273,7 +273,7 @@ def create_bc(*val: IBCPatch) -> IBoundaryCondition:
 
 
 class _ExtraCreateVarOptions(TypedDict, total=False):
-    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat
+    fmt: VariableExportFormat | VariableExportEnum
     freq: int
     loop_step: int | None
 
@@ -285,7 +285,7 @@ def create_variable(
     data: Path | str | None = None,
     **kwargs: Unpack[_ExtraCreateVarOptions],
 ) -> IVariable:
-    fmt = get_enum(kwargs.get("fmt", VariableExportFormat.TXT), VariableExportFormat)
+    fmt = get_enum(kwargs.get("fmt", VariableExportEnum.TXT), VariableExportEnum)
     top = NullTopology() if top is None else top
     data = Path(data) if data is not None else None
     return Variable(name, top, dim, data, fmt, kwargs.get("freq", 1), kwargs.get("loop_step"))

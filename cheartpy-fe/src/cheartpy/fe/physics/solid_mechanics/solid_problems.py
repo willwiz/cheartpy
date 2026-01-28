@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack, overload
 
 from cheartpy.fe.aliases import (
-    SOLID_FLAGS,
-    SOLID_OPTIONS,
-    SOLID_PROBLEM_TYPE,
-    SOLID_VARIABLES,
+    SolidFlag,
+    SolidOption,
+    SolidProblemEnum,
     SolidProblemType,
+    SolidVariable,
 )
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import get_enum, join_fields
@@ -32,9 +32,9 @@ class _SolidProblemExtraArgs(TypedDict, total=False):
 
 class SolidProblem(IProblem):
     name: str
-    problem: SolidProblemType
+    problem: SolidProblemEnum
     matlaws: list[ILaw]
-    variables: dict[SOLID_VARIABLES, IVariable]
+    variables: dict[SolidVariable, IVariable]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     state_vars: dict[str, IVariable]
@@ -50,7 +50,7 @@ class SolidProblem(IProblem):
     def __init__(
         self,
         name: str,
-        problem: SolidProblemType,
+        problem: SolidProblemEnum,
         space: IVariable,
         disp: IVariable,
         **kwargs: Unpack[_SolidProblemExtraArgs],
@@ -61,7 +61,7 @@ class SolidProblem(IProblem):
         self.name = name
         self.problem = problem
         self.variables = {"Space": space, "Displacement": disp}
-        if problem is SolidProblemType.TRANSIENT and vel is None:
+        if problem is SolidProblemEnum.TRANSIENT and vel is None:
             msg = f"{name}: Transient problem must have velocity"
             raise ValueError(msg)
         if vel:
@@ -137,7 +137,7 @@ class SolidProblem(IProblem):
             for v in w.get_var_deps():
                 self.aux_vars[str(v)] = v
 
-    def add_variable(self, name: SOLID_VARIABLES, var: IVariable) -> None:
+    def add_variable(self, name: SolidVariable, var: IVariable) -> None:
         self.variables[name] = var
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
@@ -146,7 +146,7 @@ class SolidProblem(IProblem):
                 self.state_vars[str(v)] = v
                 self.aux_vars[str(v)] = v
 
-    def use_option(self, opt: SOLID_OPTIONS, val: str | float, *sub_val: str) -> None:
+    def use_option(self, opt: SolidOption, val: str | float, *sub_val: str) -> None:
         self.options[opt] = [val, *sub_val]
 
     def stabilize(
@@ -174,7 +174,7 @@ class SolidProblem(IProblem):
                 msg = "Gravity must be either (float, tuple) or IExpression"
                 raise ValueError(msg)
 
-    def set_flags(self, flag: SOLID_FLAGS) -> None:
+    def set_flags(self, flag: SolidFlag) -> None:
         self.flags[flag] = True
 
     def write(self, f: TextIO) -> None:
@@ -210,18 +210,18 @@ class SolidProblem(IProblem):
 
 def create_solid_mechanics_problem(
     name: str,
-    prob: SOLID_PROBLEM_TYPE | SolidProblemType,
+    prob: SolidProblemType | SolidProblemEnum,
     space: IVariable,
     disp: IVariable,
     **kwargs: Unpack[_SolidProblemExtraArgs],
 ) -> SolidProblem:
-    problem = get_enum(prob, SolidProblemType)
+    problem = get_enum(prob, SolidProblemEnum)
     if space.get_data() is None:
         msg = f"Space for {name} must be initialized with values"
         raise ValueError(msg)
     vel = kwargs.get("vel")
     match problem, vel:
-        case SolidProblemType.TRANSIENT, None:
+        case SolidProblemEnum.TRANSIENT, None:
             msg = f"Solid Problem {name}: Transient must have Vel"
             raise ValueError(msg)
         case _:

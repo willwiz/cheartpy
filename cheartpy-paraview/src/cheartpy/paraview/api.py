@@ -14,10 +14,10 @@ from ._parser.main_parser import (
     get_vtu_cmd_args,
 )
 from ._parser.types import (
-    SUBPARSER_MODES,
     APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
+    SubparserModes,
     TimeProgArgs,
     VTUProgArgs,
 )
@@ -69,7 +69,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
 def cheart2vtu_api(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> None: ...
 @overload
 def cheart2vtu_api(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> None: ...
-def cheart2vtu_api(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> None:
+def cheart2vtu_api(cmd: SubparserModes, **kwargs: Unpack[APIKwargs]) -> None:
     args = get_api_args(cmd=cmd, **kwargs)
     cheart2vtu(args)
 

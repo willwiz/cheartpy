@@ -12,16 +12,16 @@ if TYPE_CHECKING:
     from pytools.arrays import A1, A2
 
 __all__ = [
-    "CL_NODAL_LM_TYPE",
     "CLBasis",
     "CLNodalData",
+    "CLNodalLMType",
     "CLPartition",
     "CLStructure",
     "CLTopologies",
     "PatchNode2ElemMap",
 ]
 
-CL_NODAL_LM_TYPE = Mapping[int, IVariable]
+CLNodalLMType = Mapping[int, IVariable]
 
 
 @dc.dataclass(slots=True)

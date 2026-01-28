@@ -1,16 +1,16 @@
 import enum
 from typing import Literal
 
-VARIABLE_EXPORT_FORMAT = Literal["TXT", "BINARY", "MMAP"]
+type VariableExportFormat = Literal["TXT", "BINARY", "MMAP"]
 
 
-class VariableExportFormat(enum.StrEnum):
+class VariableExportEnum(enum.StrEnum):
     TXT = "TXT"
     BINARY = "ReadBinary"
     MMAP = "ReadMMap"
 
 
-VARIABLE_UPDATE_SETTING = Literal[
+type VariableUpdateSetting = Literal[
     "INIT_EXPR",
     "TEMPORAL_UPDATE_EXPR",
     "TEMPORAL_UPDATE_FILE",
@@ -18,7 +18,7 @@ VARIABLE_UPDATE_SETTING = Literal[
 ]
 
 
-class VariableUpdateSetting(enum.StrEnum):
+class VariableUpdateEnum(enum.StrEnum):
     INIT_EXPR = "INIT_EXPR"
     TEMPORAL_UPDATE_EXPR = "TEMPORAL_UPDATE_EXPR"
     TEMPORAL_UPDATE_FILE = "TEMPORAL_UPDATE_FILE"

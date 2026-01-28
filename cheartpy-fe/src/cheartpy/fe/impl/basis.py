@@ -5,14 +5,14 @@ from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import IBasis, ICheartBasis, IQuadrature
 
 if TYPE_CHECKING:
-    from cheartpy.fe.aliases import CheartBasisType, CheartElementType, CheartQuadratureType
+    from cheartpy.fe.aliases import CheartBasisEnum, CheartElementEnum, CheartQuadratureEnum
 
 __all__ = ["Basis", "CheartBasis", "Quadrature"]
 
 
 @dc.dataclass(slots=True)
 class Basis(IBasis):
-    name: CheartBasisType
+    name: CheartBasisEnum
     _order: Literal[0, 1, 2]
 
     def __repr__(self) -> str:
@@ -23,13 +23,13 @@ class Basis(IBasis):
         return self._order
 
     @property
-    def kind(self) -> CheartBasisType:
+    def kind(self) -> CheartBasisEnum:
         return self.name
 
 
 @dc.dataclass(slots=True)
 class Quadrature(IQuadrature):
-    name: CheartQuadratureType
+    name: CheartQuadratureEnum
     _gp: int
 
     def __repr__(self) -> str:
@@ -40,14 +40,14 @@ class Quadrature(IQuadrature):
         return self._gp
 
     @property
-    def kind(self) -> CheartQuadratureType:
+    def kind(self) -> CheartQuadratureEnum:
         return self.name
 
 
 @dc.dataclass(slots=True)
 class CheartBasis(ICheartBasis):
     name: str
-    _elem: CheartElementType
+    _elem: CheartElementEnum
     _basis: IBasis
     _quadrature: IQuadrature
 
@@ -55,7 +55,7 @@ class CheartBasis(ICheartBasis):
         return self.name
 
     @property
-    def elem(self) -> CheartElementType:
+    def elem(self) -> CheartElementEnum:
         return self._elem
 
     @property

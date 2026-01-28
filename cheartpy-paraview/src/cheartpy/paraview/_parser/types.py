@@ -1,18 +1,18 @@
 from ._types import (
-    SUBPARSER_MODES,
     APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
+    SubparserModes,
     TimeProgArgs,
     TimeSeriesKwargs,
     VTUProgArgs,
 )
 
 __all__ = [
-    "SUBPARSER_MODES",
     "APIKwargs",
     "APIKwargsFind",
     "APIKwargsIndex",
+    "SubparserModes",
     "TimeProgArgs",
     "TimeSeriesKwargs",
     "VTUProgArgs",

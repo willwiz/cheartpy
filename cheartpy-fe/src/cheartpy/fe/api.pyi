@@ -3,17 +3,17 @@ from pathlib import Path
 from typing import Literal, TypedDict, Unpack, overload
 
 from .aliases import (
-    BOUNDARY_TYPE,
-    CHEART_BASIS_TYPE,
-    CHEART_ELEMENT_TYPE,
-    MATRIX_SOLVER_OPTIONS,
-    SOLVER_SUBGROUP_ALGORITHM,
-    VARIABLE_EXPORT_FORMAT,
+    BoundaryEnum,
     BoundaryType,
+    CheartBasisEnum,
     CheartBasisType,
+    CheartElementEnum,
     CheartElementType,
-    MatrixSolverOptions,
-    SolverSubgroupAlgorithm,
+    MatrixSolverEnum,
+    MatrixSolverOption,
+    SolverSubgroupMethod,
+    SolverSubgroupMethodEnum,
+    VariableExportEnum,
     VariableExportFormat,
 )
 from .impl import (
@@ -67,8 +67,8 @@ def create_time_scheme(
     step: float | str,
 ) -> ITimeScheme: ...
 def create_basis(
-    elem: CHEART_ELEMENT_TYPE | CheartElementType,
-    kind: CHEART_BASIS_TYPE | CheartBasisType,
+    elem: CheartElementType | CheartElementEnum,
+    kind: CheartBasisType | CheartBasisEnum,
     order: Literal[0, 1, 2],
     **kwargs: Unpack[_CreateBasisKwargs],
 ) -> ICheartBasis: ...
@@ -78,24 +78,24 @@ def create_topology(
     name: str,
     basis: ICheartBasis,
     mesh: Path | str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
+    format: VariableExportFormat | VariableExportEnum = ...,
 ) -> CheartTopology: ...
 @overload
 def create_topology(
     name: str,
     basis: None,
     mesh: Path | str,
-    format: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
+    format: VariableExportFormat | VariableExportEnum = ...,
 ) -> NullTopology: ...
 def create_embedded_topology(
     name: str,
     embedded_top: CheartTopology,
     mesh: Path | str,
-    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
+    fmt: VariableExportFormat | VariableExportEnum = ...,
 ) -> CheartTopology: ...
 def create_solver_matrix(
     name: str,
-    solver: MATRIX_SOLVER_OPTIONS | MatrixSolverOptions,
+    solver: MatrixSolverOption | MatrixSolverEnum,
     *probs: IProblem | None,
 ) -> ISolverMatrix: ...
 def create_solver_group(
@@ -104,7 +104,7 @@ def create_solver_group(
     *solver_subgroup: ISolverSubGroup,
 ) -> ISolverGroup: ...
 def create_solver_subgroup(
-    method: SOLVER_SUBGROUP_ALGORITHM | SolverSubgroupAlgorithm,
+    method: SolverSubgroupMethod | SolverSubgroupMethodEnum,
     *probs: ISolverMatrix | IProblem,
 ) -> ISolverSubGroup: ...
 @overload
@@ -124,7 +124,7 @@ def create_top_interface(
 def create_bcpatch(
     label: int,
     var: IVariable | tuple[IVariable, int | None],
-    kind: BOUNDARY_TYPE | BoundaryType,
+    kind: BoundaryType | BoundaryEnum,
     *val: BC_VALUE,
 ) -> IBCPatch: ...
 def create_bc(*val: IBCPatch) -> IBoundaryCondition: ...
@@ -133,7 +133,7 @@ def create_variable(
     top: ICheartTopology | None,
     dim: int = 3,
     data: Path | str | None = None,
-    fmt: VARIABLE_EXPORT_FORMAT | VariableExportFormat = ...,
+    fmt: VariableExportFormat | VariableExportEnum = ...,
     freq: int = 1,
     loop_step: int | None = None,
 ) -> IVariable: ...

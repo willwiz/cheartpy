@@ -2,10 +2,10 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
-    CHEART_TOPOLOGY_SETTING,
-    CheartTopInterfaceType,
+    CheartTopInterfaceEnum,
     CheartTopologySetting,
-    VariableExportFormat,
+    CheartTopologySettingEnum,
+    VariableExportEnum,
 )
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
@@ -28,7 +28,7 @@ class CheartTopology(ICheartTopology):
     name: str
     basis: ICheartBasis | None
     _mesh: Path
-    fmt: VariableExportFormat = VariableExportFormat.TXT
+    fmt: VariableExportEnum = VariableExportEnum.TXT
     embedded: ICheartTopology | None = None
     partitioning_weight: int | None = None
     in_partition: bool = False
@@ -66,12 +66,12 @@ class CheartTopology(ICheartTopology):
 
     def add_setting(
         self,
-        task: CheartTopologySetting | CHEART_TOPOLOGY_SETTING,
+        task: CheartTopologySettingEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None:
-        task = get_enum(task, CheartTopologySetting)
+        task = get_enum(task, CheartTopologySettingEnum)
         match task, val:
-            case CheartTopologySetting.EmbeddedInTopology, ICheartTopology() as topology:
+            case CheartTopologySettingEnum.EmbeddedInTopology, ICheartTopology() as topology:
                 self.embedded = topology
             case _:
                 msg = f"Setting for topology {self} {task} does not have a match value type"
@@ -125,7 +125,7 @@ class NullTopology(ICheartTopology):
 
     def add_setting(
         self,
-        task: CheartTopologySetting | CHEART_TOPOLOGY_SETTING,
+        task: CheartTopologySettingEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None:
         pass
@@ -137,7 +137,7 @@ class NullTopology(ICheartTopology):
 @dc.dataclass(slots=True)
 class TopInterface(ITopInterface):
     name: str
-    _method: CheartTopInterfaceType
+    _method: CheartTopInterfaceEnum
     topologies: list[ICheartTopology] = dc.field(default_factory=list[ICheartTopology])
 
     def write(self, f: TextIO) -> None:

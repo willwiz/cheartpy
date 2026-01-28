@@ -5,11 +5,10 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
 
     from cheartpy.fe.aliases import (
-        ITERATION_SETTINGS,
-        TOL_SETTINGS,
-        IterationSettings,
-        SolverSubgroupAlgorithm,
-        TolSettings,
+        IterationEnum,
+        IterationSetting,
+        SolverSubgroupMethodEnum,
+        TolSetting,
     )
     from pytools.result import Err, Ok
 
@@ -22,7 +21,7 @@ __all__ = ["ISolverGroup", "ISolverSubGroup"]
 
 class ISolverSubGroup(abc.ABC):
     @abc.abstractmethod
-    def get_method(self) -> SolverSubgroupAlgorithm: ...
+    def get_method(self) -> SolverSubgroupMethodEnum: ...
     @abc.abstractmethod
     def get_all_vars(self) -> Mapping[str, IVariable]: ...
     @abc.abstractmethod
@@ -59,13 +58,13 @@ class ISolverGroup(abc.ABC):
     @abc.abstractmethod
     def set_convergence(
         self,
-        task: TolSettings | TOL_SETTINGS,
+        task: TolSetting,
         val: float | str,
     ) -> None: ...
     @abc.abstractmethod
     def set_iteration(
         self,
-        task: IterationSettings | ITERATION_SETTINGS,
+        task: IterationEnum | IterationSetting,
         val: int | str,
     ) -> None: ...
     @abc.abstractmethod

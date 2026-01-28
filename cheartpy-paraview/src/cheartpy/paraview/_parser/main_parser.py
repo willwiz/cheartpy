@@ -11,10 +11,10 @@ from ._io import io_parser
 from ._settings import multiprocessing_parser, setting_parser
 from ._topology import find_topology_parser, index_topology_parser
 from ._types import (
-    SUBPARSER_MODES,
     APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
+    SubparserModes,
     TimeProgArgs,
     VTUProgArgs,
 )
@@ -145,8 +145,8 @@ def get_api_args(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> VTUPr
 @overload
 def get_api_args(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs: ...
 @overload
-def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> VTUProgArgs: ...
-def get_api_args(cmd: SUBPARSER_MODES, **kwargs: Unpack[APIKwargs]) -> VTUProgArgs:
+def get_api_args(cmd: SubparserModes, **kwargs: Unpack[APIKwargs]) -> VTUProgArgs: ...
+def get_api_args(cmd: SubparserModes, **kwargs: Unpack[APIKwargs]) -> VTUProgArgs:
     match cmd:
         case "find":
             return get_api_args_find(**kwargs)

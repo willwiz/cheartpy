@@ -1,7 +1,7 @@
 import enum
 from typing import Literal
 
-CHEART_BASIS_TYPE = Literal[
+type CheartBasisType = Literal[
     "NODAL_LAGRANGE",
     "NL",
     "MODAL_BASIS",
@@ -12,7 +12,7 @@ CHEART_BASIS_TYPE = Literal[
 ]
 
 
-class CheartBasisType(enum.StrEnum):
+class CheartBasisEnum(enum.StrEnum):
     NODAL_LAGRANGE = "NODAL_LAGRANGE"
     NL = "NL"
     MODAL_BASIS = "MODAL_BASIS"
@@ -22,7 +22,7 @@ class CheartBasisType(enum.StrEnum):
     SPECTRAL_BASIS = "SPECTRAL_BASIS"
 
 
-CHEART_QUADRATURE_TYPE = Literal[
+type CheartQuadratureType = Literal[
     "GAUSS_LEGENDRE",
     "GL",
     "KEAST_LYNESS",
@@ -30,14 +30,14 @@ CHEART_QUADRATURE_TYPE = Literal[
 ]
 
 
-class CheartQuadratureType(enum.StrEnum):
+class CheartQuadratureEnum(enum.StrEnum):
     GAUSS_LEGENDRE = "GAUSS_LEGENDRE"
     GL = "GAUSS_LEGENDRE"
     KEAST_LYNESS = "KEAST_LYNESS"
     KL = "KEAST_LYNESS"
 
 
-CHEART_ELEMENT_TYPE = Literal[
+type CheartElementType = Literal[
     "POINT_ELEMENT",
     "point",
     "ONED_ELEMENT",
@@ -53,7 +53,7 @@ CHEART_ELEMENT_TYPE = Literal[
 ]
 
 
-class CheartElementType(enum.StrEnum):
+class CheartElementEnum(enum.StrEnum):
     POINT_ELEMENT = "POINT_ELEMENT"
     point = "POINT_ELEMENT"
     ONED_ELEMENT = "ONED_ELEMENT"
@@ -68,7 +68,7 @@ class CheartElementType(enum.StrEnum):
     hex = "HEXAHEDRAL_ELEMENT"
 
 
-CHEART_TOPOLOGY_SETTING = Literal[
+type CheartTopologySetting = Literal[
     "PartitioningWeight",
     "UseInPartitioning",
     "ReadBinary",
@@ -80,7 +80,7 @@ CHEART_TOPOLOGY_SETTING = Literal[
 ]
 
 
-class CheartTopologySetting(enum.StrEnum):
+class CheartTopologySettingEnum(enum.StrEnum):
     PartitioningWeight = "PartitioningWeight"
     UseInPartitioning = "UseInPartitioning"
     ReadBinary = "ReadBinary"
@@ -91,12 +91,12 @@ class CheartTopologySetting(enum.StrEnum):
     EmbeddedInTopology = "EmbeddedInTopology"
 
 
-CHEART_TOPINTERFACE_TYPE = Literal[
+type CheartTopInterfaceType = Literal[
     "OneToOne",
     "ManyToOne",
 ]
 
 
-class CheartTopInterfaceType(enum.StrEnum):
+class CheartTopInterfaceEnum(enum.StrEnum):
     OneToOne = "OneToOne"
     ManyToOne = "ManyToOne"

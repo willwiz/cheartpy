@@ -6,13 +6,13 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from cheartpy.fe.aliases import (
-        CHEART_TOPINTERFACE_TYPE,
-        CHEART_TOPOLOGY_SETTING,
-        VARIABLE_UPDATE_SETTING,
-        CheartBasisType,
-        CheartElementType,
-        CheartQuadratureType,
+        CheartBasisEnum,
+        CheartElementEnum,
+        CheartQuadratureEnum,
+        CheartTopInterfaceType,
         CheartTopologySetting,
+        CheartTopologySettingEnum,
+        VariableUpdateSetting,
     )
 
 __all__ = [
@@ -109,7 +109,7 @@ class IBasis(abc.ABC):
     def order(self) -> Literal[0, 1, 2]: ...
     @property
     @abc.abstractmethod
-    def kind(self) -> CheartBasisType: ...
+    def kind(self) -> CheartBasisEnum: ...
 
 
 class IQuadrature(abc.ABC):
@@ -120,7 +120,7 @@ class IQuadrature(abc.ABC):
     def gp(self) -> int: ...
     @property
     @abc.abstractmethod
-    def kind(self) -> CheartQuadratureType: ...
+    def kind(self) -> CheartQuadratureEnum: ...
 
 
 class ICheartBasis(abc.ABC):
@@ -128,7 +128,7 @@ class ICheartBasis(abc.ABC):
     def __repr__(self) -> str: ...
     @property
     @abc.abstractmethod
-    def elem(self) -> CheartElementType: ...
+    def elem(self) -> CheartElementEnum: ...
     @property
     @abc.abstractmethod
     def basis(self) -> IBasis: ...
@@ -167,7 +167,7 @@ class ICheartTopology(abc.ABC):
     @abc.abstractmethod
     def add_setting(
         self,
-        task: CheartTopologySetting | CHEART_TOPOLOGY_SETTING,
+        task: CheartTopologySettingEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None: ...
     @abc.abstractmethod
@@ -181,7 +181,7 @@ class ITopInterface(abc.ABC):
     def __hash__(self) -> int: ...
     @property
     @abc.abstractmethod
-    def method(self) -> CHEART_TOPINTERFACE_TYPE: ...
+    def method(self) -> CheartTopInterfaceType: ...
     @abc.abstractmethod
     def get_tops(self) -> Sequence[ICheartTopology]: ...
     @abc.abstractmethod
@@ -219,7 +219,7 @@ class IVariable(abc.ABC):
     @abc.abstractmethod
     def add_setting(
         self,
-        task: VARIABLE_UPDATE_SETTING,
+        task: VariableUpdateSetting,
         val: Path | str | IExpression,
     ) -> None: ...
     @abc.abstractmethod

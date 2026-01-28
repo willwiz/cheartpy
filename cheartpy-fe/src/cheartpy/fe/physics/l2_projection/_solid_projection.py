@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.fe.aliases import L2_SOLID_CALCULATION_TYPE, L2SolidCalculationType
+from cheartpy.fe.aliases import L2SolidCalculationEnum, L2SolidCalculationType
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
@@ -16,7 +16,7 @@ __all__ = ["L2SolidProjection"]
 class L2SolidProjection(IProblem):
     name: str
     solid_prob: SolidProblem
-    calculation: L2SolidCalculationType = L2SolidCalculationType.cauchy_stress
+    calculation: L2SolidCalculationEnum = L2SolidCalculationEnum.cauchy_stress
     variables: dict[str, IVariable]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
@@ -34,13 +34,13 @@ class L2SolidProjection(IProblem):
         var: IVariable,
         solid_prob: SolidProblem,
         projected_var: (
-            L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE
-        ) = L2SolidCalculationType.cauchy_stress,
+            L2SolidCalculationEnum | L2SolidCalculationType
+        ) = L2SolidCalculationEnum.cauchy_stress,
     ) -> None:
         self.name = name
         self.solid_prob = solid_prob
         self.variables = {"Space": space, "Variable": var}
-        self.calculation = get_enum(projected_var, L2SolidCalculationType)
+        self.calculation = get_enum(projected_var, L2SolidCalculationEnum)
         self.aux_vars = {}
         self.aux_expr = {}
         self.bc = create_bc()
@@ -98,9 +98,9 @@ class L2SolidProjection(IProblem):
 
     def set_projection(
         self,
-        calc: L2SolidCalculationType | L2_SOLID_CALCULATION_TYPE,
+        calc: L2SolidCalculationEnum | L2SolidCalculationType,
     ) -> None:
-        self.calculation = get_enum(calc, L2SolidCalculationType)
+        self.calculation = get_enum(calc, L2SolidCalculationEnum)
 
     def write(self, f: TextIO) -> None:
         f.write(f"!DefProblem={{{self.name}|{self._problem}}}\n")

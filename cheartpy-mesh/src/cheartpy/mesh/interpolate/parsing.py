@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 interp_parser = argparse.ArgumentParser(
     "interp",
@@ -29,8 +30,9 @@ interp_parser.add_argument(
 interp_parser.add_argument(
     "--folder",
     "-f",
-    type=str,
-    default="",
+    type=Path,
+    default=Path(),
+    dest="input_dir",
     help="OPTIONAL: specify a folder for the where the variables are stored. NOT YET IMPLEMENTED",
 )
 interp_parser.add_argument(
@@ -48,6 +50,20 @@ interp_parser.add_argument(
     choices=["D", "D.gz"],
     default="D",
     help="OPTIONAL: D file suffix",
+)
+interp_parser.add_argument(
+    "--lin",
+    "-l",
+    type=str,
+    required=True,
+    help="file path to linear mesh",
+)
+interp_parser.add_argument(
+    "--quad",
+    "-q",
+    type=str,
+    required=True,
+    help="file path to quadratic mesh",
 )
 interp_parser.add_argument(
     "vars",
