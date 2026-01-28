@@ -171,7 +171,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     return Ok(CheartMesh(space, top, None))
 
 
-type NODAL_MESHES[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I]]
+type NodalMeshMap[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I]]
 
 
 def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
@@ -181,7 +181,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     cl_top: CLPartition[F, I],
     surf_id: int,
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
-) -> Ok[NODAL_MESHES[F, I]] | Err:
+) -> Ok[NodalMeshMap[F, I]] | Err:
     # Unpack the kwargs
     mesh_dir = Path(mesh_dir)
     log = kwargs.get("log", get_logger())
@@ -220,7 +220,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
 
 
 def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
-    nodal_meshes: NODAL_MESHES[F, I],
+    nodal_meshes: NodalMeshMap[F, I],
     node_offset: A1[I],
 ) -> CheartMesh[F, I]:
     cl_1_x = np.vstack([x["mesh"].space.v for x in nodal_meshes.values()], dtype=float)

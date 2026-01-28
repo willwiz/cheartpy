@@ -1,7 +1,7 @@
 import enum
 from typing import Literal
 
-type BoundaryType = Literal[
+BoundaryType = Literal[
     "dirichlet",
     "neumann",
     "neumann_ref",
@@ -24,7 +24,7 @@ class BoundaryEnum(enum.StrEnum):
     scaled_normal_ref = "scaled_normal_ref"
 
 
-type SolidProblemType = Literal[
+SolidProblemType = Literal[
     "TRANSIENT",
     "QUASI_STATIC",
 ]
@@ -35,7 +35,7 @@ class SolidProblemEnum(enum.StrEnum):
     QUASI_STATIC = "quasi_static_elasticity"
 
 
-type SolidVariable = Literal[
+SolidVariable = Literal[
     "Space",
     "Displacement",
     "Velocity",
@@ -54,7 +54,7 @@ class SolidVariableEnum(enum.StrEnum):
     GenStruc = "GenStruc"
 
 
-type SolidOption = Literal[
+SolidOption = Literal[
     "Density",
     "Perturbation-scale",
     "SetProblemTimeDiscretization",
@@ -69,7 +69,7 @@ class SolidOptionEnum(enum.StrEnum):
     UseStabilization = "UseStabilization"
 
 
-type SolidFlag = Literal["Inverse-mechanics", "No-buffering"]
+SolidFlag = Literal["Inverse-mechanics", "No-buffering"]
 
 
 class SolidFlagEnum(enum.StrEnum):
@@ -77,7 +77,7 @@ class SolidFlagEnum(enum.StrEnum):
     No_buffering = "No-buffering"
 
 
-type L2SolidCalculationType = Literal["cauchy_stress", "deformation_gradient"]
+L2SolidCalculationType = Literal["cauchy_stress", "deformation_gradient"]
 
 
 class L2SolidCalculationEnum(enum.StrEnum):

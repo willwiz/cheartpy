@@ -1,7 +1,7 @@
 import enum
 from typing import Literal
 
-type TolSetting = Literal[
+TolSetting = Literal[
     "L2TOL",
     "L2PERCENT",
     "INFRES",
@@ -22,7 +22,7 @@ class TolEnum(enum.StrEnum):
     L2RESRELPERCENT = "L2RESRELPERCENT"
 
 
-type IterationSetting = Literal[
+IterationSetting = Literal[
     "ITERATION",
     "SUBITERATION",
     "LINESEARCHITER",
@@ -39,7 +39,7 @@ class IterationEnum(enum.StrEnum):
     GroupIterations = "GroupIterations"
 
 
-type MatrixSolverOption = Literal["SOLVER_MUMPS", "SOLVER_PETSC"]
+MatrixSolverOption = Literal["SOLVER_MUMPS", "SOLVER_PETSC"]
 
 
 class MatrixSolverEnum(enum.StrEnum):
@@ -50,7 +50,7 @@ class MatrixSolverEnum(enum.StrEnum):
 # Solver Algorithms
 
 
-type SolverSubgroupMethod = Literal["seq_fp", "seq_fp_linesearch", "SOLVER_SEQUENTIAL"]
+SolverSubgroupMethod = Literal["seq_fp", "seq_fp_linesearch", "SOLVER_SEQUENTIAL"]
 
 
 class SolverSubgroupMethodEnum(enum.StrEnum):
@@ -62,7 +62,7 @@ class SolverSubgroupMethodEnum(enum.StrEnum):
 # Solver Group Options
 
 
-type SolverSubgroupOption = Literal[
+SolverSubgroupOption = Literal[
     "AddVariables",
     "export_initial_condition",
     "L2TOL",

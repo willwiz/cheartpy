@@ -9,7 +9,7 @@ from cheartpy.mesh.struct import (
     CheartMeshTopology,
 )
 from cheartpy.mesh.validation import remove_dangling_nodes
-from cheartpy.vtk.types import VtkType
+from cheartpy.vtk.types import VtkEnum
 
 from .data import CartesianDirection
 
@@ -75,8 +75,8 @@ def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> Ch
     }
     mesh = CheartMesh(
         cube.space,
-        CheartMeshTopology(len(new_t), new_t, VtkType.LinHexahedron),
-        CheartMeshBoundary(len(new_b), new_b, VtkType.LinQuadrilateral),
+        CheartMeshTopology(len(new_t), new_t, VtkEnum.LinHexahedron),
+        CheartMeshBoundary(len(new_b), new_b, VtkEnum.LinQuadrilateral),
     )
     return remove_dangling_nodes(mesh)
 

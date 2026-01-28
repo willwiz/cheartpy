@@ -1,21 +1,21 @@
 from typing import TYPE_CHECKING
 
-from cheartpy.vtk.types import VtkType
+from cheartpy.vtk.types import VtkEnum
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-MESHIO_2_CHEART_CONNECTIVITY: Mapping[VtkType, Mapping[int, int]] = {
-    VtkType.LinLine: {0: 0, 1: 1},
-    VtkType.QuadLine: {0: 0, 1: 2, 2: 1},
-    VtkType.LinTriangle: {0: 0, 1: 1, 2: 2},
-    VtkType.QuadTriangle: {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4},
-    VtkType.LinQuadrilateral: {0: 0, 1: 1, 2: 3, 3: 2},
-    VtkType.QuadQuadrilateral: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 7, 6: 8, 7: 5, 8: 6},
-    VtkType.LinTetrahedron: {0: 0, 1: 1, 2: 2, 3: 3},
-    VtkType.QuadTetrahedron: {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 6, 6: 5, 7: 7, 8: 8, 9: 9},
-    VtkType.LinHexahedron: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 5, 6: 7, 7: 6},
-    VtkType.QuadHexahedron: {
+MESHIO_2_CHEART_CONNECTIVITY: Mapping[VtkEnum, Mapping[int, int]] = {
+    VtkEnum.LinLine: {0: 0, 1: 1},
+    VtkEnum.QuadLine: {0: 0, 1: 2, 2: 1},
+    VtkEnum.LinTriangle: {0: 0, 1: 1, 2: 2},
+    VtkEnum.QuadTriangle: {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4},
+    VtkEnum.LinQuadrilateral: {0: 0, 1: 1, 2: 3, 3: 2},
+    VtkEnum.QuadQuadrilateral: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 7, 6: 8, 7: 5, 8: 6},
+    VtkEnum.LinTetrahedron: {0: 0, 1: 1, 2: 2, 3: 3},
+    VtkEnum.QuadTetrahedron: {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 6, 6: 5, 7: 7, 8: 8, 9: 9},
+    VtkEnum.LinHexahedron: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 5, 6: 7, 7: 6},
+    VtkEnum.QuadHexahedron: {
         0: 0,
         1: 1,
         2: 3,
@@ -45,7 +45,7 @@ MESHIO_2_CHEART_CONNECTIVITY: Mapping[VtkType, Mapping[int, int]] = {
         26: 14,
     },
 }
-CHEART_2_MESHIO_CONNECTIVITY: Mapping[VtkType, Mapping[int, int]] = {
+CHEART_2_MESHIO_CONNECTIVITY: Mapping[VtkEnum, Mapping[int, int]] = {
     element: {v: k for k, v in conn.items()}
     for element, conn in MESHIO_2_CHEART_CONNECTIVITY.items()
 }

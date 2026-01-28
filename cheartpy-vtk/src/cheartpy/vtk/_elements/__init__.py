@@ -8,11 +8,11 @@ from ._lagrange_shape_funcs import (
     tri_lagrange_1,
     tri_lagrange_2,
 )
-from ._types import VTK_TYPE, VtkElem, VtkType
+from ._types import VtkElem, VtkEnum, VtkType
 
 __all__ = [
-    "VTK_TYPE",
     "VtkElem",
+    "VtkEnum",
     "VtkType",
     "dlagrange_1",
     "dlagrange_2",

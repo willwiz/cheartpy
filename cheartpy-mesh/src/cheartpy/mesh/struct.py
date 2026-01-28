@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from cheartpy.vtk.types import VtkType
+    from cheartpy.vtk.types import VtkEnum
     from pytools.arrays import A1, A2
 
 
@@ -40,7 +40,7 @@ class CheartMeshSpace[T: np.floating]:
 class CheartMeshTopology[T: np.integer]:
     n: int
     v: A2[T]
-    TYPE: VtkType
+    TYPE: VtkEnum
 
     def save(self, name: Path | str) -> None:
         chwrite_t_utf(name, self.v + 1, self.v.max() + 1)
@@ -52,7 +52,7 @@ class CheartMeshPatch[T: np.integer]:
     n: int
     k: A1[T]
     v: A2[T]
-    TYPE: VtkType
+    TYPE: VtkEnum
 
     def to_array(self) -> A2[T]:
         res = np.pad(self.v + 1, ((0, 0), (1, 1)))
@@ -65,7 +65,7 @@ class CheartMeshPatch[T: np.integer]:
 class CheartMeshBoundary[T: np.integer]:
     n: int
     v: Mapping[int, CheartMeshPatch[T]]
-    TYPE: VtkType
+    TYPE: VtkEnum
 
     def save(self, name: Path | str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)

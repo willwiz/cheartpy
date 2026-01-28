@@ -10,7 +10,7 @@ from cheartpy.vtk.api import guess_elem_type_from_dim
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.vtk.types import VtkType
+    from cheartpy.vtk.types import VtkEnum
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
 
@@ -52,8 +52,8 @@ class ParaviewTopology[F: np.floating, I: np.integer]:
     _fx: Final[A2[F]]
     ne: Final[int]
     nc: Final[int]
-    vtkelementtype: Final[VtkType]
-    vtksurfacetype: Final[VtkType | None]
+    vtkelementtype: Final[VtkEnum]
+    vtksurfacetype: Final[VtkEnum | None]
 
     def __init__(
         self, x: A2[F], tfile: Path | str, bfile: Path | None, *, dtype: DType[I] = np.intc

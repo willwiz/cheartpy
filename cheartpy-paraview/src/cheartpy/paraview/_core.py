@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from cheartpy.search.trait import IIndexIterator
-    from cheartpy.vtk.types import VtkType
+    from cheartpy.vtk.types import VtkEnum
     from pytools.arrays import A1, A2
 
     from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
@@ -31,7 +31,7 @@ __all__ = [
 def create_xml_for_boundary[I: np.integer, F: np.floating](
     prefix: str,
     fx: A2[F],
-    vtk_id: VtkType,
+    vtk_id: VtkEnum,
     fb: A2[I],
     fbid: A1[I],
 ) -> XMLElement:

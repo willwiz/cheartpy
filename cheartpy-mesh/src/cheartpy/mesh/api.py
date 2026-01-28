@@ -15,14 +15,14 @@ from .struct import (
 )
 
 if TYPE_CHECKING:
-    from cheartpy.vtk.types import VtkElem, VtkType
+    from cheartpy.vtk.types import VtkElem, VtkEnum
     from pytools.arrays import A2, DType
 
 
 __all__ = ["import_cheart_mesh"]
 
 
-def _create_bnd_surf[T: np.integer](v: A2[T], tag: int, kind: VtkType) -> CheartMeshPatch[T]:
+def _create_bnd_surf[T: np.integer](v: A2[T], tag: int, kind: VtkEnum) -> CheartMeshPatch[T]:
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1
@@ -31,7 +31,7 @@ def _create_bnd_surf[T: np.integer](v: A2[T], tag: int, kind: VtkType) -> Cheart
 
 def _create_cheart_mesh_surf_from_raw[T: np.integer](
     raw_bnd: A2[T] | None,
-    surf_type: VtkType | None,
+    surf_type: VtkEnum | None,
 ) -> CheartMeshBoundary[T] | None:
     if raw_bnd is None or surf_type is None:
         return None

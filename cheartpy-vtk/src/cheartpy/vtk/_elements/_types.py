@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     import numpy as np
     from pytools.arrays import A1, A2
 
-__all__ = ["VTK_TYPE", "VtkElem", "VtkType"]
+__all__ = ["VtkElem", "VtkEnum", "VtkType"]
 
 
 class _Vtk(NamedTuple):
@@ -14,7 +14,7 @@ class _Vtk(NamedTuple):
     idx: int
 
 
-class VtkType(enum.Enum):
+class VtkEnum(enum.Enum):
     LinLine = _Vtk("VtkLinearLine", 3)
     LinTriangle = _Vtk("VtkLinearTriangle", 5)
     LinQuadrilateral = _Vtk("VtkLinearQuadrilateral", 9)
@@ -27,7 +27,7 @@ class VtkType(enum.Enum):
     QuadHexahedron = _Vtk("VtkQuadraticHexahedron", 29)
 
 
-type VTK_TYPE = Literal[
+VtkType = Literal[
     "LinLine",
     "LinTriangle",
     "LinQuadrilateral",
@@ -51,8 +51,8 @@ class _ShapeFuncDeriv(Protocol):
 
 @dc.dataclass(slots=True, frozen=True)
 class VtkElem:
-    body: VtkType
-    surf: VtkType | None
+    body: VtkEnum
+    surf: VtkEnum | None
     connectivity: tuple[int, ...]
     nodes: A2[np.intc]
     ref: A2[np.float64]

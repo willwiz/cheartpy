@@ -17,7 +17,7 @@ from cheartpy.vtk.struct import (
     VTKTETRAHEDRON2,
     VTKTRIANGLE2,
 )
-from cheartpy.vtk.types import VtkType
+from cheartpy.vtk.types import VtkEnum
 
 type L2QMAP = Sequence[Collection[int]]
 
@@ -89,16 +89,16 @@ _HEX_L2QMAP: Final[L2QMAP] = [
 
 
 L2QMAPDICT = {
-    VtkType.LinLine: _LIN_L2QMAP,
-    VtkType.LinTriangle: _TRI_L2QMAP,
-    VtkType.LinQuadrilateral: _QUA_L2QMAP,
-    VtkType.LinTetrahedron: _TET_L2QMAP,
-    VtkType.LinHexahedron: _HEX_L2QMAP,
+    VtkEnum.LinLine: _LIN_L2QMAP,
+    VtkEnum.LinTriangle: _TRI_L2QMAP,
+    VtkEnum.LinQuadrilateral: _QUA_L2QMAP,
+    VtkEnum.LinTetrahedron: _TET_L2QMAP,
+    VtkEnum.LinHexahedron: _HEX_L2QMAP,
 }
 L2QTYPEDICT = {
-    VtkType.LinLine: VTKLINE2,
-    VtkType.LinTriangle: VTKTRIANGLE2,
-    VtkType.LinQuadrilateral: VTKQUADRILATERAL2,
-    VtkType.LinTetrahedron: VTKTETRAHEDRON2,
-    VtkType.LinHexahedron: VTKHEXAHEDRON2,
+    VtkEnum.LinLine: VTKLINE2,
+    VtkEnum.LinTriangle: VTKTRIANGLE2,
+    VtkEnum.LinQuadrilateral: VTKQUADRILATERAL2,
+    VtkEnum.LinTetrahedron: VTKTETRAHEDRON2,
+    VtkEnum.LinHexahedron: VTKHEXAHEDRON2,
 }
