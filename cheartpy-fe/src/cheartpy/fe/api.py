@@ -136,15 +136,15 @@ class _CreateBasisKwargs(TypedDict, total=False):
 
 
 def create_basis(
-    elem: CheartElementType | CheartElementEnum,
-    kind: CheartBasisType | CheartBasisEnum,
+    elem: CheartElementType,
+    kind: CheartBasisType,
     order: Literal[0, 1, 2],
     **kwargs: Unpack[_CreateBasisKwargs],
 ) -> ICheartBasis:
-    elem = get_enum(elem, CheartElementEnum)
-    kind = get_enum(kind, CheartBasisEnum)
-    quadrature = _QUADRATURE_FOR_ELEM[elem]
-    name = f"{_ORDER[order]}{_ELEM[elem]}"
+    _elem = get_enum(elem, CheartElementEnum)
+    _kind = get_enum(kind, CheartBasisEnum)
+    quadrature = _QUADRATURE_FOR_ELEM[_elem]
+    name = f"{_ORDER[order]}{_ELEM[_elem]}"
     gp = kwargs.get("gp", 9 if quadrature is CheartQuadratureEnum.GAUSS_LEGENDRE else 4)
     if 2 * gp < order + 1:
         msg = f"For {name}, order {2 * gp} < {order + 1}"
@@ -155,52 +155,52 @@ def create_basis(
     ]:
         msg = f"For {name} Basis, KEAST_LYNESS can only be used with tetrahedral or triangles"
         raise ValueError(msg)
-    return CheartBasis(name, elem, Basis(kind, order), Quadrature(quadrature, gp))
+    return CheartBasis(name, _elem, Basis(_kind, order), Quadrature(quadrature, gp))
 
 
 def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis:
     match vol.elem:
         case CheartElementEnum.HEXAHEDRAL_ELEMENT | CheartElementEnum.hex:
-            elem = CheartElementEnum.QUADRILATERAL_ELEMENT
+            elem = "QUADRILATERAL_ELEMENT"
         case CheartElementEnum.TETRAHEDRAL_ELEMENT | CheartElementEnum.tet:
-            elem = CheartElementEnum.TRIANGLE_ELEMENT
+            elem = "TRIANGLE_ELEMENT"
         case CheartElementEnum.QUADRILATERAL_ELEMENT | CheartElementEnum.quad:
-            elem = CheartElementEnum.ONED_ELEMENT
+            elem = "ONED_ELEMENT"
         case CheartElementEnum.TRIANGLE_ELEMENT | CheartElementEnum.tri:
-            elem = CheartElementEnum.ONED_ELEMENT
+            elem = "ONED_ELEMENT"
         case CheartElementEnum.ONED_ELEMENT | CheartElementEnum.line:
-            elem = CheartElementEnum.POINT_ELEMENT
+            elem = "POINT_ELEMENT"
         case CheartElementEnum.POINT_ELEMENT | CheartElementEnum.point:
             msg = "No such thing as boundary for point elements"
             raise ValueError(msg)
-    return create_basis(elem, vol.basis.kind, vol.basis.order, gp=vol.quadrature.gp)
+    return create_basis(elem, vol.basis.kind.value, vol.basis.order, gp=vol.quadrature.gp)
 
 
 def create_topology(
     name: str,
     basis: ICheartBasis | None,
     mesh: Path | str,
-    fmt: VariableExportFormat | VariableExportEnum = VariableExportEnum.TXT,
+    fmt: VariableExportFormat = "TXT",
 ) -> ICheartTopology:
     if basis is None:
         return NullTopology()
-    fmt = get_enum(fmt, VariableExportEnum)
-    return CheartTopology(name, basis, Path(mesh), fmt)
+    _fmt = get_enum(fmt, VariableExportEnum)
+    return CheartTopology(name, basis, Path(mesh), _fmt)
 
 
 def create_embedded_topology(
     name: str,
     embedded_top: ICheartTopology,
     mesh: Path | str,
-    fmt: VariableExportFormat | VariableExportEnum = VariableExportEnum.TXT,
+    fmt: VariableExportFormat = "TXT",
 ) -> ICheartTopology:
-    fmt = get_enum(fmt, VariableExportEnum)
-    return CheartTopology(name, None, Path(mesh), fmt, embedded=embedded_top)
+    _fmt = get_enum(fmt, VariableExportEnum)
+    return CheartTopology(name, None, Path(mesh), _fmt, embedded=embedded_top)
 
 
 def create_solver_matrix(
     name: str,
-    solver: MatrixSolverOption | MatrixSolverEnum,
+    solver: MatrixSolverOption,
     *probs: IProblem | None,
 ) -> ISolverMatrix:
     problems: dict[str, IProblem] = {}
@@ -220,7 +220,7 @@ def create_solver_group(
 
 
 def create_solver_subgroup(
-    method: SolverSubgroupMethod | SolverSubgroupMethodEnum,
+    method: SolverSubgroupMethod,
     *probs: ISolverMatrix | IProblem,
 ) -> ISolverSubGroup:
     problems: dict[str, ISolverMatrix | IProblem] = {}
@@ -260,10 +260,11 @@ def create_top_interface(
 def create_bcpatch(
     label: int,
     var: IVariable | tuple[IVariable, int | None],
-    kind: BoundaryType | BoundaryEnum,
+    kind: BoundaryType,
     *val: BC_VALUE,
 ) -> IBCPatch:
-    return BCPatch(label, var, get_enum(kind, BoundaryEnum), *val)
+    _kind = get_enum(kind, BoundaryEnum)
+    return BCPatch(label, var, _kind, *val)
 
 
 def create_bc(*val: IBCPatch) -> IBoundaryCondition:
@@ -273,7 +274,7 @@ def create_bc(*val: IBCPatch) -> IBoundaryCondition:
 
 
 class _ExtraCreateVarOptions(TypedDict, total=False):
-    fmt: VariableExportFormat | VariableExportEnum
+    fmt: VariableExportFormat
     freq: int
     loop_step: int | None
 

@@ -33,9 +33,7 @@ class L2SolidProjection(IProblem):
         space: IVariable,
         var: IVariable,
         solid_prob: SolidProblem,
-        projected_var: (
-            L2SolidCalculationEnum | L2SolidCalculationType
-        ) = L2SolidCalculationEnum.cauchy_stress,
+        projected_var: L2SolidCalculationType = "cauchy_stress",
     ) -> None:
         self.name = name
         self.solid_prob = solid_prob
@@ -98,7 +96,7 @@ class L2SolidProjection(IProblem):
 
     def set_projection(
         self,
-        calc: L2SolidCalculationEnum | L2SolidCalculationType,
+        calc: L2SolidCalculationType,
     ) -> None:
         self.calculation = get_enum(calc, L2SolidCalculationEnum)
 

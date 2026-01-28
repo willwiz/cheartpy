@@ -3,17 +3,11 @@ from pathlib import Path
 from typing import Literal, TypedDict, Unpack, overload
 
 from .aliases import (
-    BoundaryEnum,
     BoundaryType,
-    CheartBasisEnum,
     CheartBasisType,
-    CheartElementEnum,
     CheartElementType,
-    MatrixSolverEnum,
     MatrixSolverOption,
     SolverSubgroupMethod,
-    SolverSubgroupMethodEnum,
-    VariableExportEnum,
     VariableExportFormat,
 )
 from .impl import (
@@ -67,8 +61,8 @@ def create_time_scheme(
     step: float | str,
 ) -> ITimeScheme: ...
 def create_basis(
-    elem: CheartElementType | CheartElementEnum,
-    kind: CheartBasisType | CheartBasisEnum,
+    elem: CheartElementType,
+    kind: CheartBasisType,
     order: Literal[0, 1, 2],
     **kwargs: Unpack[_CreateBasisKwargs],
 ) -> ICheartBasis: ...
@@ -78,24 +72,24 @@ def create_topology(
     name: str,
     basis: ICheartBasis,
     mesh: Path | str,
-    format: VariableExportFormat | VariableExportEnum = ...,
+    format: VariableExportFormat = ...,
 ) -> CheartTopology: ...
 @overload
 def create_topology(
     name: str,
     basis: None,
     mesh: Path | str,
-    format: VariableExportFormat | VariableExportEnum = ...,
+    format: VariableExportFormat = ...,
 ) -> NullTopology: ...
 def create_embedded_topology(
     name: str,
     embedded_top: CheartTopology,
     mesh: Path | str,
-    fmt: VariableExportFormat | VariableExportEnum = ...,
+    fmt: VariableExportFormat = ...,
 ) -> CheartTopology: ...
 def create_solver_matrix(
     name: str,
-    solver: MatrixSolverOption | MatrixSolverEnum,
+    solver: MatrixSolverOption,
     *probs: IProblem | None,
 ) -> ISolverMatrix: ...
 def create_solver_group(
@@ -104,7 +98,7 @@ def create_solver_group(
     *solver_subgroup: ISolverSubGroup,
 ) -> ISolverGroup: ...
 def create_solver_subgroup(
-    method: SolverSubgroupMethod | SolverSubgroupMethodEnum,
+    method: SolverSubgroupMethod,
     *probs: ISolverMatrix | IProblem,
 ) -> ISolverSubGroup: ...
 @overload
@@ -124,7 +118,7 @@ def create_top_interface(
 def create_bcpatch(
     label: int,
     var: IVariable | tuple[IVariable, int | None],
-    kind: BoundaryType | BoundaryEnum,
+    kind: BoundaryType,
     *val: BC_VALUE,
 ) -> IBCPatch: ...
 def create_bc(*val: IBCPatch) -> IBoundaryCondition: ...
@@ -133,7 +127,7 @@ def create_variable(
     top: ICheartTopology | None,
     dim: int = 3,
     data: Path | str | None = None,
-    fmt: VariableExportFormat | VariableExportEnum = ...,
+    fmt: VariableExportFormat = ...,
     freq: int = 1,
     loop_step: int | None = None,
 ) -> IVariable: ...

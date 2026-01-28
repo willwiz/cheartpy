@@ -5,7 +5,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
 
     from cheartpy.fe.aliases import (
-        IterationEnum,
         IterationSetting,
         SolverSubgroupMethodEnum,
         TolSetting,
@@ -64,7 +63,7 @@ class ISolverGroup(abc.ABC):
     @abc.abstractmethod
     def set_iteration(
         self,
-        task: IterationEnum | IterationSetting,
+        task: IterationSetting,
         val: int | str,
     ) -> None: ...
     @abc.abstractmethod

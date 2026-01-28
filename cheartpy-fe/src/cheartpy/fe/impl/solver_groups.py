@@ -180,16 +180,16 @@ class SolverGroup(ISolverGroup):
         task: TolSetting,
         val: float | str,
     ) -> None:
-        task = get_enum(task, TolEnum)
-        self.settings[task] = [val]
+        _task = get_enum(task, TolEnum)
+        self.settings[_task] = [val]
 
     def set_iteration(
         self,
-        task: IterationEnum | IterationSetting,
+        task: IterationSetting,
         val: int | str,
     ) -> None:
-        task = get_enum(task, IterationEnum)
-        self.settings[task] = [val]
+        _task = get_enum(task, IterationEnum)
+        self.settings[_task] = [val]
 
     def catch_solver_errors(
         self,
