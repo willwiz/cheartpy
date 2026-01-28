@@ -7,9 +7,10 @@ from numpy.linalg import lstsq
 from pytools.logging import get_logger
 
 if TYPE_CHECKING:
-    from cheartpy.mesh.struct import CheartMesh
     from cheartpy.vtk.types import VtkElem
     from pytools.arrays import A1, A2
+
+    from cheartpy.mesh.struct import CheartMesh
 
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
@@ -33,7 +34,7 @@ def compute_normal_patch[F: np.floating, I: np.integer](
     f = u + np.identity(3)
     if np.linalg.det(f) < _REGRESS_TOL:
         _g_log = get_logger()
-        _g_log.warn("Element node order is inverted.")
+        _g_log.debug("Element node order is inverted.")
         f = u - np.identity(3)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=float))
     return cast("A1[F]", res)
