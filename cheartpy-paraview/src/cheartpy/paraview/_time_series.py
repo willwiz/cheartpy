@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final, Unpack, cast
 import numpy as np
 from cheartpy.io.api import read_array_float
 from cheartpy.search.api import get_var_index
-from pytools.logging import NLOGGER, BLogger, ILogger
+from pytools.logging import NLOGGER, ILogger, get_logger
 from pytools.result import Err, Ok
 
 from ._headers import header_guard
@@ -138,7 +138,7 @@ def create_time_series_api(
         root=kwargs.get("root", Path()),
     )
     dtype = kwargs.get("dtype", np.float64)
-    log = BLogger(kwargs.get("log", "INFO"))
+    log = get_logger(level=kwargs.get("log", "INFO"))
     return create_time_series(args, log=log, dtype=dtype).next()
 
 

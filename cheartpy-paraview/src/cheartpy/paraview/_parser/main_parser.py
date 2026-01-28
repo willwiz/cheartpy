@@ -99,7 +99,7 @@ def get_vtu_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs:
 
     """
     # Require subparsers to be called, which sets args.cmd
-    # If args.cmd is None, print help message and exit
+    # If args.cmd is None, display help message and exit
     parsed_args = cheart2vtu_parser.parse_args(args)
     match parsed_args.cmd:
         case "find":
@@ -126,7 +126,7 @@ def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArg
 
     """
     # Require subparsers to be called, which sets args.cmd
-    # If args.cmd is None, print help message and exit
+    # If args.cmd is None, display help message and exit
     parsed_args = main_parser.parse_args(args)
     match parsed_args.cmd:
         case "find":

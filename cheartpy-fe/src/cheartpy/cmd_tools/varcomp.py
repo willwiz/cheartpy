@@ -1,7 +1,7 @@
 import argparse
 
 from cheartpy.io.api import chread_d
-from pytools.logging import BLogger
+from pytools.logging import get_logger
 
 from ._traits import HEADER, HEADER_LEN, VarErrors, VarStats
 from ._utils import compute_stats, get_variable_getter, get_variables
@@ -49,7 +49,7 @@ def table_row(it: int | str, res: VarStats) -> str:
 def main_cli() -> None:
     args = parser.parse_args()
     VarErrors.tol = args.tol
-    log = BLogger("INFO")
+    log = get_logger(level="INFO")
     if len(args.errcheck) > 0:
         log.fatal("Error: Shell expanded wildcard before python")
         log.fatal("Error: Please place quotes around the offender variable")

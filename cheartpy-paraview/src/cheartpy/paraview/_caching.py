@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, NamedTuple, overload
 import numpy as np
 from cheartpy.io.api import chread_d
 from cheartpy.paraview._variable_getter import CheartVTUFormat
+from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
 
 from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
@@ -13,7 +14,6 @@ if TYPE_CHECKING:
 
     from cheartpy.search.trait import IIndexIterator
     from pytools.arrays import A2, DType
-    from pytools.logging import ILogger
 
     from ._trait import IFormattedName
 
@@ -43,21 +43,20 @@ def init_variable_cache[F: np.floating, I: np.integer](
 
 
 @overload
-def check_validate_v(v: None, time: int | str, backup: Path | None, *, log: ILogger) -> None: ...
+def check_validate_v(v: None, time: int | str, backup: Path | None) -> None: ...
 @overload
-def check_validate_v(v: IFormattedName, time: int | str, backup: Path, *, log: ILogger) -> Path: ...
+def check_validate_v(v: IFormattedName, time: int | str, backup: Path) -> Path: ...
 @overload
 def check_validate_v(
-    v: IFormattedName | None, time: int | str, backup: Path | None, *, log: ILogger
+    v: IFormattedName | None, time: int | str, backup: Path | None
 ) -> Path | None: ...
-def check_validate_v(
-    v: IFormattedName | None, time: int | str, backup: Path | None, *, log: ILogger
-) -> Path | None:
+def check_validate_v(v: IFormattedName | None, time: int | str, backup: Path | None) -> Path | None:
     if v is None:
         return v
     name = v[time]
     if name.is_file():
         return name
+    log = get_logger()
     msg = f"disp file (t = {time}) = {name} does not exist.\n"
     msg += f"using previous step ({backup})"
     log.warn(msg)
@@ -73,9 +72,9 @@ def update_variable_cache[F: np.floating, I: np.integer](
     if time == cache.time:
         log.debug(f"time point {time} did not change")
         return cache
-    fx = check_validate_v(inp.space, time, cache.fx, log=log)
-    fd = check_validate_v(inp.disp, time, cache.fd, log=log)
-    fv = {k: check_validate_v(v, time, cache.fv[k], log=log) for k, v in inp.var.items()}
+    fx = check_validate_v(inp.space, time, cache.fx)
+    fd = check_validate_v(inp.disp, time, cache.fd)
+    fv = {k: check_validate_v(v, time, cache.fv[k]) for k, v in inp.var.items()}
     return VariableCache(cache.top, time, fx, fd, fv, cache.ftype, cache.dtype)
 
 

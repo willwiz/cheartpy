@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Literal, Unpack, overload
 
-from pytools.logging import BLogger
+from pytools.logging import get_logger
 
 from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
@@ -46,7 +46,7 @@ __all__ = [
 
 
 def cheart2vtu(cmd_args: VTUProgArgs) -> None:
-    log = BLogger(cmd_args.log)
+    log = get_logger(level=cmd_args.log)
     log.disp(*compose_header())
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
     log.disp("", header_guard())

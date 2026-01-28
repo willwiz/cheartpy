@@ -29,7 +29,7 @@ def header(msg: str = "Begin P file") -> str:
 
 
 def splicegen(maxchars: int, stringlist: list[str]) -> Generator[list[str]]:
-    """Return a list of slices to print based on maxchars string-length boundary."""
+    """Return a generator of slices to str based on maxchars string-length boundary."""
     runningcount = 0  # start at 0
     tmpslice = []  # tmp list where we append slice numbers.
     for item in stringlist:

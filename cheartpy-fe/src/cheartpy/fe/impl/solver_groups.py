@@ -243,10 +243,10 @@ class SolverGroup(ISolverGroup):
                 f.write(
                     f"  !SetSolverGroup={{{join_fields(self, 'AddVariables', *s)}}}\n",
                 )
-        # Print export init setting
+        # export init setting
         if self._export_initial_condition:
             f.write(f"  !SetSolverGroup={{{self}|export_initial_condition}}\n")
-        # Print Conv Settings
+        # Conv Settings
         for k, v in self.settings.items():
             string = join_fields(self, k, *v)
             f.write(f"  !SetSolverGroup={{{string}}}\n")

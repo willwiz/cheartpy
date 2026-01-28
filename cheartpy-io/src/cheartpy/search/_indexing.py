@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from pytools.logging import BLogger, ILogger
+from pytools.logging import get_logger
 from pytools.result import Err, Ok
 
 from ._impl_indexers import (
@@ -90,14 +90,12 @@ def get_file_name_indexer(
     subindex: tuple[int, int, int] | SearchMode | None,
     variables: Sequence[str],
     *,
-    log: ILogger | None = None,
     root: Path | str | None = None,
 ) -> Ok[IIndexIterator] | Err:
-    if log is None:
-        log = BLogger("WARN")
     if not variables:
         return Ok(ZeroIndexer())
     if isinstance(index, SearchMode) or isinstance(subindex, SearchMode):
+        log = get_logger()
         log.info(
             f"<<< Variable index will be determined from the first variable: {variables[0]}",
         )

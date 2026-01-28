@@ -30,11 +30,59 @@ class FSExpr:
             mult = "1"
         return f"{self.var}[{mult}]"
 
+    def get_var_deps(self) -> ValuesView[IVariable]:
+        _vars_: dict[str, IVariable] = {}
+        if isinstance(self.var, IVariable):
+            _vars_[str(self.var)] = self.var
+        if isinstance(self.var, IExpression):
+            for v in self.var.get_var_deps():
+                if str(v) not in _vars_:
+                    _vars_[str(v)] = v
+        if isinstance(self.mult, IVariable) and str(self.mult) not in _vars_:
+            _vars_[str(self.mult)] = self.mult
+        if isinstance(self.mult, IExpression):
+            for v in self.mult.get_var_deps():
+                if str(v) not in _vars_:
+                    _vars_[str(v)] = v
+        return _vars_.values()
+
+    def get_expr_deps(self) -> ValuesView[IExpression]:
+        _expr_: dict[str, IExpression] = {}
+        if isinstance(self.var, IExpression):
+            _expr_[str(self.var)] = self.var
+            for e in self.var.get_expr_deps():
+                _expr_[str(e)] = e
+        if isinstance(self.var, IVariable):
+            for e in self.var.get_expr_deps():
+                _expr_[str(e)] = e
+        if isinstance(self.mult, IExpression):
+            _expr_[str(self.mult)] = self.mult
+            for e in self.mult.get_expr_deps():
+                _expr_[str(e)] = e
+        if isinstance(self.mult, IVariable):
+            for e in self.mult.get_expr_deps():
+                _expr_[str(e)] = e
+        return _expr_.values()
+
 
 @dc.dataclass(slots=True)
 class FSCouplingTerm:
     test_var: IVariable
     terms: list[FSExpr]
+
+    def get_var_deps(self) -> ValuesView[IVariable]:
+        _vars_: dict[str, IVariable] = {str(self.test_var): self.test_var}
+        for t in self.terms:
+            for v in t.get_var_deps():
+                _vars_[str(v)] = v
+        return _vars_.values()
+
+    def get_expr_deps(self) -> ValuesView[IExpression]:
+        _expr_: dict[str, IExpression] = {}
+        for t in self.terms:
+            for e in t.get_expr_deps():
+                _expr_[str(e)] = e
+        return _expr_.values()
 
 
 class FSCouplingProblem(IProblem):
@@ -126,36 +174,21 @@ class FSCouplingProblem(IProblem):
         _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         _vars_[str(self.space)] = self.space
         if self.lm is not None:
-            _vars_[str(self.lm.test_var)] = self.lm.test_var
-            for t in self.lm.terms:
-                if isinstance(t.var, IVariable) and str(t.var) not in _vars_:
-                    _vars_[str(t.var)] = t.var
-                if isinstance(t.mult, IVariable) and str(t.mult) not in _vars_:
-                    _vars_[str(t.mult)] = t.mult
+            for t in self.lm.get_var_deps():
+                _vars_[str(t)] = t
         for v in self.m_terms.values():
-            if str(v.test_var) not in _vars_:
-                _vars_[str(v.test_var)] = v.test_var
-            for t in v.terms:
-                if isinstance(t.var, IVariable) and str(t.var) not in _vars_:
-                    _vars_[str(t.var)] = t.var
-                if isinstance(t.mult, IVariable) and str(t.mult) not in _vars_:
-                    _vars_[str(t.mult)] = t.mult
+            for t_var in v.get_var_deps():
+                _vars_[str(t_var)] = t_var
         return {**self.aux_vars, **_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         if self.lm is not None:
-            for t in self.lm.terms:
-                if isinstance(t.var, IExpression) and str(t.var) not in _expr_:
-                    _expr_[str(t.var)] = t.var
-                if isinstance(t.mult, IExpression) and str(t.mult) not in _expr_:
-                    _expr_[str(t.mult)] = t.mult
-        for v in self.m_terms.values():
-            for t in v.terms:
-                if isinstance(t.var, IExpression) and str(t.var) not in _expr_:
-                    _expr_[str(t.var)] = t.var
-                if isinstance(t.mult, IExpression) and str(t.mult) not in _expr_:
-                    _expr_[str(t.mult)] = t.mult
+            for t in self.lm.get_expr_deps():
+                _expr_[str(t)] = t
+        for t in self.m_terms.values():
+            for e in t.get_expr_deps():
+                _expr_[str(e)] = e
         return {**self.aux_expr, **_expr_}.values()
 
     def get_bc_patches(self) -> list[IBCPatch]:

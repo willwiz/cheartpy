@@ -4,14 +4,13 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 from cheartpy.vtk.api import get_vtk_elem
 from numpy.linalg import lstsq
-from pytools.logging import NLOGGER
+from pytools.logging import NLOGGER, get_logger
 
 if TYPE_CHECKING:
+    from cheartpy.mesh.struct import CheartMesh
     from cheartpy.vtk.types import VtkElem
     from pytools.arrays import A1, A2
     from pytools.logging._trait import ILogger
-
-    from cheartpy.mesh.struct import CheartMesh
 
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
@@ -29,13 +28,13 @@ def compute_normal_patch[F: np.floating, I: np.integer](
     space: A2[F],
     elem: A1[I],
     ref_space: A2[np.floating],
-    log: ILogger = NLOGGER,
 ) -> A1[F]:
     nodes = space[elem] - ref_space
     u = np.array([[nodes[:, i] @ b for b in basis] for i in range(3)])
     f = u + np.identity(3)
     if np.linalg.det(f) < _REGRESS_TOL:
-        log.warn("Element node order is inverted.")
+        _g_log = get_logger()
+        _g_log.warn("Element node order is inverted.")
         f = u - np.identity(3)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=float))
     return cast("A1[F]", res)

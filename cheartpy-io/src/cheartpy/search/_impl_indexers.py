@@ -1,7 +1,6 @@
-import sys
 from typing import TYPE_CHECKING, Final
 
-from pytools.logging._trait import BColors
+from pytools.logging import BColors, get_logger
 
 from .trait import IIndexIterator, ProgramMode
 
@@ -117,11 +116,12 @@ class ListIndexer[T: (int, str)](IIndexIterator):
         )
         diff = ideal_indicies - indicies
         if len(diff) > 0:
+            logger = get_logger()
             msg = (
                 f"{BColors.WARN}<<< WARNING: Some indicies may be missing:{BColors.ENDC}\n"
                 f"{sorted(diff)}\n"
             )
-            sys.stderr.write(msg)
+            logger.warn(msg)
 
     def __iter__(self) -> Iterator[T]:
         yield from self.values

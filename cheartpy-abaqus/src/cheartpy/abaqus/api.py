@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from cheartpy.mesh.struct import CheartMesh
-from pytools.logging import BLogger
+from pytools.logging import get_logger
 from pytools.result import all_ok
 
 from ._core import (
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 def create_cheartmesh_from_abaqus(args: InputArgs) -> None:
-    log = BLogger("INFO")
+    log = get_logger(level="INFO")
     nodes, elems = read_abaqus_meshes(*args.inputs, log=log).unwrap()
     check_for_elements(elems, args.topology, args.boundary).unwrap()
     elmap = build_element_map(elems, args.topology)

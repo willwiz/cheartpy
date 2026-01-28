@@ -163,7 +163,7 @@ def run_exports_in_series[F: np.floating, I: np.integer](
     for arg in get_arguments(inp, cache, indexer, log=log):
         log.debug("<<< Working on", arg.path.name)
         export_mesh_iter(arg, log)
-        bart.next() if bart else print(f"<<< Completed {arg.path}")
+        bart.next() if bart else log.disp(f"<<< Completed {arg.path}")
 
 
 def run_exports_in_parallel[F: np.floating, I: np.integer](
