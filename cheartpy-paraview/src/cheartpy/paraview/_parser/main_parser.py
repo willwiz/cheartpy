@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Unpack, overload
 
 from cheartpy.search.trait import AUTO
-from pytools.logging import LogLevel
+from pytools.logging import LogEnum
 
 from ._find import find_subparser
 from ._index import index_subparser
@@ -181,7 +181,7 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
         space=Path(space) if space is not None else None,
         boundary=Path(boundary) if boundary is not None else None,
         prog_bar=kwargs.get("prog_bar", True),
-        log=LogLevel[kwargs.get("log", "INFO")],
+        log=LogEnum[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
         compress=kwargs.get("compress", True),
         core=kwargs.get("core"),
@@ -215,7 +215,7 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
         space=Path(space) if space is not None else None,
         boundary=Path(boundary) if boundary is not None else None,
         prog_bar=kwargs.get("prog_bar", True),
-        log=LogLevel[kwargs.get("log", "INFO")],
+        log=LogEnum[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
         compress=kwargs.get("compress", True),
         core=kwargs.get("core"),

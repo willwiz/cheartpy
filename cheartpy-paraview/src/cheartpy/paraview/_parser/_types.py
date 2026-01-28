@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     import numpy as np
     from cheartpy.search.trait import SearchMode
     from pytools.arrays import DType
-    from pytools.logging import LogLevel, LogLevelType
+    from pytools.logging import LogEnum, LogLevel
 
 SubparserModes = Literal["index", "find"]
 
@@ -24,7 +24,7 @@ class APIKwargs(TypedDict, total=False):
     space: Path | str | None
     boundary: Path | str | None
     prog_bar: bool
-    log: LogLevelType
+    log: LogLevel
     binary: bool
     compress: bool
     core: int | None
@@ -43,7 +43,7 @@ class APIKwargsFind(TypedDict, total=False):
     space: Path | str | None
     boundary: Path | str | None
     prog_bar: bool
-    log: LogLevelType
+    log: LogLevel
     binary: bool
     compress: bool
     core: int | None
@@ -62,7 +62,7 @@ class APIKwargsIndex(TypedDict, total=False):
     space: Required[Path | str]
     boundary: Path | str | None
     prog_bar: bool
-    log: LogLevelType
+    log: LogLevel
     binary: bool
     compress: bool
     core: int | None
@@ -75,7 +75,7 @@ class TimeSeriesKwargs(TypedDict, total=False):
     prefix: Required[str]
     time: Required[Path | float]
     root: Path
-    log: LogLevelType
+    log: LogLevel
     dtype: DType[np.floating]
 
 
@@ -91,7 +91,7 @@ class VTUProgArgs:
     space: Final[Path | None]
     boundary: Final[Path | None]
     prog_bar: Final[bool]
-    log: Final[LogLevel]
+    log: Final[LogEnum]
     binary: Final[bool]
     compress: Final[bool]
     core: Final[int | None]
