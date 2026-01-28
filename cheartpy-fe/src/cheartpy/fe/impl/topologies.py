@@ -3,8 +3,8 @@ from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
     CheartTopInterfaceEnum,
+    CheartTopologyEnum,
     CheartTopologySetting,
-    CheartTopologySettingEnum,
     VariableExportEnum,
 )
 from cheartpy.fe.string_tools import get_enum, join_fields
@@ -66,12 +66,12 @@ class CheartTopology(ICheartTopology):
 
     def add_setting(
         self,
-        task: CheartTopologySettingEnum | CheartTopologySetting,
+        task: CheartTopologyEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None:
-        task = get_enum(task, CheartTopologySettingEnum)
+        task = get_enum(task, CheartTopologyEnum)
         match task, val:
-            case CheartTopologySettingEnum.EmbeddedInTopology, ICheartTopology() as topology:
+            case CheartTopologyEnum.EmbeddedInTopology, ICheartTopology() as topology:
                 self.embedded = topology
             case _:
                 msg = f"Setting for topology {self} {task} does not have a match value type"
@@ -125,7 +125,7 @@ class NullTopology(ICheartTopology):
 
     def add_setting(
         self,
-        task: CheartTopologySettingEnum | CheartTopologySetting,
+        task: CheartTopologyEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None:
         pass

@@ -5,7 +5,7 @@ from cheartpy.fe.aliases import (
     SolidOption,
     SolidProblemEnum,
     SolidProblemType,
-    SolidVariable,
+    SolidVariableValue,
 )
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.string_tools import get_enum, join_fields
@@ -34,7 +34,7 @@ class SolidProblem(IProblem):
     name: str
     problem: SolidProblemEnum
     matlaws: list[ILaw]
-    variables: dict[SolidVariable, IVariable]
+    variables: dict[SolidVariableValue, IVariable]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     state_vars: dict[str, IVariable]
@@ -137,7 +137,7 @@ class SolidProblem(IProblem):
             for v in w.get_var_deps():
                 self.aux_vars[str(v)] = v
 
-    def add_variable(self, name: SolidVariable, var: IVariable) -> None:
+    def add_variable(self, name: SolidVariableValue, var: IVariable) -> None:
         self.variables[name] = var
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None:

@@ -10,8 +10,8 @@ if TYPE_CHECKING:
         CheartElementEnum,
         CheartQuadratureEnum,
         CheartTopInterfaceType,
+        CheartTopologyEnum,
         CheartTopologySetting,
-        CheartTopologySettingEnum,
         VariableUpdateSetting,
     )
 
@@ -167,7 +167,7 @@ class ICheartTopology(abc.ABC):
     @abc.abstractmethod
     def add_setting(
         self,
-        task: CheartTopologySettingEnum | CheartTopologySetting,
+        task: CheartTopologyEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
     ) -> None: ...
     @abc.abstractmethod

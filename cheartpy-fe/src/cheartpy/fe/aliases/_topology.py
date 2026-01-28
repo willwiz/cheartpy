@@ -80,7 +80,7 @@ CheartTopologySetting = Literal[
 ]
 
 
-class CheartTopologySettingEnum(enum.StrEnum):
+class CheartTopologyEnum(enum.StrEnum):
     PartitioningWeight = "PartitioningWeight"
     UseInPartitioning = "UseInPartitioning"
     ReadBinary = "ReadBinary"

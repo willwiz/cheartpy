@@ -35,7 +35,7 @@ class SolidProblemEnum(enum.StrEnum):
     QUASI_STATIC = "quasi_static_elasticity"
 
 
-SolidVariable = Literal[
+SolidVariableValue = Literal[
     "Space",
     "Displacement",
     "Velocity",
