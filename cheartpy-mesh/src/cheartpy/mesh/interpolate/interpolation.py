@@ -1,9 +1,9 @@
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 
 import numpy as np
 from cheartpy.io.api import chread_d, chwrite_d_utf
-from pytools.logging import NLOGGER
+from pytools.logging import ILogger, get_logger
 
 from .maps import L2QMAPDICT, L2QTYPEDICT
 
@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
     from cheartpy.mesh.struct import CheartMesh
     from pytools.arrays import A1, A2
-    from pytools.logging import ILogger
 
 
 __all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]
@@ -56,15 +55,20 @@ def interp_var_l2q[T: np.floating, I: np.integer](l2qmap: INTERP_MAP[I], lin: A2
     return quad_data
 
 
+class _InterpolatKwargs(TypedDict, total=False):
+    log: ILogger
+    overwrite: bool
+
+
 def interpolate_var_on_lin_topology[I: np.integer](
     l2qmap: INTERP_MAP[I],
     lin_var: Path,
     quad_var: Path,
-    *,
-    log: ILogger = NLOGGER,
-    overwrite: bool = False,
+    **kwargs: Unpack[_InterpolatKwargs],
 ) -> None:
     lin = chread_d(lin_var)
+    log = kwargs.get("log", get_logger())
+    overwrite = kwargs.get("overwrite", False)
     if len(lin) == len(l2qmap):
         log.debug("Variable invalid l2qmap")
         return

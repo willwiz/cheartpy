@@ -4,13 +4,12 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 from cheartpy.vtk.api import get_vtk_elem
 from numpy.linalg import lstsq
-from pytools.logging import NLOGGER, get_logger
+from pytools.logging import get_logger
 
 if TYPE_CHECKING:
     from cheartpy.mesh.struct import CheartMesh
     from cheartpy.vtk.types import VtkElem
     from pytools.arrays import A1, A2
-    from pytools.logging._trait import ILogger
 
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
@@ -50,7 +49,6 @@ def compute_normal_surface_at_center[F: np.floating, I: np.integer](
     kind: VtkElem,
     space: A2[F],
     elem: A2[I],
-    _log: ILogger = NLOGGER,
 ) -> A2[F]:
     centroid = np.mean(kind.ref, axis=0)
     interp_basis = kind.shape_dfunc(centroid)
@@ -65,10 +63,8 @@ def compute_normal_surface_at_nodes[F: np.floating, I: np.integer](
     kind: VtkElem,
     space: A2[F],
     elem: A2[I],
-    log: ILogger = NLOGGER,
 ) -> dict[int, A2[F]]:
     interp_basis = {k: kind.shape_dfunc(v) for k, v in enumerate(kind.ref)}
-    log.debug(f"{interp_basis=}")
     normals = {
         k: np.array(
             [compute_normal_patch(v, space, i, kind.ref) for i in elem],
@@ -81,10 +77,8 @@ def compute_normal_surface_at_nodes[F: np.floating, I: np.integer](
 
 def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
-    log: ILogger = NLOGGER,
 ) -> A2[F]:
     vtkelem = get_vtk_elem(mesh.top.TYPE)
-    log.debug(f"{vtkelem.body=}")
     interp_basis = {k: vtkelem.shape_dfunc(v) for k, v in enumerate(vtkelem.ref)}
     node_normal: dict[int, list[A1[F]]] = defaultdict(list)
     for elem in mesh.top.v:

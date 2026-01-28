@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Final, Unpack, cast
+from typing import TYPE_CHECKING, Final, TypedDict, Unpack, cast
 
 import numpy as np
 from cheartpy.io.api import read_array_float
 from cheartpy.search.api import get_var_index
-from pytools.logging import NLOGGER, ILogger, get_logger
+from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
 
 from ._headers import header_guard
@@ -104,12 +104,17 @@ def create_time_series_core[F: np.floating](
             return _create_time_series_range(vtus, idx, args.time, dtype=dtype).next()
 
 
+class _AdditionalKwargs(TypedDict, total=False):
+    log: ILogger
+
+
 def create_time_series[F: np.floating](
     args: TimeProgArgs,
     *,
-    log: ILogger = NLOGGER,
     dtype: DType[F] = np.float64,
+    **kwargs: Unpack[_AdditionalKwargs],
 ) -> Ok[None] | Err:
+    log = kwargs.get("log", get_logger())
     log.disp(*compose_time_header())
     log.info(*format_input_info(args.prefix, args.root))
     log.disp("", header_guard())

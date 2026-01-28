@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack, overload
 
 from cheartpy.io.api import fix_ch_sfx
 from cheartpy.search.api import get_file_name_indexer
-from pytools.parallel._parallel_exec import ThreadMethods
+from pytools.parallel import ThreadMethods
 from pytools.result import Err, Ok, all_ok
 
 from ._headers import compose_index_info, format_input_info

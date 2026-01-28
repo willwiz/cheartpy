@@ -16,14 +16,13 @@ from cheartpy.mesh.surface_core.normals import (
     compute_normal_surface_at_center,
 )
 from cheartpy.vtk.api import get_vtk_elem
-from pytools.logging import NLOGGER
+from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok, all_ok
 
 from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2, DType
-    from pytools.logging._trait import ILogger
 
 __all__ = [
     "create_cheart_cl_nodal_meshes",
@@ -38,11 +37,11 @@ def check_normal[F: np.floating](
     node_normals: A2[F],
     elem: A1[np.integer],
     patch_normals: A1[F],
-    log: ILogger = NLOGGER,
 ) -> bool:
     check = all(abs(node_normals[i] @ patch_normals) > _1_SQRT2 for i in elem)
     if not check:
-        log.debug(
+        logger = get_logger()
+        logger.debug(
             f"Normal check failed for elem = {elem}, patch normals of:",
             patch_normals,
             pformat([node_normals[i] for i in elem]),
@@ -54,7 +53,6 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     elems: A2[I],
     normal_check: A2[F] | None,
-    log: ILogger = NLOGGER,
 ) -> Ok[A2[I]] | Err:
     if normal_check is None:
         return Ok(elems)
@@ -63,9 +61,9 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
         msg = "Attempting to compute normal from a 1D mesh, not possible"
         return Err(ValueError(msg))
     surf_type = get_vtk_elem(top_body_elem.surf)
-    normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems, log)
+    normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems)
     new_elems = np.array(
-        [i for i, v in zip(elems, normals, strict=False) if check_normal(normal_check, i, v, log)],
+        [i for i, v in zip(elems, normals, strict=False) if check_normal(normal_check, i, v)],
         dtype=int,
     )
     return Ok(new_elems)
@@ -84,7 +82,7 @@ def create_cl_partition[F: np.floating, I: np.integer](
     dtype: DType[I] = np.intc,
     **kwargs: Unpack[_CreateCLPartKwargs],
 ) -> CLPartition[F, I]:
-    log = kwargs.get("log", NLOGGER)
+    log = kwargs.get("log", get_logger())
     prefix, in_surf = surf
     ftype = kwargs.get("ftype", np.float64)
     dtype = kwargs.get("dtype", np.intc)
@@ -146,7 +144,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> Ok[CheartMesh[F, I]] | Err:
     # Unpack the kwargs
-    log = kwargs.get("log", NLOGGER)
+    log = kwargs.get("log", get_logger())
     normal_check = kwargs.get("normal_check")
     # Main logic
     body_elem = get_vtk_elem(mesh.top.TYPE)
@@ -156,7 +154,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     elems: A2[I] = surf.v[get_boundaryelems_in_clrange(bnd_map, domain)]
     log.debug(f"{len(elems)=}")
     log.debug(f"The number of elements in patch is {len(elems)}")
-    match filter_mesh_normals(mesh, elems, normal_check, log):
+    match filter_mesh_normals(mesh, elems, normal_check):
         case Ok(elems):
             pass
         case Err(e):
@@ -186,7 +184,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
 ) -> Ok[NODAL_MESHES[F, I]] | Err:
     # Unpack the kwargs
     mesh_dir = Path(mesh_dir)
-    log = kwargs.get("log", NLOGGER)
+    log = kwargs.get("log", get_logger())
     normal_check = kwargs.get("normal_check")
     # Main logic
     if cheart_mesh.bnd is None:
@@ -212,7 +210,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
                 k: CLNodalData(
                     file=mesh_dir / v,
                     mesh=tops[k],
-                    n=compute_mesh_outer_normal_at_nodes(tops[k], log),
+                    n=compute_mesh_outer_normal_at_nodes(tops[k]),
                 )
                 for k, v in cl_top.n_prefix.items()
             }
@@ -283,7 +281,7 @@ def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
     **kwargs: Unpack[_CLNodalMeshKwargs[F]],
 ) -> Ok[tuple[CheartMesh[F, I], CheartMesh[F, I]]] | Err:
     # Unpack kwargs
-    log = kwargs.get("log", NLOGGER)
+    log = kwargs.get("log", get_logger())
     normal_check = kwargs.get("normal_check")
     # Main Logic
     match create_cheart_cl_nodal_meshes(

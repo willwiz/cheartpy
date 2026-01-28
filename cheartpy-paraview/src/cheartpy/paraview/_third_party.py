@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import TypedDict, Unpack
 
 import meshio
-from pytools.logging import NLOGGER, ILogger
+from pytools.logging import ILogger, get_logger
 
 __all__ = ["compress_vtu"]
 
@@ -15,7 +15,7 @@ class _Kwargs(TypedDict, total=False):
 
 def compress_vtu(name: Path | str, **kwargs: Unpack[_Kwargs]) -> None:
     """Read the name of a file and compresses it in vtu format."""
-    log = kwargs.get("log", NLOGGER)
+    log = kwargs.get("log", get_logger())
     log.debug(f"File size before: {Path(name).stat().st_size / 1024**2:.2f} MB")
     mesh = meshio.read(name, file_format="vtu")
     meshio.vtu.write(name, mesh, binary=True, compression="zlib")
