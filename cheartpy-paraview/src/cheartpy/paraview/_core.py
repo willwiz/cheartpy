@@ -5,7 +5,7 @@ import numpy as np
 from cheartpy.io.api import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
-from pytools.logging import ILogger, LogEnum, get_logger
+from pytools.logging import ILogger, get_logger
 from pytools.parallel import ThreadedRunner, ThreadMethods
 from pytools.progress import ProgressBar
 
@@ -174,7 +174,7 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    log = log if log.level is LogEnum.NULL else get_logger(level="NULL")
+    silent_logger = get_logger("thread", level="NULL", verbose=False)
     with ThreadedRunner(**mpi, prog_bar=bart) as executor:
         for arg in get_arguments(inp, cache, indexer, log=log):
-            executor.submit(export_mesh_iter, arg, log=log)
+            executor.submit(export_mesh_iter, arg, log=silent_logger)

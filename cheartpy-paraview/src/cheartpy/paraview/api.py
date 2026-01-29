@@ -61,8 +61,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
         for k, v in inp.mpi.items():
             log.info(f"<<< Processing vtus with {v} {k}.")
             break
-        logger = get_logger("thread", level="NULL", verbose=False)
-        run_exports_in_parallel(inp.mpi, inp, indexer, cache, logger)
+        run_exports_in_parallel(inp.mpi, inp, indexer, cache, log)
     log.disp("", header_guard())
 
 
