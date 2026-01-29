@@ -174,7 +174,7 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    log = get_logger(level="NULL") if log.level is not LogEnum.NULL else log
+    log = log if log.level is LogEnum.NULL else get_logger(level="NULL")
     with ThreadedRunner(**mpi, prog_bar=bart) as executor:
         for arg in get_arguments(inp, cache, indexer, log=log):
-            executor.submit(export_mesh_iter, arg, log=get_logger(level="NULL"))
+            executor.submit(export_mesh_iter, arg, log=log)
