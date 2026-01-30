@@ -70,7 +70,7 @@ def get_first_content(f: TextIO, log: ILogger) -> Ok[AbaqusContent] | Err:
 def read_comments(f: TextIO, log: ILogger) -> Ok[tuple[AbaqusContent | None, None]] | Err:
     """Return the next Abaqus mesh content from the file if found else None if at  end of file.
 
-    This function will print the headings of the Abaqus mesh file
+    This function will read the headings of the Abaqus mesh file
     Args:
         f (TextIO): A file-like object to read lines from.
         log (ILogger): Logger to log messages.
