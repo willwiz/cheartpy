@@ -1,8 +1,11 @@
 import dataclasses as dc
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.fe.string_tools import hline
 from cheartpy.fe.trait import ITimeScheme
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 __all__ = ["TimeScheme"]
 
@@ -12,7 +15,7 @@ class TimeScheme(ITimeScheme):
     name: str
     start: int
     stop: int
-    value: float | str  # step or file
+    value: float | str | Path  # step or file
 
     def __repr__(self) -> str:
         return self.name

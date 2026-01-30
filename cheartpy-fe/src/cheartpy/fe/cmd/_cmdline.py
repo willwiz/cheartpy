@@ -37,12 +37,12 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[_RunOptions]) -> int:
     if kwargs.get("output", True) is False:
         cmd = [*cmd, "--no-output"]
     logger = get_logger()
-    logger.info(" ".join(cmd))
+    logger.disp(" ".join(cmd))
 
     if (log := kwargs.get("log")) is not None:
         with Path(log).open("w") as f:
             err = sp.run(cmd, stdout=f, stderr=sp.STDOUT, check=False).returncode
     else:
         err = sp.run(cmd, check=False).returncode
-    logger.info("cheartsolver.out has finished!")
+    logger.disp(f"{pfile!s} has finished!")
     return err

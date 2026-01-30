@@ -83,7 +83,7 @@ def create_time_scheme(
     name: str,
     start: int,
     stop: int,
-    step: float | str,
+    step: float | str | Path,
 ) -> ITimeScheme:
     if isinstance(step, str) and not Path(step).is_file():
         msg = f"Time step file {step} is not found!"

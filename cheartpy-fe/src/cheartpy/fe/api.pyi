@@ -58,7 +58,7 @@ def create_time_scheme(
     name: str,
     start: int,
     stop: int,
-    step: float | str,
+    step: float | str | Path,
 ) -> ITimeScheme: ...
 def create_basis(
     elem: CheartElementType,
