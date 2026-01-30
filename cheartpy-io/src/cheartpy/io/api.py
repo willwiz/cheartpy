@@ -11,6 +11,7 @@ from ._cheart import (
     chwrite_iarr_utf,
     chwrite_str_utf,
     chwrite_t_utf,
+    chwrite_time_utf,
     fix_ch_sfx,
     is_binary,
 )
@@ -29,6 +30,7 @@ __all__ = [
     "chwrite_iarr_utf",
     "chwrite_str_utf",
     "chwrite_t_utf",
+    "chwrite_time_utf",
     "fix_ch_sfx",
     "is_binary",
     "read_array_float",

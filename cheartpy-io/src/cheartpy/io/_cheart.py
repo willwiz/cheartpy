@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from pytools.arrays import A2, Arr, DType
+    from pytools.arrays import A1, A2, Arr, DType
 
 """
 CHeart Read Array functions
@@ -24,6 +24,7 @@ __all__ = [
     "chwrite_d_utf",
     "chwrite_iarr_utf",
     "chwrite_t_utf",
+    "chwrite_time_utf",
     "fix_ch_sfx",
     "is_binary",
 ]
@@ -109,16 +110,26 @@ def chread_t_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) 
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
+def chread_b_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
+    return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
+
+
+def chread_time_utf[F: np.floating, I: np.integer](
+    file: Path | str, *, dtype: DType[I] = np.intp, ftype: DType[F] = np.float64
+) -> A1[F]:
+    data = np.loadtxt(file, dtype=[("index", dtype), ("value", ftype)])
+    shape = (data["index"].max() + 1,)
+    time = np.zeros(shape, dtype=ftype)
+    time[data["index"]] = data["value"]
+    return time
+
+
 def chread_header_utf(file: Path | str) -> tuple[int, int]:
     with Path(file).open("r") as f:
         items = next(f).strip().split()
         nelem = int(items[0])
         nnode = int(items[1])
     return nelem, nnode
-
-
-def chread_b_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
-    return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
 """
@@ -186,3 +197,9 @@ def chwrite_str_utf[T: np.str_](file: Path | str, data: A2[T]) -> None:
         for i in data:
             f.writelines(f"{j:>12}" for j in i)
             f.write("\n")
+
+
+def chwrite_time_utf[F: np.floating](file: Path | str, data: A1[F]) -> None:
+    with Path(file).open("w") as f:
+        f.write(f"{len(data):>12}\n")
+        f.writelines(f"{i:>12}{v:>24.16g}\n" for i, v in enumerate(data, start=1))
