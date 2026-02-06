@@ -7,9 +7,13 @@ from cheartpy.fe.trait import ICheartTopology, IExpression, IProblem, ISolverMat
 if TYPE_CHECKING:
     from collections.abc import ValuesView
 
-    from cheartpy.fe.aliases import MatrixSolverEnum
+    from cheartpy.fe.aliases import (
+        MatrixSolverEnum,
+    )
 
 __all__ = ["SolverMatrix"]
+
+_REMAINING_LINE_LEN = 45
 
 
 @dc.dataclass(slots=True)
@@ -54,17 +58,18 @@ class SolverMatrix(ISolverMatrix):
             self.problem[str(p)] = p
 
     def write(self, f: TextIO) -> None:
-        string = join_fields(self.name, self.solver, *self.problem.values())
-        if len(string) > _REMAINING_LINE_LEN:
-            f.write(f"!DefSolverMatrix={{{join_fields(self.name, self.solver)}}}\n")
-            f.writelines(f"    {v}\n" for v in self.problem.values())
-        else:
-            f.write(f"!DefSolverMatrix={{{string}}}\n")
-        if self.suppress_output:
-            f.write(f"  !SetSolverMatrix={{{self.name}|SuppressOutput}}\n")
-        for k, v in self.settings.items():
-            string = join_fields(self.name, k, *v)
-            f.write(f"  !SetSolverMatrix={{{string}}}\n")
+        _solver_matrix_write(self, f)
 
 
-_REMAINING_LINE_LEN = 45
+def _solver_matrix_write(matrix: SolverMatrix, f: TextIO) -> None:
+    string = join_fields(matrix.name, matrix.solver, *matrix.problem.values())
+    if len(string) > _REMAINING_LINE_LEN:
+        f.write(f"!DefSolverMatrix={{{join_fields(matrix.name, matrix.solver)}}}\n")
+        f.writelines(f"    {v}\n" for v in matrix.problem.values())
+    else:
+        f.write(f"!DefSolverMatrix={{{string}}}\n")
+    if matrix.suppress_output:
+        f.write(f"  !SetSolverMatrix={{{matrix.name}|SuppressOutput}}\n")
+    for k, v in matrix.settings.items():
+        string = join_fields(matrix.name, k, *v)
+        f.write(f"  !SetSolverMatrix={{{string}}}\n")

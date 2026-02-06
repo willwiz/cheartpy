@@ -64,7 +64,7 @@ class ISolverGroup(abc.ABC):
     def set_iteration(
         self,
         task: IterationSetting,
-        val: int | str,
+        val: float | str,
     ) -> None: ...
     @abc.abstractmethod
     def catch_solver_errors(

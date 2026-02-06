@@ -117,7 +117,7 @@ def chread_b_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) 
 def chread_time_utf[F: np.floating, I: np.integer](
     file: Path | str, *, dtype: DType[I] = np.intp, ftype: DType[F] = np.float64
 ) -> A1[F]:
-    data = np.loadtxt(file, dtype=[("index", dtype), ("value", ftype)])
+    data = np.loadtxt(file, dtype=[("index", dtype), ("value", ftype)], skiprows=1)
     shape = (data["index"].max() + 1,)
     time = np.zeros(shape, dtype=ftype)
     time[data["index"]] = data["value"]

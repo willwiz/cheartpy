@@ -2,7 +2,7 @@ from .basis import Basis, CheartBasis, Quadrature
 from .expressions import Expression
 from .problems import BCPatch, BoundaryCondition
 from .solver_groups import SolverGroup, SolverSubGroup
-from .solver_matrix import SolverMatrix
+from .solver_matrix import MumpsMatrix, SolverMatrix
 from .time_schemes import TimeScheme
 from .topologies import (
     CheartTopology,
@@ -21,6 +21,7 @@ __all__ = [
     "CheartTopology",
     "Expression",
     "ManyToOneTopInterface",
+    "MumpsMatrix",
     "NullTopology",
     "OneToOneTopInterface",
     "Quadrature",

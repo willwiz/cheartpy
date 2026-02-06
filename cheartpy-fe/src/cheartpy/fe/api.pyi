@@ -6,13 +6,13 @@ from .aliases import (
     BoundaryType,
     CheartBasisType,
     CheartElementType,
-    MatrixSolverOption,
     SolverSubgroupMethod,
     VariableExportFormat,
 )
 from .impl import (
     CheartTopology,
     ManyToOneTopInterface,
+    MumpsMatrix,
     NullTopology,
     OneToOneTopInterface,
 )
@@ -87,9 +87,16 @@ def create_embedded_topology(
     mesh: Path | str,
     fmt: VariableExportFormat = ...,
 ) -> CheartTopology: ...
+@overload
 def create_solver_matrix(
     name: str,
-    solver: MatrixSolverOption,
+    solver: Literal["SOLVER_MUMPS"],
+    *probs: IProblem | None,
+) -> MumpsMatrix: ...
+@overload
+def create_solver_matrix(
+    name: str,
+    solver: Literal["SOLVER_PETSC"],
     *probs: IProblem | None,
 ) -> ISolverMatrix: ...
 def create_solver_group(

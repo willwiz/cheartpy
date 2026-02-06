@@ -25,6 +25,7 @@ from .impl import (
     CheartTopology,
     Expression,
     ManyToOneTopInterface,
+    MumpsMatrix,
     NullTopology,
     OneToOneTopInterface,
     Quadrature,
@@ -208,7 +209,11 @@ def create_solver_matrix(
         if p is not None:
             problems[str(p)] = p
     method = get_enum(solver, MatrixSolverEnum)
-    return SolverMatrix(name, method, problems)
+    match solver:
+        case "SOLVER_MUMPS":
+            return MumpsMatrix(name, method, problems)
+        case "SOLVER_PETSC":
+            return SolverMatrix(name, method, problems)
 
 
 def create_solver_group(
