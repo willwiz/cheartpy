@@ -104,12 +104,7 @@ class Variable(IVariable):
         return self.freq
 
     def write(self, f: TextIO) -> None:
-        string = join_fields(
-            self.name,
-            self.topology if self.topology else "null_topology",
-            self.data,
-            self.dim,
-        )
+        string = join_fields(self.name, self.topology or "null_topology", self.data, self.dim)
         f.write(f"!DefVariablePointer={{{string}}}\n")
         if self.fmt == VariableExportEnum.BINARY:
             f.write(f"  !SetVariablePointer={{{self.name}|ReadBinary}}\n")

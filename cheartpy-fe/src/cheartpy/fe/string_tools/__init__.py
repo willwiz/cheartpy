@@ -1,4 +1,5 @@
 from ._utils import (
+    Header,
     cline,
     get_enum,
     header,
@@ -7,4 +8,4 @@ from ._utils import (
     splicegen,
 )
 
-__all__ = ["cline", "get_enum", "header", "hline", "join_fields", "splicegen"]
+__all__ = ["Header", "cline", "get_enum", "header", "hline", "join_fields", "splicegen"]

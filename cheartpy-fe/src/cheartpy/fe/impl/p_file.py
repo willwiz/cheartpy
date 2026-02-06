@@ -1,9 +1,10 @@
 import dataclasses as dc
+from collections.abc import Collection, Generator, Mapping, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, TextIO
+from typing import Protocol, TextIO
 
-from .string_tools import header, hline, splicegen
-from .trait import (
+from cheartpy.fe.string_tools import Header, header, hline, splicegen
+from cheartpy.fe.trait import (
     ICheartBasis,
     ICheartTopology,
     IDataInterp,
@@ -17,11 +18,6 @@ from .trait import (
     ITopInterface,
     IVariable,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Collection, Mapping
-
-__all__ = ["PFile"]
 
 
 @dc.dataclass(slots=True)
@@ -48,19 +44,16 @@ class PFile:
             if str(t) not in self.times:
                 self.times[str(t)] = t
 
-    # Add Data Pointers
     def add_datapointer(self, *var: IDataPointer) -> None:
         for v in var:
             if str(v) not in self.data_pointers:
                 self.data_pointers[str(v)] = v
 
-    # Add Basis
     def add_basis(self, *basis: ICheartBasis | None) -> None:
         for b in basis:
             if b is not None and str(b) not in self.bases:
                 self.bases[str(b)] = b
 
-    # Add Topology
     def add_topology(self, *top: ICheartTopology) -> None:
         for t in top:
             self.add_basis(t.get_basis())
@@ -137,21 +130,6 @@ class PFile:
         for v in var:
             v.set_export_frequency(freq)
 
-    def _get_variable_frequency_list(self) -> Mapping[int, Collection[str]]:
-        exportfrequencies: dict[int, set[str]] = {}
-        for v in self.variables.values():
-            if v.get_export_frequency() in exportfrequencies:
-                exportfrequencies[v.get_export_frequency()].update({str(v)})
-            else:
-                exportfrequencies[v.get_export_frequency()] = {str(v)}
-        return exportfrequencies
-
-    def _get_ordered_topinterface_list(self) -> list[ITopInterface]:
-        return [
-            *[v for v in self.interfaces.values() if v.method == "OneToOne"],
-            *[v for v in self.interfaces.values() if v.method == "ManyToOne"],
-        ]
-
     # ----------------------------------------------------------------------------
     # Resolve Pfile
     def resolve(self) -> None:
@@ -161,40 +139,69 @@ class PFile:
     # ----------------------------------------------------------------------------
     # Producing the Pfile
 
-    def write(self, f: TextIO) -> None:  # noqa: C901
+    def write(self, f: TextIO) -> None:
         self.resolve()
-        f.write(header(self.h))
-        f.write(hline("New Output Path"))
-        if self.output_dir is not None:
-            f.write(f"!SetOutputPath={{{self.output_dir}}}\n")
-        for t in self.times.values():
-            t.write(f)
-        for v in self.solver_groups.values():
-            v.write(f)
-        f.write(hline("Solver Matrices"))
-        for v in self.matrices.values():
-            v.write(f)
-        f.write(hline("Basis Functions"))
-        for b in self.bases.values():
-            b.write(f)
-        f.write(hline("Topologies"))
-        for t in self.toplogies.values():
-            t.write(f)
-        for i in self._get_ordered_topinterface_list():
-            i.write(f)
-        f.write(hline("Variables"))
-        for v in self.variables.values():
-            v.write(f)
-        for v in self.data_pointers.values():
-            v.write(f)
-        f.write(hline("Export Frequency"))
-        for freq, v in self._get_variable_frequency_list().items():
-            f.writelines(
-                f"!SetExportFrequency={{{'|'.join(s)}|{freq}}}\n" for s in splicegen(60, sorted(v))
-            )
-        f.write(hline("Problem Definitions"))
-        for v in self.problems.values():
-            v.write(f)
-        f.write(hline("Expression"))
-        for v in self.exprs.values():
-            v.write(f)
+        _pfile_writer(self, f)
+
+
+class Writer(Protocol):
+    def write(self, f: TextIO) -> None: ...
+
+
+def _get_writer(header: str, *obj: Sequence[Writer] | Mapping[str, Writer]) -> Generator[Writer]:
+    yield Header(header)
+    for o in obj:
+        match o:
+            case Mapping():
+                for v in o.values():
+                    yield v
+            case Sequence():
+                for v in o:
+                    yield v
+
+
+def _pfile_writer(pfile: PFile, f: TextIO) -> None:
+    f.write(header(pfile.h))
+    f.write(hline("New Output Path"))
+    if pfile.output_dir is not None:
+        f.write(f"!SetOutputPath={{{pfile.output_dir}}}\n")
+    for v in _get_writer("Solver Groups", pfile.times, pfile.solver_groups):
+        v.write(f)
+    for m in _get_writer("Solver Matrices", pfile.matrices):
+        m.write(f)
+    for b in _get_writer("Basis Functions", pfile.bases):
+        b.write(f)
+    for t in _get_writer(
+        "Topologies", pfile.toplogies, _get_ordered_topinterfaces(pfile.interfaces)
+    ):
+        t.write(f)
+    for v in _get_writer("Variables", pfile.variables, pfile.data_pointers):
+        v.write(f)
+    f.write(hline("Export Frequency"))
+    for freq, v in _get_variable_frequency_list(pfile.variables).items():
+        f.writelines(
+            f"!SetExportFrequency={{{'|'.join(s)}|{freq}}}\n" for s in splicegen(60, sorted(v))
+        )
+    for v in _get_writer("Problem Definitions", pfile.problems):
+        v.write(f)
+    for v in _get_writer("Expression", pfile.exprs):
+        v.write(f)
+
+
+def _get_ordered_topinterfaces(interfaces: Mapping[str, ITopInterface]) -> list[ITopInterface]:
+    return [
+        *[v for v in interfaces.values() if v.method == "OneToOne"],
+        *[v for v in interfaces.values() if v.method == "ManyToOne"],
+    ]
+
+
+def _get_variable_frequency_list(
+    variables: Mapping[str, IVariable],
+) -> Mapping[int, Collection[str]]:
+    exportfrequencies: dict[int, set[str]] = {}
+    for v in variables.values():
+        if v.get_export_frequency() in exportfrequencies:
+            exportfrequencies[v.get_export_frequency()].update({str(v)})
+        else:
+            exportfrequencies[v.get_export_frequency()] = {str(v)}
+    return exportfrequencies

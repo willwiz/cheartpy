@@ -1,5 +1,5 @@
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TextIO
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -52,3 +52,14 @@ def get_enum[T: enum.Enum](v: str | T, e: type[T]) -> T:
         return e[v]
     msg = f"Value {v} not found in enum {e}"
     raise ValueError(msg)
+
+
+class Header:
+    __slots__ = ["title"]
+    title: str
+
+    def __init__(self, title: str) -> None:
+        self.title = hline(title)
+
+    def write(self, f: TextIO) -> None:
+        f.write(self.title)
