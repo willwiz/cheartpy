@@ -4,7 +4,6 @@ from cheartpy.fe.aliases import (
     SolidFlag,
     SolidOption,
     SolidProblemEnum,
-    SolidProblemType,
     SolidVariableValue,
 )
 from cheartpy.fe.api import create_bc
@@ -16,12 +15,10 @@ from cheartpy.fe.trait import (
     IProblem,
     IVariable,
 )
-from cheartpy.fe.utils import get_enum, join_fields
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
-
-__all__ = ["SolidProblem", "create_solid_mechanics_problem"]
 
 
 class _SolidProblemExtraArgs(TypedDict, total=False):
@@ -209,32 +206,3 @@ class SolidProblem(IProblem):
         for v in self.matlaws:
             f.write(v.string())
         self.bc.write(f)
-
-
-def create_solid_mechanics_problem(
-    name: str,
-    prob: SolidProblemType | SolidProblemEnum,
-    space: IVariable,
-    disp: IVariable,
-    **kwargs: Unpack[_SolidProblemExtraArgs],
-) -> SolidProblem:
-    problem = get_enum(prob, SolidProblemEnum)
-    if space.get_data() is None:
-        msg = f"Space for {name} must be initialized with values"
-        raise ValueError(msg)
-    vel = kwargs.get("vel")
-    match problem, vel:
-        case SolidProblemEnum.TRANSIENT, None:
-            msg = f"Solid Problem {name}: Transient must have Vel"
-            raise ValueError(msg)
-        case _:
-            pass
-    return SolidProblem(
-        name,
-        problem,
-        space,
-        disp,
-        vel=vel,
-        pres=kwargs.get("pres"),
-        matlaws=kwargs.get("matlaws"),
-    )

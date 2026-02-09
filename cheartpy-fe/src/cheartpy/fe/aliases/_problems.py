@@ -1,4 +1,5 @@
 import enum
+from collections.abc import Collection, Mapping
 from typing import Literal
 
 BoundaryType = Literal[
@@ -83,3 +84,6 @@ L2SolidCalculationType = Literal["cauchy_stress", "deformation_gradient"]
 class L2SolidCalculationEnum(enum.StrEnum):
     cauchy_stress = "cauchy_stress"
     deformation_gradient = "deformation_gradient"
+
+
+RotationalConstraint = Mapping[Literal["T", "R"], Collection[Literal["x", "y", "z"]]]

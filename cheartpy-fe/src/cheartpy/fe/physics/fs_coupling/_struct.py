@@ -15,8 +15,6 @@ from cheartpy.fe.utils import join_fields
 if TYPE_CHECKING:
     from collections.abc import ValuesView
 
-__all__ = ["FSCouplingProblem", "FSExpr"]
-
 
 @dc.dataclass(slots=True)
 class FSExpr:

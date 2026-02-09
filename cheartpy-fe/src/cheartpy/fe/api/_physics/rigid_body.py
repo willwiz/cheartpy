@@ -1,15 +1,10 @@
-from collections.abc import Collection, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import Literal, Required, TypedDict, Unpack
 
+from cheartpy.fe.aliases import RotationalConstraint
 from cheartpy.fe.api import create_expr, create_variable
+from cheartpy.fe.physics.fs_coupling import FSCouplingProblem, FSExpr
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
-
-from ._struct import FSCouplingProblem, FSExpr
-
-__all__ = ["create_rotation_constraint"]
-
-
-ROT_CONS_CHOICE = Mapping[Literal["T", "R"], Collection[Literal["x", "y", "z"]]]
 
 
 def _u(vs: Sequence[IVariable | IExpression], i: int) -> str:
@@ -20,7 +15,7 @@ def _u(vs: Sequence[IVariable | IExpression], i: int) -> str:
 
 def create_rotation_operator_expr(
     name: str,
-    choice: ROT_CONS_CHOICE,
+    choice: RotationalConstraint,
     *space: IVariable | IExpression,
 ) -> Mapping[Literal["p", "m"], IExpression]:
     total_dof = sum(len(v) for v in choice.values())
@@ -57,7 +52,7 @@ class _RotationConstraintVariable(TypedDict, total=False):
 def create_rotation_constraint(
     prefix: str,
     root: ICheartTopology,
-    choice: ROT_CONS_CHOICE,
+    choice: RotationalConstraint,
     **kwargs: Unpack[_RotationConstraintVariable],
 ) -> FSCouplingProblem:
     """Create a rotation constraint for a given space and displacement variable."""

@@ -121,6 +121,3 @@ class BoundaryCondition(IBoundaryCondition):
             f.write("  !Boundary-patch-definitions\n")
             f.writelines(p.string() for p in self.patches.values())
             f.write("\n")
-
-
-# Problems ----------------------------------------------------------------------
