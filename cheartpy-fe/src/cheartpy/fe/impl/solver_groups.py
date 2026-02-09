@@ -53,7 +53,6 @@ Content:
 TimeScheme
 Basis
 Topology
-TopInterface
 Variable
 BCPatch
 BoundaryCondtion
@@ -75,6 +74,9 @@ class SolverSubGroup(ISolverSubGroup):
         default_factory=dict[str, ISolverMatrix | IProblem],
     )
     _scale_first_residual: float | None = None
+
+    def __hash__(self) -> int:
+        return hash(tuple(self.problems.keys()))
 
     def get_method(self) -> SolverSubgroupMethodEnum:
         return self.method
@@ -149,6 +151,9 @@ class SolverGroup(ISolverGroup):
 
     def __repr__(self) -> str:
         return self.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     @property
     def export_initial_condition(self) -> bool:

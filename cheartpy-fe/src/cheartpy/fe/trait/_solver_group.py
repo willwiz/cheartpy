@@ -15,10 +15,9 @@ if TYPE_CHECKING:
     from ._solver_matrix import ISolverMatrix
 
 
-__all__ = ["ISolverGroup", "ISolverSubGroup"]
-
-
 class ISolverSubGroup(abc.ABC):
+    @abc.abstractmethod
+    def __hash__(self) -> int: ...
     @abc.abstractmethod
     def get_method(self) -> SolverSubgroupMethodEnum: ...
     @abc.abstractmethod
@@ -42,6 +41,8 @@ class ISolverSubGroup(abc.ABC):
 class ISolverGroup(abc.ABC):
     @abc.abstractmethod
     def __repr__(self) -> str: ...
+    @abc.abstractmethod
+    def __hash__(self) -> int: ...
     @property
     @abc.abstractmethod
     def export_initial_condition(self) -> bool: ...

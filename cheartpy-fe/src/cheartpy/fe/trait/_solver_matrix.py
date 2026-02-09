@@ -6,21 +6,18 @@ if TYPE_CHECKING:
 
     from ._basic import ICheartTopology, IExpression, IProblem
 
-__all__ = ["ISolverMatrix"]
-
 
 class ISolverMatrix(abc.ABC):
     @abc.abstractmethod
     def __repr__(self) -> str: ...
+    @abc.abstractmethod
+    def __hash__(self) -> int: ...
     @property
     @abc.abstractmethod
     def suppress_output(self) -> bool: ...
     @suppress_output.setter
     @abc.abstractmethod
     def suppress_output(self, val: bool) -> None: ...
-
-    # @abc.abstractmethod
-    # def get_aux_var(self) -> Sequence[_Variable]: ...
     @abc.abstractmethod
     def get_problems(self) -> ValuesView[IProblem]: ...
     @abc.abstractmethod

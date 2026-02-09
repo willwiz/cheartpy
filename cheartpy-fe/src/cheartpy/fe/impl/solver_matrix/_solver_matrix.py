@@ -32,6 +32,9 @@ class SolverMatrix(ISolverMatrix):
     def __repr__(self) -> str:
         return self.name
 
+    def __hash__(self) -> int:
+        return hash(("MP", self.name))
+
     @property
     def suppress_output(self) -> bool:
         return self._suppress_output

@@ -13,8 +13,6 @@ from cheartpy.fe.utils import get_enum, join_fields
 if TYPE_CHECKING:
     from collections.abc import ValuesView
 
-__all__ = ["Variable"]
-
 
 @dc.dataclass(slots=True)
 class Variable(IVariable):
@@ -30,6 +28,9 @@ class Variable(IVariable):
 
     def __repr__(self) -> str:
         return self.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def __getitem__[T: int | None](self, key: T) -> tuple[Self, T]:
         return (self, key)

@@ -101,6 +101,9 @@ class FSCouplingProblem(IProblem):
     def __repr__(self) -> str:
         return self.name
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def __init__(
         self,
         name: str,

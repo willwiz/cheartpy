@@ -2,7 +2,6 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.aliases import (
-    CheartTopInterfaceEnum,
     CheartTopologyEnum,
     CheartTopologySetting,
     VariableExportEnum,
@@ -13,14 +12,6 @@ from cheartpy.fe.utils import get_enum, join_fields
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
-
-__all__ = [
-    "CheartTopology",
-    "ManyToOneTopInterface",
-    "NullTopology",
-    "OneToOneTopInterface",
-    "TopInterface",
-]
 
 
 @dc.dataclass(slots=True)
@@ -39,6 +30,9 @@ class CheartTopology(ICheartTopology):
 
     def __repr__(self) -> str:
         return self.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def __bool__(self) -> bool:
         return True
@@ -101,6 +95,9 @@ class NullTopology(ICheartTopology):
     def __repr__(self) -> str:
         return "null_topology"
 
+    def __hash__(self) -> int:
+        return hash("null_topology")
+
     def __bool__(self) -> bool:
         return True
 
@@ -132,17 +129,6 @@ class NullTopology(ICheartTopology):
 
     def write(self, f: TextIO) -> None:
         pass
-
-
-@dc.dataclass(slots=True)
-class TopInterface(ITopInterface):
-    name: str
-    _method: CheartTopInterfaceEnum
-    topologies: list[ICheartTopology] = dc.field(default_factory=list[ICheartTopology])
-
-    def write(self, f: TextIO) -> None:
-        string = join_fields(self._method, *self.topologies)
-        f.write(f"!DefInterface={{{string}}}\n")
 
 
 @dc.dataclass(slots=True)

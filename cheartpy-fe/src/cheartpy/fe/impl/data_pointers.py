@@ -15,6 +15,9 @@ class DataPointer(IDataPointer):
     def __repr__(self) -> str:
         return self.name
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def write(self, f: TextIO) -> None:
         _str = f"!DefDataPointer={{{join_fields(self.name, self.file, self.dim, self.nt)}}}\n"
         f.write(_str)
@@ -26,6 +29,9 @@ class DataInterp(IDataInterp):
 
     def __repr__(self) -> str:
         return f"Interp({self.var!s},t)"
+
+    def __hash__(self) -> int:
+        return hash(self.var)
 
     def get_datapointer(self) -> IDataPointer:
         return self.var

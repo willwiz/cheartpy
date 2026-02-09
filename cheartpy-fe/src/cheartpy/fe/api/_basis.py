@@ -13,22 +13,6 @@ from cheartpy.fe.utils import get_enum
 if TYPE_CHECKING:
     from cheartpy.fe.trait import ICheartBasis
 
-_ORDER = {0: "Z", 1: "L", 2: "Q", 3: "C", 4: "A", 5: "U"}
-
-_ELEM = {
-    CheartElementEnum.POINT_ELEMENT: "Point",
-    CheartElementEnum.point: "Point",
-    CheartElementEnum.ONED_ELEMENT: "Line",
-    CheartElementEnum.line: "Line",
-    CheartElementEnum.TRIANGLE_ELEMENT: "Tri",
-    CheartElementEnum.tri: "Tri",
-    CheartElementEnum.QUADRILATERAL_ELEMENT: "Quad",
-    CheartElementEnum.quad: "Quad",
-    CheartElementEnum.TETRAHEDRAL_ELEMENT: "Tet",
-    CheartElementEnum.tet: "Tet",
-    CheartElementEnum.HEXAHEDRAL_ELEMENT: "Hex",
-    CheartElementEnum.hex: "Hex",
-}
 
 _QUADRATURE_FOR_ELEM: dict[CheartElementEnum, CheartQuadratureEnum] = {
     CheartElementEnum.POINT_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
@@ -59,18 +43,17 @@ def create_basis(
     _elem = get_enum(elem, CheartElementEnum)
     _kind = get_enum(kind, CheartBasisEnum)
     quadrature = _QUADRATURE_FOR_ELEM[_elem]
-    name = f"{_ORDER[order]}{_ELEM[_elem]}"
     gp = kwargs.get("gp", 9 if quadrature is CheartQuadratureEnum.GAUSS_LEGENDRE else 4)
     if 2 * gp < order + 1:
-        msg = f"For {name}, order {2 * gp} < {order + 1}"
+        msg = f"For {_elem}, order {2 * gp} < {order + 1}"
         raise ValueError(msg)
     if quadrature is CheartQuadratureEnum.KEAST_LYNESS and elem not in [
         CheartElementEnum.TETRAHEDRAL_ELEMENT,
         CheartElementEnum.TRIANGLE_ELEMENT,
     ]:
-        msg = f"For {name} Basis, KEAST_LYNESS can only be used with tetrahedral or triangles"
+        msg = f"For {_elem} Basis, KEAST_LYNESS can only be used with tetrahedral or triangles"
         raise ValueError(msg)
-    return CheartBasis(name, _elem, Basis(_kind, order), Quadrature(quadrature, gp))
+    return CheartBasis(_elem, Basis(_kind, order), Quadrature(quadrature, gp))
 
 
 def create_boundary_basis(vol: ICheartBasis) -> CheartBasis:

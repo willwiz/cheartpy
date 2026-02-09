@@ -18,6 +18,9 @@ class TimeScheme(ITimeScheme):
     def __repr__(self) -> str:
         return self.name
 
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def write(self, f: TextIO) -> None:
         f.write(hline("Define Time Scheme"))
         f.write(f"!DefTimeStepScheme={{{self.name}}}\n")

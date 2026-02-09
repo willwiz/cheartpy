@@ -9,7 +9,6 @@ from .topologies import (
     ManyToOneTopInterface,
     NullTopology,
     OneToOneTopInterface,
-    TopInterface,
 )
 from .variables import Variable
 
@@ -29,6 +28,5 @@ __all__ = [
     "SolverMatrix",
     "SolverSubGroup",
     "TimeScheme",
-    "TopInterface",
     "Variable",
 ]

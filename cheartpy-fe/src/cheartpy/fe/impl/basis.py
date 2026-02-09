@@ -1,11 +1,42 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, TextIO
+from typing import Literal, TextIO
 
+from cheartpy.fe.aliases import CheartBasisEnum, CheartElementEnum, CheartQuadratureEnum
 from cheartpy.fe.trait import IBasis, ICheartBasis, IQuadrature
-from cheartpy.fe.utils import join_fields
 
-if TYPE_CHECKING:
-    from cheartpy.fe.aliases import CheartBasisEnum, CheartElementEnum, CheartQuadratureEnum
+_ELEM_CODE = {
+    CheartElementEnum.POINT_ELEMENT: "Pt",
+    CheartElementEnum.point: "Pt",
+    CheartElementEnum.ONED_ELEMENT: "Li",
+    CheartElementEnum.line: "Li",
+    CheartElementEnum.TRIANGLE_ELEMENT: "Tr",
+    CheartElementEnum.tri: "Tr",
+    CheartElementEnum.QUADRILATERAL_ELEMENT: "Qd",
+    CheartElementEnum.quad: "Qd",
+    CheartElementEnum.TETRAHEDRAL_ELEMENT: "Tt",
+    CheartElementEnum.tet: "Tt",
+    CheartElementEnum.HEXAHEDRAL_ELEMENT: "Hx",
+    CheartElementEnum.hex: "Hx",
+}
+
+_BASIS_CODE = {
+    CheartBasisEnum.NODAL_LAGRANGE: "Nl",
+    CheartBasisEnum.NL: "Nl",
+    CheartBasisEnum.MODAL_BASIS: "Mo",
+    CheartBasisEnum.PNODAL_BASIS: "Pn",
+    CheartBasisEnum.MINI_BASIS: "Mi",
+    CheartBasisEnum.NURBS_BASIS: "Nu",
+    CheartBasisEnum.SPECTRAL_BASIS: "Sp",
+}
+
+_ORDER_CODE = {0: "Z", 1: "L", 2: "Q", 3: "C", 4: "A", 5: "U"}
+
+_QUAD_CODE = {
+    CheartQuadratureEnum.GAUSS_LEGENDRE: "Gl",
+    CheartQuadratureEnum.GL: "Gl",
+    CheartQuadratureEnum.KEAST_LYNESS: "Kl",
+    CheartQuadratureEnum.KL: "Kl",
+}
 
 
 @dc.dataclass(slots=True)
@@ -14,7 +45,10 @@ class Basis(IBasis):
     _order: Literal[0, 1, 2]
 
     def __repr__(self) -> str:
-        return f"{self.name}{self._order}"
+        return f"{_ORDER_CODE[self._order]}{_BASIS_CODE[self.name]}"
+
+    def __hash__(self) -> int:
+        return hash((self.name, self._order))
 
     @property
     def order(self) -> Literal[0, 1, 2]:
@@ -28,29 +62,43 @@ class Basis(IBasis):
 @dc.dataclass(slots=True)
 class Quadrature(IQuadrature):
     name: CheartQuadratureEnum
-    _gp: int
+    gp: int
 
     def __repr__(self) -> str:
-        return self.name + str(self._gp)
+        return f"{_QUAD_CODE[self.name]}{self.gp}"
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.gp))
 
     @property
     def gp(self) -> int:
-        return self._gp
+        return self.gp
 
     @property
     def kind(self) -> CheartQuadratureEnum:
         return self.name
 
 
-@dc.dataclass(slots=True)
+def cheart_basis_name_code(elem: CheartElementEnum, quadrature: IQuadrature, basis: IBasis) -> str:
+    return f"{_ELEM_CODE[elem]}{quadrature!r}{basis!r}"
+
+
+@dc.dataclass(init=False, slots=True)
 class CheartBasis(ICheartBasis):
-    name: str
     _elem: CheartElementEnum
     _basis: IBasis
     _quadrature: IQuadrature
 
+    def __init__(self, elem: CheartElementEnum, basis: IBasis, quadrature: IQuadrature) -> None:
+        self._elem = elem
+        self._basis = basis
+        self._quadrature = quadrature
+
     def __repr__(self) -> str:
-        return self.name
+        return f"{_ELEM_CODE[self._elem]}{self._quadrature!r}{self._basis!r}"
+
+    def __hash__(self) -> int:
+        return hash((self._elem, self._basis, self._quadrature))
 
     @property
     def elem(self) -> CheartElementEnum:
@@ -73,5 +121,4 @@ class CheartBasis(ICheartBasis):
         return self._quadrature.gp
 
     def write(self, f: TextIO) -> None:
-        string = join_fields(self.name, self._elem, self._basis, self._quadrature)
-        f.write(f"!UseBasis={{{string}}}\n")
+        f.write(f"!UseBasis={{{self!r}}}\n")

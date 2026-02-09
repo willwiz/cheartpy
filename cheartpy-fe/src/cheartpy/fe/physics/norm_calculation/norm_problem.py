@@ -14,8 +14,6 @@ from cheartpy.fe.utils import join_fields
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
 
-__all__ = ["NormProblem"]
-
 
 class NormProblem(IProblem):
     name: str
@@ -33,6 +31,9 @@ class NormProblem(IProblem):
 
     def __repr__(self) -> str:
         return self.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def __init__(
         self,
