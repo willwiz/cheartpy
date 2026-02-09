@@ -1,10 +1,10 @@
 import dataclasses as dc
 from collections.abc import Collection, Generator, Mapping, Sequence
 from pathlib import Path
-from typing import Protocol, TextIO
+from typing import TextIO
 
-from cheartpy.fe.string_tools import Header, header, hline, splicegen
 from cheartpy.fe.trait import (
+    HasWriter,
     ICheartBasis,
     ICheartTopology,
     IDataInterp,
@@ -18,6 +18,7 @@ from cheartpy.fe.trait import (
     ITopInterface,
     IVariable,
 )
+from cheartpy.fe.utils import Header, header, hline, splicegen
 
 
 @dc.dataclass(slots=True)
@@ -144,11 +145,28 @@ class PFile:
         _pfile_writer(self, f)
 
 
-class Writer(Protocol):
-    def write(self, f: TextIO) -> None: ...
+def _get_ordered_topinterfaces(interfaces: Mapping[str, ITopInterface]) -> list[ITopInterface]:
+    return [
+        *[v for v in interfaces.values() if v.method == "OneToOne"],
+        *[v for v in interfaces.values() if v.method == "ManyToOne"],
+    ]
 
 
-def _get_writer(header: str, *obj: Sequence[Writer] | Mapping[str, Writer]) -> Generator[Writer]:
+def _get_variable_frequency_list(
+    variables: Mapping[str, IVariable],
+) -> Mapping[int, Collection[str]]:
+    exportfrequencies: dict[int, set[str]] = {}
+    for v in variables.values():
+        if v.get_export_frequency() in exportfrequencies:
+            exportfrequencies[v.get_export_frequency()].update({str(v)})
+        else:
+            exportfrequencies[v.get_export_frequency()] = {str(v)}
+    return exportfrequencies
+
+
+def _get_writer(
+    header: str, *obj: Sequence[HasWriter] | Mapping[str, HasWriter]
+) -> Generator[HasWriter]:
     yield Header(header)
     for o in obj:
         match o:
@@ -186,22 +204,3 @@ def _pfile_writer(pfile: PFile, f: TextIO) -> None:
         v.write(f)
     for v in _get_writer("Expression", pfile.exprs):
         v.write(f)
-
-
-def _get_ordered_topinterfaces(interfaces: Mapping[str, ITopInterface]) -> list[ITopInterface]:
-    return [
-        *[v for v in interfaces.values() if v.method == "OneToOne"],
-        *[v for v in interfaces.values() if v.method == "ManyToOne"],
-    ]
-
-
-def _get_variable_frequency_list(
-    variables: Mapping[str, IVariable],
-) -> Mapping[int, Collection[str]]:
-    exportfrequencies: dict[int, set[str]] = {}
-    for v in variables.values():
-        if v.get_export_frequency() in exportfrequencies:
-            exportfrequencies[v.get_export_frequency()].update({str(v)})
-        else:
-            exportfrequencies[v.get_export_frequency()] = {str(v)}
-    return exportfrequencies

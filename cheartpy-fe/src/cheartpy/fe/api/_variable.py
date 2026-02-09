@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, TypedDict, Unpack
 
 from cheartpy.fe.aliases import VariableExportEnum, VariableExportFormat
 from cheartpy.fe.impl import NullTopology, Variable
-from cheartpy.fe.string_tools import get_enum
+from cheartpy.fe.utils import get_enum
 
 if TYPE_CHECKING:
     from cheartpy.fe.trait import ICheartTopology, IVariable

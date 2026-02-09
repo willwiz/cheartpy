@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from cheartpy.fe.aliases import BoundaryEnum, BoundaryType
 from cheartpy.fe.impl import BCPatch, BoundaryCondition
-from cheartpy.fe.string_tools import get_enum
+from cheartpy.fe.utils import get_enum
 
 if TYPE_CHECKING:
     from cheartpy.fe.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IVariable

@@ -16,12 +16,14 @@ from ._basic import (
     ITopInterface,
     IVariable,
 )
+from ._protocols import HasWriter
 from ._solver_group import ISolverGroup, ISolverSubGroup
 from ._solver_matrix import ISolverMatrix
 
 __all__ = [
     "BC_VALUE",
     "EXPRESSION_VALUE",
+    "HasWriter",
     "IBCPatch",
     "IBasis",
     "IBoundaryCondition",

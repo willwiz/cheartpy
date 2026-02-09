@@ -1,13 +1,11 @@
 import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.fe.string_tools import hline
 from cheartpy.fe.trait import ITimeScheme
+from cheartpy.fe.utils import hline
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-__all__ = ["TimeScheme"]
 
 
 @dc.dataclass(slots=True)

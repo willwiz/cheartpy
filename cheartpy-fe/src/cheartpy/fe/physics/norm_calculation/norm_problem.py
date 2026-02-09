@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.api import create_bc
-from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import (
     IBCPatch,
     IBoundaryCondition,
@@ -10,6 +9,7 @@ from cheartpy.fe.trait import (
     IProblem,
     IVariable,
 )
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView

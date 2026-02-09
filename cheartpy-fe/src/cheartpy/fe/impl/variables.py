@@ -7,8 +7,8 @@ from cheartpy.fe.aliases import (
     VariableUpdateEnum,
     VariableUpdateSetting,
 )
-from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
+from cheartpy.fe.utils import get_enum, join_fields
 
 if TYPE_CHECKING:
     from collections.abc import ValuesView

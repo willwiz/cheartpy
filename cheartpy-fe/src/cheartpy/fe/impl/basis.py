@@ -1,13 +1,11 @@
 import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
-from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import IBasis, ICheartBasis, IQuadrature
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from cheartpy.fe.aliases import CheartBasisEnum, CheartElementEnum, CheartQuadratureEnum
-
-__all__ = ["Basis", "CheartBasis", "Quadrature"]
 
 
 @dc.dataclass(slots=True)

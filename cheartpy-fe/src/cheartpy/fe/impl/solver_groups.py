@@ -9,7 +9,6 @@ from cheartpy.fe.aliases import (
     TolEnum,
     TolSetting,
 )
-from cheartpy.fe.string_tools import get_enum, hline, join_fields, splicegen
 from cheartpy.fe.trait import (
     IExpression,
     IProblem,
@@ -19,14 +18,13 @@ from cheartpy.fe.trait import (
     ITimeScheme,
     IVariable,
 )
+from cheartpy.fe.utils import get_enum, hline, join_fields, splicegen
 from pytools.result import Err, Ok
 
 from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
-
-__all__ = ["SolverGroup", "SolverSubGroup"]
 
 
 """
@@ -221,9 +219,7 @@ class SolverGroup(ISolverGroup):
             self.sub_groups.remove(v)
 
     def make_solversubgroup(
-        self,
-        method: SolverSubgroupMethod,
-        *problems: ISolverMatrix | IProblem,
+        self, method: SolverSubgroupMethod, *problems: ISolverMatrix | IProblem
     ) -> None:
         self.sub_groups.append(
             SolverSubGroup(

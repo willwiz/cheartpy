@@ -7,8 +7,8 @@ from cheartpy.fe.aliases import (
     CheartTopologySetting,
     VariableExportEnum,
 )
-from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
+from cheartpy.fe.utils import get_enum, join_fields
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -81,7 +81,7 @@ class CheartTopology(ICheartTopology):
         self.in_boundary = (top, surf)
 
     def write(self, f: TextIO) -> None:
-        string = join_fields(self, self._mesh, self.basis if self.basis else "none")
+        string = join_fields(self, self._mesh, self.basis or "none")
         f.write(f"!DefTopology={{{string}}}\n")
         if self.embedded is not None:
             f.write(f"  !SetTopology={{{self}|EmbeddedInTopology|{self.embedded}}}\n")

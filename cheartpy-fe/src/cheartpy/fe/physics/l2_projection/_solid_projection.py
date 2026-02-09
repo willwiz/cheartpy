@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.fe.aliases import L2SolidCalculationEnum, L2SolidCalculationType
 from cheartpy.fe.api import create_bc
-from cheartpy.fe.string_tools import get_enum, join_fields
 from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
+from cheartpy.fe.utils import get_enum, join_fields
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView

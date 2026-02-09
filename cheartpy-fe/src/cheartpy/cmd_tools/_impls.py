@@ -53,8 +53,8 @@ class Variable1Getter(IVariableGetter):
         reverse: bool = False,
     ) -> None:
         self._root = Path(root) if root else Path()
-        self._var1 = var1 if var1 else None
-        self._var2 = var2 if var2 else None
+        self._var1 = var1 or None
+        self._var2 = var2 or None
         # if var2 is str assume it is a constant file name
         self._idx = idx
         self._reversed = reverse

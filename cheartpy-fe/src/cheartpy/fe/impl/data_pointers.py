@@ -1,8 +1,8 @@
 import dataclasses as dc
 from typing import TextIO
 
-from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import IDataInterp, IDataPointer
+from cheartpy.fe.utils import join_fields
 
 
 @dc.dataclass(slots=True)
@@ -16,9 +16,8 @@ class DataPointer(IDataPointer):
         return self.name
 
     def write(self, f: TextIO) -> None:
-        f.write(
-            f"!DefDataPointer={{{join_fields(self.name, self.file, self.dim, self.nt)}}}\n",
-        )
+        _str = f"!DefDataPointer={{{join_fields(self.name, self.file, self.dim, self.nt)}}}\n"
+        f.write(_str)
 
 
 @dc.dataclass(slots=True)

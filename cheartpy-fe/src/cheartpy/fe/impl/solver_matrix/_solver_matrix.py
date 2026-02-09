@@ -1,8 +1,8 @@
 import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import ICheartTopology, IExpression, IProblem, ISolverMatrix
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from collections.abc import ValuesView

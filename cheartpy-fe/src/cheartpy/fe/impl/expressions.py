@@ -6,8 +6,6 @@ from cheartpy.fe.trait import EXPRESSION_VALUE, IExpression, IVariable
 if TYPE_CHECKING:
     from collections.abc import Sequence, ValuesView
 
-__all__ = ["Expression"]
-
 
 @dc.dataclass(slots=True)
 class Expression(IExpression):
@@ -56,9 +54,8 @@ class Expression(IExpression):
 
     def write(self, f: TextIO) -> None:
         f.write(f"!DefExpression={{{self.name}}}\n")
-        for v in self.value:
-            if isinstance(v, tuple):
-                f.write(f"  {v[0]!s}.{v[1]}\n")
-            else:
-                f.write(f"  {v!s}\n")
+        _values = (
+            f"  {v[0]!s}.{v[1]}\n" if isinstance(v, tuple) else f"  {v!s}\n" for v in self.value
+        )
+        f.writelines(_values)
         f.write("\n")

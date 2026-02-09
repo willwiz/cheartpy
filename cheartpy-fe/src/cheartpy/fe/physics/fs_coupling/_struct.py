@@ -2,7 +2,6 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
 from cheartpy.fe.api import create_bc
-from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import (
     IBCPatch,
     IBoundaryCondition,
@@ -11,6 +10,7 @@ from cheartpy.fe.trait import (
     IProblem,
     IVariable,
 )
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from collections.abc import ValuesView
@@ -109,7 +109,7 @@ class FSCouplingProblem(IProblem):
     ) -> None:
         self.name = name
         self.space = space
-        self.root_topology = root_top if root_top else None
+        self.root_topology = root_top or None
         self.lm = None
         self.m_terms = {}
         self.aux_vars = {}

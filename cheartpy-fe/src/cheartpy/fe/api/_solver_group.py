@@ -1,14 +1,8 @@
 from typing import TYPE_CHECKING
 
-from cheartpy.fe.aliases import (
-    SolverSubgroupMethod,
-    SolverSubgroupMethodEnum,
-)
-from cheartpy.fe.impl import (
-    SolverGroup,
-    SolverSubGroup,
-)
-from cheartpy.fe.string_tools import get_enum
+from cheartpy.fe.aliases import SolverSubgroupMethod, SolverSubgroupMethodEnum
+from cheartpy.fe.impl import SolverGroup, SolverSubGroup
+from cheartpy.fe.utils import get_enum
 
 if TYPE_CHECKING:
     from cheartpy.fe.trait import (

@@ -1,15 +1,13 @@
 import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
-from cheartpy.fe.string_tools import join_fields
 from cheartpy.fe.trait import BC_VALUE, IBCPatch, IBoundaryCondition, IExpression, IVariable
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from collections.abc import Sequence, ValuesView
 
     from cheartpy.fe.aliases import BoundaryEnum
-
-__all__ = ["BCPatch", "BoundaryCondition"]
 
 
 @dc.dataclass(init=False, slots=True)
