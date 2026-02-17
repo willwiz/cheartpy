@@ -50,6 +50,9 @@ class Basis(IBasis):
     def __hash__(self) -> int:
         return hash((self.name, self._order))
 
+    def __str__(self) -> str:
+        return f"{self.name}{self._order}"
+
     @property
     def order(self) -> Literal[0, 1, 2]:
         return self._order
@@ -69,6 +72,9 @@ class Quadrature(IQuadrature):
 
     def __hash__(self) -> int:
         return hash((self.name, self.gp))
+
+    def __str__(self) -> str:
+        return f"{self.name}{self.gp}"
 
     @property
     def gp(self) -> int:
@@ -94,11 +100,14 @@ class CheartBasis(ICheartBasis):
         self._basis = basis
         self._quadrature = quadrature
 
-    def __repr__(self) -> str:
-        return f"{_ELEM_CODE[self._elem]}{self._quadrature!r}{self._basis!r}"
+    def __str__(self) -> str:
+        return f"{_ELEM_CODE[self._elem]}{self._basis!r}{self._quadrature!r}"
 
     def __hash__(self) -> int:
         return hash((self._elem, self._basis, self._quadrature))
+
+    def __repr__(self) -> str:
+        return f"{self!s}|{self._elem!s}|{self._basis!s}|{self._quadrature!s}"
 
     @property
     def elem(self) -> CheartElementEnum:

@@ -13,7 +13,7 @@ CheartBasisType = Literal[
 
 
 class CheartBasisEnum(enum.StrEnum):
-    NODAL_LAGRANGE = "NODAL_LAGRANGE"
+    NODAL_LAGRANGE = "NL"
     NL = "NL"
     MODAL_BASIS = "MODAL_BASIS"
     PNODAL_BASIS = "PNODAL_BASIS"
@@ -31,10 +31,10 @@ CheartQuadratureType = Literal[
 
 
 class CheartQuadratureEnum(enum.StrEnum):
-    GAUSS_LEGENDRE = "GAUSS_LEGENDRE"
-    GL = "GAUSS_LEGENDRE"
-    KEAST_LYNESS = "KEAST_LYNESS"
-    KL = "KEAST_LYNESS"
+    GAUSS_LEGENDRE = "GL"
+    GL = "GL"
+    KEAST_LYNESS = "KL"
+    KL = "KL"
 
 
 CheartElementType = Literal[
