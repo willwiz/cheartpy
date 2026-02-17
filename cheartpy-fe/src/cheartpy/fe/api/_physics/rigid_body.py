@@ -1,10 +1,14 @@
-from collections.abc import Mapping, Sequence
-from typing import Literal, Required, TypedDict, Unpack
+from typing import TYPE_CHECKING, Literal, Required, TypedDict, Unpack
 
-from cheartpy.fe.aliases import RotationalConstraint
-from cheartpy.fe.api import create_expr, create_variable
+from cheartpy.fe.api._expression import create_expr
+from cheartpy.fe.api._variable import create_variable
 from cheartpy.fe.physics.fs_coupling import FSCouplingProblem, FSExpr
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from cheartpy.fe.aliases import RotationalConstraint
 
 
 def _u(vs: Sequence[IVariable | IExpression], i: int) -> str:
@@ -74,5 +78,4 @@ def create_rotation_constraint(
         disp_var = disp
     rot_bc.add_term(disp_var, FSExpr(lm, rot_mat["m"]))
     rot_bc.add_expr_deps(*rot_mat.values())
-    # rot_bc.add_aux_vars(root)
     return rot_bc
