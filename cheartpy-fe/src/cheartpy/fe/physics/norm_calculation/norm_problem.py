@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 class NormProblem(IProblem):
     name: str
-    variables: dict[str, IVariable | IExpression]
+    variables: dict[str, IVariable | IExpression | float]
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     bc: IBoundaryCondition
@@ -40,7 +40,7 @@ class NormProblem(IProblem):
         name: str,
         space: IVariable,
         term1: IExpression | IVariable,
-        term2: IExpression | IVariable | None = None,
+        term2: IExpression | IVariable | float | None = None,
         boundary_n: int | None = None,
     ) -> None:
         self.name = name

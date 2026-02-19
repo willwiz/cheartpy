@@ -17,6 +17,8 @@ def run_prep(pfile: Path | str, **kwargs: Unpack[_RunOptions]) -> int:
     cmd = ["cheartsolver.out", str(pfile), "--prep"]
     if kwargs.get("output", True) is False:
         cmd = [*cmd, "--no-output"]
+    logger = get_logger()
+    logger.disp(" ".join(cmd))
     if (log := kwargs.get("log")) is not None:
         with Path(log).open("w") as f:
             err = sp.run(cmd, stdout=f, stderr=sp.STDOUT, check=False).returncode
