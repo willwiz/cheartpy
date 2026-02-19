@@ -42,7 +42,7 @@ _QUAD_CODE = {
 @dc.dataclass(slots=True)
 class Basis(IBasis):
     name: CheartBasisEnum
-    _order: Literal[0, 1, 2]
+    _order: int
 
     def __repr__(self) -> str:
         return f"{_ORDER_CODE[self._order]}{_BASIS_CODE[self.name]}"
@@ -54,7 +54,7 @@ class Basis(IBasis):
         return f"{self.name}{self._order}"
 
     @property
-    def order(self) -> Literal[0, 1, 2]:
+    def order(self) -> int:
         return self._order
 
     @property

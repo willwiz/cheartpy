@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, TypedDict, Unpack
+from typing import TYPE_CHECKING, TypedDict, Unpack
 
 from cheartpy.fe.aliases import (
     CheartBasisEnum,
@@ -6,6 +6,7 @@ from cheartpy.fe.aliases import (
     CheartElementEnum,
     CheartElementType,
     CheartQuadratureEnum,
+    CheartQuadratureType,
 )
 from cheartpy.fe.impl import Basis, CheartBasis, Quadrature
 from cheartpy.fe.utils import get_enum
@@ -14,35 +15,37 @@ if TYPE_CHECKING:
     from cheartpy.fe.trait import ICheartBasis
 
 
-_QUADRATURE_FOR_ELEM: dict[CheartElementEnum, CheartQuadratureEnum] = {
-    CheartElementEnum.POINT_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.point: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.ONED_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.line: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.TRIANGLE_ELEMENT: CheartQuadratureEnum.KEAST_LYNESS,
-    CheartElementEnum.tri: CheartQuadratureEnum.KEAST_LYNESS,
-    CheartElementEnum.QUADRILATERAL_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.quad: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.TETRAHEDRAL_ELEMENT: CheartQuadratureEnum.KEAST_LYNESS,
-    CheartElementEnum.tet: CheartQuadratureEnum.KEAST_LYNESS,
-    CheartElementEnum.HEXAHEDRAL_ELEMENT: CheartQuadratureEnum.GAUSS_LEGENDRE,
-    CheartElementEnum.hex: CheartQuadratureEnum.GAUSS_LEGENDRE,
+_QUADRATURE_FOR_ELEM: dict[CheartElementEnum, CheartQuadratureType] = {
+    CheartElementEnum.POINT_ELEMENT: "GAUSS_LEGENDRE",
+    CheartElementEnum.point: "GAUSS_LEGENDRE",
+    CheartElementEnum.ONED_ELEMENT: "GAUSS_LEGENDRE",
+    CheartElementEnum.line: "GAUSS_LEGENDRE",
+    CheartElementEnum.TRIANGLE_ELEMENT: "KEAST_LYNESS",
+    CheartElementEnum.tri: "KEAST_LYNESS",
+    CheartElementEnum.QUADRILATERAL_ELEMENT: "GAUSS_LEGENDRE",
+    CheartElementEnum.quad: "GAUSS_LEGENDRE",
+    CheartElementEnum.TETRAHEDRAL_ELEMENT: "KEAST_LYNESS",
+    CheartElementEnum.tet: "KEAST_LYNESS",
+    CheartElementEnum.HEXAHEDRAL_ELEMENT: "GAUSS_LEGENDRE",
+    CheartElementEnum.hex: "GAUSS_LEGENDRE",
 }
 
 
 class _CreateBasisKwargs(TypedDict, total=False):
+    quadrature: CheartQuadratureType
     gp: int
 
 
 def create_basis(
     elem: CheartElementType,
     kind: CheartBasisType,
-    order: Literal[0, 1, 2],
+    order: int,
     **kwargs: Unpack[_CreateBasisKwargs],
 ) -> CheartBasis:
     _elem = get_enum(elem, CheartElementEnum)
     _kind = get_enum(kind, CheartBasisEnum)
-    quadrature = _QUADRATURE_FOR_ELEM[_elem]
+    _quadrature = kwargs.get("quadrature", _QUADRATURE_FOR_ELEM[_elem])
+    quadrature = get_enum(_quadrature, CheartQuadratureEnum)
     gp = kwargs.get("gp", 9 if quadrature is CheartQuadratureEnum.GAUSS_LEGENDRE else 4)
     if 2 * gp < order + 1:
         msg = f"For {_elem}, order {2 * gp} < {order + 1}"
