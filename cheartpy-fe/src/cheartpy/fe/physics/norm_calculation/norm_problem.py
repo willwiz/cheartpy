@@ -26,7 +26,7 @@ class NormProblem(IProblem):
     scale_by_measure: bool = False
     absolute_value: bool = False
     output_filename: str | None = None
-    _buffering: bool = False
+    buffering: bool = False
     _problem_name: str = "norm_calculation"
 
     def __repr__(self) -> str:
@@ -58,16 +58,8 @@ class NormProblem(IProblem):
         self.scale_by_measure = False
         self.absolute_value = False
         self.output_filename = None
-        self._buffering = True
+        self.buffering = True
         self._problem_name = "norm_calculation"
-
-    @property
-    def buffering(self) -> bool:
-        return self._buffering
-
-    @buffering.setter
-    def buffering(self, val: bool) -> None:
-        self._buffering = val
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values() if isinstance(v, IVariable)}
@@ -142,7 +134,7 @@ class NormProblem(IProblem):
             f.write("  !Absolute-value\n")
         if self.root_top is not None:
             f.write(f"  !SetRootTopology={{{self.root_top!s}}}\n")
-        if not self._buffering:
+        if not self.buffering:
             f.write("  !No-buffering\n")
         if self.output_filename is not None:
             f.write(f"  !Output-filename={{{self.output_filename}}}\n")

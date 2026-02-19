@@ -92,8 +92,8 @@ class FSCouplingProblem(IProblem):
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     bc: IBoundaryCondition
-    perturbation: bool = True
-    _buffering: bool = True
+    perturbation: bool = False
+    buffering: bool = True
     _problem_name: str = "fscoupling_problem"
 
     def __repr__(self) -> str:
@@ -116,15 +116,7 @@ class FSCouplingProblem(IProblem):
         self.aux_vars = {}
         self.aux_expr = {}
         self.bc = create_bc()
-        self._buffering = True
-
-    @property
-    def buffering(self) -> bool:
-        return self._buffering
-
-    @buffering.setter
-    def buffering(self, val: bool) -> None:
-        self._buffering = val
+        self.buffering = True
 
     def set_lagrange_mult(self, var: IVariable, *expr: FSExpr) -> None:
         self.lm = FSCouplingTerm(var, list(expr))
@@ -216,7 +208,7 @@ class FSCouplingProblem(IProblem):
             raise ValueError(msg)
         if self.perturbation:
             f.write("  !SetPerturbationBuild\n")
-        if self._buffering is False:
+        if not self.buffering:
             f.write("  !No-buffering\n")
         if self.root_topology is not None:
             f.write(f"  !SetRootTopology={{{self.root_topology}}}\n")

@@ -21,7 +21,7 @@ class L2SolidProjection(IProblem):
     aux_vars: dict[str, IVariable]
     aux_expr: dict[str, IExpression]
     bc: IBoundaryCondition
-    _buffering: bool = False
+    buffering: bool = False
     _problem: str = "l2solidprojection_problem"
 
     def __repr__(self) -> str:
@@ -45,15 +45,7 @@ class L2SolidProjection(IProblem):
         self.aux_vars = {}
         self.aux_expr = {}
         self.bc = create_bc()
-        self._buffering = True
-
-    @property
-    def buffering(self) -> bool:
-        return self._buffering
-
-    @buffering.setter
-    def buffering(self, val: bool) -> None:
-        self._buffering = val
+        self.buffering = True
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
@@ -111,6 +103,6 @@ class L2SolidProjection(IProblem):
 
         f.write(f"  !Mechanical-Problem={{{self.solid_prob}}}\n")
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
-        if not self._buffering:
+        if not self.buffering:
             f.write("  !No-buffering\n")
         self.bc.write(f)

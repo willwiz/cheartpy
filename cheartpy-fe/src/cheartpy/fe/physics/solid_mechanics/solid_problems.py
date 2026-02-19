@@ -6,7 +6,7 @@ from cheartpy.fe.aliases import (
     SolidProblemEnum,
     SolidVariableValue,
 )
-from cheartpy.fe.api import create_bc
+from cheartpy.fe.impl import BoundaryCondition
 from cheartpy.fe.trait import (
     IBCPatch,
     IBoundaryCondition,
@@ -38,7 +38,7 @@ class SolidProblem(IProblem):
     options: dict[str, list[float | int | str]]
     gravity: tuple[float, tuple[float, float, float]] | IExpression | None
     flags: dict[str, bool]
-    _buffering: bool
+    buffering: bool
     bc: IBoundaryCondition
 
     def __repr__(self) -> str:
@@ -78,16 +78,8 @@ class SolidProblem(IProblem):
         self.options = {}
         self.flags = {}
         self.gravity = None
-        self._buffering = True
-        self.bc = create_bc()
-
-    @property
-    def buffering(self) -> bool:
-        return self._buffering
-
-    @buffering.setter
-    def buffering(self, val: bool) -> None:
-        self._buffering = val
+        self.buffering = True
+        self.bc = BoundaryCondition()
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
@@ -198,7 +190,7 @@ class SolidProblem(IProblem):
                 f.write(f"  !Gravity-loading={{{expr}}}\n")
             case None:
                 pass
-        if not self._buffering:
+        if not self.buffering:
             f.write("  !No-buffering\n")
         for k, v in self.flags.items():
             if v:
