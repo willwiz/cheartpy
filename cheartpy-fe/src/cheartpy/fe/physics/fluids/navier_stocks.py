@@ -47,7 +47,7 @@ class TransientALENonConvNavierStokesFlow(IProblem):
     type: Literal["TRANSIENT_ALE_NONCON_NAVIER_STOKES_FLOW"]
     variables: dict[TransientALENonConvNavierStokesFlowVariables, IVariable]
     state_vars: dict[str, IVariable]
-    root_topology: ICheartTopology
+    root_topology: ICheartTopology | None
     flags: dict[str, bool]
     settings: dict[str, _SettingValues]
     bc: IBoundaryCondition
@@ -74,7 +74,7 @@ class TransientALENonConvNavierStokesFlow(IProblem):
         self.settings["Viscosity"] = kwargs["viscosity"]
         self.settings["Density"] = kwargs.get("density", 1.0e-6)
         self.flags = {}
-        self.root_topology = kwargs.get("root_topology") or vel.get_top()
+        self.root_topology = kwargs.get("root_topology")
         self.state_vars = {}
         self.bc = BoundaryCondition()
         self.time_discretization = ()
