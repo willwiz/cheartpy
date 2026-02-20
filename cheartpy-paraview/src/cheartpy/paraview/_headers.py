@@ -53,8 +53,7 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
         case (i, j, k):
             msg = [*msg, f"{f'<<< Time step: From {i} to {j} in steps of {k}':<{_H_STR_LEN_}}"]
     match inp.subindex:
-        case None:
-            pass
+        case None: ...  # fmt: skip
         case SearchMode():
             msg = [*msg, f"{'<<< Automatically finding subiterations.':<{_H_STR_LEN_}}"]
         case (i, j, k):

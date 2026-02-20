@@ -13,7 +13,7 @@ from cheartpy.mesh.struct import (
 )
 from pytools.result import Err, Ok, all_ok
 
-from ._impl import get_vtktype_from_abaqus_type
+from ._impl import get_vtktype_from_abaqus_enum
 from ._trait import AbaqusElement
 
 if TYPE_CHECKING:
@@ -86,7 +86,7 @@ def create_topology[I: np.integer](
     match get_abaqus_element(top.kind, top.v.shape[1]):
         case Ok(el):
             data.extend([elmap[values[j]] for j in el.value.nodes] for values in top.v)
-            kind = get_vtktype_from_abaqus_type(el)
+            kind = get_vtktype_from_abaqus_enum(el)
         case Err(e):
             return Err(e)
     topology_data = np.array(data, dtype=int)
@@ -159,7 +159,7 @@ def create_boundary_patch[I: np.integer](
     array_dim = elems.v.shape[1]
     match get_abaqus_element(elems.kind, array_dim):
         case Ok(abaqus_elem):
-            kind = get_vtktype_from_abaqus_type(abaqus_elem)
+            kind = get_vtktype_from_abaqus_enum(abaqus_elem)
             nodes: A2[I] = np.array(
                 [
                     [elmap[int(node)] for node in patch[abaqus_elem.value.nodes]]
@@ -181,8 +181,7 @@ def merge_boundary_patches[I: np.integer](
     *patches: Ok[CheartMeshPatch[I]] | Err,
 ) -> Ok[CheartMeshPatch[I]] | Err:
     match all_ok(patches):
-        case Ok(ok_patches):
-            pass
+        case Ok(ok_patches): ...  # fmt: skip
         case Err(e):
             return Err(e)
     types = {p.TYPE for p in ok_patches}
@@ -233,8 +232,7 @@ def create_boundaries[F: np.floating, I: np.integer](
             if k in elems
         ]
     ):
-        case Ok(patches):
-            pass
+        case Ok(patches): ...  # fmt: skip
         case Err(e):
             return Err(e)
     types = {p.TYPE for p in patches}

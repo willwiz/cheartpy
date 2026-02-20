@@ -192,8 +192,7 @@ def process_cmdline_args(
     log.info(*format_input_info(args))
     prefix = _get_prefix(args)
     match _check_dirs_inputs(args):
-        case Ok((input_dir, output_dir)):
-            pass
+        case Ok((input_dir, output_dir)): ...  # fmt: skip
         case Err(e):
             return Err(e)
     match get_file_name_indexer(args.index, args.subindex, args.var, root=input_dir):
@@ -210,8 +209,7 @@ def process_cmdline_args(
         case Err(e):
             return Err(e)
     match find_variable_formats(x, u, args.var, ifirst, input_dir):
-        case Ok((xfile, disp, var)):
-            pass
+        case Ok((xfile, disp, var)): ...  # fmt: skip
         case Err(e):
             return Err(e)
     space = None if isinstance(xfile, CheartMeshFormat) else xfile

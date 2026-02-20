@@ -72,15 +72,13 @@ def get_variables(
 ) -> Ok[tuple[IVariableList | None, IVariableList | None]] | Err:
     root = Path(root) if root else Path()
     match get_idx_for_var(var1, root):
+        case Ok(v1): ...  # fmt: skip
         case Err(e):
             return Err(e)
-        case Ok(v1):
-            pass
     match get_idx_for_var(var2, root):
+        case Ok(v2): ...  # fmt: skip
         case Err(e):
             return Err(e)
-        case Ok(v2):
-            pass
     return Ok((v1, v2))
 
 

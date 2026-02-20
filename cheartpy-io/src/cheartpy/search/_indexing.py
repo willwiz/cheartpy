@@ -56,10 +56,9 @@ def _get_auto_indexer(
     subindex: tuple[int, int, int] | None,
 ) -> Ok[IIndexIterator] | Err:
     match find_common_index(variables, root):
+        case Ok(idx): ...  # fmt: skip
         case Err(e):
             return Err(e)
-        case Ok(idx):
-            pass
     match subindex:
         case None:
             return Ok(ListIndexer(idx))
@@ -78,10 +77,9 @@ def _get_auto_subindexer(
         case _:
             common_idx = None
     match find_common_subindex(variables, root, common_idx):
+        case Ok(subidx): ...  # fmt: skip
         case Err(e):
             return Err(e)
-        case Ok(subidx):
-            pass
     return Ok(TupleIndexer(subidx))
 
 

@@ -58,8 +58,7 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
         raw_bnd, bdim = None, None
     if forced_type is None:
         match guess_elem_type_from_dim(edim, bdim):
-            case Ok(forced_type):
-                pass
+            case Ok(forced_type): ...  # fmt: skip
             case Err(e):
                 return Err(e)
     space = CheartMeshSpace(len(raw_space), raw_space)

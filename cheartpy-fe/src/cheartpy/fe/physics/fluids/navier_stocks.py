@@ -11,7 +11,6 @@ from cheartpy.fe.trait import (
     IVariable,
 )
 from cheartpy.fe.utils import join_fields
-from pytools.path import iter_unpack
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
@@ -118,11 +117,9 @@ class TransientALENonConvNavierStokesFlow(IProblem):
             else:
                 self.add_expr_deps(v)
 
-    def add_var_deps(self, *var: IVariable | None) -> None:
-        pass
+    def add_var_deps(self, *var: IVariable | None) -> None: ...
 
-    def add_expr_deps(self, *expr: IExpression | None) -> None:
-        pass
+    def add_expr_deps(self, *expr: IExpression | None) -> None: ...
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
@@ -239,11 +236,9 @@ class ALEElementDependentStiffness(IProblem):
             else:
                 self.add_expr_deps(v)
 
-    def add_var_deps(self, *var: IVariable | None) -> None:
-        pass
+    def add_var_deps(self, *var: IVariable | None) -> None: ...
 
-    def add_expr_deps(self, *expr: IExpression | None) -> None:
-        pass
+    def add_expr_deps(self, *expr: IExpression | None) -> None: ...
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
@@ -273,7 +268,7 @@ def _write_transient_navier_stokes(
     )
     f.writelines(f"  !{k!s}\n" for k, v in problem.flags.items() if v)
     f.writelines(
-        f"  !{k!s}={{{join_fields(*(v for v in iter_unpack(val)))}}}\n"
+        f"  !{k!s}={{{join_fields(*val) if isinstance(val, tuple) else val}}}\n"
         for k, val in problem.settings.items()
     )
     if problem.time_discretization:

@@ -188,8 +188,7 @@ class SolidProblem(IProblem):
                 f.write(f"    {'  '.join([str(x) for x in [*d, a]])}\n")
             case IExpression() as expr:
                 f.write(f"  !Gravity-loading={{{expr}}}\n")
-            case None:
-                pass
+            case None: ...  # fmt: skip
         if not self.buffering:
             f.write("  !No-buffering\n")
         for k, v in self.flags.items():

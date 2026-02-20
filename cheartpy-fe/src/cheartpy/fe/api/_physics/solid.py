@@ -29,12 +29,9 @@ def create_solid_mechanics_problem(
         msg = f"Space for {name} must be initialized with values"
         raise ValueError(msg)
     vel = kwargs.get("vel")
-    match problem, vel:
-        case SolidProblemEnum.TRANSIENT, None:
-            msg = f"Solid Problem {name}: Transient must have Vel"
-            raise ValueError(msg)
-        case _:
-            pass
+    if (problem, vel) == (SolidProblemEnum.TRANSIENT, None):
+        msg = f"Solid Problem {name}: Transient must have Vel"
+        raise ValueError(msg)
     return SolidProblem(
         name,
         problem,

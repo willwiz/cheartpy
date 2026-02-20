@@ -93,8 +93,7 @@ def create_time_series_core[F: np.floating](
 ) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
     vtus = (v for v in args.root.glob(f"{args.prefix}-*.vtu"))
     match get_var_index((v.name for v in vtus), args.prefix, "vtu"):
-        case Ok(idx):
-            pass
+        case Ok(idx): ...  # fmt: skip
         case Err(e):
             return Err(e)
     match args.time:

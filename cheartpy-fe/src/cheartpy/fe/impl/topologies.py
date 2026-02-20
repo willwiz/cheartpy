@@ -124,11 +124,9 @@ class NullTopology(ICheartTopology):
         self,
         task: CheartTopologyEnum | CheartTopologySetting,
         val: int | ICheartTopology | tuple[ICheartTopology, int] | None = None,
-    ) -> None:
-        pass
+    ) -> None: ...
 
-    def write(self, f: TextIO) -> None:
-        pass
+    def write(self, f: TextIO) -> None: ...
 
 
 @dc.dataclass(slots=True)

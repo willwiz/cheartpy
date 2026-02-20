@@ -158,13 +158,11 @@ def split_argslist_to_nameddict(
 def check_args(args: _AbaqusInput) -> Ok[InputArgs] | Err:
     name = Path(args.inputs[0]).stem if args.prefix is None else args.prefix
     match split_argslist_to_nameddict(args.boundary):
-        case Ok(boundary):
-            pass
+        case Ok(boundary): ...  # fmt: skip
         case Err(e):
             return Err(e)
     match gather_masks(args.add_mask):
-        case Ok(masks):
-            pass
+        case Ok(masks): ...  # fmt: skip
         case Err(e):
             return Err(e)
     return Ok(InputArgs(args.inputs, name, args.dim, args.topology, boundary, masks, args.cores))

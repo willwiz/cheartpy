@@ -155,8 +155,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     log.debug(f"{len(elems)=}")
     log.debug(f"The number of elements in patch is {len(elems)}")
     match filter_mesh_normals(mesh, elems, normal_check):
-        case Ok(elems):
-            pass
+        case Ok(elems): ...  # fmt: skip
         case Err(e):
             return Err(e)
     log.debug(f"The number of elements in patch normal filtering is {len(elems)}")
@@ -293,8 +292,7 @@ def create_cheart_cl_topology_meshes[F: np.floating, I: np.integer](
         normal_check=normal_check,
         log=log,
     ):
-        case Ok(nodal_meshes):
-            pass
+        case Ok(nodal_meshes): ...  # fmt: skip
         case Err(e):
             return Err(e)
     node_count = [len(x["mesh"].space.v) for x in nodal_meshes.values()]

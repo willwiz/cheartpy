@@ -215,8 +215,7 @@ def abaqus_importer[F: np.floating, I: np.integer](
 
         while content is not None:
             match read_next(content, f, log, ftype=ftype, dtype=dtype):
-                case Ok((content, None)):
-                    pass
+                case Ok((content, None)): ...  # fmt: skip
                 case Ok((content, MeshElements() as mesh_elems)):
                     elements[mesh_elems.name] = mesh_elems
                 case Ok((content, MeshNodes() as mesh_nodes)):
