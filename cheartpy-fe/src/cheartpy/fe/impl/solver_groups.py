@@ -189,7 +189,7 @@ class SolverGroup(ISolverGroup):
     def set_iteration(
         self,
         task: IterationSetting,
-        val: int | str,
+        val: float | str,
     ) -> None:
         _task = get_enum(task, IterationEnum)
         self.settings[_task] = [val]
@@ -198,7 +198,7 @@ class SolverGroup(ISolverGroup):
         self,
         err: Literal["nan_maxval"],
         act: Literal["evaluate_full"],
-        thresh: float = 1.0e10,
+        thresh: float = 1.0e4,
     ) -> None:
         self.settings["CatchSolverErrors"] = [err, act, thresh]
 

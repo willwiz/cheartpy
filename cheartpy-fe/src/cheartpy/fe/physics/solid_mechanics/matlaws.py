@@ -52,7 +52,7 @@ class MaxwellBranch(ILaw):
     store: IVariable
     name: Literal["maxwell-branch"] = "maxwell-branch"
     InitPK2: int | bool = True
-    ZeroPK2: bool = True
+    ZeroPK2: bool = False
     Order: Literal[1] = 1
     laws: list[Matlaw] = dc.field(default_factory=list[Matlaw])
     deps_var: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
@@ -95,10 +95,10 @@ class MaxwellBranch(ILaw):
         s = f"  !ConstitutiveLaw={{{self.name}}}\n"
         s += f"    {self.store!s}\n"
         s += f"    {self.tau}\n"
-        if self.InitPK2:
-            s = s + f"    InitPK2{f'  {self.InitPK2}' if (type(self.InitPK2) is int) else ''}\n"
         if self.ZeroPK2:
             s = s + "    ZeroPK2\n"
+        elif self.InitPK2:
+            s = s + f"    InitPK2{f'  {self.InitPK2}' if (type(self.InitPK2) is int) else ''}\n"
         if self.Order != 1:
             s = s + f"    Order {self.Order}\n"
         for v in self.laws:
@@ -115,7 +115,7 @@ class FractionalVE(ILaw):
     Tscale: float | None = 10.0
     name: Literal["fractional-ve"] = "fractional-ve"
     InitPK2: int | bool = True
-    ZeroPK2: bool = True
+    ZeroPK2: bool = False
     Order: Literal[1, 2] = 2
     laws: list[Matlaw] = dc.field(default_factory=list[Matlaw])
     deps_var: dict[str, IVariable] = dc.field(default_factory=dict[str, IVariable])
@@ -182,7 +182,7 @@ class FractionalDiffEQ(ILaw):
     store: IVariable
     Tscale: float | None = 10.0
     name: str = "fractional-diffeq"
-    InitPK2: bool = False
+    InitPK2: bool | int = True
     ZeroPK2: bool = False
     Order: Literal[1, 2] = 2
     laws: list[Matlaw | FractionalVE] = dc.field(default_factory=list[Matlaw | FractionalVE])

@@ -72,6 +72,7 @@ class ISolverGroup(abc.ABC):
         self,
         err: Literal["nan_maxval"],
         act: Literal["evaluate_full"],
+        thresh: float = ...,
     ) -> None: ...
     @abc.abstractmethod
     def add_auxvar(self, *var: IVariable) -> None: ...
