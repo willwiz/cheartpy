@@ -74,7 +74,7 @@ class APIKwargsIndex(TypedDict, total=False):
 class TimeSeriesKwargs(TypedDict, total=False):
     prefix: Required[str]
     time: Required[Path | float]
-    root: Path
+    folder: Path
     log: LogLevel
     dtype: DType[np.floating]
 

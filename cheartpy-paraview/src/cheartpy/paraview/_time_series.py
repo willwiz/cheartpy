@@ -141,7 +141,7 @@ def create_time_series_api(
         cmd="time",
         prefix=kwargs["prefix"],
         time=kwargs["time"],
-        root=kwargs.get("root", Path()),
+        folder=kwargs.get("folder", Path()),
     )
     dtype = kwargs.get("dtype", np.float64)
     log = get_logger(level=kwargs.get("log", "INFO"))
