@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, TypedDict, Unpack, cast
 
 import numpy as np
-from cheartpy.io.api import read_array_float
+from cheartpy.io.api import chread_time_utf
 from cheartpy.search.api import get_var_index
 from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
@@ -61,7 +61,8 @@ def create_time_series_json[F: np.floating](
 def _create_time_series_file[F: np.floating](
     vtus: Iterable[Path], idx: Sequence[int], time: Path, *, dtype: DType[F] = np.float64
 ) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
-    time_array = read_array_float(time, dtype=dtype)
+    dt = chread_time_utf(time, ftype=dtype)
+    time_array = np.add.accumulate(dt)
     match time_array.shape:
         case (int(),):
             time_array = cast("A1[F]", time_array)
@@ -91,11 +92,12 @@ def create_time_series_core[F: np.floating](
     *,
     dtype: DType[F] = np.float64,
 ) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
-    vtus = (v for v in args.root.glob(f"{args.prefix}-*.vtu"))
+    vtus = sorted(args.folder.glob(f"{args.prefix}-*.vtu"))
     match get_var_index((v.name for v in vtus), args.prefix, "vtu"):
         case Ok(idx): ...  # fmt: skip
         case Err(e):
             return Err(e)
+    vtus = [args.folder / f"{args.prefix}-{i}.vtu" for i in idx]
     match args.time:
         case Path():
             return _create_time_series_file(vtus, idx, args.time, dtype=dtype).next()
@@ -115,7 +117,7 @@ def create_time_series[F: np.floating](
 ) -> Ok[None] | Err:
     log = kwargs.get("log", get_logger())
     log.disp(*compose_time_header())
-    log.info(*format_input_info(args.prefix, args.root))
+    log.info(*format_input_info(args.prefix, args.folder))
     log.disp("", header_guard())
     match create_time_series_core(args, dtype=dtype):
         case Ok((idx, vtus, time_array)):
@@ -127,8 +129,8 @@ def create_time_series[F: np.floating](
         case Err(e):
             return Err(e)
     time_series = create_time_series_json(vtus, time_array)
-    with (args.root / (args.prefix + ".series")).open("w") as f:
-        json.dump(time_series, f)
+    with (args.folder / (args.prefix + ".vtu.series")).open("w") as f:
+        json.dump(time_series, f, indent=4)
     return Ok(None)
 
 

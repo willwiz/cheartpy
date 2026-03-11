@@ -1,4 +1,4 @@
-from .api import cheart2vtu_cli
+from .api import main_cli
 
 if __name__ == "__main__":
-    cheart2vtu_cli()
+    main_cli()

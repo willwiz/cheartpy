@@ -16,11 +16,7 @@ time_parser = argparse.ArgumentParser("time", add_help=False)
 
 ################################################################################################
 # The shared parser
-parser = argparse.ArgumentParser(
-    "time",
-    description="converts cheart output Dfiles into vtu files with time steps for paraview",
-)
-parser.add_argument(
+time_parser.add_argument(
     "--folder",
     "-f",
     dest="folder",
@@ -29,7 +25,7 @@ parser.add_argument(
     type=Path,
     help="supply a name for the folder to store the vtu outputs",
 )
-time_group = parser.add_mutually_exclusive_group(required=True)
+time_group = time_parser.add_mutually_exclusive_group(required=True)
 time_group.add_argument(
     "--time-step",
     dest="time",
@@ -43,7 +39,7 @@ time_group.add_argument(
     type=Path,
     help="File (Path). File containing a 1D array of floats",
 )
-parser.add_argument(
+time_parser.add_argument(
     "prefix",
     action="store",
     type=str,

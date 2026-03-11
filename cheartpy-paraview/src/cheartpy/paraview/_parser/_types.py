@@ -105,4 +105,4 @@ class TimeProgArgs:
     cmd: Final[str]
     prefix: str
     time: Path | float
-    root: Path
+    folder: Path
