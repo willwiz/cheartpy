@@ -18,6 +18,7 @@ from .struct import (
     VTKQUADRILATERAL1,
     VTKQUADRILATERAL2,
     VTKTETRAHEDRON1,
+    VTKTETRAHEDRON2,
     VTKTRIANGLE1,
     VTKTRIANGLE2,
     get_vtk_elem,
@@ -53,7 +54,7 @@ def guess_elem_type_from_dim(edim: int, bdim: int | None) -> Ok[VtkElem] | Err:
         case 4, 3:
             elem = VTKTETRAHEDRON1
         case 10, 6 | None:
-            elem = VTKQUADRILATERAL2
+            elem = VTKTETRAHEDRON2
         case 8, 4 | None:
             elem = VTKHEXAHEDRON1
         case 27, 9 | None:
