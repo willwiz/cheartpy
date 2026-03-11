@@ -194,13 +194,17 @@ class SolverGroup(ISolverGroup):
         _task = get_enum(task, IterationEnum)
         self.settings[_task] = [val]
 
-    def catch_solver_errors(
-        self,
-        err: Literal["nan_maxval"],
-        act: Literal["evaluate_full"],
-        thresh: float = 1.0e4,
-    ) -> None:
-        self.settings["CatchSolverErrors"] = [err, act, thresh]
+    def catch_solver_errors(self, err: Literal["NAN", "VAL", "DT"], *val: str | float) -> None:
+        match err:
+            case "NAN":
+                self.settings["CATCH_RESIDUAL_NAN"] = []
+            case "VAL":
+                if len(val) != 1:
+                    msg = "VAL error catching requires a single numeric value argument!"
+                    raise ValueError(msg)
+                self.settings["CATCH_RESIDUAL_VAL"] = [str(val[0])]
+            case "DT":
+                self.settings["CATCH_DT_CHANGES"] = []
 
     def add_auxvar(self, *var: IVariable) -> None:
         for v in var:

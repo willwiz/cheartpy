@@ -1,5 +1,5 @@
 import abc
-from typing import TYPE_CHECKING, Literal, TextIO
+from typing import TYPE_CHECKING, Literal, TextIO, overload
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView
@@ -67,13 +67,12 @@ class ISolverGroup(abc.ABC):
         task: IterationSetting,
         val: float | str,
     ) -> None: ...
+    @overload
     @abc.abstractmethod
-    def catch_solver_errors(
-        self,
-        err: Literal["nan_maxval"],
-        act: Literal["evaluate_full"],
-        thresh: float = ...,
-    ) -> None: ...
+    def catch_solver_errors(self, err: Literal["NAN", "DT"]) -> None: ...
+    @overload
+    @abc.abstractmethod
+    def catch_solver_errors(self, err: Literal["VAL"], /, val: float) -> None: ...
     @abc.abstractmethod
     def add_auxvar(self, *var: IVariable) -> None: ...
     @abc.abstractmethod
