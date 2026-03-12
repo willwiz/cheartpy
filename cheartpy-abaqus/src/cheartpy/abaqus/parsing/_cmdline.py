@@ -34,18 +34,12 @@ _parser = argparse.ArgumentParser(
     formatter_class=RawTextHelpFormatter,
 )
 _parser.add_argument(
-    "input",
+    "files",
     nargs="+",
     type=str,
     help="""Name of the .inp file containing the Abaqus mesh. If given after the
     optional arguments -t or -b, -- should be inserted in between to delineate.
     """,
-)
-_parser.add_argument(
-    "-d",
-    "--dim",
-    type=int,
-    help="""dimension of the mesh, default 3""",
 )
 _parser.add_argument(
     "-p",
@@ -56,6 +50,7 @@ _parser.add_argument(
 _parser.add_argument(
     "-t",
     "--topology",
+    required=True,
     type=str,
     nargs="+",
     default=None,
@@ -74,7 +69,7 @@ _parser.add_argument(
     default=None,
     help="""Set a boundary give the name of the element and label or name, appended
     numerals, and label. E.g.,
-    --boundary Surf1  label
+    --boundary Surf1 label
     --boundary Surf1 Surf2 ... label
     """,
 )
@@ -84,7 +79,11 @@ _parser.add_argument(
     action="append",
     nargs="+",
     default=None,
-    help="""Add a mask with an given element""",
+    help="""Export masks with given labels. E.g.,
+    --add-mask Surf1 value file_name.ext
+    --add-mask Volume1 Volume2 ... SurfN value file_name.ext
+
+    """,
 )
 _parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing with n cores""")
 

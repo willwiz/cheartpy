@@ -94,7 +94,7 @@ dependencies = [
     { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
-    { name = "numpy" },
+    { name = "optype", extra = ["numpy"] },
     { name = "pytools" },
 ]
 
@@ -103,7 +103,7 @@ requires-dist = [
     { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
-    { name = "numpy" },
+    { name = "optype", extras = ["numpy"] },
     { name = "pytools" },
 ]
 
