@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import VtkEnum
 
 from ._elements import dlagrange_2, lagrange_2
-from .types import VtkElem, VtkEnum, VtkType
+from .types import VtkElem, VtkType
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2

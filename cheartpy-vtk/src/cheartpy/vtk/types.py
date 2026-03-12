@@ -1,3 +1,3 @@
-from ._elements import VtkElem, VtkEnum, VtkType
+from ._elements import VtkElem, VtkType
 
-__all__ = ["VtkElem", "VtkEnum", "VtkType"]
+__all__ = ["VtkElem", "VtkType"]
