@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from .types import AbaqusEnum, CheartEnum, VtkEnum
+from ._types import AbaqusEnum, CheartEnum, VtkEnum
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -37,6 +37,27 @@ Abaqus2CheartNodeOrder: Mapping[AbaqusEnum, tuple[int, ...]] = {
     AbaqusEnum.C3D4: (0, 1, 2, 3),
     AbaqusEnum.C3D10: (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
 }
+
+AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
+    AbaqusEnum.S3R: AbaqusEnum.T3D2,
+    AbaqusEnum.CPS3: AbaqusEnum.T3D2,
+    AbaqusEnum.CPEG6: AbaqusEnum.T3D3,
+    AbaqusEnum.CPS4: AbaqusEnum.T3D2,
+    AbaqusEnum.C3D4: AbaqusEnum.CPS3,
+    AbaqusEnum.C3D10: AbaqusEnum.CPEG6,
+}
+
+
+def get_vtk_element_for_abaqus(body: AbaqusEnum) -> VtkEnum | None:
+    return Abaqus2Vtk.get(body)
+
+
+def get_cheart_element_for_abaqus(body: AbaqusEnum) -> CheartEnum | None:
+    return Abaqus2Cheart.get(body)
+
+
+def get_abaqus_boundary_element(body: AbaqusEnum) -> AbaqusEnum | None:
+    return AbaqusBoundaryElement.get(body)
 
 
 def get_cheart_order_for_abaqus(elem: AbaqusEnum) -> tuple[int, ...]:

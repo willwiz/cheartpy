@@ -35,7 +35,7 @@ def _shape_line_1_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 
 
 VTKLINE1 = VtkElem(
-    VtkEnum.LinLine,
+    VtkEnum.VtkLinearLine,
     None,
     (0, 1),
     np.array([[0, 0, 0], [1, 0, 0]], dtype=np.intc),
@@ -72,7 +72,7 @@ def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 
 
 VTKLINE2 = VtkElem(
-    VtkEnum.QuadLine,
+    VtkEnum.VtkQuadraticLine,
     None,
     (0, 2, 1),
     np.array([[0, 0, 0], [2, 0, 0], [1, 0, 0]], dtype=np.intc),
@@ -105,8 +105,8 @@ def _shape_triangle_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTRIANGLE1 = VtkElem(
-    VtkEnum.LinTriangle,
-    VtkEnum.LinTriangle,
+    VtkEnum.VtkLinearTriangle,
+    VtkEnum.VtkLinearLine,
     (0, 1, 2),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float64),
@@ -148,8 +148,8 @@ def _shape_triangle_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTRIANGLE2 = VtkElem(
-    VtkEnum.QuadTriangle,
-    VtkEnum.QuadLine,
+    VtkEnum.VtkQuadraticTriangle,
+    VtkEnum.VtkQuadraticLine,
     (0, 1, 2, 3, 5, 4),
     np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.intc),
     np.array(
@@ -190,8 +190,8 @@ def _shape_quad_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKQUADRILATERAL1 = VtkElem(
-    VtkEnum.LinQuadrilateral,
-    VtkEnum.LinLine,
+    VtkEnum.VtkLinearQuadrilateral,
+    VtkEnum.VtkLinearLine,
     (0, 1, 3, 2),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.float64),
@@ -259,8 +259,8 @@ def _shape_quad_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 
 
 VTKQUADRILATERAL2 = VtkElem(
-    VtkEnum.QuadQuadrilateral,
-    VtkEnum.QuadLine,
+    VtkEnum.VtkQuadraticQuadrilateral,
+    VtkEnum.VtkQuadraticLine,
     (0, 1, 3, 2, 4, 7, 8, 5, 6),
     np.array(
         [
@@ -308,8 +308,8 @@ def _shape_tetrahedron_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTETRAHEDRON1 = VtkElem(
-    VtkEnum.LinTetrahedron,
-    VtkEnum.LinTriangle,
+    VtkEnum.VtkLinearTetrahedron,
+    VtkEnum.VtkLinearTriangle,
     (0, 1, 2, 3),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float64),
@@ -331,8 +331,8 @@ def _shape_tetrahedron_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTETRAHEDRON2 = VtkElem(
-    VtkEnum.QuadTetrahedron,
-    VtkEnum.QuadTriangle,
+    VtkEnum.VtkQuadraticTetrahedron,
+    VtkEnum.VtkQuadraticTriangle,
     (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
     np.array(
         [
@@ -382,8 +382,8 @@ def _shape_hexahedron_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKHEXAHEDRON1 = VtkElem(
-    VtkEnum.LinHexahedron,
-    VtkEnum.LinQuadrilateral,
+    VtkEnum.VtkLinearHexahedron,
+    VtkEnum.VtkLinearQuadrilateral,
     (0, 1, 5, 4, 2, 3, 7, 6),
     np.array(
         [
@@ -429,8 +429,8 @@ def _shape_hexahedron_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKHEXAHEDRON2 = VtkElem(
-    VtkEnum.QuadHexahedron,
-    VtkEnum.QuadQuadrilateral,
+    VtkEnum.VtkQuadraticHexahedron,
+    VtkEnum.VtkQuadraticQuadrilateral,
     (
         0,  1,  5,  4,  2,  3,  7, 6,  8,  15,
         22, 13, 12, 21, 26, 19, 9, 11, 25, 23,
@@ -509,15 +509,15 @@ def get_vtk_elem(elem_type: VtkType | VtkEnum) -> VtkElem:
     if not isinstance(elem_type, VtkEnum):
         elem_type = VtkEnum[elem_type]
     elements = {
-        VtkEnum.LinLine: VTKLINE1,
-        VtkEnum.LinTriangle: VTKTRIANGLE1,
-        VtkEnum.LinQuadrilateral: VTKQUADRILATERAL1,
-        VtkEnum.LinTetrahedron: VTKTETRAHEDRON1,
-        VtkEnum.LinHexahedron: VTKHEXAHEDRON1,
-        VtkEnum.QuadLine: VTKLINE2,
-        VtkEnum.QuadTriangle: VTKTRIANGLE2,
-        VtkEnum.QuadQuadrilateral: VTKQUADRILATERAL2,
-        VtkEnum.QuadTetrahedron: VTKTETRAHEDRON2,
-        VtkEnum.QuadHexahedron: VTKHEXAHEDRON2,
+        VtkEnum.VtkLinearLine: VTKLINE1,
+        VtkEnum.VtkLinearTriangle: VTKTRIANGLE1,
+        VtkEnum.VtkLinearQuadrilateral: VTKQUADRILATERAL1,
+        VtkEnum.VtkLinearTetrahedron: VTKTETRAHEDRON1,
+        VtkEnum.VtkLinearHexahedron: VTKHEXAHEDRON1,
+        VtkEnum.VtkQuadraticLine: VTKLINE2,
+        VtkEnum.VtkQuadraticTriangle: VTKTRIANGLE2,
+        VtkEnum.VtkQuadraticQuadrilateral: VTKQUADRILATERAL2,
+        VtkEnum.VtkQuadraticTetrahedron: VTKTETRAHEDRON2,
+        VtkEnum.VtkQuadraticHexahedron: VTKHEXAHEDRON2,
     }
     return elements[elem_type]
