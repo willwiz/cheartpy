@@ -92,7 +92,5 @@ _parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing w
 def parse_cmdline_args(args: Sequence[str] | None = None) -> ParsedInput:
     return _parser.parse_args(
         args,
-        namespace=ParsedInput(
-            [], prefix=None, dim=3, topology=[], boundary=None, add_mask=[], cores=1
-        ),
+        namespace=ParsedInput([], prefix=None, topology=[], boundary=None, add_mask=None, cores=1),
     )

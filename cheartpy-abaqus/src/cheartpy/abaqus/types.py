@@ -1,13 +1,4 @@
-from ._struct import AbaqusContent, InputArgs, Mask, MeshElements, MeshNodes
-from ._trait import AbaqusElement, AbaqusItem, CMDInputKwargs
+from ._types import AbaqusAPIKwargs
+from .reader import AbaqusMesh
 
-__all__ = [
-    "AbaqusContent",
-    "AbaqusElement",
-    "AbaqusItem",
-    "CMDInputKwargs",
-    "InputArgs",
-    "Mask",
-    "MeshElements",
-    "MeshNodes",
-]
+__all__ = ["AbaqusAPIKwargs", "AbaqusMesh"]
