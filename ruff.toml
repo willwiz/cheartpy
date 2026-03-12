@@ -1,1 +1,33 @@
-extend-exclude = ["**/cheartpy/meshio/_javi.py"]
+target-version = "py314"
+line-length = 100
+indent-width = 4
+exclude = [".venv", "**/build", ".git"]
+preview = false
+[lint]
+preview = false
+select = ["ALL"]
+ignore = [
+    "T201",
+    "T203",
+    "COM812",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "G004",
+    "G010",
+    "ERA001",
+    "TRY401",
+    "PLE1205",
+    "S607",
+    "S603",
+]
+fixable = ["ALL"]
+unfixable = []
+[format]
+quote-style = "double"
+indent-style = "space"
