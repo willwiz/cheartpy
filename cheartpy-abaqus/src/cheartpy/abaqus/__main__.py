@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from .api import create_cheartmesh_from_abaqus
-from .parser import check_args, parse_cmdline_args
+from .parsing import check_args, parse_cmdline_args
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

@@ -9,13 +9,7 @@ if TYPE_CHECKING:
     from pytools.arrays import A2
 
     from ._trait import AbaqusItem
-
-
-@dc.dataclass(slots=True)
-class Mask:
-    name: str
-    value: str
-    elems: Sequence[str]
+    from .parsing import Mask
 
 
 @dc.dataclass(slots=True)

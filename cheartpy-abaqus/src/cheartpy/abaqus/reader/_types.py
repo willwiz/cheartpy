@@ -1,30 +1,12 @@
 import dataclasses as dc
 import enum
-from typing import TYPE_CHECKING, Any, NamedTuple, Required, TypedDict, TypeIs
+from typing import TYPE_CHECKING, Any, Required, TypedDict, TypeIs
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
+    from cheartpy.elem_interfaces import AbaqusEnum
     from pytools.arrays import A1, DType
-
-
-class _AbaqusElement(NamedTuple):
-    tag: str
-    nodes: Sequence[int]
-
-
-class ElementEnum(enum.Enum, _AbaqusElement):
-    T3D2 = _AbaqusElement("T3D2", [0, 1])
-    T3D3 = _AbaqusElement("T3D3", [0, 1, 2])
-    CPS3 = _AbaqusElement("CPS3", [0, 1, 2])
-    CPS4 = _AbaqusElement("CPS4", [0, 1, 3, 2])
-    CPS4_3D = _AbaqusElement("CPS4_3D", [0, 1, 3, 2, 4, 7, 8, 5, 6])
-    C3D4 = _AbaqusElement("C3D4", [0, 1, 3, 2])
-    S3R = _AbaqusElement("S3R", [0, 1, 2])
-    TetQuad3D = _AbaqusElement("TetQuad3D", (0, 1, 3, 2, 4, 5, 7, 6))
-    Tet3D = _AbaqusElement("Tet3D", [0, 1, 2, 3])
 
 
 class AbaqusHeader(enum.StrEnum):
@@ -55,11 +37,21 @@ class Headings:
 class Nodes[F: np.floating]:
     v: dict[int, A1[F]]
 
+    def __hash__(self) -> int:
+        return hash(tuple(self.v.keys()))
+
+    def __eq__(self, value: object, /) -> bool:
+        if not isinstance(value, Nodes):
+            return False
+        if self.v.keys() != value.v.keys():
+            return False
+        return all(np.array_equal(self.v[k], value.v[k]) for k in self.v)
+
 
 @dc.dataclass(slots=True)
 class Element[I: np.integer]:
     name: str
-    type: ElementEnum
+    type: AbaqusEnum
     v: dict[int, A1[I]]
 
     def __hash__(self) -> int:

@@ -3,20 +3,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TextIO
 
 import numpy as np
+from cheartpy.elem_interfaces import AbaqusEnum
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result
 
-from ._types import (
-    AbaqusHeader,
-    AbaqusMesh,
-    Content,
-    Element,
-    ElementEnum,
-    ElSet,
-    Headings,
-    Nodes,
-    NSet,
-)
+from ._types import AbaqusHeader, AbaqusMesh, Content, Element, ElSet, Headings, Nodes, NSet
+from ._validation import validate_element_dimensions, validate_space_dimension
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, DType
@@ -84,7 +76,7 @@ def read_nodes[F: np.floating](
     )
 
 
-def parse_type_name_from_element_header(line: str) -> Result[tuple[str, ElementEnum]]:
+def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEnum]]:
     terms = line.strip().split(",")
     match terms:
         case str(), str(kind_str), str(name_str): ...  # fmt: skip
@@ -103,10 +95,10 @@ def parse_type_name_from_element_header(line: str) -> Result[tuple[str, ElementE
             return Err(ValueError(msg))
         case match_obj:
             kind = match_obj.group(1)
-    if kind not in ElementEnum.__members__:
+    if kind not in AbaqusEnum.__members__:
         msg = f"Element type = {kind} has not been implemented."
         return Err(ValueError(msg))
-    return Ok((name, ElementEnum[kind]))
+    return Ok((name, AbaqusEnum[kind]))
 
 
 def parse_name_from_elset_header(line: str) -> Result[str]:
@@ -168,12 +160,50 @@ def read_element[I: np.integer](
 
 def read_nset[I: np.integer](
     f: TextIO, first_line: str, *, dtype: DType[I] = np.intp
-) -> Result[tuple[NSet[I], Content | None]]: ...
+) -> Result[tuple[NSet[I], Content | None]]:
+    set_ids: list[int] = []
+    match parse_name_from_nset_header(first_line):
+        case Ok(name): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    for line in f:
+        match check_header(line):
+            case Content() as next_content:
+                break
+            case None:
+                set_ids.extend([int(v.strip()) - 1 for v in line.strip().split(",") if v.strip()])
+    else:
+        next_content = None
+    return Ok(
+        (
+            NSet(name, np.array(set_ids, dtype=dtype)),
+            next_content,
+        )
+    )
 
 
 def read_elset[I: np.integer](
     f: TextIO, first_line: str, *, dtype: DType[I] = np.intp
-) -> Result[tuple[ElSet[I], Content | None]]: ...
+) -> Result[tuple[ElSet[I], Content | None]]:
+    set_ids: list[int] = []
+    match parse_name_from_elset_header(first_line):
+        case Ok(name): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    for line in f:
+        match check_header(line):
+            case Content() as next_content:
+                break
+            case None:
+                set_ids.extend([int(v.strip()) - 1 for v in line.strip().split(",") if v.strip()])
+    else:
+        next_content = None
+    return Ok(
+        (
+            ElSet(name, np.array(set_ids, dtype=dtype)),
+            next_content,
+        )
+    )
 
 
 type _AbaqusItem[F: np.floating, I: np.integer] = (
@@ -233,6 +263,12 @@ def _import_abaqus_file[F: np.floating, I: np.integer](
                 mesh = update_abaqus_mesh(mesh, new_item)
             case Err(e):
                 return Err(e)
+    if not validate_space_dimension(mesh):
+        msg = "Inconsistent space dimensions among nodes."
+        return Err(ValueError(msg))
+    if not validate_element_dimensions(mesh):
+        msg = "Inconsistent element dimensions among elements."
+        return Err(ValueError(msg))
     return Ok(mesh)
 
 

@@ -17,7 +17,7 @@ from ._core import (
 from ._readers import read_abaqus_meshes
 
 if TYPE_CHECKING:
-    from ._struct import InputArgs
+    from cheartpy.abaqus.parsing import InputArgs
 
 
 def create_cheartmesh_from_abaqus(args: InputArgs) -> None:
