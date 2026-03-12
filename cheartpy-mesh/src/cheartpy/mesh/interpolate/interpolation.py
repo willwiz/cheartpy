@@ -10,8 +10,9 @@ from .maps import L2QMAPDICT, L2QTYPEDICT
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from cheartpy.mesh.struct import CheartMesh
     from pytools.arrays import A1, A2
+
+    from cheartpy.mesh.struct import CheartMesh
 
 
 __all__ = ["INTERP_MAP", "interp_var_l2q", "make_l2qmap"]

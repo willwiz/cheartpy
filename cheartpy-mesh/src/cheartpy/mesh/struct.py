@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from cheartpy.vtk.types import VtkEnum
+    from cheartpy.elem_interfaces import VtkEnum
     from pytools.arrays import A1, A2
 
 
