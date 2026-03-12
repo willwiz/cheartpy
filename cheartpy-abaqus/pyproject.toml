@@ -17,7 +17,7 @@ classifiers = [
 ]
 dependencies = [
   "pytools",
-  "numpy",
+  "optype[numpy]",
   "cheartpy-mesh",
   "cheartpy-io",
   "cheartpy-vtk",

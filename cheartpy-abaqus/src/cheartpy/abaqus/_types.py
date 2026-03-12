@@ -1,0 +1,16 @@
+from typing import TYPE_CHECKING, Required, TypedDict
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from pathlib import Path
+
+
+class AbaqusAPIKwargs(TypedDict, total=False):
+    """Keyword arguments for Abaqus Converter API functions."""
+
+    files: Required[Sequence[Path | str]]
+    prefix: Required[str]
+    topology: Required[Sequence[str]]
+    boundary: Mapping[int, Sequence[str]] | None
+    masks: Mapping[str, tuple[str, Sequence[str]]] | None
+    cores: int

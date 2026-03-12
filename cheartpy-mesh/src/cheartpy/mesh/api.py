@@ -2,8 +2,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import (
+    VtkEnum,
+    get_vtk_boundary_element,
+    guess_vtk_elem_from_dim,
+)
 from cheartpy.io.api import fix_ch_sfx
-from cheartpy.vtk.api import guess_elem_type_from_dim
 from pytools.result import Err, Ok
 
 from .struct import (
@@ -15,9 +19,7 @@ from .struct import (
 )
 
 if TYPE_CHECKING:
-    from cheartpy.vtk.types import VtkElem, VtkEnum
     from pytools.arrays import A2, DType
-
 
 __all__ = ["import_cheart_mesh"]
 
@@ -42,10 +44,10 @@ def _create_cheart_mesh_surf_from_raw[T: np.integer](
 
 def import_cheart_mesh[F: np.floating, I: np.integer](
     name: Path | str,
-    forced_type: VtkElem | None = None,
+    forced_type: VtkEnum | None = None,
     *,
     ftype: DType[F] = np.float64,
-    itype: DType[I] = np.intc,
+    itype: DType[I] = np.intp,
 ) -> Ok[CheartMesh[F, I]] | Err:
     prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
@@ -57,11 +59,12 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     else:
         raw_bnd, bdim = None, None
     if forced_type is None:
-        match guess_elem_type_from_dim(edim, bdim):
+        match guess_vtk_elem_from_dim(edim, bdim):
             case Ok(forced_type): ...  # fmt: skip
             case Err(e):
                 return Err(e)
     space = CheartMeshSpace(len(raw_space), raw_space)
-    top = CheartMeshTopology(len(raw_top), raw_top, forced_type.body)
-    bnd = _create_cheart_mesh_surf_from_raw(raw_bnd, forced_type.surf)
+    top = CheartMeshTopology(len(raw_top), raw_top, forced_type)
+    boundary_type = get_vtk_boundary_element(forced_type)
+    bnd = _create_cheart_mesh_surf_from_raw(raw_bnd, boundary_type)
     return Ok(CheartMesh(space, top, bnd))

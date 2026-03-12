@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Required, TypedDict, TypeIs
 import numpy as np
 
 if TYPE_CHECKING:
+    import optype.numpy as opn
     from cheartpy.elem_interfaces import AbaqusEnum
     from pytools.arrays import A1, DType
 
@@ -35,7 +36,7 @@ class Headings:
 
 @dc.dataclass(slots=True)
 class Nodes[F: np.floating]:
-    v: dict[int, A1[F]]
+    v: dict[opn.ToInt, A1[F]]
 
     def __hash__(self) -> int:
         return hash(tuple(self.v.keys()))
@@ -52,7 +53,7 @@ class Nodes[F: np.floating]:
 class Element[I: np.integer]:
     name: str
     type: AbaqusEnum
-    v: dict[int, A1[I]]
+    v: dict[opn.ToInt, A1[I]]
 
     def __hash__(self) -> int:
         return hash((self.name, self.type, len(self.v)))

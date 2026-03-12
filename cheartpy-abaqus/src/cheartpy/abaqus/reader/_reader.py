@@ -11,6 +11,7 @@ from ._types import AbaqusHeader, AbaqusMesh, Content, Element, ElSet, Headings,
 from ._validation import validate_element_dimensions, validate_space_dimension
 
 if TYPE_CHECKING:
+    import optype.numpy as opn
     from pytools.arrays import A1, DType
 
 
@@ -58,7 +59,7 @@ def read_headings(f: TextIO, _first_line: str) -> Ok[tuple[Headings, Content | N
 def read_nodes[F: np.floating](
     f: TextIO, _first_line: str, *, ftype: DType[F] = np.float64
 ) -> Ok[tuple[Nodes[F], Content | None]]:
-    node_dict: dict[int, A1[F]] = {}
+    node_dict: dict[opn.ToInt, A1[F]] = {}
     for line in f:
         match check_header(line):
             case Content() as next_content:
@@ -136,7 +137,7 @@ def parse_name_from_nset_header(line: str) -> Result[str]:
 def read_element[I: np.integer](
     f: TextIO, first_line: str, *, dtype: DType[I] = np.intp
 ) -> Result[tuple[Element[I], Content | None]]:
-    elem_dict: dict[int, A1[I]] = {}
+    elem_dict: dict[opn.ToInt, A1[I]] = {}
     match parse_type_name_from_element_header(first_line):
         case Ok((name, kind)): ...  # fmt: skip
         case Err(e):

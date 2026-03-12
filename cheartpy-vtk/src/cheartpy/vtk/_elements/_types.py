@@ -1,30 +1,15 @@
 import dataclasses as dc
-import enum
 from typing import TYPE_CHECKING, Literal, NamedTuple, Protocol
 
 if TYPE_CHECKING:
     import numpy as np
+    from cheartpy.elem_interfaces import VtkEnum
     from pytools.arrays import A1, A2
-
-__all__ = ["VtkElem", "VtkEnum", "VtkType"]
 
 
 class _Vtk(NamedTuple):
     name: str
     idx: int
-
-
-class VtkEnum(enum.Enum):
-    LinLine = _Vtk("VtkLinearLine", 3)
-    LinTriangle = _Vtk("VtkLinearTriangle", 5)
-    LinQuadrilateral = _Vtk("VtkLinearQuadrilateral", 9)
-    LinTetrahedron = _Vtk("VtkLinearTetrahedron", 10)
-    LinHexahedron = _Vtk("VtkLinearHexahedron", 12)
-    QuadLine = _Vtk("VtkQuadraticLine", 21)
-    QuadTriangle = _Vtk("VtkQuadraticTriangle", 22)
-    QuadQuadrilateral = _Vtk("VtkQuadraticQuadrilateral", 28)
-    QuadTetrahedron = _Vtk("VtkQuadraticTetrahedron", 24)
-    QuadHexahedron = _Vtk("VtkQuadraticHexahedron", 29)
 
 
 VtkType = Literal[

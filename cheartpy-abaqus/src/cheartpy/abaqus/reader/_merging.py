@@ -48,11 +48,11 @@ def merge_abaqus_meshes[F: np.floating, I: np.integer](
 
 
 def import_abaqus_files[F: np.floating, I: np.integer](
-    *files: str,
+    *files: Path | str,
     ftype: DType[F] = np.float64,
-    itype: DType[I] = np.intc,
+    dtype: DType[I] = np.intc,
 ) -> Ok[AbaqusMesh[F, I]] | Err:
-    match all_ok([import_abaqus_file(Path(f), ftype=ftype, dtype=itype) for f in files]):
+    match all_ok([import_abaqus_file(Path(f), ftype=ftype, dtype=dtype) for f in files]):
         case Ok(abaqus_meshes):
             return merge_abaqus_meshes(*abaqus_meshes)
         case Err(e):

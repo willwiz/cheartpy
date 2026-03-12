@@ -1,14 +1,15 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import VtkEnum
+from cheartpy.vtk.struct import VTKHEXAHEDRON1, VTKQUADRILATERAL1
+
 from cheartpy.mesh.struct import (
     CheartMeshBoundary,
     CheartMeshPatch,
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.vtk.struct import VTKHEXAHEDRON1, VTKQUADRILATERAL1
-from cheartpy.vtk.types import VtkEnum
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A3, T3
@@ -78,7 +79,7 @@ def create_topology[I: np.integer](
                 elems[elem_index[i, j, k]] = [
                     node_index[i + p, j + m, k + n] for p, m, n in VTKHEXAHEDRON1.nodes
                 ]
-    return CheartMeshTopology(len(elems), elems, VtkEnum.LinHexahedron)
+    return CheartMeshTopology(len(elems), elems, VtkEnum.VtkLinearHexahedron)
 
 
 def create_boundary_side_x_cw[I: np.integer](
@@ -97,7 +98,7 @@ def create_boundary_side_x_cw[I: np.integer](
                 node_index[ix + 1, j + m, k + n] for m, n, _ in VTKQUADRILATERAL1.nodes
             ]
             elems[ny * k + j] = elem_index[ix, j, k]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LinQuadrilateral)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.VtkLinearQuadrilateral)
 
 
 def create_boundary_side_x_ccw[I: np.integer](
@@ -116,7 +117,7 @@ def create_boundary_side_x_ccw[I: np.integer](
                 node_index[ix, j + m, k + n] for n, m, _ in VTKQUADRILATERAL1.nodes
             ]
             elems[ny * k + j] = elem_index[ix, j, k]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LinQuadrilateral)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.VtkLinearQuadrilateral)
 
 
 def create_boundary_side_y_cw[I: np.integer](
@@ -135,7 +136,7 @@ def create_boundary_side_y_cw[I: np.integer](
                 node_index[i + m, iy + 1, k + n] for m, n, _ in VTKQUADRILATERAL1.nodes
             ]
             elems[nx * k + i] = elem_index[i, iy, k]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LinQuadrilateral)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.VtkLinearQuadrilateral)
 
 
 def create_boundary_side_y_ccw[I: np.integer](
@@ -154,7 +155,7 @@ def create_boundary_side_y_ccw[I: np.integer](
                 node_index[i + m, iy, k + n] for n, m, _ in VTKQUADRILATERAL1.nodes
             ]
             elems[nx * k + i] = elem_index[i, iy, k]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LinQuadrilateral)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.VtkLinearQuadrilateral)
 
 
 def create_boundary_side_z_cw[I: np.integer](
@@ -173,7 +174,7 @@ def create_boundary_side_z_cw[I: np.integer](
                 node_index[i + m, j + n, iz + 1] for m, n, _ in VTKQUADRILATERAL1.nodes
             ]
             elems[nx * j + i] = elem_index[i, j, iz]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LinQuadrilateral)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.VtkLinearQuadrilateral)
 
 
 def create_boundary_side_z_ccw[I: np.integer](
@@ -192,7 +193,7 @@ def create_boundary_side_z_ccw[I: np.integer](
                 node_index[i + m, j + n, iz] for n, m, _ in VTKQUADRILATERAL1.nodes
             ]
             elems[nx * j + i] = elem_index[i, j, iz]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LinQuadrilateral)
+    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.VtkLinearQuadrilateral)
 
 
 def create_boundary[I: np.integer](
@@ -213,4 +214,4 @@ def create_boundary[I: np.integer](
         5: create_boundary_side_z_ccw(5, (ix, iy, 0), node_index, elem_index),
         6: create_boundary_side_z_cw(6, (ix, iy, nz - 1), node_index, elem_index),
     }
-    return CheartMeshBoundary(len(bnds), bnds, VtkEnum.LinQuadrilateral)
+    return CheartMeshBoundary(len(bnds), bnds, VtkEnum.VtkLinearQuadrilateral)

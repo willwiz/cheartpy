@@ -4,12 +4,14 @@
 Created on Thu Mar  9 14:49:36 2023
 
 @author: Javiera Jilberto Vallejos
+
+WZ: For reference only, do not use!
 """
 
 import numpy as np
 import meshio as io
 
-# TODO Add verbose option to disable warnings
+# TODO: Add verbose option to disable warnings
 verbose = True
 
 
