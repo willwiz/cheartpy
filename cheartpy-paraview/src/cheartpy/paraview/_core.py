@@ -15,8 +15,8 @@ from ._third_party import compress_vtu
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from cheartpy.elem_interfaces import VtkEnum
     from cheartpy.search.trait import IIndexIterator
-    from cheartpy.vtk.types import VtkEnum
     from pytools.arrays import A1, A2
 
     from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
