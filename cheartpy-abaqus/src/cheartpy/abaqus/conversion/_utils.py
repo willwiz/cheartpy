@@ -2,6 +2,7 @@ from collections import ChainMap, defaultdict
 from typing import TYPE_CHECKING
 
 import numpy as np
+from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result, all_ok
 
 from ._types import ElemIntermediate, ElemSearchMap, IndexUpdateMap
@@ -27,7 +28,13 @@ def build_element_searchmap[I: np.integer](elements: ElemIntermediate[I]) -> Ele
 
 def compile_new_node_map[I: np.integer](elements: ElemIntermediate[I]) -> IndexUpdateMap:
     """Create a mapping from old node to new continuous node numbering."""
-    return {n: i for nodes in elements.v.values() for i, n in enumerate(nodes)}
+    log = get_logger()
+    unique_nodes = {n for nodes in elements.v.values() for n in nodes}
+    log.debug(
+        "Compiling new node map.",
+        f"{len(elements.v)} elements found with {len(unique_nodes)} unique nodes.",
+    )
+    return {n: i for i, n in enumerate(unique_nodes)}
 
 
 def search_element(search_map: ElemSearchMap, node: Iterable[opn.ToInt]) -> Result[int]:
