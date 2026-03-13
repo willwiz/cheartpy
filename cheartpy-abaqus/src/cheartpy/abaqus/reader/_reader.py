@@ -90,7 +90,6 @@ def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEn
             return Err(ValueError(msg))
         case match_obj:
             name = match_obj.group(1)
-            print("Found name =", name)
     match re.fullmatch(r"type=(.*)", kind_str.strip(), re.IGNORECASE):
         case None:
             msg = f"Parsing error for type element: {kind_str}"

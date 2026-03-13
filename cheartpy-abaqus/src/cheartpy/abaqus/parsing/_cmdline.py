@@ -1,6 +1,8 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, get_args
+
+from pytools.logging import LogLevel
 
 from ._types import ParsedInput
 
@@ -85,11 +87,26 @@ _parser.add_argument(
 
     """,
 )
+_parser.add_argument(
+    "--log-level",
+    type=str.upper,
+    default="INFO",
+    choices=get_args(LogLevel),
+    help="""Set the log level for the program.""",
+)
 _parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing with n cores""")
 
 
 def parse_cmdline_args(args: Sequence[str] | None = None) -> ParsedInput:
     return _parser.parse_args(
         args,
-        namespace=ParsedInput([], prefix=None, topology=[], boundary=None, add_mask=None, cores=1),
+        namespace=ParsedInput(
+            [],
+            prefix=None,
+            topology=[],
+            boundary=None,
+            add_mask=None,
+            log_level="INFO",
+            cores=1,
+        ),
     )

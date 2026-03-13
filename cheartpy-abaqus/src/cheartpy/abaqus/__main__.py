@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 def main(cmd_args: Sequence[str] | None = None) -> None:
     args = parse_cmdline_args(args=cmd_args)
     inp = check_args(args).unwrap()
-    log = get_logger()
+    log = get_logger(level=inp.get("log_level"))
     log.info(*compose_header(), *format_input_kwargs(**inp))
     mesh = create_cheartmesh_from_abaqus_api(**inp).unwrap()
     mesh.save(inp["prefix"])

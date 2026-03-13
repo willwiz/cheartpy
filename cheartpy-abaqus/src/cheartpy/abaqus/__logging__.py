@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Protocol, Unpack
 from cheartpy.io.api import fix_ch_sfx
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from ._types import AbaqusAPIKwargs

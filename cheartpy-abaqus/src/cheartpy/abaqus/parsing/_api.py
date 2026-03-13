@@ -72,6 +72,7 @@ def check_args(args: ParsedInput) -> Ok[AbaqusAPIKwargs] | Err:
             topology=args.topology,
             boundary=boundary,
             masks=masks,
+            log_level=args.log_level,
             cores=args.cores,
         )
     )

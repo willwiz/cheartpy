@@ -4,6 +4,7 @@ import numpy as np
 from cheartpy.abaqus.reader import AbaqusMesh, import_abaqus_files
 from cheartpy.io.api import chwrite_str_utf
 from cheartpy.mesh.struct import CheartMesh
+from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result
 
 from .conversion import (
@@ -37,10 +38,20 @@ def _import_abaqus_data[F: np.floating, I: np.integer](
     dtype: DType[I] = np.intp,
     **kwargs: Unpack[AbaqusAPIKwargs],
 ) -> Result[_AbaqusData[F, I]]:
+    log = get_logger()
     match import_abaqus_files(*kwargs["files"], ftype=ftype, dtype=dtype):
         case Ok(abaqus): ...  # fmt: skip
         case Err(err):
             return Err(err)
+    log.info(
+        f"Imported {len(abaqus.nodes.v)} nodes.",
+        f"Found {len(abaqus.elements)} element with types:",
+        {k: elem.type for k, elem in abaqus.elements.items()},
+        f"{len(abaqus.elsets)} were specified (name: nelem):",
+        {k: len(elset.v) for k, elset in abaqus.elsets.items()},
+        f"{len(abaqus.nset)} node sets were specified (name: nnodes):",
+        {k: len(nset.v) for k, nset in abaqus.nset.items()},
+    )
     match compile_abaqus_elements(abaqus, kwargs["topology"]):
         case Ok(body_elems): ...  # fmt: skip
         case Err(err):
@@ -76,6 +87,7 @@ def create_cheartmesh_from_abaqus_api[F: np.floating, I: np.integer](
     dtype: DType[I] = np.intp,
     **kwargs: Unpack[AbaqusAPIKwargs],
 ) -> Result[CheartMesh[F, I]]:
+    get_logger(level=kwargs.get("log_level"))
     match _import_abaqus_data(**kwargs, ftype=ftype, dtype=dtype):
         case Ok(abaqus): ...  # fmt: skip
         case Err(err):
