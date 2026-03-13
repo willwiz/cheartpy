@@ -10,6 +10,7 @@ __all__ = [
 from collections.abc import Collection, Sequence
 from typing import Final
 
+from cheartpy.elem_interfaces import VtkEnum
 from cheartpy.vtk.struct import (
     VTKHEXAHEDRON2,
     VTKLINE2,
@@ -17,7 +18,6 @@ from cheartpy.vtk.struct import (
     VTKTETRAHEDRON2,
     VTKTRIANGLE2,
 )
-from cheartpy.vtk.types import VtkEnum
 
 type L2QMAP = Sequence[Collection[int]]
 
