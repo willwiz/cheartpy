@@ -53,7 +53,7 @@ def create_mesh_boundary_patch[I: np.integer](
     bc_patch: ElemIntermediate[I],
 ) -> Result[CheartMeshPatch[I]]:
     dtype = next(iter(top.v.values())).dtype
-    elems = np.ascontiguousarray(bc_patch.v.keys(), dtype=dtype)
+    elems = np.ascontiguousarray(list(bc_patch.v.keys()), dtype=dtype)
     if (kind := get_vtk_element_for_abaqus(bc_patch.type)) is None:
         msg = f"Boundary type '{top.type}' is not supported."
         return Err(ValueError(msg))
@@ -76,7 +76,7 @@ def create_mesh_boundary[I: np.integer](
         case Ok(patches): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    types = {p.TYPE for p in patches.values() if isinstance(p, Ok)}
+    types = {p.TYPE for p in patches.values()}
     if len(types) != 1:
         msg = f"Boundary patches have different types, cannot merge them: {types}"
         return Err(ValueError(msg))

@@ -101,6 +101,8 @@ def create_cheartmesh_from_abaqus_api[F: np.floating, I: np.integer](
         case Ok(mesh_masks): ...  # fmt: skip
         case Err(err):
             return Err(err)
+    if (prefix := kwargs.get("prefix")) is not None:
+        mesh.save(prefix)
     for k, v in mesh_masks.items():
         chwrite_str_utf(k, v[:, None])
     return Ok(mesh)

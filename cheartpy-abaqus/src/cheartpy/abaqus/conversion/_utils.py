@@ -17,15 +17,6 @@ if TYPE_CHECKING:
     from pytools.arrays import A1
 
 
-def build_element_searchmap[I: np.integer](elements: ElemIntermediate[I]) -> ElemSearchMap:
-    """Create a mapping to find elements that contain a given node."""
-    search_map = defaultdict(set)
-    for elem, nodes in elements.v.items():
-        for node in nodes:
-            search_map[node].add(elem)
-    return search_map
-
-
 def compile_new_node_map[I: np.integer](elements: ElemIntermediate[I]) -> IndexUpdateMap:
     """Create a mapping from old node to new continuous node numbering."""
     log = get_logger()
@@ -35,6 +26,15 @@ def compile_new_node_map[I: np.integer](elements: ElemIntermediate[I]) -> IndexU
         f"{len(elements.v)} elements found with {len(unique_nodes)} unique nodes.",
     )
     return {n: i for i, n in enumerate(unique_nodes)}
+
+
+def build_element_searchmap[I: np.integer](elements: ElemIntermediate[I]) -> ElemSearchMap:
+    """Create a mapping to find elements that contain a given node."""
+    search_map = defaultdict(set)
+    for elem, nodes in enumerate(elements.v.values()):
+        for node in nodes:
+            search_map[node].add(elem)
+    return search_map
 
 
 def search_element(search_map: ElemSearchMap, node: Iterable[opn.ToInt]) -> Result[int]:

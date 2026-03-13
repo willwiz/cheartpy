@@ -38,6 +38,7 @@ class AbaqusEnum(enum.StrEnum):
     T3D3 = "T3D3"
     CPS3 = "CPS3"
     CPS4 = "CPS4"
+    CPS6 = "CPS6"
     C3D4 = "C3D4"
     S3R = "S3R"
     C3D10 = "C3D10"

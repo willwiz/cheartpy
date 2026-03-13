@@ -15,8 +15,7 @@ def main(cmd_args: Sequence[str] | None = None) -> None:
     inp = check_args(args).unwrap()
     log = get_logger(level=inp.get("log_level"))
     log.info(*compose_header(), *format_input_kwargs(**inp))
-    mesh = create_cheartmesh_from_abaqus_api(**inp).unwrap()
-    mesh.save(inp["prefix"])
+    create_cheartmesh_from_abaqus_api(**inp).unwrap()
     log.info(header_guard(" COMPLETE! "), "")
 
 
