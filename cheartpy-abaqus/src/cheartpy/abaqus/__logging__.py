@@ -12,8 +12,8 @@ class _Printable(Protocol):
     def __str__(self) -> str: ...
 
 
-def header_guard(*, length: int = 80, char: str = "*") -> str:
-    return char * length
+def header_guard(msg: str = "", *, length: int = 80, char: str = "*") -> str:
+    return f"{msg:{char}^{length}}"
 
 
 def compose_header() -> Sequence[str]:

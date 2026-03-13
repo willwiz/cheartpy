@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from pytools.logging import get_logger
 
-from .__logging__ import compose_header, format_input_kwargs
+from .__logging__ import compose_header, format_input_kwargs, header_guard
 from ._api import create_cheartmesh_from_abaqus_api
 from .parsing import check_args, parse_cmdline_args
 
@@ -17,6 +17,7 @@ def main(cmd_args: Sequence[str] | None = None) -> None:
     log.info(*compose_header(), *format_input_kwargs(**inp))
     mesh = create_cheartmesh_from_abaqus_api(**inp).unwrap()
     mesh.save(inp["prefix"])
+    log.info(header_guard(" COMPLETE! "), "")
 
 
 if __name__ == "__main__":
