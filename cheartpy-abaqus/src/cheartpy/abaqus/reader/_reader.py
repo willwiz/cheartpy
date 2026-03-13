@@ -65,7 +65,7 @@ def read_nodes[F: np.floating](
             case Content() as next_content:
                 break
             case None:
-                i, vs = line.strip().split(",")
+                i, *vs = line.strip().split(",")
                 node_dict[int(i) - 1] = np.array([float(v) for v in vs], dtype=ftype)
     else:
         next_content = None
@@ -84,13 +84,14 @@ def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEn
         case _:
             msg = f"Line does not match `*ELEMENT, type={{type}}, ELSET={{name}}\nFound: {line}"
             return Err(ValueError(msg))
-    match re.fullmatch(r"ELSET=(\s+)", name_str.strip(), re.IGNORECASE):
+    match re.fullmatch(r"ELSET=(.*)", name_str.strip(), re.IGNORECASE):
         case None:
-            msg = f"Parsing error for name element: {name_str}"
+            msg = f"Parsing error for name element: {name_str}, found: `{name_str.strip()}`"
             return Err(ValueError(msg))
         case match_obj:
             name = match_obj.group(1)
-    match re.fullmatch(r"type=(\s+)", kind_str.strip(), re.IGNORECASE):
+            print("Found name =", name)
+    match re.fullmatch(r"type=(.*)", kind_str.strip(), re.IGNORECASE):
         case None:
             msg = f"Parsing error for type element: {kind_str}"
             return Err(ValueError(msg))
@@ -109,7 +110,7 @@ def parse_name_from_elset_header(line: str) -> Result[str]:
         case _:
             msg = f"Line does not match `*ELEMENT, ELSET={{name}}\nFound: {line}"
             return Err(ValueError(msg))
-    match re.fullmatch(r"ELSET=(\s+)", name_str.strip(), re.IGNORECASE):
+    match re.fullmatch(r"ELSET=(.*)", name_str.strip(), re.IGNORECASE):
         case None:
             msg = f"Parsing error for name element: {name_str}"
             return Err(ValueError(msg))
@@ -147,7 +148,7 @@ def read_element[I: np.integer](
             case Content() as next_content:
                 break
             case None:
-                i, vs = line.strip().split(",")
+                i, *vs = line.strip().split(",")
                 elem_dict[int(i) - 1] = np.array([int(v) - 1 for v in vs], dtype=dtype)
     else:
         next_content = None
