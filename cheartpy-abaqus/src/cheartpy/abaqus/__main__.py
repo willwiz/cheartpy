@@ -1,5 +1,8 @@
 from typing import TYPE_CHECKING
 
+from pytools.logging import get_logger
+
+from .__logging__ import compose_header, format_input_kwargs
 from ._api import create_cheartmesh_from_abaqus_api
 from .parsing import check_args, parse_cmdline_args
 
@@ -10,6 +13,8 @@ if TYPE_CHECKING:
 def main(cmd_args: Sequence[str] | None = None) -> None:
     args = parse_cmdline_args(args=cmd_args)
     inp = check_args(args).unwrap()
+    log = get_logger()
+    log.info(*compose_header(), *format_input_kwargs(**inp))
     mesh = create_cheartmesh_from_abaqus_api(**inp).unwrap()
     mesh.save(inp["prefix"])
 
