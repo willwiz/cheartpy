@@ -10,11 +10,10 @@ from ._types import ElemIntermediate, ElemSearchMap, IndexUpdateMap
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    import optype.numpy as opn
     from cheartpy.abaqus.reader import AbaqusMesh
     from cheartpy.elem_interfaces import AbaqusEnum
     from cheartpy.mesh.struct import Mapping
-    from pytools.arrays import A1
+    from pytools.arrays import A1, ToInt
 
 
 def compile_new_node_map[I: np.integer](elements: ElemIntermediate[I]) -> IndexUpdateMap:
@@ -37,7 +36,7 @@ def build_element_searchmap[I: np.integer](elements: ElemIntermediate[I]) -> Ele
     return search_map
 
 
-def search_element(search_map: ElemSearchMap, node: Iterable[opn.ToInt]) -> Result[int]:
+def search_element(search_map: ElemSearchMap, node: Iterable[ToInt]) -> Result[int]:
     """Find elements that contain all of the given node."""
     possible_elems: set[int]
     possible_elems = set.intersection(*(search_map[n] for n in node))
@@ -50,7 +49,7 @@ def search_element(search_map: ElemSearchMap, node: Iterable[opn.ToInt]) -> Resu
 
 def merge_abaques_elements[F: np.floating, I: np.integer](
     mesh: AbaqusMesh[F, I],
-) -> tuple[Mapping[opn.ToInt, A1[I]], Mapping[opn.ToInt, AbaqusEnum]]:
+) -> tuple[Mapping[ToInt, A1[I]], Mapping[ToInt, AbaqusEnum]]:
     elements = ChainMap(*[m.v for m in mesh.elements.values()])
     types = ChainMap(*[dict.fromkeys(m.v, m.type) for m in mesh.elements.values()])
     return elements, types
@@ -68,7 +67,7 @@ def find_element_from_elset[F: np.floating, I: np.integer](
             f"Please check the Abaqus mesh file for consistency."
         )
         return Err(ValueError(msg))
-    elements: dict[opn.ToInt, A1[I]] = {e: master[e] for e in elset}
+    elements: dict[ToInt, A1[I]] = {e: master[e] for e in elset}
     if not elements:
         return Err(ValueError(f"Elset '{selection}' does not contain any elements."))
     return Ok(ElemIntermediate(type_set.pop(), elements))
