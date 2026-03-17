@@ -63,4 +63,5 @@ dev = [
   "cheartpy-paraview",
   "cheartpy-symbolic",
   "cheartpy-vtk",
+  "pytest",
 ]
