@@ -572,7 +572,7 @@ wheels = [
 [[package]]
 name = "pytools"
 version = "1.1.0a0"
-source = { git = "https://github.com/willwiz/pytools#99581567fe38761c01b88dd41fbe68f67edbf1e3" }
+source = { git = "https://github.com/willwiz/pytools#b69ad7795cb8b9da2107ce88b9746654c7e2f1aa" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },

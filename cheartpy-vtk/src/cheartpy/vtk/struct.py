@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import VtkEnum
+from cheartpy.elem_interfaces import VtkElemType, VtkEnum
 
 from ._elements import dlagrange_2, lagrange_2
-from .types import VtkElem, VtkType
+from .types import VtkElem
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2
@@ -506,7 +506,7 @@ VTKHEXAHEDRON2 = VtkElem(
 )  # fmt: skip
 
 
-def get_vtk_elem(elem_type: VtkType | VtkEnum) -> VtkElem:
+def get_vtk_elem(elem_type: VtkElemType | VtkEnum) -> VtkElem:
     if not isinstance(elem_type, VtkEnum):
         elem_type = VtkEnum[elem_type]
     elements = {

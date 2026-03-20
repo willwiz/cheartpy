@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Literal, Required, TypedDict, Unpack
 
-from cheartpy.fe.api._expression import create_expr
-from cheartpy.fe.api._variable import create_variable
+from cheartpy.fe.api import create_expr, create_variable
 from cheartpy.fe.physics.fs_coupling import FSCouplingProblem, FSExpr
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
 

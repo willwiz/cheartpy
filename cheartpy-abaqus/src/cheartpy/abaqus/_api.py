@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, NamedTuple, Unpack
 
 import numpy as np
-from cheartpy.abaqus.reader import AbaqusMesh, import_abaqus_files
 from cheartpy.io.api import chwrite_str_utf
 from cheartpy.mesh.struct import CheartMesh
 from pytools.logging import get_logger
@@ -19,11 +18,12 @@ from .conversion import (
     create_mesh_space,
     create_mesh_topology,
 )
+from .reader import AbaqusMesh, import_abaqus_files
 
 if TYPE_CHECKING:
     from pytools.arrays import DType
 
-    from ._types import AbaqusAPIKwargs
+    from .parsing import AbaqusAPIKwargs
 
 
 class _AbaqusData[F: np.floating, I: np.integer](NamedTuple):

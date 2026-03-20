@@ -1,0 +1,24 @@
+{
+    "search.exclude": {
+        "**/*.D": true,
+        "**/*.vtu": true,
+        "**/*.log": true,
+        "${workspaceFolder}/.mypy_cache/": true,
+        "${workspaceFolder}/.venv/": true,
+    },
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.ruff": "explicit",
+            "source.organizeImports.ruff": "explicit",
+        }
+    },
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.importFormat": "relative",
+    "python.analysis.completeFunctionParens": true,
+    "python.analysis.enableColorPicker": false,
+    "python.analysis.enablePytestSupport": false,
+    "python.analysis.userFileIndexingLimit": 2000,
+    "python.analysis.enableParallelIndexing": false,
+}

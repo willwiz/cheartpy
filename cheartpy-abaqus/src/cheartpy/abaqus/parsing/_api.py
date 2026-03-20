@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, overload
 
-from cheartpy.abaqus._types import AbaqusAPIKwargs
 from pytools.result import Err, Ok
+
+from ._types import AbaqusAPIKwargs
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

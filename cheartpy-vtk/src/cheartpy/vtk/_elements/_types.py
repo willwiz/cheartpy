@@ -1,29 +1,10 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, NamedTuple, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     import numpy as np
     from cheartpy.elem_interfaces import VtkEnum
     from pytools.arrays import A1, A2
-
-
-class _Vtk(NamedTuple):
-    name: str
-    idx: int
-
-
-VtkType = Literal[
-    "LinLine",
-    "LinTriangle",
-    "LinQuadrilateral",
-    "LinTetrahedron",
-    "LinHexahedron",
-    "QuadLine",
-    "QuadTriangle",
-    "QuadQuadrilateral",
-    "QuadTetrahedron",
-    "QuadHexahedron",
-]
 
 
 class _ShapeFunc(Protocol):

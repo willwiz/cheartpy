@@ -10,7 +10,7 @@ from cheartpy.vtk.api import guess_elem_type_from_dim
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.vtk.types import VtkEnum
+    from cheartpy.elem_interfaces import VtkEnum
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
 

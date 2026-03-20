@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from ._types import AbaqusAPIKwargs
+    from .parsing import AbaqusAPIKwargs
 
 
 class _Printable(Protocol):
@@ -43,9 +43,15 @@ def format_input_kwargs(**kwargs: Unpack[AbaqusAPIKwargs]) -> Sequence[_Printabl
         f"{'<<< The topology are combined form labels:':<40}",
         kwargs["topology"],
         *format_boundary_arguments(kwargs.get("boundary")),
-        f"{'<<< The mesh will be saved to:':<40}",
-        *[
-            f"{fix_ch_sfx(kwargs['prefix'])}{ext}"
-            for ext in (("X", "T", "B") if kwargs.get("boundary") else ("X", "T"))
-        ],
+        *(
+            ["No prefix is provided: file export not requested"]
+            if (prefix := kwargs.get("prefix")) is None
+            else [
+                f"{'<<< The mesh will be saved to:':<40}",
+                *[
+                    f"{fix_ch_sfx(prefix)}{ext}"
+                    for ext in (("X", "T", "B") if kwargs.get("boundary") else ("X", "T"))
+                ],
+            ]
+        ),
     ]

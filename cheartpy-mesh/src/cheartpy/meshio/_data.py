@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from cheartpy.vtk.types import VtkEnum
+from cheartpy.elem_interfaces import VtkEnum
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

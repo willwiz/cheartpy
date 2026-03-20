@@ -3,11 +3,11 @@ from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
 from cheartpy.io.api import chread_d
-from cheartpy.paraview._variable_getter import CheartVTUFormat
 from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
 
 from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
+from ._variable_getter import CheartVTUFormat
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping

@@ -5,7 +5,7 @@ from ._types import AbaqusEnum, CheartEnum, VtkEnum
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-Abaqus2Vtk = {
+_Abaqus2Vtk = {
     AbaqusEnum.T3D2: VtkEnum.VtkLinearLine,
     AbaqusEnum.T3D3: VtkEnum.VtkQuadraticLine,
     AbaqusEnum.S3R: VtkEnum.VtkLinearTriangle,
@@ -17,7 +17,7 @@ Abaqus2Vtk = {
     AbaqusEnum.C3D10: VtkEnum.VtkQuadraticTetrahedron,
 }
 
-Abaqus2Cheart = {
+_Abaqus2Cheart = {
     AbaqusEnum.T3D2: CheartEnum.LINE1,
     AbaqusEnum.T3D3: CheartEnum.LINE2,
     AbaqusEnum.S3R: CheartEnum.TRIANGLE1,
@@ -29,7 +29,7 @@ Abaqus2Cheart = {
     AbaqusEnum.C3D10: CheartEnum.TETRAHEDRON2,
 }
 
-Abaqus2CheartNodeOrder: Mapping[AbaqusEnum, tuple[int, ...]] = {
+_Abaqus2CheartNodeOrder: Mapping[AbaqusEnum, tuple[int, ...]] = {
     AbaqusEnum.T3D2: (0, 1),
     AbaqusEnum.T3D3: (0, 1, 2),
     AbaqusEnum.S3R: (0, 1, 2),
@@ -41,7 +41,7 @@ Abaqus2CheartNodeOrder: Mapping[AbaqusEnum, tuple[int, ...]] = {
     AbaqusEnum.C3D10: (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
 }
 
-AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
+_AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
     AbaqusEnum.S3R: AbaqusEnum.T3D2,
     AbaqusEnum.CPS3: AbaqusEnum.T3D2,
     AbaqusEnum.CPS6: AbaqusEnum.T3D3,
@@ -51,18 +51,24 @@ AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
     AbaqusEnum.C3D10: AbaqusEnum.CPEG6,
 }
 
+def convert_abaqus_to_vtk(elem: AbaqusEnum) -> VtkEnum | None:
+    return _Abaqus2Vtk.get(elem)
+
+
+def convert_abaqus_to_cheart(elem: AbaqusEnum) -> CheartEnum | None:
+    return _Abaqus2Cheart.get(elem)
 
 def get_vtk_element_for_abaqus(body: AbaqusEnum) -> VtkEnum | None:
-    return Abaqus2Vtk.get(body)
+    return _Abaqus2Vtk.get(body)
 
 
 def get_cheart_element_for_abaqus(body: AbaqusEnum) -> CheartEnum | None:
-    return Abaqus2Cheart.get(body)
+    return _Abaqus2Cheart.get(body)
 
 
 def get_abaqus_boundary_element(body: AbaqusEnum) -> AbaqusEnum | None:
-    return AbaqusBoundaryElement.get(body)
+    return _AbaqusBoundaryElement.get(body)
 
 
 def get_cheart_order_for_abaqus(elem: AbaqusEnum) -> tuple[int, ...]:
-    return Abaqus2CheartNodeOrder[elem]
+    return _Abaqus2CheartNodeOrder[elem]

@@ -2,7 +2,7 @@ from pytools.result import Err, Ok, Result
 
 from ._types import CheartEnum, VtkEnum
 
-Vtk2Cheart = {
+_Vtk2Cheart = {
     VtkEnum.VtkLinearLine: CheartEnum.LINE1,
     VtkEnum.VtkLinearTriangle: CheartEnum.TRIANGLE1,
     VtkEnum.VtkLinearQuadrilateral: CheartEnum.QUADRILATERAL1,
@@ -17,7 +17,7 @@ Vtk2Cheart = {
 
 
 # fmt: off
-Vtk2CheartNodeOrder = {
+_Vtk2CheartNodeOrder = {
     VtkEnum.VtkLinearLine: (0, 1),
     VtkEnum.VtkLinearTriangle: (0, 1, 2),
     VtkEnum.VtkLinearQuadrilateral: (0, 1, 3, 2),
@@ -35,7 +35,7 @@ Vtk2CheartNodeOrder = {
 }
 # fmt: on
 
-VtkBoundaryElement: dict[VtkEnum, VtkEnum] = {
+_VtkBoundaryElement: dict[VtkEnum, VtkEnum] = {
     VtkEnum.VtkLinearTriangle: VtkEnum.VtkLinearLine,
     VtkEnum.VtkLinearQuadrilateral: VtkEnum.VtkLinearLine,
     VtkEnum.VtkLinearTetrahedron: VtkEnum.VtkLinearTriangle,
@@ -47,12 +47,16 @@ VtkBoundaryElement: dict[VtkEnum, VtkEnum] = {
 }
 
 
+def convert_vtk_to_cheart(elem: VtkEnum) -> CheartEnum | None:
+    return _Vtk2Cheart.get(elem)
+
+
 def get_cheart_order_for_vtk(elem: VtkEnum) -> tuple[int, ...]:
-    return Vtk2CheartNodeOrder[elem]
+    return _Vtk2CheartNodeOrder[elem]
 
 
 def get_vtk_boundary_element(elem: VtkEnum) -> VtkEnum | None:
-    return VtkBoundaryElement.get(elem)
+    return _VtkBoundaryElement.get(elem)
 
 
 def guess_vtk_elem_from_dim(edim: int, bdim: int | None) -> Result[VtkEnum]:

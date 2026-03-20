@@ -1,0 +1,30 @@
+{
+    "include": [
+        "cheartpy-*/**/*.py",
+        "cheartpy-*/**/*.pyi"
+    ],
+    "exclude": [
+        ".git",
+        ".venv",
+        ".mypy_cache",
+        "**/build",
+        "**/node_modules",
+        "**/__pycache__",
+        "**/*.D",
+        "**/*.inp",
+        "**/.*",
+        "**/*.vtu",
+        "**/*.log",
+    ],
+    "ignore": [
+        ".deps"
+    ],
+    "autoImportCompletions": true,
+    "typeCheckingMode": "strict",
+    "deprecateTypingAliases": true,
+    "strictDictionaryInference": true,
+    "strictListInference": true,
+    "strictSetInference": true,
+    "disableBytesTypePromotions": true,
+    "reportMissingTypeStubs": "none",
+}

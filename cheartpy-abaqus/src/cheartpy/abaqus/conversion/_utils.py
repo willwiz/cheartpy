@@ -2,6 +2,7 @@ from collections import ChainMap, defaultdict
 from typing import TYPE_CHECKING
 
 import numpy as np
+from pytools.arrays import ToInt
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result, all_ok
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from cheartpy.abaqus.reader import AbaqusMesh
     from cheartpy.elem_interfaces import AbaqusEnum
     from cheartpy.mesh.struct import Mapping
-    from pytools.arrays import A1, ToInt
+    from pytools.arrays import A1
 
 
 def compile_new_node_map[I: np.integer](elements: ElemIntermediate[I]) -> IndexUpdateMap:
@@ -29,17 +30,17 @@ def compile_new_node_map[I: np.integer](elements: ElemIntermediate[I]) -> IndexU
 
 def build_element_searchmap[I: np.integer](elements: ElemIntermediate[I]) -> ElemSearchMap:
     """Create a mapping to find elements that contain a given node."""
-    search_map = defaultdict(set)
+    search_map = defaultdict[ToInt, set[ToInt]](set)
     for elem, nodes in enumerate(elements.v.values()):
         for node in nodes:
             search_map[node].add(elem)
     return search_map
 
 
-def search_element(search_map: ElemSearchMap, node: Iterable[ToInt]) -> Result[int]:
+def search_element(search_map: ElemSearchMap, node: Iterable[ToInt]) -> Result[ToInt]:
     """Find elements that contain all of the given node."""
-    possible_elems: set[int]
-    possible_elems = set.intersection(*(search_map[n] for n in node))
+    possible_elems: set[ToInt] = set()
+    possible_elems = possible_elems.intersection(*(search_map[n] for n in node))
     if not possible_elems:
         return Err(ValueError(f"No element contains all nodes {node}."))
     if len(possible_elems) > 1:

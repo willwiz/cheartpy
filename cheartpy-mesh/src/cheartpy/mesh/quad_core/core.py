@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import VtkEnum
 from cheartpy.vtk.struct import VTKLINE1, VTKQUADRILATERAL1
-from cheartpy.vtk.types import VtkEnum
 
 from cheartpy.mesh.struct import (
     CheartMesh,

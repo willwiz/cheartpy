@@ -39,7 +39,7 @@ class Variable(IVariable):
         return True
 
     @property
-    def order(self) -> Literal[0, 1, 2] | None:
+    def order(self) -> int | None:
         return self.topology.order
 
     def idx(self, key: int) -> str:

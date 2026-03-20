@@ -1,6 +1,6 @@
 import dataclasses as dc
 import enum
-from typing import TYPE_CHECKING, Any, Required, TypedDict, TypeIs
+from typing import TYPE_CHECKING, Any, Required, TypedDict, TypeIs, get_args, get_origin
 
 import numpy as np
 
@@ -33,6 +33,12 @@ class Headings:
     v: list[str]
 
 
+def _is_node[F: np.floating](value: object, kind: type[F]) -> TypeIs[Nodes[F]]:
+    origin = get_origin(value)
+    subscript = get_args(value)
+    return origin is Nodes and len(subscript) == 1 and isinstance(subscript[0], kind)
+
+
 @dc.dataclass(slots=True)
 class Nodes[F: np.floating]:
     v: dict[ToInt, A1[F]]
@@ -41,7 +47,8 @@ class Nodes[F: np.floating]:
         return hash(tuple(self.v.keys()))
 
     def __eq__(self, value: object, /) -> bool:
-        if not isinstance(value, Nodes):
+        dtype = next(iter(self.v.values())).dtype
+        if not _is_node(value, dtype.type):
             return False
         if self.v.keys() != value.v.keys():
             return False

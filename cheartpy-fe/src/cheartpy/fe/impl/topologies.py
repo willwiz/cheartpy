@@ -42,7 +42,7 @@ class CheartTopology(ICheartTopology):
         return self._mesh
 
     @property
-    def order(self) -> Literal[0, 1, 2] | None:
+    def order(self) -> int | None:
         if self.basis is None:
             return None
         return self.basis.order

@@ -1,10 +1,24 @@
 import enum
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 
 
 class _VtkElem(NamedTuple):
     name: str
     idx: int
+
+
+type VtkElemType = Literal[
+    "VtkLinearLine",
+    "VtkLinearTriangle",
+    "VtkLinearQuadrilateral",
+    "VtkLinearTetrahedron",
+    "VtkLinearHexahedron",
+    "VtkQuadraticLine",
+    "VtkQuadraticTriangle",
+    "VtkQuadraticQuadrilateral",
+    "VtkQuadraticTetrahedron",
+    "VtkQuadraticHexahedron",
+]
 
 
 class VtkEnum(enum.Enum):
@@ -18,6 +32,19 @@ class VtkEnum(enum.Enum):
     VtkQuadraticQuadrilateral = _VtkElem("VtkQuadraticQuadrilateral", 28)
     VtkQuadraticTetrahedron = _VtkElem("VtkQuadraticTetrahedron", 24)
     VtkQuadraticHexahedron = _VtkElem("VtkQuadraticHexahedron", 29)
+
+type CheartElemType = Literal[
+    "LINE1",
+    "TRIANGLE1",
+    "QUADRILATERAL1",
+    "TETRAHEDRON1",
+    "HEXAHEDRON1",
+    "LINE2",
+    "TRIANGLE2",
+    "QUADRILATERAL2",
+    "TETRAHEDRON2",
+    "HEXAHEDRON2",
+]
 
 
 class CheartEnum(enum.Enum):
@@ -43,3 +70,15 @@ class AbaqusEnum(enum.StrEnum):
     S3R = "S3R"
     C3D10 = "C3D10"
     CPEG6 = "CPEG6"
+
+type AbaqusElemType = Literal[
+    "T3D2",
+    "T3D3",
+    "CPS3",
+    "CPS4",
+    "CPS6",
+    "C3D4",
+    "S3R",
+    "C3D10",
+    "CPEG6",
+]

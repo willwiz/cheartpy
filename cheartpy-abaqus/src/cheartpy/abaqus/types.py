@@ -1,4 +1,4 @@
-from ._types import AbaqusAPIKwargs
+from .parsing import AbaqusAPIKwargs
 from .reader import AbaqusMesh
 
 __all__ = ["AbaqusAPIKwargs", "AbaqusMesh"]

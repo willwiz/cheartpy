@@ -2,7 +2,7 @@ import abc
 import enum
 from typing import TYPE_CHECKING, Literal, NamedTuple
 
-from cheartpy.fe.trait._basic import IVariable
+from cheartpy.fe.trait import IVariable
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

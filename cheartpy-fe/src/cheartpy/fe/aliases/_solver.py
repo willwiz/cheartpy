@@ -39,6 +39,21 @@ class IterationEnum(enum.StrEnum):
     GroupIterations = "GroupIterations"
 
 
+SolverSettings = Literal[
+    "CatchSolverErrors",
+    "CATCH_RESIDUAL_NAN",
+    "CATCH_RESIDUAL_VAL",
+    "CATCH_DT_CHANGES",
+]
+
+
+class SolverSettingsEnum(enum.StrEnum):
+    CatchSolverErrors = "CatchSolverErrors"
+    CATCH_RESIDUAL_NAN = "CATCH_RESIDUAL_NAN"
+    CATCH_RESIDUAL_VAL = "CATCH_RESIDUAL_VAL"
+    CATCH_DT_CHANGES = "CATCH_DT_CHANGES"
+
+
 MatrixSolverOption = Literal["SOLVER_MUMPS", "SOLVER_PETSC"]
 
 

@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import Literal, TextIO
+from typing import TextIO
 
 from cheartpy.fe.aliases import CheartBasisEnum, CheartElementEnum, CheartQuadratureEnum
 from cheartpy.fe.trait import IBasis, ICheartBasis, IQuadrature
@@ -65,20 +65,20 @@ class Basis(IBasis):
 @dc.dataclass(slots=True)
 class Quadrature(IQuadrature):
     name: CheartQuadratureEnum
-    gp: int
+    _gp: int
 
     def __repr__(self) -> str:
-        return f"{_QUAD_CODE[self.name]}{self.gp}"
+        return f"{_QUAD_CODE[self.name]}{self._gp}"
 
     def __hash__(self) -> int:
-        return hash((self.name, self.gp))
+        return hash((self.name, self._gp))
 
     def __str__(self) -> str:
-        return f"{self.name}{self.gp}"
+        return f"{self.name}{self._gp}"
 
     @property
     def gp(self) -> int:
-        return self.gp
+        return self._gp
 
     @property
     def kind(self) -> CheartQuadratureEnum:
@@ -122,7 +122,7 @@ class CheartBasis(ICheartBasis):
         return self._quadrature
 
     @property
-    def order(self) -> Literal[0, 1, 2]:
+    def order(self) -> int:
         return self._basis.order
 
     @property
