@@ -1,5 +1,6 @@
 from .basis import Basis, CheartBasis, Quadrature
 from .expressions import Expression
+from .p_file import PFile
 from .problems import BCPatch, BoundaryCondition
 from .solver_groups import SolverGroup, SolverSubGroup
 from .solver_matrix import MumpsMatrix, SolverMatrix
@@ -18,6 +19,7 @@ __all__ = [
     "MumpsMatrix",
     "NullTopology",
     "OneToOneTopInterface",
+    "PFile",
     "Quadrature",
     "SolverGroup",
     "SolverMatrix",

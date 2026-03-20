@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 
 
-def hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
+def _hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
     names = [str(t) for t in tops]
     return "_".join(names)
 
@@ -75,7 +75,7 @@ def create_top_interface(
 ) -> ITopInterface:
     match method:
         case "OneToOne":
-            name = hash_tops(topologies)
+            name = _hash_tops(topologies)
             return OneToOneTopInterface(name, topologies)
         case "ManyToOne":
             if master is None:
@@ -84,7 +84,7 @@ def create_top_interface(
             if interface_file is None:
                 msg = "ManyToOne requires a interface_file"
                 raise ValueError(msg)
-            name = hash_tops(topologies) + ":" + str(master)
+            name = _hash_tops(topologies) + ":" + str(master)
             return ManyToOneTopInterface(
                 name,
                 topologies,
