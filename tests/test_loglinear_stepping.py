@@ -1,3 +1,4 @@
+# pyright: reportUnknownMemberType=false
 import numpy as np
 import pytest
 from cheartpy.time_stepping import expand_time_as_log_linear

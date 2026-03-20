@@ -18,7 +18,7 @@
     "python.analysis.importFormat": "relative",
     "python.analysis.completeFunctionParens": true,
     "python.analysis.enableColorPicker": false,
-    "python.analysis.enablePytestSupport": false,
+    "python.analysis.enablePytestSupport": true,
     "python.analysis.userFileIndexingLimit": 2000,
     "python.analysis.enableParallelIndexing": false,
 }
