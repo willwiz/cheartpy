@@ -90,7 +90,6 @@ def compute_bc_w[F: np.floating, I: np.integer](
     current: set[int] = {int(i) for i in bc_nodes}
     neighbour_list = [neighbors[n] for n in current]
     all_neighbours: set[int] = set()
-    new_nodes: set[int] = set()
     all_neighbours = all_neighbours.union(*neighbour_list)
     new_nodes: set[int] = all_neighbours - current
     for _ in range(nest):
