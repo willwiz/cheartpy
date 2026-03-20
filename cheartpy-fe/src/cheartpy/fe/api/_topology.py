@@ -11,7 +11,7 @@ from cheartpy.fe.impl import (
 from cheartpy.fe.utils import get_enum
 
 if TYPE_CHECKING:
-    from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
+    from cheartpy.fe.trait import ICheartBasis, ICheartTopology
 
 
 def _hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
@@ -32,7 +32,7 @@ def create_topology(
     basis: ICheartBasis | None,
     mesh: Path | str,
     fmt: VariableExportFormat = "TXT",
-) -> ICheartTopology:
+):
     if basis is None:
         return NullTopology()
     _fmt = get_enum(fmt, VariableExportEnum)
@@ -72,7 +72,7 @@ def create_top_interface(
     master: ICheartTopology | None = None,
     interface_file: Path | str | None = None,
     nest_in_bnd: int | None = None,
-) -> ITopInterface:
+):
     match method:
         case "OneToOne":
             name = _hash_tops(topologies)

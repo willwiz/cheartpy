@@ -47,7 +47,7 @@ SolverSettings = Literal[
 ]
 
 
-class SolverSettingsEnum(enum.StrEnum):
+class SolverSettingEnum(enum.StrEnum):
     CatchSolverErrors = "CatchSolverErrors"
     CATCH_RESIDUAL_NAN = "CATCH_RESIDUAL_NAN"
     CATCH_RESIDUAL_VAL = "CATCH_RESIDUAL_VAL"

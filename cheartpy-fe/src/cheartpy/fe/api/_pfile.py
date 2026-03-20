@@ -7,4 +7,4 @@ if TYPE_CHECKING:
 
 
 def create_pfile(header: str = "", output_dir: Path | None = None) -> PFile:
-    return PFile(h=header, output_dir=output_dir)
+    return PFile(header, output_dir=output_dir)

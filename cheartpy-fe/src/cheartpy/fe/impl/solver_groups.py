@@ -4,7 +4,8 @@ from typing import TYPE_CHECKING, Literal, TextIO, overload
 from cheartpy.fe.aliases import (
     IterationEnum,
     IterationSetting,
-    SolverSettingsEnum,
+    SolverSettingEnum,
+    SolverSettings,
     SolverSubgroupMethod,
     SolverSubgroupMethodEnum,
     TolEnum,
@@ -137,11 +138,11 @@ class SolverGroup(ISolverGroup):
     time: ITimeScheme
     sub_groups: list[ISolverSubGroup] = dc.field(default_factory=list[ISolverSubGroup])
     settings: dict[
-        TolEnum | IterationEnum | SolverSettingsEnum,
+        TolEnum | IterationEnum | SolverSettingEnum,
         list[str | int | float | IExpression | IVariable],
     ] = dc.field(
         default_factory=dict[
-            TolEnum | IterationEnum | SolverSettingsEnum,
+            TolEnum | IterationEnum | SolverSettingEnum,
             list[str | int | float | IExpression | IVariable],
         ],
     )
@@ -196,11 +197,19 @@ class SolverGroup(ISolverGroup):
         self.settings[_task] = [val]
 
     @overload
-    def catch_solver_errors(self, err: Literal["NAN", "DT"], /) -> None: ...
+    def catch_solver_errors(
+        self, err: Literal["CATCH_RESIDUAL_NAN", "CATCH_DT_CHANGES"], /
+    ) -> None: ...
     @overload
-    def catch_solver_errors(self, err: Literal["VAL"], val: str | float, /) -> None: ...
-    def catch_solver_errors(self, err: Literal["NAN", "VAL", "DT"], *val: str | float) -> None:
-        _task = get_enum(err, SolverSettingsEnum)
+    def catch_solver_errors(
+        self, err: Literal["CATCH_RESIDUAL_VAL"], val: str | float, /
+    ) -> None: ...
+    def catch_solver_errors(
+        self,
+        err: SolverSettings,
+        *val: str | float,
+    ) -> None:
+        _task = get_enum(err, SolverSettingEnum)
         self.settings[_task] = [*val]
 
     def add_auxvar(self, *var: IVariable) -> None:

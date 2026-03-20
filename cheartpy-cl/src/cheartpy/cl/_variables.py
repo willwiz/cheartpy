@@ -27,7 +27,7 @@ def create_lm_on_cl(
 ) -> IVariable: ...
 def create_lm_on_cl(
     cl: CLStructure | None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
-) -> IVariable | None:
+):
     if cl is None:
         return None
     return create_variable(
@@ -45,7 +45,7 @@ def create_dm_on_cl(
 ) -> IVariable: ...
 def create_dm_on_cl(
     cl: CLStructure | None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
-) -> IVariable | None:
+):
     if cl is None:
         return None
     return create_variable(

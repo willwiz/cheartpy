@@ -22,10 +22,10 @@ def gather_masks(
 ) -> Ok[Mapping[str, tuple[str, Sequence[str]]]] | Err: ...
 def gather_masks(
     cmd_arg_masks: Sequence[Sequence[str]] | None,
-) -> Ok[Mapping[str, tuple[str, Sequence[str]]]] | Ok[None] | Err:
+) -> Ok[Mapping[str, tuple[str, Sequence[str]]] | None] | Err:
     if cmd_arg_masks is None:
         return Ok(None)
-    masks: dict[str, tuple[str, Sequence[str]]] = {}
+    masks: Mapping[str, tuple[str, Sequence[str]]] = {}
     for m in cmd_arg_masks:
         if len(m) < _MASK_ARG_LEN:
             msg = (
@@ -44,7 +44,7 @@ def split_argslist_to_nameddict(
 ) -> Ok[dict[int, Sequence[str]]] | Err: ...
 def split_argslist_to_nameddict(
     varlist: Sequence[Sequence[str]] | None,
-) -> Ok[dict[int, Sequence[str]]] | Ok[None] | Err:
+):
     if varlist is None:
         return Ok(None)
     var: dict[int, Sequence[str]] = {}
