@@ -1,0 +1,53 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  // Languages and LSP
+  "languages": {
+    // Python
+    "Python": {
+      "language_servers": ["!pyrefly", "!ty", "ruff", "basedpyright"],
+      "format_on_save": "on",
+      "formatter": [
+        {
+          "code_action": "source.organizeImports.ruff",
+        },
+        {
+          "code_action": "source.fixAll.ruff",
+        },
+        {
+          "language_server": {
+            "name": "ruff",
+          },
+        },
+      ],
+    },
+  },
+  "lsp": {
+    "ruff": {
+      "initialization_options": {
+        "settings": {
+          "configurationPreference": "filesystemFirst",
+          "organizedImports": true,
+          "linelength": 100,
+          "fixAll": true,
+          "showSyntaxErrors": true,
+          "lint": {
+            "pydocstyle": { "convention": "numpy" },
+            "enable": true,
+            "preview": true,
+            "select": ["ALL"],
+          },
+        },
+      },
+    },
+    "basedpyright": {
+      "settings": {
+        "basedpyright.analysis": {
+          "diagnosticMode": "workspace",
+        },
+      },
+    },
+  },
+}
