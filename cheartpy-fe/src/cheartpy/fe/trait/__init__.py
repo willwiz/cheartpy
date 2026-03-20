@@ -16,6 +16,7 @@ from ._basic import (
     ITopInterface,
     IVariable,
 )
+from ._pfile import IPFile
 from ._protocols import HasWriter
 from ._solver_group import ISolverGroup, ISolverSubGroup
 from ._solver_matrix import ISolverMatrix
@@ -33,6 +34,7 @@ __all__ = [
     "IDataPointer",
     "IExpression",
     "ILaw",
+    "IPFile",
     "IProblem",
     "IQuadrature",
     "ISolverGroup",

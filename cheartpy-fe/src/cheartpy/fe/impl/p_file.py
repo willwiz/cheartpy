@@ -10,6 +10,7 @@ from cheartpy.fe.trait import (
     IDataInterp,
     IDataPointer,
     IExpression,
+    IPFile,
     IProblem,
     ISolverGroup,
     ISolverMatrix,
@@ -22,7 +23,7 @@ from cheartpy.fe.utils import Header, header, hline, splicegen
 
 
 @dc.dataclass(slots=True)
-class PFile:
+class PFile(IPFile):
     h: str = ""
     output_dir: Path | None = None
     times: dict[str, ITimeScheme] = dc.field(default_factory=dict[str, ITimeScheme])
