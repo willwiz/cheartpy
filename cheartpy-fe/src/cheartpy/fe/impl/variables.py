@@ -2,11 +2,7 @@ import dataclasses as dc
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Self, TextIO, overload
 
-from cheartpy.fe.aliases import (
-    VariableExportEnum,
-    VariableUpdateEnum,
-    VariableUpdateSetting,
-)
+from cheartpy.fe.aliases import VariableExportEnum, VariableUpdateEnum, VariableUpdateSetting
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
 from cheartpy.fe.utils import get_enum, join_fields
 

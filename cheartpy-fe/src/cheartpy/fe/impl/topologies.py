@@ -1,11 +1,7 @@
 import dataclasses as dc
 from typing import TYPE_CHECKING, Literal, TextIO
 
-from cheartpy.fe.aliases import (
-    CheartTopologyEnum,
-    CheartTopologySetting,
-    VariableExportEnum,
-)
+from cheartpy.fe.aliases import CheartTopologyEnum, CheartTopologySetting, VariableExportEnum
 from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 from cheartpy.fe.utils import get_enum, join_fields
 

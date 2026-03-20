@@ -4,12 +4,7 @@ from .problems import BCPatch, BoundaryCondition
 from .solver_groups import SolverGroup, SolverSubGroup
 from .solver_matrix import MumpsMatrix, SolverMatrix
 from .time_schemes import TimeScheme
-from .topologies import (
-    CheartTopology,
-    ManyToOneTopInterface,
-    NullTopology,
-    OneToOneTopInterface,
-)
+from .topologies import CheartTopology, ManyToOneTopInterface, NullTopology, OneToOneTopInterface
 from .variables import Variable
 
 __all__ = [

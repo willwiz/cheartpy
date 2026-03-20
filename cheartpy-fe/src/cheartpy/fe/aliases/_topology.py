@@ -1,7 +1,7 @@
 import enum
 from typing import Literal
 
-CheartBasisType = Literal[
+type CheartBasisType = Literal[
     "NODAL_LAGRANGE",
     "NL",
     "MODAL_BASIS",
@@ -22,7 +22,7 @@ class CheartBasisEnum(enum.StrEnum):
     SPECTRAL_BASIS = "SPECTRAL_BASIS"
 
 
-CheartQuadratureType = Literal[
+type CheartQuadratureType = Literal[
     "GAUSS_LEGENDRE",
     "GL",
     "KEAST_LYNESS",
@@ -37,7 +37,7 @@ class CheartQuadratureEnum(enum.StrEnum):
     KL = "KL"
 
 
-CheartElementType = Literal[
+type CheartElementType = Literal[
     "POINT_ELEMENT",
     "point",
     "ONED_ELEMENT",
@@ -68,7 +68,7 @@ class CheartElementEnum(enum.StrEnum):
     hex = "HEXAHEDRAL_ELEMENT"
 
 
-CheartTopologySetting = Literal[
+type CheartTopologySetting = Literal[
     "PartitioningWeight",
     "UseInPartitioning",
     "ReadBinary",
@@ -91,7 +91,7 @@ class CheartTopologyEnum(enum.StrEnum):
     EmbeddedInTopology = "EmbeddedInTopology"
 
 
-CheartTopInterfaceType = Literal[
+type CheartTopInterfaceType = Literal[
     "OneToOne",
     "ManyToOne",
 ]

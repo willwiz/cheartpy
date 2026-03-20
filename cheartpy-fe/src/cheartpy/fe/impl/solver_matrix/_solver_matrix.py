@@ -7,9 +7,7 @@ from cheartpy.fe.utils import join_fields
 if TYPE_CHECKING:
     from collections.abc import ValuesView
 
-    from cheartpy.fe.aliases import (
-        MatrixSolverEnum,
-    )
+    from cheartpy.fe.aliases import MatrixSolverEnum
 
 __all__ = ["SolverMatrix"]
 
