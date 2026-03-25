@@ -14,7 +14,7 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["pytools", "numpy"]
+dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk"]
 
 [tool.uv.build-backend]
 module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping"]

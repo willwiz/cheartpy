@@ -17,5 +17,5 @@ classifiers = [
 dependencies = ["pytools", "numpy"]
 
 [tool.uv.build-backend]
-module-name = "cheartpy.io"
+module-name = ["cheartpy.io", "cheartpy.search"]
 namespace = true

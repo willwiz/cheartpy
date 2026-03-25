@@ -17,5 +17,5 @@ classifiers = [
 dependencies = ["pytools", "numpy", "meshio", "cheartpy-io", "cheartpy-vtk"]
 
 [tool.uv.build-backend]
-module-name = "cheartpy.mesh"
+module-name = ["cheartpy.mesh", "cheartpy.meshio"]
 namespace = true
