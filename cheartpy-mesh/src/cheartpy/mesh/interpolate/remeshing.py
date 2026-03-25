@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+
 from cheartpy.mesh.struct import (
     CheartMesh,
     CheartMeshBoundary,

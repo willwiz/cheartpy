@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from cheartpy.io.api import chread_d, chwrite_d_utf
+from cheartpy.io import chread_d, chwrite_d_utf
 from pytools.result import Err, Ok
 from scipy.interpolate import interpn
 

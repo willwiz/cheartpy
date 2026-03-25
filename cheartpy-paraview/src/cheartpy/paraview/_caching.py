@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
-from cheartpy.io.api import chread_d
+from cheartpy.io import chread_d
 from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
 
@@ -12,7 +12,7 @@ from ._variable_getter import CheartVTUFormat
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from cheartpy.search.trait import IIndexIterator
+    from cheartpy.search import IIndexIterator
     from pytools.arrays import A2, DType
 
     from ._trait import IFormattedName

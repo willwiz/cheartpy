@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.io.api import chread_b_utf
+from cheartpy.io import chread_b_utf
 from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
 from pytools.logging import ILogger, get_logger
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
     from cheartpy.elem_interfaces import VtkEnum
-    from cheartpy.search.trait import IIndexIterator
+    from cheartpy.search import IIndexIterator
     from pytools.arrays import A1, A2
 
     from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs

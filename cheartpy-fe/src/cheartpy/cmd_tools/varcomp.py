@@ -1,6 +1,6 @@
 import argparse
 
-from cheartpy.io.api import chread_d
+from cheartpy.io import chread_d
 from pytools.logging import get_logger
 
 from ._traits import HEADER, HEADER_LEN, VarErrors, VarStats

@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from cheartpy.search.api import get_var_index
+from cheartpy.search import get_var_index
 from pytools.result import Err, Ok
 
 from ._impls import Variable0Getter, Variable1Getter, Variable2Getter

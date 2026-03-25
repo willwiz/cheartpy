@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack, overload
 
-from cheartpy.io.api import fix_ch_sfx
-from cheartpy.search.api import get_file_name_indexer
+from cheartpy.io import fix_ch_sfx
+from cheartpy.search import IIndexIterator, get_file_name_indexer
 from pytools.parallel import ThreadMethods
 from pytools.result import Err, Ok, all_ok
 
@@ -13,7 +13,6 @@ from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
 
-    from cheartpy.search.trait import IIndexIterator
     from pytools.logging import ILogger
 
     from ._parser.types import SubparserModes, VTUProgArgs

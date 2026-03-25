@@ -7,7 +7,7 @@ from cheartpy.elem_interfaces import (
     get_vtk_boundary_element,
     guess_vtk_elem_from_dim,
 )
-from cheartpy.io.api import fix_ch_sfx
+from cheartpy.io import fix_ch_sfx
 from pytools.result import Err, Ok
 
 from .struct import (

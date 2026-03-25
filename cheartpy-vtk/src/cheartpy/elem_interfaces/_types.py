@@ -33,6 +33,7 @@ class VtkEnum(enum.Enum):
     VtkQuadraticTetrahedron = _VtkElem("VtkQuadraticTetrahedron", 24)
     VtkQuadraticHexahedron = _VtkElem("VtkQuadraticHexahedron", 29)
 
+
 type CheartElemType = Literal[
     "LINE1",
     "TRIANGLE1",
@@ -70,6 +71,7 @@ class AbaqusEnum(enum.StrEnum):
     S3R = "S3R"
     C3D10 = "C3D10"
     CPEG6 = "CPEG6"
+
 
 type AbaqusElemType = Literal[
     "T3D2",

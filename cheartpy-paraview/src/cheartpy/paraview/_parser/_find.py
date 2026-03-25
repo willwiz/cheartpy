@@ -1,6 +1,6 @@
 import argparse
 
-from cheartpy.search.trait import AUTO
+from cheartpy.search import AUTO
 
 find_subparser = argparse.ArgumentParser("find", add_help=False)
 _index_group = find_subparser.add_argument_group(title="Indexing")

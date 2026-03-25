@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import numpy as np
-    from cheartpy.search.trait import SearchMode
+    from cheartpy.search import SearchMode
     from pytools.arrays import DType
     from pytools.logging import LogEnum, LogLevel
 

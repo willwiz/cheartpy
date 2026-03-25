@@ -13,8 +13,9 @@ from .data import CartesianDirection
 
 if TYPE_CHECKING:
     import numpy as np
-    from cheartpy.mesh.struct import CheartMesh
     from pytools.arrays import T3
+
+    from cheartpy.mesh.struct import CheartMesh
 
 
 def create_cylinder_mesh(

@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Unpack, overload
 
-from cheartpy.search.trait import AUTO
+from cheartpy.search import AUTO
 from pytools.logging import LogEnum
 
 from ._find import find_subparser

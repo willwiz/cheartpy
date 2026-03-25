@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, TypedDict, Unpack, cast
 
 import numpy as np
-from cheartpy.io.api import chread_time_utf
-from cheartpy.search.api import get_var_index
+from cheartpy.io import chread_time_utf
+from cheartpy.search import get_var_index
 from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
 

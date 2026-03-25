@@ -1,6 +1,7 @@
 import numpy as np
-from cheartpy.mesh.struct import CheartMesh
 from pytools.arrays import T3
+
+from cheartpy.mesh.struct import CheartMesh
 
 __all__ = ["create_hex_mesh"]
 

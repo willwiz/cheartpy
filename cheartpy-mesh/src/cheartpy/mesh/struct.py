@@ -2,7 +2,7 @@ import dataclasses as dc
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.io.api import (
+from cheartpy.io import (
     check_for_meshes,
     chwrite_d_utf,
     chwrite_iarr_utf,

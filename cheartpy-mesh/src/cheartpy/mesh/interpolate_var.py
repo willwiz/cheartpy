@@ -2,7 +2,7 @@ import dataclasses as dc
 from pathlib import Path
 from typing import Literal
 
-from cheartpy.search.api import get_var_index
+from cheartpy.search import get_var_index
 
 from cheartpy.mesh.api import import_cheart_mesh
 

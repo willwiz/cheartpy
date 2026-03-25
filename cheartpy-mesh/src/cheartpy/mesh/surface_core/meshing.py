@@ -1,7 +1,8 @@
 import numpy as np
-from cheartpy.mesh.struct import CheartMesh, CheartMeshSpace, CheartMeshTopology
 from cheartpy.vtk.api import get_vtk_elem
 from pytools.result import Err, Ok
+
+from cheartpy.mesh.struct import CheartMesh, CheartMeshSpace, CheartMeshTopology
 
 
 def create_mesh_from_surface[F: np.floating, I: np.integer](

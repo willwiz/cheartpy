@@ -1,8 +1,8 @@
 from pprint import pformat
 from typing import TYPE_CHECKING
 
-from cheartpy.io.api import fix_ch_sfx
-from cheartpy.search.trait import IIndexIterator, SearchMode
+from cheartpy.io import fix_ch_sfx
+from cheartpy.search import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
     from ._parser.types import VTUProgArgs

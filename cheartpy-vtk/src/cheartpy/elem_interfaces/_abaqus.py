@@ -51,12 +51,14 @@ _AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
     AbaqusEnum.C3D10: AbaqusEnum.CPEG6,
 }
 
+
 def convert_abaqus_to_vtk(elem: AbaqusEnum) -> VtkEnum | None:
     return _Abaqus2Vtk.get(elem)
 
 
 def convert_abaqus_to_cheart(elem: AbaqusEnum) -> CheartEnum | None:
     return _Abaqus2Cheart.get(elem)
+
 
 def get_vtk_element_for_abaqus(body: AbaqusEnum) -> VtkEnum | None:
     return _Abaqus2Vtk.get(body)

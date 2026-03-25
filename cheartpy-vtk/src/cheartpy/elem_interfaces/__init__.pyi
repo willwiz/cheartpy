@@ -1,0 +1,33 @@
+from pytools.result import Result
+
+from ._types import AbaqusElemType, AbaqusEnum, CheartElemType, CheartEnum, VtkElemType, VtkEnum
+
+__all__ = [
+    "AbaqusElemType",
+    "AbaqusEnum",
+    "CheartElemType",
+    "CheartEnum",
+    "VtkElemType",
+    "VtkEnum",
+    "convert_abaqus_to_cheart",
+    "convert_abaqus_to_vtk",
+    "convert_vtk_to_cheart",
+    "get_abaqus_boundary_element",
+    "get_cheart_element_for_abaqus",
+    "get_cheart_order_for_abaqus",
+    "get_cheart_order_for_vtk",
+    "get_vtk_boundary_element",
+    "get_vtk_element_for_abaqus",
+    "guess_vtk_elem_from_dim",
+]
+
+def convert_abaqus_to_vtk(elem: AbaqusEnum) -> VtkEnum | None: ...
+def convert_abaqus_to_cheart(elem: AbaqusEnum) -> CheartEnum | None: ...
+def get_vtk_element_for_abaqus(body: AbaqusEnum) -> VtkEnum | None: ...
+def get_cheart_element_for_abaqus(body: AbaqusEnum) -> CheartEnum | None: ...
+def get_abaqus_boundary_element(body: AbaqusEnum) -> AbaqusEnum | None: ...
+def get_cheart_order_for_abaqus(elem: AbaqusEnum) -> tuple[int, ...]: ...
+def convert_vtk_to_cheart(elem: VtkEnum) -> CheartEnum | None: ...
+def get_cheart_order_for_vtk(elem: VtkEnum) -> tuple[int, ...]: ...
+def get_vtk_boundary_element(elem: VtkEnum) -> VtkEnum | None: ...
+def guess_vtk_elem_from_dim(edim: int, bdim: int | None) -> Result[VtkEnum]: ...
