@@ -44,9 +44,8 @@ interp_parser.add_argument(
     help="OPTIONAL: output file will have [tag] appended before index numbers and extension",
 )
 interp_parser.add_argument(
-    "--sfx",
-    "-s",
-    dest="sfx",
+    "--ext",
+    dest="ext",
     choices=["D", "D.gz"],
     default="D",
     help="OPTIONAL: D file suffix",

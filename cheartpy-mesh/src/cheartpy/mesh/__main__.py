@@ -1,6 +1,6 @@
 import argparse
 
-from .interpolate_var import interp_parser
+from .interpolate import interp_parser
 from .interpolate_var import main_cli as interp_main
 from .make_block import main as cube_main
 from .make_block import parser as cube_parser
