@@ -17,5 +17,5 @@ classifiers = [
 dependencies = ["pytools", "numpy"]
 
 [tool.uv.build-backend]
-module-name = "cheartpy.fe"
+module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping"]
 namespace = true
