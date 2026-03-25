@@ -25,7 +25,6 @@ from ._time_series import (
     create_time_series,
     create_time_series_api,
     create_time_series_cli,
-    create_time_series_core,
     create_time_series_json,
 )
 
@@ -40,7 +39,6 @@ __all__ = [
     "cheart2vtu_index",
     "create_time_series_api",
     "create_time_series_cli",
-    "create_time_series_core",
     "create_time_series_json",
 ]
 
