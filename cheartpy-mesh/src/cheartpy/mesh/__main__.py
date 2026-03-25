@@ -19,8 +19,8 @@ cube = subpar.add_parser(
 )
 cube.set_defaults(run=cube_main)
 square = subpar.add_parser(
-    "cube",
-    help="3D cube mesh linear",
+    "square",
+    help="2D rectangle mesh linear",
     add_help=False,
     parents=[square_parser],
 )
