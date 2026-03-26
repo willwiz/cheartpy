@@ -8,7 +8,7 @@ from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from cheartpy.mesh.struct import CheartMesh
+    from cheartpy.mesh import CheartMesh
     from pytools.arrays import A1, A2
 
 __all__ = [

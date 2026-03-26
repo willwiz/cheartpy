@@ -9,11 +9,10 @@ from pytools.result import Err, Ok, Result, all_ok
 from ._types import ElemIntermediate, ElemSearchMap, IndexUpdateMap
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Mapping
 
     from cheartpy.abaqus.reader import AbaqusMesh
     from cheartpy.elem_interfaces import AbaqusEnum
-    from cheartpy.mesh.struct import Mapping
     from pytools.arrays import A1
 
 

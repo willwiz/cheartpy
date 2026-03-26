@@ -2,7 +2,7 @@
 from typing import Unpack
 
 import numpy as np
-from cheartpy.mesh.struct import CheartMesh
+from cheartpy.mesh import CheartMesh
 from pytools.arrays import DType
 from pytools.result import Result
 

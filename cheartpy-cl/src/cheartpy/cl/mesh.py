@@ -5,15 +5,15 @@ from pprint import pformat
 from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
-from cheartpy.mesh.struct import (
+from cheartpy.mesh import (
     CheartMesh,
     CheartMeshPatch,
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.mesh.surface_core.normals import (
+from cheartpy.mesh_tools.surface_core.normals import (
     compute_mesh_outer_normal_at_nodes,
-    compute_normal_surface_at_center,
+    compute_surface_normal_at_center,
 )
 from cheartpy.vtk.api import get_vtk_elem
 from pytools.logging import ILogger, get_logger
@@ -61,7 +61,7 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
         msg = "Attempting to compute normal from a 1D mesh, not possible"
         return Err(ValueError(msg))
     surf_type = get_vtk_elem(top_body_elem.surf)
-    normals = compute_normal_surface_at_center(surf_type, mesh.space.v, elems)
+    normals = compute_surface_normal_at_center(surf_type, mesh.space.v, elems)
     new_elems = np.array(
         [i for i, v in zip(elems, normals, strict=False) if check_normal(normal_check, i, v)],
         dtype=int,

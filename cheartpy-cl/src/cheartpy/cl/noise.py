@@ -7,7 +7,7 @@ from pytools.result import Err, Ok
 from scipy.interpolate import interpn
 
 if TYPE_CHECKING:
-    from cheartpy.mesh.struct import CheartMesh
+    from cheartpy.mesh import CheartMesh
     from pytools.arrays import A1, A2, Arr
 
 __all__ = ["compute_bc_w", "create_noise", "update_disp_w_noise"]

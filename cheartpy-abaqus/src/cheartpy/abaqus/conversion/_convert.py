@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import get_cheart_order_for_abaqus, get_vtk_element_for_abaqus
-from cheartpy.mesh.struct import (
+from cheartpy.mesh import (
     CheartMeshBoundary,
     CheartMeshPatch,
     CheartMeshSpace,

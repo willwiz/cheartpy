@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, NamedTuple, Unpack
 
 import numpy as np
 from cheartpy.io import chwrite_str_utf
-from cheartpy.mesh.struct import CheartMesh
+from cheartpy.mesh import CheartMesh
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result
 
