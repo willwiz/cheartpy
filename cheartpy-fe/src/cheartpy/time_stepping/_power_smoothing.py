@@ -27,7 +27,7 @@ def _compute_optimal_step_factor(left: ToFloat, right: ToFloat, nt: ToInt) -> fl
 
 
 def _compute_total_expected_ramp_time(left: ToFloat, factor: ToFloat, nt: ToInt) -> float:
-    return float(left * factor * (factor**nt - 1) / (factor - 1))
+    return float(left * (factor**nt - 1) / (factor - 1))
 
 
 def _define_ramp_steps[F: np.floating](
@@ -52,7 +52,7 @@ def _power_smooth_left[F: np.floating](
     time_used = _compute_total_expected_ramp_time(left, factor, nt)
     ramp = _define_ramp_steps(left, factor, nt, dtype=dtype)
     match _expand_dt_power(
-        duration - time_used,
+        duration - ramp.sum(),
         {"left": None, "desired": desired, "right": right},
         nt,
         dtype=dtype,
@@ -75,11 +75,11 @@ def _power_smooth_right[F: np.floating](
     right = step_sizes["right"]
     if right is None:
         return _expand_dt_power(duration, step_sizes, nt, dtype=dtype)
-    factor = _compute_optimal_step_factor(desired, right, nt)
-    time_used = _compute_total_expected_ramp_time(desired, factor, nt)
-    ramp = _define_ramp_steps(desired * factor**nt, 1 / factor, nt, dtype=dtype)[::-1]
+    factor = _compute_optimal_step_factor(right, desired, nt)
+    time_used = _compute_total_expected_ramp_time(right, factor, nt)
+    ramp = _define_ramp_steps(right, factor, nt, dtype=dtype)[::-1]
     match _expand_dt_power(
-        duration - time_used,
+        duration - ramp.sum(),
         {"left": left, "desired": desired, "right": None},
         nt,
         dtype=dtype,

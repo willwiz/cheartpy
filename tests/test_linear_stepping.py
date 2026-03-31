@@ -33,7 +33,7 @@ def test_right_contract() -> None:
         duration=10.0, step_sizes={"desired": 0.1, "left": 0.1, "right": 0.01}
     ).unwrap()
     expected_left = np.array([])
-    expected_right = np.arange(0.1, 0.01, -0.01)
+    expected_right = np.arange(0.01, 0.1, 0.01)[::-1]
     duration = 10.0 - expected_left.sum() - expected_right.sum()
     nt = math.ceil((duration) / 0.1)
     dt = (duration) / nt
@@ -55,7 +55,7 @@ def test_left() -> None:
         duration=10.0, step_sizes={"desired": 0.1, "left": 0.01, "right": 0.2}
     ).unwrap()
     expected_left = np.arange(0.01, 0.1, 0.01, dtype=np.float64)
-    expected_right = np.arange(0.1, 0.2, 0.01, dtype=np.float64)
+    expected_right = np.arange(0.2, 0.1, -0.01, dtype=np.float64)[::-1]
     duration = 10.0 - expected_left.sum() - expected_right.sum()
     nt = math.ceil((duration) / 0.1)
     dt = (duration) / nt
@@ -77,7 +77,7 @@ def test_right() -> None:
         duration=10.0, step_sizes={"desired": 0.1, "left": 0.2, "right": 0.01}
     ).unwrap()
     expected_left = np.arange(0.2, 0.1, -0.01, dtype=np.float64)
-    expected_right = np.arange(0.1, 0.01, -0.01, dtype=np.float64)
+    expected_right = np.arange(0.01, 0.1, 0.01, dtype=np.float64)[::-1]
     duration = 10.0 - expected_left.sum() - expected_right.sum()
     nt = math.ceil((duration) / 0.1)
     dt = (duration) / nt
@@ -99,7 +99,7 @@ def test_up() -> None:
         duration=10.0, step_sizes={"desired": 0.1, "left": 0.01, "right": 0.01}
     ).unwrap()
     expected_left = np.arange(0.01, 0.1, 0.01)
-    expected_right = np.arange(0.1, 0.01, -0.01)
+    expected_right = np.arange(0.01, 0.1, 0.01)[::-1]
     duration = 10.0 - expected_left.sum() - expected_right.sum()
     nt = math.ceil((duration) / 0.1)
     dt = (duration) / nt
@@ -121,7 +121,7 @@ def test_down() -> None:
         duration=10.0, step_sizes={"desired": 0.01, "left": 0.1, "right": 0.1}
     ).unwrap()
     expected_left = np.arange(0.1, 0.01, -0.01)
-    expected_right = np.arange(0.01, 0.1, 0.01)
+    expected_right = np.arange(0.1, 0.01, -0.01)[::-1]
     duration = 10.0 - expected_left.sum() - expected_right.sum()
     nt = math.ceil((duration) / 0.01)
     dt = (duration) / nt
