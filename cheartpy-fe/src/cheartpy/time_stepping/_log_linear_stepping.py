@@ -214,6 +214,8 @@ def expand_time_as_log_linear[F: np.floating](
 
     Only accepts dt in powers of 10.
     """
+    if desired == left == right:
+        return Ok([np.full(int(duration / desired), float(desired), dtype=dtype)])
     # print(f"Arguments are: duration={duration}, desired={desired}, left={left}, right={right}")
     left = float(10 ** math.floor(math.log10(left)))
     right = float(10 ** math.floor(math.log10(right)))

@@ -1,6 +1,12 @@
 import argparse
 from pathlib import Path
-from typing import TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
+
+from pytools.result import Err, Ok, Result
+from pytools.typing import is_type
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 interp_parser = argparse.ArgumentParser(
     "interp",
@@ -63,16 +69,48 @@ class InterpKwargs(TypedDict, total=False):
     ext: str
 
 
-def get_interp_args(args: list[str] | None = None) -> tuple[InterpArgs, InterpKwargs]:
-    namespace = interp_parser.parse_args(args)
+_ARG_TYPES: dict[str, type] = {
+    "lin": str,
+    "quad": str,
+    "suffix": str,
+    "input_dir": Path,
+    "ext": Literal["D", "D.gz"],
+}
+
+
+def parser_interp_args(args: Mapping[str, object]) -> Result[tuple[InterpArgs, InterpKwargs]]:
+    for k, kind in _ARG_TYPES.items():
+        if (v := args.get(k)) and not is_type(v, kind):
+            msg = f"Argument '{k}' must be of type {kind.__name__}"
+            return Err(TypeError(msg))
+        if v is None:
+            return Err(ValueError(f"Missing required argument '{k}'")) if v is None else Ok(None)
+    vs = args.get("vars")
+    if not vs:
+        msg = "At least one variable must be specified for interpolation"
+        return Err(ValueError(msg))
+    if not (isinstance(vs, list) and all(isinstance(v, str) for v in vs)):
+        msg = "All variable names must be strings"
+        return Err(TypeError(msg))
     _args_dict: InterpArgs = {
-        "lin": namespace.lin,
-        "quad": namespace.quad,
-        "vars": namespace.vars,
+        "lin": args["lin"],
+        "quad": args["quad"],
+        "vars": args["vars"],
     }
     _kwargs_dict: InterpKwargs = {
-        "suffix": namespace.suffix,
-        "input_dir": namespace.input_dir,
-        "ext": namespace.ext,
+        "suffix": args["suffix"],
+        "input_dir": args["input_dir"],
+        "ext": args["ext"],
     }
-    return _args_dict, _kwargs_dict
+    return Ok((_args_dict, _kwargs_dict))
+
+
+def get_interp_args(args: list[str] | None = None) -> tuple[InterpArgs, InterpKwargs]:
+    namespace = interp_parser.parse_args(args)
+    match parser_interp_args(vars(namespace)):
+        case Ok(result):
+            return result
+        case Err(e):
+            print(f"Error parsing arguments: {e}")
+            interp_parser.print_help()
+            raise SystemExit(1)

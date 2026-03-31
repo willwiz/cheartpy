@@ -16,9 +16,9 @@ class OptionalKwargs(TypedDict, total=False): ...
 
 
 class StepSizes(TypedDict, total=True):
-    left: ToFloat
+    left: ToFloat | None
     desired: ToFloat
-    right: ToFloat
+    right: ToFloat | None
 
 
 def define_ramp_steps[F: np.floating](
@@ -28,8 +28,10 @@ def define_ramp_steps[F: np.floating](
 
 
 def compute_total_expected_ramp_time[F: np.floating](
-    left: ToFloat, right: ToFloat, ddt: ToFloat, *, dtype: DType[F] = np.float64
+    left: ToFloat | None, right: ToFloat | None, ddt: ToFloat, *, dtype: DType[F] = np.float64
 ) -> float:
+    if left is None or right is None:
+        return 0.0
     return np.arange(left, right, math.copysign(ddt, right - left), dtype=dtype).sum()
 
 
@@ -49,13 +51,33 @@ def _double_up_ramp[F: np.floating](
       /
     /
     """
-    if compute_total_expected_ramp_time(step_sizes["left"], step_sizes["right"], ddt) > duration:
-        return Err(ValueError("Duration is too short to ramp up!"))
-    left_ramp = define_ramp_steps(step_sizes["left"], step_sizes["desired"], ddt, dtype=dtype)
-    right_ramp = define_ramp_steps(step_sizes["desired"], step_sizes["right"], ddt, dtype=dtype)
+    if (
+        compute_total_expected_ramp_time(
+            step_sizes["left"],
+            step_sizes["right"],
+            ddt,
+        )
+        > duration
+    ):
+        msg = f"Duration is too short to ramp up in {duration}!\n Parameters were:\n"
+        for k, v in step_sizes.items():
+            msg += f"  {k}: {v}\n"
+        return Err(ValueError(msg))
+    left_ramp = define_ramp_steps(
+        step_sizes["left"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+    )
+    right_ramp = np.flip(
+        define_ramp_steps(
+            step_sizes["right"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+        )
+    )
     remaining_duration = duration - left_ramp.sum() - right_ramp.sum()
     if remaining_duration < 0.0:
-        return Err(ValueError("Duration left between ramp is negative!"))
+        msg = "Duration left between ramp is negative\n"
+        msg = msg + f" ({remaining_duration}) of {duration}!\n Parameters were:\n"
+        for k, v in step_sizes.items():
+            msg += f"  {k}: {v}\n"
+        return Err(ValueError(msg))
     nt = math.ceil(remaining_duration / step_sizes["desired"])
     best_dt = remaining_duration / nt
     plateau = np.full(nt, best_dt, dtype=dtype)
@@ -76,10 +98,23 @@ def _double_down_ramp[F: np.floating](
           \
            \
     """
-    if compute_total_expected_ramp_time(step_sizes["left"], step_sizes["right"], ddt) > duration:
+    if (
+        compute_total_expected_ramp_time(
+            step_sizes["left"] or step_sizes["desired"],
+            step_sizes["right"] or step_sizes["desired"],
+            ddt,
+        )
+        > duration
+    ):
         return Err(ValueError("Duration is too short to ramp down!"))
-    left_ramp = define_ramp_steps(step_sizes["left"], step_sizes["desired"], ddt, dtype=dtype)
-    right_ramp = define_ramp_steps(step_sizes["desired"], step_sizes["right"], ddt, dtype=dtype)
+    left_ramp = define_ramp_steps(
+        step_sizes["left"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+    )
+    right_ramp = np.flip(
+        define_ramp_steps(
+            step_sizes["right"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+        )
+    )
     remaining_duration = duration - left_ramp.sum() - right_ramp.sum()
     if remaining_duration < 0.0:
         return Err(ValueError("Duration left between ramp is negative!"))
@@ -109,8 +144,14 @@ def _trapazoid_up[F: np.floating](
     )
     if left_duration + right_duration > duration:
         return Err(ValueError("Duration is too short to ramp up and down!"))
-    left_ramp = define_ramp_steps(step_sizes["left"], step_sizes["desired"], ddt, dtype=dtype)
-    right_ramp = define_ramp_steps(step_sizes["desired"], step_sizes["right"], ddt, dtype=dtype)
+    left_ramp = define_ramp_steps(
+        step_sizes["left"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+    )
+    right_ramp = np.flip(
+        define_ramp_steps(
+            step_sizes["right"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+        )
+    )
     remaining_duration = duration - left_ramp.sum() - right_ramp.sum()
     if remaining_duration < 0.0:
         return Err(ValueError("Duration left between ramp is negative!"))
@@ -133,14 +174,22 @@ def _trapazoid_down[F: np.floating](
      \_______/
 
     """
-    left_duration = compute_total_expected_ramp_time(step_sizes["left"], step_sizes["desired"], ddt)
+    left_duration = compute_total_expected_ramp_time(
+        step_sizes["left"] or step_sizes["desired"], step_sizes["desired"], ddt
+    )
     right_duration = compute_total_expected_ramp_time(
-        step_sizes["desired"], step_sizes["right"], ddt
+        step_sizes["desired"], step_sizes["right"] or step_sizes["desired"], ddt
     )
     if left_duration + right_duration > duration:
         return Err(ValueError("Duration is too short to ramp down and up!"))
-    left_ramp = define_ramp_steps(step_sizes["left"], step_sizes["desired"], ddt, dtype=dtype)
-    right_ramp = define_ramp_steps(step_sizes["desired"], step_sizes["right"], ddt, dtype=dtype)
+    left_ramp = define_ramp_steps(
+        step_sizes["left"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+    )
+    right_ramp = np.flip(
+        define_ramp_steps(
+            step_sizes["right"] or step_sizes["desired"], step_sizes["desired"], ddt, dtype=dtype
+        )
+    )
     remaining_duration = duration - left_ramp.sum() - right_ramp.sum()
     if remaining_duration < 0.0:
         return Err(ValueError("Duration left between ramp is negative!"))
@@ -157,16 +206,24 @@ def _expand_dt_linearly[F: np.floating](
     *,
     dtype: DType[F] = np.float64,
 ) -> Result[Sequence[A1[F]]]:
-    if step_sizes["left"] <= step_sizes["desired"] <= step_sizes["right"]:
+    if (
+        (step_sizes["left"] or step_sizes["desired"])
+        <= step_sizes["desired"]
+        <= (step_sizes["right"] or step_sizes["desired"])
+    ):
         return _double_up_ramp(duration, step_sizes, ddt, dtype=dtype).next()
-    if step_sizes["left"] >= step_sizes["desired"] > step_sizes["right"]:
+    if (
+        (step_sizes["left"] or step_sizes["desired"])
+        >= step_sizes["desired"]
+        > (step_sizes["right"] or step_sizes["desired"])
+    ):
         return _double_down_ramp(duration, step_sizes, ddt, dtype=dtype).next()
-    if (step_sizes["desired"] <= step_sizes["left"]) and (
-        step_sizes["desired"] <= step_sizes["right"]
+    if (step_sizes["desired"] <= (step_sizes["left"] or step_sizes["desired"])) and (
+        step_sizes["desired"] <= (step_sizes["right"] or step_sizes["desired"])
     ):
         return _trapazoid_down(duration, step_sizes, ddt, dtype=dtype).next()
-    if (step_sizes["desired"] >= step_sizes["left"]) and (
-        step_sizes["desired"] >= step_sizes["right"]
+    if (step_sizes["desired"] >= (step_sizes["left"] or step_sizes["desired"])) and (
+        step_sizes["desired"] >= (step_sizes["right"] or step_sizes["desired"])
     ):
         return _trapazoid_up(duration, step_sizes, ddt, dtype=dtype).next()
     msg = "Unreachable!"
@@ -176,8 +233,11 @@ def _expand_dt_linearly[F: np.floating](
 def expand_timesteps_linearly[F: np.floating](
     duration: ToFloat,
     step_sizes: StepSizes,
+    ddt: ToFloat | None = None,
     *,
     dtype: DType[F] = np.float64,
 ) -> Result[Sequence[A1[F]]]:
-    ddt = min([step_sizes["desired"], step_sizes["left"], step_sizes["right"]])
+    ddt = ddt or min(
+        v for v in [step_sizes["desired"], step_sizes["left"], step_sizes["right"]] if v is not None
+    )
     return _expand_dt_linearly(duration, step_sizes, ddt, dtype=dtype).next()

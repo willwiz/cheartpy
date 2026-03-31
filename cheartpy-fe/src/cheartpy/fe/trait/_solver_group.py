@@ -70,13 +70,16 @@ class ISolverGroup(abc.ABC):
     @overload
     @abc.abstractmethod
     def catch_solver_errors(
-        self, err: Literal["CATCH_RESIDUAL_NAN", "CATCH_DT_CHANGES"], /
+        self, err: Literal["CATCH_RESIDUAL_NAN", "CATCH_NEWTON_LIMIT", "CATCH_DT_CHANGES"], /
     ) -> None: ...
     @overload
     @abc.abstractmethod
     def catch_solver_errors(
         self, err: Literal["CATCH_RESIDUAL_VAL"], val: str | float, /
     ) -> None: ...
+    @overload
+    @abc.abstractmethod
+    def catch_solver_errors(self, err: Literal["RebuildSeverity"], val: str, /) -> None: ...
     @abc.abstractmethod
     def add_auxvar(self, *var: IVariable) -> None: ...
     @abc.abstractmethod

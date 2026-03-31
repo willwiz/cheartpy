@@ -6,6 +6,7 @@ from typing import TypedDict, Unpack
 import numpy as np
 from pytools.arrays import A1, A2
 from pytools.logging import ILogger
+from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
 
@@ -36,3 +37,6 @@ def make_interp_api(args: InterpArgs, **kwargs: Unpack[InterpKwargs]) -> None: .
 def make_l2qmap[F: np.floating, I: np.integer](
     lin_mesh: CheartMesh[F, I], quad_mesh: CheartMesh[F, I]
 ) -> INTERP_MAP[I]: ...
+def parser_interp_args(
+    args: Mapping[str, object],
+) -> Result[tuple[InterpArgs, InterpKwargs]]: ...
