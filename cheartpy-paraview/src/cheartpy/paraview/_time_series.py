@@ -59,8 +59,8 @@ def create_time_series_json[F: np.floating](
 
 
 def _create_time_series_file[F: np.floating](
-    vtus: Iterable[Path], idx: Sequence[int], time: Path, *, dtype: DType[F] = np.float64
-) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
+    vtus: Iterable[Path | str], idx: Sequence[int], time: Path, *, dtype: DType[F] = np.float64
+) -> Ok[tuple[Sequence[int], Iterable[Path | str], A1[F]]] | Err:
     dt = chread_time_utf(time, ftype=dtype)
     time_array = np.add.accumulate(dt)
     match time_array.shape:
@@ -76,12 +76,12 @@ def _create_time_series_file[F: np.floating](
 
 
 def _create_time_series_range[F: np.floating](
-    vtus: Iterable[Path],
+    vtus: Iterable[Path | str],
     idx: Sequence[int],
     time_step: float,
     *,
     dtype: DType[F] = np.float64,
-) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
+) -> Ok[tuple[Sequence[int], Iterable[Path | str], A1[F]]] | Err:
     nt = max(idx)
     time = np.arange(0, time_step * (nt + 1), time_step, dtype=dtype)
     return Ok((idx, vtus, time[idx]))
@@ -91,7 +91,7 @@ def create_time_series_core[F: np.floating](
     args: TimeProgArgs,
     *,
     dtype: DType[F] = np.float64,
-) -> Ok[tuple[Sequence[int], Iterable[Path], A1[F]]] | Err:
+) -> Ok[tuple[Sequence[int], Iterable[Path | str], A1[F]]] | Err:
     vtus = sorted(args.folder.glob(f"{args.prefix}-*.vtu"))
     match get_var_index((v.name for v in vtus), args.prefix, "vtu"):
         case Ok(idx): ...  # fmt: skip

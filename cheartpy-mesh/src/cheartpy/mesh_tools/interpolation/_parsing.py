@@ -1,9 +1,10 @@
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
+from pydantic import BaseModel
 from pytools.result import Err, Ok, Result
-from pytools.typing import is_type
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -57,52 +58,40 @@ interp_parser.add_argument(
 )
 
 
+class ArgsModel(BaseModel):
+    lin: str
+    quad: str
+    vars: Sequence[str]
+
+
+class KwargsModel(BaseModel):
+    suffix: str = "Quad"
+    input_dir: Path = Path.cwd()
+    ext: Literal["D", "D.gz"] = "D"
+
+
 class InterpArgs(TypedDict, total=True):
     lin: str
     quad: str
-    vars: list[str]
+    vars: Sequence[str]
 
 
 class InterpKwargs(TypedDict, total=False):
     suffix: str
     input_dir: Path
-    ext: str
+    ext: Literal["D", "D.gz"]
 
 
-_ARG_TYPES: dict[str, type] = {
-    "lin": str,
-    "quad": str,
-    "suffix": str,
-    "input_dir": Path,
-    "ext": Literal["D", "D.gz"],
-}
-
-
-def parser_interp_args(args: Mapping[str, object]) -> Result[tuple[InterpArgs, InterpKwargs]]:
-    for k, kind in _ARG_TYPES.items():
-        if (v := args.get(k)) and not is_type(v, kind):
-            msg = f"Argument '{k}' must be of type {kind.__name__}"
-            return Err(TypeError(msg))
-        if v is None:
-            return Err(ValueError(f"Missing required argument '{k}'")) if v is None else Ok(None)
-    vs = args.get("vars")
-    if not vs:
-        msg = "At least one variable must be specified for interpolation"
-        return Err(ValueError(msg))
-    if not (isinstance(vs, list) and all(isinstance(v, str) for v in vs)):
-        msg = "All variable names must be strings"
-        return Err(TypeError(msg))
-    _args_dict: InterpArgs = {
-        "lin": args["lin"],
-        "quad": args["quad"],
-        "vars": args["vars"],
-    }
-    _kwargs_dict: InterpKwargs = {
-        "suffix": args["suffix"],
-        "input_dir": args["input_dir"],
-        "ext": args["ext"],
-    }
-    return Ok((_args_dict, _kwargs_dict))
+def parser_interp_args(args: Mapping[str, Any]) -> Result[tuple[InterpArgs, InterpKwargs]]:
+    try:
+        interp_args = ArgsModel(**args)
+    except ValueError as e:
+        return Err(e)
+    try:
+        interp_kwargs = KwargsModel(**args)
+    except ValueError as e:
+        return Err(e)
+    return Ok((InterpArgs(**interp_args.model_dump()), InterpKwargs(**interp_kwargs.model_dump())))
 
 
 def get_interp_args(args: list[str] | None = None) -> tuple[InterpArgs, InterpKwargs]:
