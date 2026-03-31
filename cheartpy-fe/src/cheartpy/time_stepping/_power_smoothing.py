@@ -103,13 +103,20 @@ def _expand_dt_power[F: np.floating](
     *,
     dtype: DType[F] = np.float64,
 ) -> Result[Sequence[A1[F]]]:
-    if (step_sizes["left"]) and abs(step_sizes["desired"] - step_sizes["left"]) > _TOL:
+    if (step_sizes["left"]) and _is_different(step_sizes["desired"], step_sizes["left"]):
+        print("A")
         return _power_smooth_left(duration, step_sizes, nt, dtype=dtype).next()
-    if (step_sizes["right"]) and abs(step_sizes["desired"] - step_sizes["right"]) > _TOL:
+    if (step_sizes["right"]) and _is_different(step_sizes["desired"], step_sizes["right"]):
+        print("B")
         return _power_smooth_right(duration, step_sizes, nt, dtype=dtype).next()
+    print("C")
     better_nt = int(np.ceil(duration / step_sizes["desired"]))
     better_dt = duration / better_nt
     return Ok([np.full(better_nt, better_dt, dtype=dtype)])
+
+
+def _is_different(a: ToFloat, b: ToFloat) -> bool:
+    return bool((max(a, b) / min(a, b)) > 1 + _TOL)
 
 
 def expand_timesteps_power[F: np.floating](
