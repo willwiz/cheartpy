@@ -198,12 +198,14 @@ class SolverGroup(ISolverGroup):
 
     @overload
     def catch_solver_errors(
-        self, err: Literal["CATCH_RESIDUAL_NAN", "CATCH_DT_CHANGES"], /
+        self, err: Literal["CATCH_RESIDUAL_NAN", "CATCH_NEWTON_LIMIT", "CATCH_DT_CHANGES"], /
     ) -> None: ...
     @overload
     def catch_solver_errors(
         self, err: Literal["CATCH_RESIDUAL_VAL"], val: str | float, /
     ) -> None: ...
+    @overload
+    def catch_solver_errors(self, err: Literal["RebuildSeverity"], val: str, /) -> None: ...
     def catch_solver_errors(
         self,
         err: SolverSettings,

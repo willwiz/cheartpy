@@ -42,8 +42,8 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[_RunOptions]) -> int:
     logger.disp(" ".join(cmd))
 
     if (log := kwargs.get("log")) is not None:
-        with Path(log).open("w") as f:
-            err = sp.run(cmd, stdout=f, stderr=sp.STDOUT, check=False).returncode
+        with Path(log).open("w") as f, Path(log).with_suffix(".err").open("w") as ferr:
+            err = sp.run(cmd, stdout=f, stderr=ferr, check=False).returncode
     else:
         err = sp.run(cmd, check=False).returncode
     logger.disp(f"{pfile!s} has finished!")

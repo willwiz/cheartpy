@@ -10,7 +10,7 @@ from cheartpy.fe.aliases import (
     SolverSubgroupMethod,
     VariableExportFormat,
 )
-from cheartpy.fe.impl import MumpsMatrix, PFile
+from cheartpy.fe.impl import CheartTopology, MumpsMatrix, NullTopology, PFile
 from cheartpy.fe.trait import (
     BC_VALUE,
     EXPRESSION_VALUE,
@@ -71,10 +71,16 @@ def create_time_scheme(
 @overload
 def create_topology(
     name: str, basis: ICheartBasis, mesh: Path | str, fmt: VariableExportFormat = ...
-) -> ICheartTopology: ...
+) -> CheartTopology: ...
 @overload
 def create_topology(
     name: str, basis: None, mesh: Path | str, fmt: VariableExportFormat = ...
+) -> NullTopology: ...
+def create_embedded_topology(
+    name: str,
+    embedded_top: ICheartTopology,
+    mesh: Path | str,
+    fmt: VariableExportFormat = "TXT",
 ) -> ICheartTopology: ...
 @overload
 def create_top_interface(

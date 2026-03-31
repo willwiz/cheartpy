@@ -41,17 +41,21 @@ class IterationEnum(enum.StrEnum):
 
 SolverSettings = Literal[
     "CatchSolverErrors",
+    "CATCH_DT_CHANGES",
     "CATCH_RESIDUAL_NAN",
     "CATCH_RESIDUAL_VAL",
-    "CATCH_DT_CHANGES",
+    "CATCH_NEWTON_LIMIT",
+    "RebuildSeverity",
 ]
 
 
 class SolverSettingEnum(enum.StrEnum):
     CatchSolverErrors = "CatchSolverErrors"
+    CATCH_DT_CHANGES = "CATCH_DT_CHANGES"
     CATCH_RESIDUAL_NAN = "CATCH_RESIDUAL_NAN"
     CATCH_RESIDUAL_VAL = "CATCH_RESIDUAL_VAL"
-    CATCH_DT_CHANGES = "CATCH_DT_CHANGES"
+    CATCH_NEWTON_LIMIT = "CATCH_NEWTON_LIMIT"
+    RebuildSeverity = "RebuildSeverity"
 
 
 MatrixSolverOption = Literal["SOLVER_MUMPS", "SOLVER_PETSC"]

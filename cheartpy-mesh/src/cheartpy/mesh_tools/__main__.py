@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from .cylinder_core import cylinder_parser, get_cylinder_args, make_cylinder_api
 from .hex_core import block_parser, get_block_args, make_block_api
-from .interpolation import get_interp_args, interp_parser, make_interp_api
+from .interpolation import interp_parser, make_interp_api, parser_interp_args
 from .quad_core import get_square_args, make_square_api, square_parser
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ def main_cli(args: Sequence[str] | None = None) -> None:
             _args, kwargs = get_cylinder_args(args)
             make_cylinder_api(_args, **kwargs)
         case "interp":
-            _args, kwargs = get_interp_args(args)
+            _args, kwargs = parser_interp_args(vars(parsed_args)).unwrap()
             make_interp_api(_args, **kwargs)
         case _:
             parser.print_help()

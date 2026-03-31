@@ -97,7 +97,7 @@ def create_time_series_core[F: np.floating](
         case Ok(idx): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    vtus = [args.folder / f"{args.prefix}-{i}.vtu" for i in idx]
+    vtus = [f"{args.prefix}-{i}.vtu" for i in idx]
     match args.time:
         case Path():
             return _create_time_series_file(vtus, idx, args.time, dtype=dtype).next()
