@@ -50,6 +50,9 @@ def _power_smooth_left[F: np.floating](
         return _expand_dt_power(duration, step_sizes, nt, dtype=dtype)
     factor = _compute_optimal_step_factor(left, desired, nt)
     time_used = _compute_total_expected_ramp_time(left, factor, nt)
+    if time_used > duration:
+        msg = f"Cannot fit ramp = {time_used} within duration = {duration} in {nt} steps"
+        return Err(ValueError(msg))
     ramp = _define_ramp_steps(left, factor, nt, dtype=dtype)
     match _expand_dt_power(
         duration - ramp.sum(),
@@ -77,6 +80,9 @@ def _power_smooth_right[F: np.floating](
         return _expand_dt_power(duration, step_sizes, nt, dtype=dtype)
     factor = _compute_optimal_step_factor(right, desired, nt)
     time_used = _compute_total_expected_ramp_time(right, factor, nt)
+    if time_used > duration:
+        msg = f"Cannot fit ramp = {time_used} within duration = {duration} in {nt} steps"
+        return Err(ValueError(msg))
     ramp = _define_ramp_steps(right, factor, nt, dtype=dtype)[::-1]
     match _expand_dt_power(
         duration - ramp.sum(),
