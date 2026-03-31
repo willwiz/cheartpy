@@ -1,5 +1,4 @@
-from ._api import check_args
-from ._cmdline import parse_cmdline_args
-from ._types import AbaqusAPIKwargs
+from ._cmdline import parse_api_kwargs, parse_cmdline_args
+from ._types import AbaqusAPIArgs, AbaqusAPIKwargs
 
-__all__ = ["AbaqusAPIKwargs", "check_args", "parse_cmdline_args"]
+__all__ = ["AbaqusAPIArgs", "AbaqusAPIKwargs", "parse_api_kwargs", "parse_cmdline_args"]

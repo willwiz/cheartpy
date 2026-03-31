@@ -1,13 +1,17 @@
 import argparse
 from argparse import RawTextHelpFormatter
-from typing import TYPE_CHECKING, get_args
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, get_args
 
+from pydantic import BaseModel, ValidationError
 from pytools.logging import LogLevel
+from pytools.result import Err, Ok, Result
 
-from ._types import ParsedInput
+from ._types import AbaqusAPIArgs, AbaqusAPIKwargs
+from ._utils import gather_masks, split_argslist_to_nameddict
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
 ################################################################################################
 # Check if multiprocessing is available
@@ -44,12 +48,6 @@ _parser.add_argument(
     """,
 )
 _parser.add_argument(
-    "-p",
-    "--prefix",
-    type=str,
-    help="""Give the prefix for the output files.""",
-)
-_parser.add_argument(
     "-t",
     "--topology",
     required=True,
@@ -61,6 +59,12 @@ _parser.add_argument(
     --topology Volume1
     --topology Volume1 Volume2 Volume3 ...
     """,
+)
+_parser.add_argument(
+    "-p",
+    "--prefix",
+    type=str,
+    help="""Give the prefix for the output files.""",
 )
 _parser.add_argument(
     "-b",
@@ -97,16 +101,49 @@ _parser.add_argument(
 _parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing with n cores""")
 
 
-def parse_cmdline_args(args: Sequence[str] | None = None) -> ParsedInput:
-    return _parser.parse_args(
-        args,
-        namespace=ParsedInput(
-            [],
-            prefix=None,
-            topology=[],
-            boundary=None,
-            add_mask=None,
-            log_level="INFO",
-            cores=1,
-        ),
+class PydanticParser(BaseModel):
+    files: Sequence[Path | str]
+    topology: Sequence[str]
+    boundary: Sequence[Sequence[str]] | None
+    add_mask: Sequence[Sequence[str]] | None
+    prefix: str | None
+    log_level: LogLevel
+    cores: int
+
+
+def parse_api_kwargs(dct: Mapping[str, Any]) -> Result[tuple[AbaqusAPIArgs, AbaqusAPIKwargs]]:
+    try:
+        parsed_args = PydanticParser(**dct)
+    except ValidationError as e:
+        return Err(e)
+    prefix = parsed_args.prefix or Path(parsed_args.files[0]).stem
+    match split_argslist_to_nameddict(parsed_args.boundary):
+        case Ok(boundary): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    match gather_masks(parsed_args.add_mask):
+        case Ok(masks): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    args = AbaqusAPIArgs(
+        files=parsed_args.files,
     )
+    kwargs = AbaqusAPIKwargs(
+        topology=parsed_args.topology,
+        boundary=boundary,
+        masks=masks,
+        prefix=prefix,
+        log_level=parsed_args.log_level,
+        cores=parsed_args.cores,
+    )
+    return Ok((args, kwargs))
+
+
+def parse_cmdline_args(args: Sequence[str] | None = None) -> tuple[AbaqusAPIArgs, AbaqusAPIKwargs]:
+    match parse_api_kwargs(vars(_parser.parse_args(args))):
+        case Ok(result):
+            return result
+        case Err(e):
+            print(f"Error parsing arguments: {e}")
+            _parser.print_help()
+            raise SystemExit(1)

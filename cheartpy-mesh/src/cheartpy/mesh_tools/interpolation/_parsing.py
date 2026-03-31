@@ -1,13 +1,12 @@
 import argparse
-from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
 interp_parser = argparse.ArgumentParser(
     "interp",
@@ -85,11 +84,11 @@ class InterpKwargs(TypedDict, total=False):
 def parser_interp_args(args: Mapping[str, Any]) -> Result[tuple[InterpArgs, InterpKwargs]]:
     try:
         interp_args = ArgsModel(**args)
-    except ValueError as e:
+    except ValidationError as e:
         return Err(e)
     try:
         interp_kwargs = KwargsModel(**args)
-    except ValueError as e:
+    except ValidationError as e:
         return Err(e)
     return Ok((InterpArgs(**interp_args.model_dump()), InterpKwargs(**interp_kwargs.model_dump())))
 

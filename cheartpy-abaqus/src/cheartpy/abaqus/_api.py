@@ -21,6 +21,9 @@ from .conversion import (
 from .reader import AbaqusMesh, import_abaqus_files
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
+    from cheartpy.paraview._parser.time_parser import Sequence
     from pytools.arrays import DType
 
     from .parsing import AbaqusAPIKwargs
@@ -33,13 +36,14 @@ class _AbaqusData[F: np.floating, I: np.integer](NamedTuple):
 
 
 def _import_abaqus_data[F: np.floating, I: np.integer](
+    files: Sequence[Path | str],
     *,
     ftype: DType[F] = np.float64,
     dtype: DType[I] = np.intp,
     **kwargs: Unpack[AbaqusAPIKwargs],
 ) -> Result[_AbaqusData[F, I]]:
     log = get_logger()
-    match import_abaqus_files(*kwargs["files"], ftype=ftype, dtype=dtype):
+    match import_abaqus_files(*files, ftype=ftype, dtype=dtype):
         case Ok(abaqus): ...  # fmt: skip
         case Err(err):
             return Err(err)
@@ -82,13 +86,14 @@ def _create_cheartmesh_from_abaqus_data[F: np.floating, I: np.integer](
 
 
 def create_cheartmesh_from_abaqus_api[F: np.floating, I: np.integer](
+    files: Sequence[Path | str],
     *,
     ftype: DType[F] = np.float64,
     dtype: DType[I] = np.intp,
     **kwargs: Unpack[AbaqusAPIKwargs],
 ) -> Result[CheartMesh[F, I]]:
     get_logger(level=kwargs.get("log_level"))
-    match _import_abaqus_data(**kwargs, ftype=ftype, dtype=dtype):
+    match _import_abaqus_data(files, **kwargs, ftype=ftype, dtype=dtype):
         case Ok(abaqus): ...  # fmt: skip
         case Err(err):
             return Err(err)

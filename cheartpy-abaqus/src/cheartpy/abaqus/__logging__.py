@@ -4,6 +4,7 @@ from cheartpy.io import fix_ch_sfx
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
@@ -36,10 +37,12 @@ def format_boundary_arguments(boundary: Mapping[int, Sequence[str]] | None) -> S
     return [f"{'<<< The boundary patches are:':<40}", boundary]
 
 
-def format_input_kwargs(**kwargs: Unpack[AbaqusAPIKwargs]) -> Sequence[_Printable]:
+def format_input_kwargs(
+    files: Sequence[Path | str], **kwargs: Unpack[AbaqusAPIKwargs]
+) -> Sequence[_Printable]:
     return [
         f"{'<<< The Abaqus meshes are imported from:'}",
-        [str(f) for f in kwargs["files"]],
+        [str(f) for f in files],
         f"{'<<< The topology are combined form labels:':<40}",
         kwargs["topology"],
         *format_boundary_arguments(kwargs.get("boundary")),

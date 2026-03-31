@@ -20,6 +20,7 @@ dependencies = [
   "cheartpy-mesh",
   "cheartpy-io",
   "cheartpy-vtk",
+  "pydantic",
 ]
 [tool.uv.build-backend]
 module-name = "cheartpy.abaqus"
