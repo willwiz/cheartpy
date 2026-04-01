@@ -1,5 +1,5 @@
 import argparse
-from typing import Literal, TypedDict
+from typing import Literal, Required, TypedDict
 
 cylinder_parser = argparse.ArgumentParser("cylinder", description="Make a cylinder")
 cylinder_parser.add_argument(
@@ -39,7 +39,7 @@ class CylinderArgs(TypedDict, total=True):
 
 class CylinderKwargs(TypedDict, total=False):
     prefix: str
-    axis: Literal["x", "y", "z"]
+    axis: Required[Literal["x", "y", "z"]]
     make_quad: bool
 
 

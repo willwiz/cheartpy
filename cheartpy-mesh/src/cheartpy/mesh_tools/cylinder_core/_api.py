@@ -81,7 +81,8 @@ def make_cylinder_api(
     mesh, quad = create_cylinder_mesh(
         (args["rin"], args["rout"], args["length"], args["base"]),
         (args["rn"], args["qn"], args["zn"]),
-        **{k: kwargs[k] for k in ["axis", "make_quad"] if k in kwargs},
+        kwargs["axis"],
+        **{k: kwargs[k] for k in ["make_quad"] if k in kwargs},
     )
     if prefix := kwargs.get("prefix"):
         mesh.save(prefix)
