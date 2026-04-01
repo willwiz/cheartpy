@@ -12,7 +12,7 @@ from ._core import (
 
 if TYPE_CHECKING:
     import numpy as np
-    from pytools.arrays import T3
+    from pytools.arrays import T3, ToFloat, ToInt
 
     from ._parsing import BlockArgs, BlockKwargs
 
@@ -20,9 +20,9 @@ __all__ = ["create_hex_mesh"]
 
 
 def create_hex_mesh(
-    dim: T3[int],
-    shape: T3[float] = (1.0, 1.0, 1.0),
-    shift: T3[float] = (0.0, 0.0, 0.0),
+    dim: T3[ToInt],
+    shape: T3[ToFloat] = (1.0, 1.0, 1.0),
+    shift: T3[ToFloat] = (0.0, 0.0, 0.0),
 ) -> CheartMesh[np.float64, np.intc]:
     node_index = create_square_nodal_index(*dim)
     elem_index = create_square_element_index(*dim)

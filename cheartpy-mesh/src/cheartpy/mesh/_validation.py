@@ -13,13 +13,13 @@ from ._struct import (
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A2
+    from pytools.arrays import A2, ToInt
 
 
 __all__ = ["remove_dangling_nodes"]
 
 
-def create_node_map[T: np.integer](elems: A2[T]) -> Mapping[T, int]:
+def create_node_map[T: np.integer](elems: A2[T]) -> Mapping[T, ToInt]:
     node_map: dict[T, int] = {}
     nn = 0
     for node in np.unique(elems):
@@ -30,7 +30,7 @@ def create_node_map[T: np.integer](elems: A2[T]) -> Mapping[T, int]:
 
 def _create_new_bnd[T: np.integer](
     p: CheartMeshPatch[T],
-    node_map: Mapping[T, int],
+    node_map: Mapping[T, ToInt],
 ) -> CheartMeshPatch[T]:
     new_v = np.array([[node_map[i] for i in patch] for patch in p.v], dtype=int)
     return CheartMeshPatch(p.tag, p.n, p.k, new_v, p.TYPE)

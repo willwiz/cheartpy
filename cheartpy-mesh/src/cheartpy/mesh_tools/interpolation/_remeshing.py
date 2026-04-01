@@ -15,7 +15,7 @@ from ._maps import L2QMAP, L2QMAPDICT, L2QTYPEDICT
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A1
+    from pytools.arrays import A1, ToInt
 
 
 def gen_quadtop_node_sets[T: np.integer](
@@ -27,7 +27,7 @@ def gen_quadtop_node_sets[T: np.integer](
 
 def create_quad_top_and_map[T: np.integer](
     t: CheartMeshTopology[T],
-    nn: int,
+    nn: ToInt,
 ) -> tuple[CheartMeshTopology[T], Mapping[frozenset[int], int]]:
     l2qmap = L2QMAPDICT.get(t.TYPE)
     if l2qmap is None:
@@ -44,7 +44,7 @@ def create_quad_top_and_map[T: np.integer](
     for i, elem in enumerate(t.v):
         for j, v in gen_quadtop_node_sets(l2qmap, elem).items():
             if v not in quad_map:
-                quad_map[v] = nn
+                quad_map[v] = int(nn)
                 nn = nn + 1
             new_top[i, j] = quad_map[v]
     return CheartMeshTopology(len(new_top), new_top, quad_elem.body), quad_map

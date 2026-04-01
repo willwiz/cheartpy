@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, TypedDict
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from pytools.arrays import ToFloat, ToInt
+
 square_parser = argparse.ArgumentParser("square", description="Make a square")
 square_parser.add_argument(
     "--prefix",
@@ -35,13 +37,13 @@ square_parser.add_argument("yn", type=int, help="number of elements in y")
 
 class SquareKwargs(TypedDict, total=False):
     prefix: str
-    shape: tuple[float, float]
-    offset: tuple[float, float]
+    shape: tuple[ToFloat, ToFloat]
+    offset: tuple[ToFloat, ToFloat]
 
 
 class SquareArgs(TypedDict, total=True):
-    xn: int
-    yn: int
+    xn: ToInt
+    yn: ToInt
 
 
 def get_square_args(args: Sequence[str] | None = None) -> tuple[SquareArgs, SquareKwargs]:

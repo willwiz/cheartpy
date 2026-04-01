@@ -5,26 +5,26 @@ from pathlib import Path
 
 import numpy as np
 from cheartpy.elem_interfaces import VtkEnum
-from pytools.arrays import A1, A2, DType
+from pytools.arrays import A1, A2, DType, ToInt
 from pytools.result import Result
 
 @dc.dataclass(slots=True)
 class CheartMeshSpace[T: np.floating]:
-    n: int
+    n: ToInt
     v: A2[T]
     def save(self, name: Path | str) -> None: ...
 
 @dc.dataclass(slots=True)
 class CheartMeshTopology[T: np.integer]:
-    n: int
+    n: ToInt
     v: A2[T]
     TYPE: VtkEnum
     def save(self, name: Path | str) -> None: ...
 
 @dc.dataclass(slots=True)
 class CheartMeshPatch[T: np.integer]:
-    tag: int
-    n: int
+    tag: ToInt
+    n: ToInt
     k: A1[T]
     v: A2[T]
     TYPE: VtkEnum
@@ -32,7 +32,7 @@ class CheartMeshPatch[T: np.integer]:
 
 @dc.dataclass(slots=True)
 class CheartMeshBoundary[T: np.integer]:
-    n: int
+    n: ToInt
     v: Mapping[int, CheartMeshPatch[T]]
     TYPE: VtkEnum
     def save(self, name: Path | str) -> None: ...

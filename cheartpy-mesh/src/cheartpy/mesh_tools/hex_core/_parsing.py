@@ -1,5 +1,8 @@
 import argparse
-from typing import Required, TypedDict
+from typing import TYPE_CHECKING, Required, TypedDict
+
+if TYPE_CHECKING:
+    from pytools.arrays import T3, ToFloat, ToInt
 
 block_parser = argparse.ArgumentParser("block", description="Make a cube")
 block_parser.add_argument(
@@ -33,15 +36,15 @@ block_parser.add_argument("zn", type=int, help="number of elements in z")
 
 
 class BlockArgs(TypedDict, total=True):
-    xn: int
-    yn: int
-    zn: int
+    xn: ToInt
+    yn: ToInt
+    zn: ToInt
 
 
 class BlockKwargs(TypedDict, total=False):
     prefix: str
-    shape: Required[tuple[float, float, float]]
-    offset: Required[tuple[float, float, float]]
+    shape: Required[T3[ToFloat]]
+    offset: Required[T3[ToFloat]]
 
 
 def get_block_args(args: list[str] | None = None) -> tuple[BlockArgs, BlockKwargs]:

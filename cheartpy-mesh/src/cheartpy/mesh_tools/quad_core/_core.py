@@ -13,13 +13,13 @@ from cheartpy.mesh import (
 )
 
 if TYPE_CHECKING:
-    from pytools.arrays import A1, A2, T2
+    from pytools.arrays import A1, A2, T2, ToFloat, ToInt
 
 
 __all__ = ["create_square_mesh"]
 
 
-def create_square_nodal_index(nx: int, ny: int) -> A2[np.intc]:
+def create_square_nodal_index(nx: ToInt, ny: ToInt) -> A2[np.intc]:
     index = np.zeros((nx + 1, ny + 1), dtype=np.intc)
     nn = 0
     for i in range(nx + 1):
@@ -29,7 +29,7 @@ def create_square_nodal_index(nx: int, ny: int) -> A2[np.intc]:
     return index
 
 
-def create_square_element_index(nx: int, ny: int) -> A2[np.intc]:
+def create_square_element_index(nx: ToInt, ny: ToInt) -> A2[np.intc]:
     index = np.zeros((nx, ny), dtype=np.intc)
     ne = 0
     for i in range(nx):
@@ -40,9 +40,9 @@ def create_square_element_index(nx: int, ny: int) -> A2[np.intc]:
 
 
 def create_space[I: np.integer](
-    shape: tuple[float, float],
-    shift: tuple[float, float],
-    dim: tuple[int, int],
+    shift: tuple[ToFloat, ToFloat],
+    shape: tuple[ToFloat, ToFloat],
+    dim: tuple[ToInt, ToInt],
     index: A2[I],
 ) -> CheartMeshSpace[np.float64]:
     nx, ny = dim
@@ -58,8 +58,8 @@ def create_space[I: np.integer](
 
 
 def create_topology[I: np.integer](
-    nx: int,
-    ny: int,
+    nx: ToInt,
+    ny: ToInt,
     node_index: A2[I],
     elem_index: A2[I],
 ) -> CheartMeshTopology[I]:
@@ -73,8 +73,8 @@ def create_topology[I: np.integer](
 
 
 def create_boundary_side_x_cw[I: np.integer](
-    tag: int,
-    ix: int,
+    tag: ToInt,
+    ix: ToInt,
     iy: A1[I],
     node_index: A2[I],
     elem_index: A2[I],
@@ -89,8 +89,8 @@ def create_boundary_side_x_cw[I: np.integer](
 
 
 def create_boundary_side_x_ccw[I: np.integer](
-    tag: int,
-    ix: int,
+    tag: ToInt,
+    ix: ToInt,
     iy: A1[I],
     node_index: A2[I],
     elem_index: A2[I],
@@ -104,9 +104,9 @@ def create_boundary_side_x_ccw[I: np.integer](
 
 
 def create_boundary_side_y_cw[I: np.integer](
-    tag: int,
+    tag: ToInt,
     ix: A1[I],
-    iy: int,
+    iy: ToInt,
     node_index: A2[I],
     elem_index: A2[I],
 ) -> CheartMeshPatch[I]:
@@ -119,9 +119,9 @@ def create_boundary_side_y_cw[I: np.integer](
 
 
 def create_boundary_side_y_ccw[I: np.integer](
-    tag: int,
+    tag: ToInt,
     ix: A1[I],
-    iy: int,
+    iy: ToInt,
     node_index: A2[I],
     elem_index: A2[I],
 ) -> CheartMeshPatch[I]:
@@ -134,8 +134,8 @@ def create_boundary_side_y_ccw[I: np.integer](
 
 
 def create_boundary[I: np.integer](
-    nx: int,
-    ny: int,
+    nx: ToInt,
+    ny: ToInt,
     node_index: A2[I],
     elem_index: A2[I],
 ) -> CheartMeshBoundary[I]:
@@ -151,9 +151,9 @@ def create_boundary[I: np.integer](
 
 
 def create_square_mesh(
-    dim: T2[int],
-    shape: T2[float] = (1.0, 1.0),
-    offset: T2[float] = (0.0, 0.0),
+    dim: T2[ToInt],
+    shape: T2[ToFloat] = (1.0, 1.0),
+    offset: T2[ToFloat] = (0.0, 0.0),
 ) -> CheartMesh[np.float64, np.intc]:
     node_index = create_square_nodal_index(*dim)
     elem_index = create_square_element_index(*dim)

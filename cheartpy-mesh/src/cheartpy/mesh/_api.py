@@ -19,12 +19,12 @@ from ._struct import (
 )
 
 if TYPE_CHECKING:
-    from pytools.arrays import A2, DType
+    from pytools.arrays import A2, DType, ToInt
 
 __all__ = ["import_cheart_mesh"]
 
 
-def _create_bnd_surf[T: np.integer](v: A2[T], tag: int, kind: VtkEnum) -> CheartMeshPatch[T]:
+def _create_bnd_surf[T: np.integer](v: A2[T], tag: ToInt, kind: VtkEnum) -> CheartMeshPatch[T]:
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1
