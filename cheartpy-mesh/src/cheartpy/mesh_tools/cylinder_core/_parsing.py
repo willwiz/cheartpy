@@ -1,5 +1,8 @@
 import argparse
-from typing import Literal, Required, TypedDict
+from typing import TYPE_CHECKING, Literal, Required, TypedDict
+
+if TYPE_CHECKING:
+    from pytools.arrays import ToFloat, ToInt
 
 cylinder_parser = argparse.ArgumentParser("cylinder", description="Make a cylinder")
 cylinder_parser.add_argument(
@@ -28,13 +31,13 @@ cylinder_parser.add_argument("zn", type=int, help="number of elements in z")
 
 
 class CylinderArgs(TypedDict, total=True):
-    rn: int
-    qn: int
-    zn: int
-    rin: float
-    rout: float
-    length: float
-    base: float
+    rn: ToInt
+    qn: ToInt
+    zn: ToInt
+    rin: ToFloat
+    rout: ToFloat
+    length: ToFloat
+    base: ToFloat
 
 
 class CylinderKwargs(TypedDict, total=False):

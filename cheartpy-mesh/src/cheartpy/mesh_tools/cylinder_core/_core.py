@@ -17,7 +17,7 @@ from ._types import CartesianDirection
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A2
+    from pytools.arrays import A2, ToFloat
 
 
 __all__ = [
@@ -84,10 +84,10 @@ def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> Ch
 
 def convert_cartesian_space_to_cylindrical[F: np.floating](
     x: A2[F],
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
+    r_in: ToFloat,
+    r_out: ToFloat,
+    length: ToFloat,
+    base: ToFloat,
 ) -> A2[F]:
     r = np.zeros_like(x)
     r[:, 0] = (r_out - r_in) * x[:, 0] ** 0.707 + r_in
@@ -98,10 +98,10 @@ def convert_cartesian_space_to_cylindrical[F: np.floating](
 
 def convert_to_cylindrical[F: np.floating, I: np.integer](
     cube: CheartMesh[F, I],
-    r_in: float,
-    r_out: float,
-    length: float,
-    base: float,
+    r_in: ToFloat,
+    r_out: ToFloat,
+    length: ToFloat,
+    base: ToFloat,
 ) -> CheartMesh[F, I]:
     new_x = convert_cartesian_space_to_cylindrical(
         cube.space.v,
