@@ -1,5 +1,5 @@
 import argparse
-from typing import TypedDict
+from typing import Required, TypedDict
 
 block_parser = argparse.ArgumentParser("block", description="Make a cube")
 block_parser.add_argument(
@@ -40,8 +40,8 @@ class BlockArgs(TypedDict, total=True):
 
 class BlockKwargs(TypedDict, total=False):
     prefix: str
-    shape: tuple[float, float, float]
-    offset: tuple[float, float, float]
+    shape: Required[tuple[float, float, float]]
+    offset: Required[tuple[float, float, float]]
 
 
 def get_block_args(args: list[str] | None = None) -> tuple[BlockArgs, BlockKwargs]:

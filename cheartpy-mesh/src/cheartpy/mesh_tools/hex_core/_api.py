@@ -38,7 +38,8 @@ def make_block_api(
 ) -> CheartMesh[np.float64, np.intc]:
     mesh = create_hex_mesh(
         (args["xn"], args["yn"], args["zn"]),
-        **{k: kwargs[k] for k in ["shape", "offset"] if k in kwargs},
+        kwargs["shape"],
+        kwargs["offset"],
     )
     if prefix := kwargs.get("prefix"):
         mesh.save(prefix)
