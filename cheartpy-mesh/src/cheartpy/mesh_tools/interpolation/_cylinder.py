@@ -7,12 +7,14 @@ from cheartpy.mesh import CheartMesh, CheartMeshSpace
 from ._remeshing import create_quad_boundary, create_quad_top_and_map
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import Mapping, Sequence
 
     from pytools.arrays import A1, A2
 
 
-def mean_cylindrical[T: np.floating](mat: A2[T]) -> A1[T]:
+def mean_cylindrical_position[F: np.floating](
+    radius: A2[F], cosine: A1[F], sine: A1[F], z: A2[F]
+) -> Sequence[F]:
     """Return the cylindrical coordinates mapped from the cartesian coordinates.
 
     Difference in Angle between two vectors is more robustly given by:
@@ -22,26 +24,27 @@ def mean_cylindrical[T: np.floating](mat: A2[T]) -> A1[T]:
     r(q/2) = r(0|q) * (3 + cos(2 * dq))/ (4 * cos(dq))
     this converges to r with element refinement.
     """
-    c = np.cos(mat[:, 1])
-    s = np.sin(mat[:, 1])
-    cq = c.mean()
-    sq = s.mean()
+    cq = cosine.mean()
+    sq = sine.mean()
     q = np.arctan2(sq, cq)
-    sin = c * sq - s * cq
-    cos = c * cq + s * sq
+    sin = cosine * sq - sine * cq
+    cos = cosine * cq + sine * cq
     dq = np.abs(np.arctan2(sin, cos)).mean()
-    r = mat[:, 0].mean() * (3.0 + np.cos(2.0 * dq)) / (4.0 * np.cos(dq))
-    return np.array([r, q, mat[:, 2].mean()])
+    r = radius.mean() * (3.0 + np.cos(2.0 * dq)) / (4.0 * np.cos(dq))
+    return r, q, z.mean()
 
 
-def create_quad_space_cylindrical[T: np.floating](
+def create_quad_space_cylinder[F: np.floating](
     quad_map: Mapping[frozenset[int], int],
-    x: CheartMeshSpace[T],
-) -> CheartMeshSpace[T]:
-    new_space = np.zeros((len(quad_map), x.v.shape[1]), dtype=float)
-    for elem, i in quad_map.items():
-        nodes = x.v[list(elem)]
-        new_space[i] = mean_cylindrical(nodes)
+    x: CheartMeshSpace[F],
+) -> CheartMeshSpace[F]:
+    cosine = np.cos(x.v[:, 1])
+    sine = np.sin(x.v[:, 1])
+    elem_nodes = (np.array(list(elem)) for elem in quad_map)
+    new_space = np.fromiter(
+        (mean_cylindrical_position(x.v[n, 0], cosine[n], sine[n], x.v[n, 2]) for n in elem_nodes),
+        dtype=f"3{x.v.dtype.str}",
+    )
     return CheartMeshSpace(len(new_space), new_space)
 
 
@@ -50,5 +53,5 @@ def create_quad_mesh_from_lin_cylindrical[F: np.floating, I: np.integer](
 ) -> CheartMesh[F, I]:
     top, quad_map = create_quad_top_and_map(mesh.top, mesh.space.n)
     boundary = create_quad_boundary(quad_map, mesh.bnd) if mesh.bnd else None
-    space = create_quad_space_cylindrical(quad_map, mesh.space)
+    space = create_quad_space_cylinder(quad_map, mesh.space)
     return CheartMesh(space, top, boundary)

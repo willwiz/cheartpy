@@ -21,3 +21,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+#temporory files
+temp_*.py
