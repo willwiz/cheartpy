@@ -28,7 +28,7 @@ def mean_cylindrical_position[F: np.floating](
     sq = sine.mean()
     q = np.arctan2(sq, cq)
     sin = cosine * sq - sine * cq
-    cos = cosine * cq + sine * cq
+    cos = cosine * cq + sine * sq
     dq = np.abs(np.arctan2(sin, cos)).mean()
     r = radius.mean() * (3.0 + np.cos(2.0 * dq)) / (4.0 * np.cos(dq))
     return r, q, z.mean()
