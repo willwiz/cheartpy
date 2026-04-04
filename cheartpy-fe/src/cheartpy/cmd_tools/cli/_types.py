@@ -31,3 +31,12 @@ class PrepArgs(TypedDict, total=True):
 class PrepKwargs(TypedDict, total=False):
     quiet: bool
     log: bool
+
+class CheartErrorCode(enum.Enum):
+    SUCCESS = 0
+    UNSPECIFIED = 1
+    PFILE = 2
+    CONVERGENCE_FAILED = 3
+    MUMPS = 4
+    DEV = 10
+    UNKNOWN = 255

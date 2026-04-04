@@ -1,0 +1,6 @@
+from collections.abc import Sequence
+
+from ._traits import VarCompAPIKwargs
+
+def varcomp_api(var1: str, var2: str | None = None, **kwargs: VarCompAPIKwargs) -> None: ...
+def varcomp_cli(cmd_args: Sequence[str] | None = None) -> None: ...

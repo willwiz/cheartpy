@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Unpack
 from pytools.logging import get_logger
 
 from ._parser import parse_prep_cmdline_args, parse_solver_cmdline_args
-from ._types import PrepKwargs, SolverKwargs, Verbosity
+from ._types import CheartErrorCode, PrepKwargs, SolverKwargs, Verbosity
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -55,15 +55,29 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
             err = sp.run(cmd, stdout=f, stderr=ferr, check=False).returncode
     else:
         err = sp.run(cmd, check=False).returncode
-    logger.disp(f"{pfile!s} has finished!")
+    if err == 0:
+        logger.disp(f"{pfile!s} has finished!")
+    else:
+        err_code = (
+            f"{CheartErrorCode(err).name}"
+            if err in CheartErrorCode._value2member_map_
+            else f"{CheartErrorCode.UNKNOWN} = {err}"
+        )
+        logger.error(f"{pfile!s} has failed with error code {err_code}")
     return err
 
 
-def solver_cli(args: Sequence[str] | None = None) -> int:
+def solver_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_solver_cmdline_args(args)
-    return [run_problem(p, **_kwargs) for p in _args["pfile"]]
+    errs = [run_problem(p, **_kwargs) for p in _args["pfile"]]
+    if any(errs):
+        msg = f"One or more problems failed with errors: {errs}"
+        raise RuntimeError(msg)
 
 
-def prep_cli(args: Sequence[str] | None = None) -> int:
+def prep_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_prep_cmdline_args(args)
-    return [run_prep(p, **_kwargs) for p in _args["pfile"]]
+    errs = [run_prep(p, **_kwargs) for p in _args["pfile"]]
+    if any(errs):
+        msg = f"One or more prep tasks failed with errors: {errs}"
+        raise RuntimeError(msg)

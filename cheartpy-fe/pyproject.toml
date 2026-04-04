@@ -14,7 +14,7 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic"]
+dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic", "scipy-stubs[scipy]"]
 
 [tool.uv.build-backend]
 module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping"]
@@ -23,4 +23,4 @@ namespace = true
 [project.scripts]
 chsolve = "cheartpy.cmd_tools.cli:solver_cli"
 chprep = "cheartpy.cmd_tools.cli:prep_cli"
-varcomp = "cheartpy.cmd_tools.varcomp:main_cli"
+varcomp = "cheartpy.cmd_tools.varcomp:varcomp_cli"
