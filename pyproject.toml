@@ -33,11 +33,6 @@ abaqus = ["cheartpy-abaqus"]
 fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
 
 
-[project.scripts]
-cheart2vtu = "cheartpy.paraview.__main__:main_cli"
-varcomp = "cheartpy.cmd_tools.varcomp:main_cli"
-abaqus2cheart = "cheartpy.abaqus.__main__:main"
-
 [tool.uv.sources]
 cheartpy = { path = ".", package = false }
 cheartpy-abaqus = { path = "cheartpy-abaqus", editable = true }

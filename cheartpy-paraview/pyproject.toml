@@ -19,3 +19,6 @@ dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk"]
 [tool.uv.build-backend]
 module-name = "cheartpy.paraview"
 namespace = true
+
+[project.scripts]
+cheart2vtu = "cheartpy.paraview.__main__:main_cli"

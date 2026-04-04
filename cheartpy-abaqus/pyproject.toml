@@ -25,3 +25,6 @@ dependencies = [
 [tool.uv.build-backend]
 module-name = "cheartpy.abaqus"
 namespace = true
+
+[project.scripts]
+abaqus2cheart = "cheartpy.abaqus.__main__:main"
