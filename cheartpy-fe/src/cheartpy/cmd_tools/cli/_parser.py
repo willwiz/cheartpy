@@ -28,7 +28,7 @@ prep_parser.add_argument("--log", action="store_true")
 
 
 class SolverModel(BaseModel):
-    pfile: Sequence[Path]
+    pfile: list[Path]
     cores: int = 1
     log: bool = False
     dump_matrix: bool = False
@@ -37,7 +37,7 @@ class SolverModel(BaseModel):
 
 
 class PrepModel(BaseModel):
-    pfile: Sequence[Path]
+    pfile: list[Path]
     log: bool = False
 
 

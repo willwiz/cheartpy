@@ -34,6 +34,7 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
                 *msg,
                 f"{'<<< Running Program with Mode:':<{_H_STR_LEN_}} find",
                 f"{'<<< The mesh prefix is:':<{_H_STR_LEN_}} {fix_ch_sfx(inp.mesh_or_top)}",
+                f"{'<<< Space file prefix is:':<{_H_STR_LEN_}} {inp.space or 'AUTO'}",
             ]
         case "index":
             msg = [
