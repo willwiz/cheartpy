@@ -21,7 +21,7 @@ def run_prep(pfile: Path | str, **kwargs: Unpack[PrepKwargs]) -> int:
             cmd = [*cmd, "--no-output"]
         case Verbosity.NONE:
             pass
-    logger = get_logger()
+    logger = kwargs.get("logger", get_logger())
     logger.disp(" ".join(cmd))
     if kwargs.get("log"):
         with pfile.with_suffix(".prep").open("w") as f:
@@ -44,32 +44,32 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
             pass
     if kwargs.get("dump_matrix", False):
         cmd = [*cmd, "--dump-matrix"]
-    logger = get_logger()
+    logger = kwargs.get("logger", get_logger())
     logger.disp(" ".join(cmd))
-
     if kwargs.get("log"):
         with (
             pfile.with_suffix(".log").open("w") as f,
             pfile.with_suffix(".err").open("w") as ferr,
         ):
-            err = sp.run(cmd, stdout=f, stderr=ferr, check=False).returncode
-    else:
-        err = sp.run(cmd, check=False).returncode
-    if err == 0:
-        logger.disp(f"{pfile!s} has finished!")
-    else:
-        err_code = (
-            f"{CheartErrorCode(err).name}"
-            if err in CheartErrorCode._value2member_map_
-            else f"{CheartErrorCode.UNKNOWN} = {err}"
-        )
-        logger.error(f"{pfile!s} has failed with error code {err_code}")
-    return err
+            return sp.run(cmd, stdout=f, stderr=ferr, check=False).returncode
+    return sp.run(cmd, check=False).returncode
 
 
 def solver_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_solver_cmdline_args(args)
-    errs = [run_problem(p, **_kwargs) for p in _args["pfile"]]
+    logger = get_logger()
+    errs = []
+    for p in _args["pfile"]:
+        errs.append(run_problem(p, logger=logger, **_kwargs))
+        if errs[-1] == CheartErrorCode.SUCCESS.value:
+            logger.disp(f"Problem {p} solved successfully.")
+        else:
+            err_code = (
+                f"{CheartErrorCode(errs[-1]).name!s}"
+                if errs[-1] in CheartErrorCode._value2member_map_
+                else f"{CheartErrorCode.UNKNOWN.name!s} = {errs[-1]}"
+            )
+            logger.err(f"Problem {p} failed with error code {err_code}.")
     if any(errs):
         msg = f"One or more problems failed with errors: {errs}"
         raise RuntimeError(msg)
@@ -77,7 +77,19 @@ def solver_cli(args: Sequence[str] | None = None) -> None:
 
 def prep_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_prep_cmdline_args(args)
-    errs = [run_prep(p, **_kwargs) for p in _args["pfile"]]
+    logger = get_logger()
+    errs = []
+    for p in _args["pfile"]:
+        errs.append(run_prep(p, **_kwargs))
+        if errs[-1] == CheartErrorCode.SUCCESS.value:
+            logger.disp(f"Prep for {p} completed successfully.")
+        else:
+            err_code = (
+                f"{CheartErrorCode(errs[-1]).name!s}"
+                if errs[-1] in CheartErrorCode._value2member_map_
+                else f"{CheartErrorCode.UNKNOWN.name!s} = {errs[-1]}"
+            )
+            logger.err(f"Prep for {p} failed with error code {err_code}.")
     if any(errs):
         msg = f"One or more prep tasks failed with errors: {errs}"
         raise RuntimeError(msg)

@@ -5,6 +5,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+    from pytools.logging import ILogger
+
 
 class Verbosity(enum.Enum):
     NONE = 0
@@ -22,6 +24,7 @@ class SolverKwargs(TypedDict, total=False):
     dump_matrix: bool
     verbose: bool
     quiet: bool
+    logger: ILogger
 
 
 class PrepArgs(TypedDict, total=True):
@@ -31,6 +34,7 @@ class PrepArgs(TypedDict, total=True):
 class PrepKwargs(TypedDict, total=False):
     quiet: bool
     log: bool
+    logger: ILogger
 
 class CheartErrorCode(enum.Enum):
     SUCCESS = 0
