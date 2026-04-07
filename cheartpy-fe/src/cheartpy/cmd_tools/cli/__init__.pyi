@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Unpack
 
+from ._types import CheartErrorCode as CheartErrorCode
 from ._types import PrepKwargs as PrepKwargs
 from ._types import SolverKwargs as SolverKwargs
 
