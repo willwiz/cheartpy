@@ -57,12 +57,12 @@ def parse_solver_cmdline_args(args: Sequence[str] | None = None) -> tuple[Solver
     parsed_args = SolverModel(**vars(solver_parser.parse_args(args)))
     return (
         {"pfile": parsed_args.pfile},
-        {
-            "cores": parsed_args.cores,
-            "log": parsed_args.log,
-            "dump_matrix": parsed_args.dump_matrix,
-            "verbosity": parsed_args.verbosity,
-        },
+        SolverKwargs(
+            cores=parsed_args.cores,
+            log=parsed_args.log,
+            dump_matrix=parsed_args.dump_matrix,
+            verbosity=parsed_args.verbosity,
+        ),
     )
 
 
@@ -70,5 +70,8 @@ def parse_prep_cmdline_args(args: Sequence[str] | None = None) -> tuple[PrepArgs
     parsed_args = PrepModel(**vars(prep_parser.parse_args(args)))
     return (
         {"pfile": parsed_args.pfile},
-        {"log": parsed_args.log, "verbosity": parsed_args.verbosity},
+        PrepKwargs(
+            log=parsed_args.log,
+            verbosity=parsed_args.verbosity,
+        ),
     )

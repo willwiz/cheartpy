@@ -25,7 +25,7 @@ class SolverKwargs(TypedDict, total=False):
     cores: int
     log: bool
     dump_matrix: bool
-    verbose: VerbosityEnum
+    verbosity: Verbosity
     logger: ILogger
 
 
@@ -34,9 +34,10 @@ class PrepArgs(TypedDict, total=True):
 
 
 class PrepKwargs(TypedDict, total=False):
-    quiet: bool
+    verbosity: Verbosity
     log: bool
     logger: ILogger
+
 
 class CheartErrorCode(enum.Enum):
     SUCCESS = 0

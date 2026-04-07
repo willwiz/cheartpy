@@ -9,6 +9,4 @@ if TYPE_CHECKING:
 
 def varcomp_cli(cmd_args: Sequence[str] | None = None) -> None:
     args, kwargs = parse_cmdline_args(cmd_args).unwrap()
-    print(args)
-    print(kwargs)
     varcomp_api(args["var_1"], args["var_2"], **kwargs)

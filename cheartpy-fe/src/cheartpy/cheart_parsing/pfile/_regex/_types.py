@@ -83,8 +83,10 @@ type LineParseResult = (
     | Expression
     | Time
     | SolverGroup
+    | SolverGroupSetting
     | SolverSubGroup
     | SolverMatrix
+    | Problem
     | Basis
     | Topology
     | Variable

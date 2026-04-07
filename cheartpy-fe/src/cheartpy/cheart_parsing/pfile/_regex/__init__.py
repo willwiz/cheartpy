@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ._types import (
@@ -77,9 +78,9 @@ def blank_line(line: str) -> bool:
     return line.startswith(r"%") or line == ""
 
 
-def get_output_path(line: str) -> str | None:
+def get_output_path(line: str) -> OutputPath | None:
     if match := OUTPUT_PATH.match(line):
-        return OutputPath(match.group("path"))
+        return OutputPath(Path(match.group("path")))
     return None
 
 
@@ -101,7 +102,7 @@ def get_solver_group(line: str) -> SolverGroup | None:
     return None
 
 
-def get_solver_group_setting(line: str) -> SolverGroup | None:
+def get_solver_group_setting(line: str) -> SolverGroupSetting | None:
     if match := SOLVER_GROUP_SETTING.match(line):
         return SolverGroupSetting(
             match.group("name"), [v.strip() for v in match.group("values").split("|")]

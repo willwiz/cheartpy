@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
+    from pytools.arrays import ToInt
+
 
 __all__ = ["IVariableGetter", "IVariableList", "VarErrors", "VarStats"]
 
@@ -16,7 +18,7 @@ HEADER = ["mean", "std", "min", "min pos", "max", "max pos", "bias"]
 HEADER_LEN = 8 + 10 + len(HEADER) * 11
 
 
-class VarCompAPIArgs(TypedDict, total=False):
+class VarCompAPIArgs(TypedDict, total=True):
     var_1: str
     var_2: str
 
@@ -48,9 +50,9 @@ class VarErrors:
     mean: float
     sem: float
     vmin: float
-    vmin_pos: tuple[int, int]
+    vmin_pos: tuple[ToInt, ...]
     vmax: float
-    vmax_pos: tuple[int, int]
+    vmax_pos: tuple[ToInt, ...]
     rmean: float
     tol: ClassVar[float] = 1e-8
 

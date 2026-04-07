@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Unpack
 
 from cheartpy.io import chread_d
 from pytools.logging import get_logger
@@ -19,8 +19,8 @@ def table_header() -> str:
     return header + "\n" + ("─" * len(header))
 
 
-def varcomp_api(var1: str, var2: str | None = None, **kwargs: VarCompAPIKwargs) -> None:
-    log = get_logger(level=kwargs.get("log_level", "INFO"))
+def varcomp_api(var1: str, var2: str | None = None, **kwargs: Unpack[VarCompAPIKwargs]) -> None:
+    log = get_logger(level=(kwargs.get("log_level") or "INFO"))
     var2 = var2 or var1
     root_1 = kwargs.get("root_1") or kwargs.get("root_2") or Path.cwd()
     root_2 = kwargs.get("root_2") or kwargs.get("root_1") or Path.cwd()

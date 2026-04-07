@@ -16,11 +16,14 @@ __all__ = ["compute_stats"]
 def moving_average[T: np.floating](x: A2[T], w: int) -> A2[T]:
     _, *offaxis = x.shape
     window = np.ones((w * 2 + 1, *offaxis), dtype=x.dtype)
-    return convolve(x, window, mode="same") / convolve(np.ones_like(x), window, mode="same")
+    w_mean = convolve(x, window, mode="same") / convolve(np.ones_like(x), window, mode="same")
+    return w_mean.astype(x.dtype)
 
 
 def compute_stats[T: np.floating](data1: A2[T] | float, data2: A2[T] | float) -> Result[VarStats]:
-    if data1.shape != data2.shape:
+    if (isinstance(data1, np.ndarray) and isinstance(data2, np.ndarray)) and (
+        data1.shape != data2.shape
+    ):
         return Err(ValueError(f"Data shapes do not match: {data1.shape} vs {data2.shape}"))
     avg = np.mean(0.5 * (np.abs(data1) + np.abs(data2)))
     # residuals

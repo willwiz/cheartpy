@@ -60,9 +60,10 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
 def solver_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_solver_cmdline_args(args)
     logger = get_logger()
+    _kwargs = {"logger": logger, **_kwargs}
     errs = []
     for p in _args["pfile"]:
-        errs.append(run_problem(p, logger=logger, **_kwargs))
+        errs.append(run_problem(p, **_kwargs))
         if errs[-1] == CheartErrorCode.SUCCESS.value:
             logger.disp(f"Problem {p} solved successfully.")
         else:
@@ -91,7 +92,7 @@ def prep_cli(args: Sequence[str] | None = None) -> None:
                 if errs[-1] in CheartErrorCode._value2member_map_
                 else f"{CheartErrorCode.UNKNOWN.name!s} = {errs[-1]}"
             )
-            logger.err(f"Prep for {p} failed with error code {err_code}.")
+            logger.error(f"Prep for {p} failed with error code {err_code}.")
     if any(errs):
         msg = f"One or more prep tasks failed with errors: {errs}"
         raise RuntimeError(msg)

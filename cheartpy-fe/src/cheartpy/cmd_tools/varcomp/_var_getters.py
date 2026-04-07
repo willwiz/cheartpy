@@ -14,9 +14,9 @@ class VariableGeneratorConst(IVariableGenerator):
     __slots__ = ["_idx", "_path"]
 
     _path: Final[Path]
-    _idx: Final[Iterable[int]]
+    _idx: Final[Iterable[int] | Iterable[str]]
 
-    def __init__(self, prefix: str, root: Path, idx: Iterable[int]) -> None:
+    def __init__(self, prefix: str, root: Path, idx: Iterable[int] | Iterable[str]) -> None:
         self._path = root / prefix
         self._idx = idx
 
@@ -30,9 +30,9 @@ class VariableGenerator(IVariableGenerator):
 
     _prefix: Final[str]
     _root: Final[Path]
-    _idx: Final[Iterable[int]]
+    _idx: Final[Iterable[int] | Iterable[str]]
 
-    def __init__(self, prefix: str, root: Path, idx: Iterable[int]) -> None:
+    def __init__(self, prefix: str, root: Path, idx: Iterable[int] | Iterable[str]) -> None:
         self._prefix = prefix
         self._root = root
         self._idx = idx
