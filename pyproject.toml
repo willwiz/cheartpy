@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "cheartpy"
-version = "0.2.0"
+version = "1.2.0"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
