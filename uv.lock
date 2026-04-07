@@ -80,7 +80,7 @@ requires-dist = [
     { name = "cheartpy-vtk", marker = "extra == 'all'", editable = "cheartpy-vtk" },
     { name = "meshio" },
     { name = "numpy" },
-    { name = "pytools", git = "https://github.com/willwiz/pytools" },
+    { name = "pytools", git = "https://github.com/willwiz/pytools?tag=v1.2" },
 ]
 provides-extras = ["all", "mesh", "vtu", "abaqus", "fe"]
 
@@ -149,7 +149,9 @@ dependencies = [
     { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
+    { name = "pydantic" },
     { name = "pytools" },
+    { name = "scipy-stubs", extra = ["scipy"] },
 ]
 
 [package.metadata]
@@ -157,7 +159,9 @@ requires-dist = [
     { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
+    { name = "pydantic" },
     { name = "pytools" },
+    { name = "scipy-stubs", extras = ["scipy"] },
 ]
 
 [[package]]
@@ -642,8 +646,8 @@ wheels = [
 
 [[package]]
 name = "pytools"
-version = "1.1.0a0"
-source = { git = "https://github.com/willwiz/pytools#8b0521275643ea06d1b6e42fd4b668229e478fdb" }
+version = "1.2.0"
+source = { git = "https://github.com/willwiz/pytools?tag=v1.2#4bd0e654b8674ffc8fc864388a77aee4597b3123" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },
