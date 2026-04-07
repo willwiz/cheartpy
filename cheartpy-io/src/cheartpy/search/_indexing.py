@@ -101,9 +101,9 @@ def get_file_name_indexer(
         case None, _:
             return Ok(ZeroIndexer())
         case (int(), int(), int()), None:
-            return Ok(RangeIndexer(index))
+            return Ok(RangeIndexer(index, inclusive=True))
         case (int(), int(), int()), (int(), int(), int()):
-            return Ok(RangeSubIndexer(index, subindex))
+            return Ok(RangeSubIndexer(index, subindex, inclusive=True))
         case SearchMode(), None | (int(), int(), int()):
             return _get_auto_indexer(variables, root, subindex)
         case SearchMode() | (int(), int(), int()), SearchMode():

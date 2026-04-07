@@ -42,11 +42,11 @@ class RangeIndexer(IIndexIterator):
     di: Final[int]
     size: Final[int]
 
-    def __init__(self, index: tuple[int, int, int]) -> None:
+    def __init__(self, index: tuple[int, int, int], *, inclusive: bool = False) -> None:
         self.i0 = index[0]
-        self.it = index[1]
+        self.it = index[1] + inclusive
         self.di = index[2]
-        self.size = (index[1] - index[0]) // index[2] + 1
+        self.size = (index[1] - index[0] + inclusive) // index[2] + 1
 
     def __iter__(self) -> Iterator[int]:
         yield from range(self.i0, self.it, self.di)
@@ -73,15 +73,17 @@ class RangeSubIndexer(IIndexIterator):
         self,
         index: tuple[int, int, int],
         sub_index: tuple[int, int, int],
+        *,
+        inclusive: bool = False,
     ) -> None:
         self.i0 = index[0]
-        self.it = index[1]
+        self.it = index[1] + inclusive
         self.di = index[2]
         self.s0 = sub_index[0]
-        self.st = sub_index[1]
+        self.st = sub_index[1] + inclusive
         self.ds = sub_index[2]
-        self.size = ((index[1] - index[0]) // index[2] + 1) * (
-            (sub_index[1] - sub_index[0]) // sub_index[2] + 2
+        self.size = ((index[1] - index[0] + inclusive) // index[2] + 1) * (
+            (sub_index[1] - sub_index[0] + inclusive) // sub_index[2] + 2
         )
 
     def __iter__(self) -> Iterator[str]:
