@@ -39,7 +39,7 @@ ResidualStrainIII = TypedDict(
     "ResidualStrainIII",
     {"ResidualF-weights": IVariable, "ResidualF-deformedvectors": IVariable},
 )
-ResidualStrainArgs = ResidualStrainI | ResidualStrainII | ResidualStrainIII
+type ResidualStrainArgs = ResidualStrainI | ResidualStrainII | ResidualStrainIII
 
 
 class SolidProblem(IProblem):
