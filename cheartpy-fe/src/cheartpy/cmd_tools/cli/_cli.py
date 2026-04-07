@@ -6,7 +6,7 @@ from cheartpy.cheart_parsing.pfile.find import find_output_dir
 from pytools.logging import get_logger
 
 from ._parser import parse_prep_cmdline_args, parse_solver_cmdline_args
-from ._types import CheartErrorCode, PrepKwargs, SolverKwargs, Verbosity
+from ._types import CheartErrorCode, PrepKwargs, SolverKwargs
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -15,12 +15,12 @@ if TYPE_CHECKING:
 def run_prep(pfile: Path | str, **kwargs: Unpack[PrepKwargs]) -> int:
     pfile = Path(pfile)
     cmd = ["cheartsolver.out", str(pfile), "--prep"]
-    match kwargs.get("verbosity", Verbosity.NONE):
-        case Verbosity.PEDANTIC:
+    match kwargs.get("verbosity") or "DEFAULT":
+        case "PEDANTIC":
             cmd = [*cmd, "--pedantic-printing"]
-        case Verbosity.QUIET:
+        case "QUIET":
             cmd = [*cmd, "--no-output"]
-        case Verbosity.NONE:
+        case "NONE" | "DEFAULT":
             pass
     logger = kwargs.get("logger", get_logger())
     logger.disp(" ".join(cmd))
@@ -39,13 +39,11 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     cores = kwargs.get("cores", 1)
     if cores > 1:
         cmd = ["mpiexec", "-n", f"{cores}", *cmd]
-    match kwargs.get("verbosity", Verbosity.NONE):
-        case Verbosity.PEDANTIC:
-            cmd = [*cmd, "--pedantic-printing"]
-        case Verbosity.QUIET:
-            cmd = [*cmd, "--no-output"]
-        case Verbosity.NONE:
+    match kwargs.get("verbosity") or "DEFAULT":
+        case "PEDANTIC" | "DEFAULT" | "NONE":
             pass
+        case "QUIET":
+            cmd = [*cmd, "--no-output"]
     if kwargs.get("dump_matrix", False):
         cmd = [*cmd, "--dump-matrix"]
     logger = kwargs.get("logger", get_logger())
@@ -73,7 +71,7 @@ def solver_cli(args: Sequence[str] | None = None) -> None:
                 if errs[-1] in CheartErrorCode._value2member_map_
                 else f"{CheartErrorCode.UNKNOWN.name!s} = {errs[-1]}"
             )
-            logger.err(f"Problem {p} failed with error code {err_code}.")
+            logger.error(f"Problem {p} failed with error code {err_code}.")
     if any(errs):
         msg = f"One or more problems failed with errors: {errs}"
         raise RuntimeError(msg)

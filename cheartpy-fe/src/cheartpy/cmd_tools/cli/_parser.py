@@ -9,22 +9,34 @@ from ._types import PrepArgs, PrepKwargs, SolverArgs, SolverKwargs, Verbosity
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+
 solver_parser = argparse.ArgumentParser("chsolve")
 solver_parser.add_argument("pfile", nargs="+", type=Path)
 solver_parser.add_argument("--cores", "-n", type=int, default=1)
 solver_parser.add_argument("--log", action="store_true")
 solver_parser.add_argument("--dump-matrix", action="store_true")
-solver_parser.set_defaults(verbosity=Verbosity.NONE)
+solver_parser.set_defaults(verbosity="DEFAULT")
 verbosity = solver_parser.add_mutually_exclusive_group()
 verbosity.add_argument(
-    "--verbose", dest="verbosity", action="store_const", const=Verbosity.PEDANTIC
+    "--verbose",
+    dest="verbosity",
+    action="store_const",
+    const="PEDANTIC",
 )
-verbosity.add_argument("--quiet", dest="verbosity", action="store_const", const=Verbosity.QUIET)
+verbosity.add_argument(
+    "--quiet",
+    dest="verbosity",
+    action="store_const",
+    const="QUIET",
+)
 
 
 prep_parser = argparse.ArgumentParser("chprep")
 prep_parser.add_argument("pfile", nargs="+", type=Path)
 prep_parser.add_argument("--log", action="store_true")
+prep_parser.add_argument(
+    "--quiet", dest="verbosity", action="store_const", const="QUIET", default="DEFAULT"
+)
 
 
 class SolverModel(BaseModel):
@@ -32,13 +44,13 @@ class SolverModel(BaseModel):
     cores: int = 1
     log: bool = False
     dump_matrix: bool = False
-    verbose: bool = False
-    quiet: bool = False
+    verbosity: Verbosity
 
 
 class PrepModel(BaseModel):
     pfile: list[Path]
     log: bool = False
+    verbosity: Verbosity
 
 
 def parse_solver_cmdline_args(args: Sequence[str] | None = None) -> tuple[SolverArgs, SolverKwargs]:
@@ -49,8 +61,7 @@ def parse_solver_cmdline_args(args: Sequence[str] | None = None) -> tuple[Solver
             "cores": parsed_args.cores,
             "log": parsed_args.log,
             "dump_matrix": parsed_args.dump_matrix,
-            "verbose": parsed_args.verbose,
-            "quiet": parsed_args.quiet,
+            "verbosity": parsed_args.verbosity,
         },
     )
 
@@ -59,5 +70,5 @@ def parse_prep_cmdline_args(args: Sequence[str] | None = None) -> tuple[PrepArgs
     parsed_args = PrepModel(**vars(prep_parser.parse_args(args)))
     return (
         {"pfile": parsed_args.pfile},
-        {"log": parsed_args.log},
+        {"log": parsed_args.log, "verbosity": parsed_args.verbosity},
     )

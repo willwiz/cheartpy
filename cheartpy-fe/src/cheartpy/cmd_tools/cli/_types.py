@@ -1,5 +1,5 @@
 import enum
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -7,11 +7,14 @@ if TYPE_CHECKING:
 
     from pytools.logging import ILogger
 
+type Verbosity = Literal["NONE", "DEFAULT", "PEDANTIC", "QUIET"]
 
-class Verbosity(enum.Enum):
+
+class VerbosityEnum(enum.Enum):
     NONE = 0
-    PEDANTIC = 1
-    QUIET = 2
+    DEFAULT = 1
+    PEDANTIC = 2
+    QUIET = 3
 
 
 class SolverArgs(TypedDict, total=True):
@@ -22,8 +25,7 @@ class SolverKwargs(TypedDict, total=False):
     cores: int
     log: bool
     dump_matrix: bool
-    verbose: bool
-    quiet: bool
+    verbose: VerbosityEnum
     logger: ILogger
 
 

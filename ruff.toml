@@ -34,3 +34,6 @@ unfixable = []
 [format]
 quote-style = "double"
 indent-style = "space"
+
+[lint.flake8-type-checking]
+runtime-evaluated-base-classes = ["pydantic.BaseModel"]
