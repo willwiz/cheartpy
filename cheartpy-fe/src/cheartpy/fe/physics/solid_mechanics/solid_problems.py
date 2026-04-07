@@ -27,6 +27,21 @@ class _SolidProblemExtraArgs(TypedDict, total=False):
     matlaws: list[ILaw] | None
 
 
+class ResidualStrainI(TypedDict, total=True):
+    ResidualF: IVariable
+
+
+ResidualStrainII = TypedDict(
+    "ResidualStrainII", {"ResidualF-weights": IVariable, "ResidualF-vectors": IVariable}
+)
+
+ResidualStrainIII = TypedDict(
+    "ResidualStrainIII",
+    {"ResidualF-weights": IVariable, "ResidualF-deformedvectors": IVariable},
+)
+ResidualStrainArgs = ResidualStrainI | ResidualStrainII | ResidualStrainIII
+
+
 class SolidProblem(IProblem):
     name: str
     problem: SolidProblemEnum
@@ -129,6 +144,15 @@ class SolidProblem(IProblem):
             for v in w.get_var_deps():
                 self.aux_vars[str(v)] = v
 
+    @overload
+    def add_residual_strain(self, strain: ResidualStrainI) -> None: ...
+    @overload
+    def add_residual_strain(self, strain: ResidualStrainII) -> None: ...
+    @overload
+    def add_residual_strain(self, strain: ResidualStrainIII) -> None: ...
+    def add_residual_strain(self, strain: ResidualStrainArgs) -> None:
+        _add_residual_strain(self, strain)
+
     def add_variable(self, name: SolidVariableValue, var: IVariable) -> None:
         self.variables[name] = var
 
@@ -197,3 +221,26 @@ class SolidProblem(IProblem):
         for v in self.matlaws:
             f.write(v.string())
         self.bc.write(f)
+
+
+def _add_residual_strain(
+    prob: SolidProblem,
+    strain: ResidualStrainArgs,
+) -> None:
+    match strain:
+        case {"ResidualF": tensor}:
+            prob.add_variable("ResidualF", tensor)
+        case {"ResidualF-weights": weights, "ResidualF-vectors": vectors}:
+            prob.add_variable("ResidualF-weights", weights)
+            prob.add_variable("ResidualF-vectors", vectors)
+        case {"ResidualF-weights": weights, "ResidualF-deformedvectors": vectors}:
+            prob.add_variable("ResidualF-weights", weights)
+            prob.add_variable("ResidualF-deformedvectors", vectors)
+        case _:
+            msg = (
+                ">>>FATAL: To add residual strain, problem must have either:\n"
+                " 'ResidualF'\n"
+                " 'ResidualF-weights' and 'ResidualF-vectors' or \n"
+                " 'ResidualF-weights' and 'ResidualF-deformedvectors'"
+            )
+            raise ValueError(msg)

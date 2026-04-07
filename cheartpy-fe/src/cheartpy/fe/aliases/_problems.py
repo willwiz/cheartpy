@@ -43,6 +43,10 @@ SolidVariableValue = Literal[
     "Pressure",
     "Fibers",
     "GenStruc",
+    "ResidualF",
+    "ResidualF-weights",
+    "ResidualF-vectors",
+    "ResidualF-deformedvectors",
 ]
 
 
@@ -53,6 +57,10 @@ class SolidVariableEnum(enum.StrEnum):
     Pressure = "Pressure"
     Fibers = "Fibers"
     GenStruc = "GenStruc"
+    ResidualF = "ResidualF"
+    ResidualF_weights = "ResidualF-weights"
+    ResidualF_vectors = "ResidualF-vectors"
+    ResidualF_deformedvectors = "ResidualF-deformedvectors"
 
 
 SolidOption = Literal[
