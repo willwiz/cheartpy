@@ -75,6 +75,7 @@ def create_rotation_constraint(
         disp_var = next(v_deps.__iter__())
     else:
         disp_var = disp
+    rot_bc.perturbation = True
     rot_bc.add_term(disp_var, FSExpr(lm, rot_mat["m"]))
     rot_bc.add_expr_deps(*rot_mat.values())
     return rot_bc

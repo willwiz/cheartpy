@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 MACRO = re.compile(r"#(?P<name>\w+)\s*=\s*(?P<value>.+)", re.IGNORECASE)
-OUTPUT_PATH = re.compile(r"\s*!SetOutputPath=\{(?P<path>\w+)\}", re.IGNORECASE)
+OUTPUT_PATH = re.compile(r"\s*!SetOutputPath\s*=\s*\{(?P<path>[\w\/]+)\}", re.IGNORECASE)
 TIME = re.compile(r"\s*!DefTimeStepScheme\s*=\s*\{(?P<name>\w+)\}", re.IGNORECASE)
 SOLVER_GROUP = re.compile(
     r"""\s*!DefSolverGroup\s*=\s*\{\s*

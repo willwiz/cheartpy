@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 def find_output_dir(pfile: Path) -> Path | None:
     text = pfile.read_text()
     for line in text.splitlines():
-        match get_output_path(line):
+        match get_output_path(line.strip()):
             case OutputPath(path):
                 return path
             case None:
