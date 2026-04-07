@@ -2,6 +2,7 @@ import subprocess as sp
 from pathlib import Path
 from typing import TYPE_CHECKING, Unpack
 
+from cheartpy.cheart_parsing.pfile.find import find_output_dir
 from pytools.logging import get_logger
 
 from ._parser import parse_prep_cmdline_args, parse_solver_cmdline_args
@@ -31,6 +32,9 @@ def run_prep(pfile: Path | str, **kwargs: Unpack[PrepKwargs]) -> int:
 
 def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     pfile = Path(pfile)
+    output_path = find_output_dir(pfile)
+    if output_path:
+        Path(output_path).mkdir(parents=True, exist_ok=True)
     cmd = ["cheartsolver.out", str(pfile)]
     cores = kwargs.get("cores", 1)
     if cores > 1:

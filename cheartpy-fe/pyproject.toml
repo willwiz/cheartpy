@@ -17,10 +17,11 @@ license = "MIT"
 dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic", "scipy-stubs[scipy]"]
 
 [tool.uv.build-backend]
-module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping"]
+module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping", "cheartpy.cheart_parsing"]
 namespace = true
 
 [project.scripts]
 chsolve = "cheartpy.cmd_tools.cli:solver_cli"
 chprep = "cheartpy.cmd_tools.cli:prep_cli"
 varcomp = "cheartpy.cmd_tools.varcomp:varcomp_cli"
+parse_pfile = "cheartpy.cheart_parsing.pfile:parse_pfile_cli"
