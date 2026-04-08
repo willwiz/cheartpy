@@ -22,25 +22,17 @@ __all__ = ["create_hex_mesh"]
 def create_hex_mesh(
     dim: T3[ToInt],
     shape: T3[ToFloat] = (1.0, 1.0, 1.0),
-    shift: T3[ToFloat] = (0.0, 0.0, 0.0),
+    offset: T3[ToFloat] = (0.0, 0.0, 0.0),
 ) -> CheartMesh[np.float64, np.intc]:
     node_index = create_square_nodal_index(*dim)
     elem_index = create_square_element_index(*dim)
     return CheartMesh(
-        create_space(shape, shift, dim, node_index),
+        create_space(shape, offset, dim, node_index),
         create_topology(*dim, node_index, elem_index),
         create_boundary(*dim, node_index, elem_index),
     )
 
 
-def make_block_api(
-    args: BlockArgs, **kwargs: Unpack[BlockKwargs]
-) -> CheartMesh[np.float64, np.intc]:
-    mesh = create_hex_mesh(
-        (args["xn"], args["yn"], args["zn"]),
-        kwargs["shape"],
-        kwargs["offset"],
-    )
-    if prefix := kwargs.get("prefix"):
-        mesh.save(prefix)
-    return mesh
+def make_block_cli(args: BlockArgs, **kwargs: Unpack[BlockKwargs]) -> None:
+    mesh = create_hex_mesh((args["xn"], args["yn"], args["zn"]), **kwargs)
+    mesh.save(args["prefix"])

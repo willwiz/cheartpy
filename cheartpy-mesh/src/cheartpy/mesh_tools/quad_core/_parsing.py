@@ -1,10 +1,13 @@
 import argparse
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
+from warnings import warn
+
+from pydantic import BaseModel, ValidationError
+from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
-    from pytools.arrays import ToFloat, ToInt
 
 square_parser = argparse.ArgumentParser("square", description="Make a square")
 square_parser.add_argument(
@@ -35,26 +38,46 @@ square_parser.add_argument("xn", type=int, help="number of elements in x")
 square_parser.add_argument("yn", type=int, help="number of elements in y")
 
 
-class SquareKwargs(TypedDict, total=False):
+class _ArgsModel(BaseModel):
     prefix: str
-    shape: tuple[ToFloat, ToFloat]
-    offset: tuple[ToFloat, ToFloat]
+    xn: int
+    yn: int
+
+
+class _KwargsModel(BaseModel):
+    shape: tuple[float, float]
+    offset: tuple[float, float]
 
 
 class SquareArgs(TypedDict, total=True):
-    xn: ToInt
-    yn: ToInt
+    prefix: str
+    xn: int
+    yn: int
+
+
+class SquareKwargs(TypedDict, total=False):
+    shape: tuple[float, float]
+    offset: tuple[float, float]
+
+
+def parse_square_args(args: Mapping[str, Any]) -> Result[tuple[SquareArgs, SquareKwargs]]:
+    try:
+        square_args = _ArgsModel(**args)
+    except ValidationError as e:
+        return Err(e)
+    try:
+        square_kwargs = _KwargsModel(**args)
+    except ValidationError as e:
+        return Err(e)
+    return Ok((SquareArgs(**square_args.model_dump()), SquareKwargs(**square_kwargs.model_dump())))
 
 
 def get_square_args(args: Sequence[str] | None = None) -> tuple[SquareArgs, SquareKwargs]:
     namespace = square_parser.parse_args(args)
-    _args_dict: SquareArgs = {
-        "xn": namespace.xn,
-        "yn": namespace.yn,
-    }
-    _kwargs_dict: SquareKwargs = {
-        "prefix": namespace.prefix,
-        "shape": tuple(namespace.size),
-        "offset": tuple(namespace.offset),
-    }
-    return _args_dict, _kwargs_dict
+    match parse_square_args(vars(namespace)):
+        case Ok(result):
+            return result
+        case Err(e):
+            warn(f"Error parsing arguments: {e}.", stacklevel=2)
+            square_parser.print_help()
+            raise SystemExit(1)

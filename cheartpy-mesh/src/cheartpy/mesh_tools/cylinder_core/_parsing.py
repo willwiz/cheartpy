@@ -1,15 +1,20 @@
 import argparse
-from typing import TYPE_CHECKING, Literal, Required, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, Required, TypedDict
+from warnings import warn
+
+from pydantic import BaseModel, ValidationError
+from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
-    from pytools.arrays import ToFloat, ToInt
+    from collections.abc import Mapping
+
 
 cylinder_parser = argparse.ArgumentParser("cylinder", description="Make a cylinder")
 cylinder_parser.add_argument(
     "--prefix",
     "-p",
     type=str,
-    default="cube",
+    default="cylinder",
     help="Prefix for saved file.",
 )
 cylinder_parser.add_argument("-l", "--length", type=float, default=1, help="long axis length")
@@ -30,36 +35,58 @@ cylinder_parser.add_argument("qn", type=int, help="number of elements in theta")
 cylinder_parser.add_argument("zn", type=int, help="number of elements in z")
 
 
+class _ArgsModel(BaseModel):
+    prefix: str
+    rin: float
+    rout: float
+    length: float
+    base: float
+    rn: int
+    qn: int
+    zn: int
+
+
+class _KwargsModel(BaseModel):
+    axis: Literal["x", "y", "z"]
+    make_quad: bool
+
+
 class CylinderArgs(TypedDict, total=True):
-    rn: ToInt
-    qn: ToInt
-    zn: ToInt
-    rin: ToFloat
-    rout: ToFloat
-    length: ToFloat
-    base: ToFloat
+    prefix: str
+    rn: int
+    qn: int
+    zn: int
+    rin: float
+    rout: float
+    length: float
+    base: float
 
 
 class CylinderKwargs(TypedDict, total=False):
-    prefix: str
     axis: Required[Literal["x", "y", "z"]]
     make_quad: bool
 
 
+def parse_cylinder_args(args: Mapping[str, Any]) -> Result[tuple[CylinderArgs, CylinderKwargs]]:
+    try:
+        cylinder_args = _ArgsModel(**args)
+    except ValidationError as e:
+        return Err(e)
+    try:
+        cylinder_kwargs = _KwargsModel(**args)
+    except ValidationError as e:
+        return Err(e)
+    return Ok(
+        (CylinderArgs(**cylinder_args.model_dump()), CylinderKwargs(**cylinder_kwargs.model_dump()))
+    )
+
+
 def get_cylinder_args(args: list[str] | None = None) -> tuple[CylinderArgs, CylinderKwargs]:
     namespace = cylinder_parser.parse_args(args)
-    _args_dict: CylinderArgs = {
-        "rn": namespace.rn,
-        "qn": namespace.qn,
-        "zn": namespace.zn,
-        "rin": namespace.rin,
-        "rout": namespace.rout,
-        "length": namespace.length,
-        "base": namespace.base,
-    }
-    _kwargs_dict: CylinderKwargs = {
-        "prefix": namespace.prefix,
-        "axis": namespace.axis,
-        "make_quad": namespace.make_quad,
-    }
-    return _args_dict, _kwargs_dict
+    match parse_cylinder_args(vars(namespace)):
+        case Ok(result):
+            return result
+        case Err(e):
+            warn(f"Error parsing cylinder args: {e}", stacklevel=2)
+            cylinder_parser.print_help()
+            raise SystemExit(1)

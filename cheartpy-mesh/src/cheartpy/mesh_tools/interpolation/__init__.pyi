@@ -14,7 +14,7 @@ from ._parsing import InterpArgs, InterpKwargs
 
 type INTERP_MAP[T: np.integer] = Mapping[int, A1[T]]
 
-class _InterpolatKwargs(TypedDict, total=False):
+class InterpolatKwargs(TypedDict, total=False):
     log: ILogger
     overwrite: bool
 
@@ -30,13 +30,19 @@ def get_interp_args(
     args: Sequence[str] | None = None,
 ) -> tuple[InterpArgs, InterpKwargs]: ...
 def interp_var_l2q[T: np.floating, I: np.integer](l2qmap: INTERP_MAP[I], lin: A2[T]) -> A2[T]: ...
-def interpolate_var_on_lin_topology[I: np.integer](
-    l2qmap: INTERP_MAP[I], lin_var: Path, quad_var: Path, **kwargs: Unpack[_InterpolatKwargs]
+def export_quad_var_from_lin[I: np.integer](
+    l2qmap: INTERP_MAP[I], lin_var: Path, quad_var: Path, **kwargs: Unpack[InterpolatKwargs]
 ) -> None: ...
-def make_interp_api(args: InterpArgs, **kwargs: Unpack[InterpKwargs]) -> None: ...
+def make_interp_cli(args: InterpArgs, **kwargs: Unpack[InterpKwargs]) -> None: ...
 def make_l2qmap[F: np.floating, I: np.integer](
     lin_mesh: CheartMesh[F, I], quad_mesh: CheartMesh[F, I]
 ) -> INTERP_MAP[I]: ...
 def parser_interp_args(
     args: Mapping[str, object],
 ) -> Result[tuple[InterpArgs, InterpKwargs]]: ...
+def interp_vars_api[F: np.floating, I: np.integer](
+    lin: CheartMesh[F, I],
+    quad: CheartMesh[F, I],
+    vs: Mapping[str, str],
+    **kwargs: Unpack[InterpKwargs],
+) -> None: ...

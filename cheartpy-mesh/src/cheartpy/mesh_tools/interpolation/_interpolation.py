@@ -56,16 +56,16 @@ def interp_var_l2q[T: np.floating, I: np.integer](l2qmap: INTERP_MAP[I], lin: A2
     return quad_data
 
 
-class _InterpolatKwargs(TypedDict, total=False):
+class InterpolatKwargs(TypedDict, total=False):
     log: ILogger
     overwrite: bool
 
 
-def interpolate_var_on_lin_topology[I: np.integer](
+def export_quad_var_from_lin[I: np.integer](
     l2qmap: INTERP_MAP[I],
     lin_var: Path,
     quad_var: Path,
-    **kwargs: Unpack[_InterpolatKwargs],
+    **kwargs: Unpack[InterpolatKwargs],
 ) -> None:
     lin = chread_d(lin_var)
     log = kwargs.get("log", get_logger())

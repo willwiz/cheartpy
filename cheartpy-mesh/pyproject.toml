@@ -19,3 +19,6 @@ dependencies = ["pytools", "numpy", "meshio", "cheartpy-io", "cheartpy-vtk", 'py
 [tool.uv.build-backend]
 module-name = ["cheartpy.mesh", "cheartpy.meshio", "cheartpy.mesh_tools"]
 namespace = true
+
+[project.scripts]
+makemesh = "cheartpy.mesh_tools.__main__:main_cli"

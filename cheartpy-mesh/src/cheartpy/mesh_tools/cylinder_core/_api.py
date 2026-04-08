@@ -75,15 +75,12 @@ def create_cylinder_mesh(
     return g, None
 
 
-def make_cylinder_api(
-    args: CylinderArgs, **kwargs: Unpack[CylinderKwargs]
-) -> tuple[CheartMesh[np.float64, np.intc], CheartMesh[np.float64, np.intc] | None]:
+def make_cylinder_cli(args: CylinderArgs, **kwargs: Unpack[CylinderKwargs]) -> None:
     mesh, quad = create_cylinder_mesh(
         (args["rin"], args["rout"], args["length"], args["base"]),
         (args["rn"], args["qn"], args["zn"]),
         kwargs["axis"],
         make_quad=kwargs.get("make_quad", False),
     )
-    if prefix := kwargs.get("prefix"):
-        mesh.save(prefix)
-    return mesh, quad
+    quad = quad or mesh
+    mesh.save(args["prefix"])

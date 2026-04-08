@@ -1,9 +1,10 @@
 import argparse
-from collections.abc import Sequence
-from typing import Literal, Unpack, overload
+from collections.abc import Mapping, Sequence
+from typing import Any, Literal, Unpack, overload
 
 import numpy as np
 from pytools.arrays import T3, ToFloat, ToInt
+from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
 
@@ -32,6 +33,7 @@ def create_cylinder_mesh(
     axis: Literal["x", "y", "z"],
     make_quad: Literal[True],
 ) -> tuple[CheartMesh[np.float64, np.intc], CheartMesh[np.float64, np.intc]]: ...
-def make_cylinder_api(
+def make_cylinder_cli(
     args: CylinderArgs, **kwargs: Unpack[CylinderKwargs]
 ) -> tuple[CheartMesh[np.float64, np.intc], CheartMesh[np.float64, np.intc] | None]: ...
+def parse_cylinder_args(args: Mapping[str, Any]) -> Result[tuple[CylinderArgs, CylinderKwargs]]: ...

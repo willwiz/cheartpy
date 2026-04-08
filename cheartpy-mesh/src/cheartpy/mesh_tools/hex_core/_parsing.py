@@ -1,8 +1,14 @@
 import argparse
-from typing import TYPE_CHECKING, Required, TypedDict
+from typing import TYPE_CHECKING, Any, Required, TypedDict
+from warnings import warn
+
+from pydantic import BaseModel, ValidationError
+from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
-    from pytools.arrays import T3, ToFloat, ToInt
+    from collections.abc import Mapping
+
+    from pytools.arrays import T3
 
 block_parser = argparse.ArgumentParser("block", description="Make a cube")
 block_parser.add_argument(
@@ -35,28 +41,48 @@ block_parser.add_argument("yn", type=int, help="number of elements in y")
 block_parser.add_argument("zn", type=int, help="number of elements in z")
 
 
+class _ArgsModel(BaseModel):
+    prefix: str
+    xn: int
+    yn: int
+    zn: int
+
+
+class _KwargsModel(BaseModel):
+    shape: tuple[float, float, float]
+    offset: tuple[float, float, float]
+
+
 class BlockArgs(TypedDict, total=True):
-    xn: ToInt
-    yn: ToInt
-    zn: ToInt
+    prefix: str
+    xn: int
+    yn: int
+    zn: int
 
 
 class BlockKwargs(TypedDict, total=False):
-    prefix: str
-    shape: Required[T3[ToFloat]]
-    offset: Required[T3[ToFloat]]
+    shape: Required[T3[float]]
+    offset: Required[T3[float]]
+
+
+def parse_block_args(args: Mapping[str, Any]) -> Result[tuple[BlockArgs, BlockKwargs]]:
+    try:
+        block_args = _ArgsModel(**args)
+    except ValidationError as e:
+        return Err(e)
+    try:
+        block_kwargs = _KwargsModel(**args)
+    except ValidationError as e:
+        return Err(e)
+    return Ok((BlockArgs(**block_args.model_dump()), BlockKwargs(**block_kwargs.model_dump())))
 
 
 def get_block_args(args: list[str] | None = None) -> tuple[BlockArgs, BlockKwargs]:
     namespace = block_parser.parse_args(args)
-    _args_dict: BlockArgs = {
-        "xn": namespace.xn,
-        "yn": namespace.yn,
-        "zn": namespace.zn,
-    }
-    _kwargs_dict: BlockKwargs = {
-        "prefix": namespace.prefix,
-        "shape": tuple(namespace.shape),
-        "offset": tuple(namespace.offset),
-    }
-    return _args_dict, _kwargs_dict
+    match parse_block_args(vars(namespace)):
+        case Ok(result):
+            return result
+        case Err(e):
+            warn(f"Error parsing arguments: {e}.", stacklevel=2)
+            block_parser.print_help()
+            raise SystemExit(1)

@@ -1,4 +1,5 @@
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
 from warnings import warn
@@ -7,7 +8,7 @@ from pydantic import BaseModel, ValidationError
 from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Mapping
 
 interp_parser = argparse.ArgumentParser(
     "interp",
@@ -22,12 +23,13 @@ interp_parser.add_argument(
     help="OPTIONAL: specify a folder for the where the variables are stored. NOT YET IMPLEMENTED",
 )
 interp_parser.add_argument(
-    "--suffix",
-    "-s",
-    dest="suffix",
+    "--postfix",
+    "-p",
+    dest="postfix",
     type=str,
-    default="Quad",
-    help="OPTIONAL: output file will have [tag] appended before index numbers and extension",
+    nargs="+",
+    default=None,
+    help="OPTIONAL: [<postfix>, ...]. Same size as input. Append `_Quad` if not given",
 )
 interp_parser.add_argument(
     "--ext",
@@ -41,14 +43,26 @@ interp_parser.add_argument(
     "-l",
     type=str,
     required=True,
-    help="file path to linear mesh",
+    help="REQUIRED: file path to linear mesh",
 )
 interp_parser.add_argument(
     "--quad",
     "-q",
     type=str,
     required=True,
-    help="file path to quadratic mesh",
+    help="REQUIRED: file path to quadratic mesh",
+)
+interp_parser.add_argument(
+    "--threads",
+    "-n",
+    type=int,
+    default=1,
+    help="OPTIONAL: number of threads to use for interpolation. Default is 1.",
+)
+interp_parser.add_argument(
+    "--overwrite",
+    action="store_true",
+    help="OPTIONAL: whether to overwrite existing files.",
 )
 interp_parser.add_argument(
     "vars",
@@ -61,12 +75,14 @@ interp_parser.add_argument(
 class ArgsModel(BaseModel):
     lin: str
     quad: str
-    vars: list[str]
+    vars: Sequence[str]
+    postfix: Sequence[str] | None
 
 
 class KwargsModel(BaseModel):
-    suffix: str = "Quad"
     input_dir: Path = Path.cwd()
+    overwrite: bool = False
+    threads: int = 1
     ext: Literal["D", "D.gz"] = "D"
 
 
@@ -74,11 +90,13 @@ class InterpArgs(TypedDict, total=True):
     lin: str
     quad: str
     vars: Sequence[str]
+    postfix: Sequence[str] | None
 
 
 class InterpKwargs(TypedDict, total=False):
-    suffix: str
     input_dir: Path
+    overwrite: bool
+    threads: int
     ext: Literal["D", "D.gz"]
 
 

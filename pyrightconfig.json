@@ -13,8 +13,9 @@
     "**/*.vtu",
     "**/*.log",
   ],
-  "ignore": [".deps"],
-  "autoImportCompletions": true,
+  "ignore": [
+    ".deps"
+  ],
   "typeCheckingMode": "strict",
   "deprecateTypingAliases": true,
   "strictDictionaryInference": true,

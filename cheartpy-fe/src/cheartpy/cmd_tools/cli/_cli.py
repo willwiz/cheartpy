@@ -60,8 +60,8 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
 def solver_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_solver_cmdline_args(args)
     logger = get_logger()
-    _kwargs = {"logger": logger, **_kwargs}
-    errs = []
+    _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
+    errs: list[int] = []
     for p in _args["pfile"]:
         errs.append(run_problem(p, **_kwargs))
         if errs[-1] == CheartErrorCode.SUCCESS.value:
@@ -81,7 +81,7 @@ def solver_cli(args: Sequence[str] | None = None) -> None:
 def prep_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_prep_cmdline_args(args)
     logger = get_logger()
-    errs = []
+    errs: list[int] = []
     for p in _args["pfile"]:
         errs.append(run_prep(p, **_kwargs))
         if errs[-1] == CheartErrorCode.SUCCESS.value:

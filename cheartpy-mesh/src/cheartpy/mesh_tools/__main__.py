@@ -1,10 +1,10 @@
 import argparse
 from typing import TYPE_CHECKING
 
-from .cylinder_core import cylinder_parser, get_cylinder_args, make_cylinder_api
-from .hex_core import block_parser, get_block_args, make_block_api
-from .interpolation import interp_parser, make_interp_api, parser_interp_args
-from .quad_core import get_square_args, make_square_api, square_parser
+from .cylinder_core import cylinder_parser, make_cylinder_cli, parse_cylinder_args
+from .hex_core import block_parser, make_block_cli, parse_block_args
+from .interpolation import interp_parser, make_interp_cli, parser_interp_args
+from .quad_core import make_square_cli, parse_square_args, square_parser
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -27,20 +27,20 @@ interp = subpar.add_parser(
 
 
 def main_cli(args: Sequence[str] | None = None) -> None:
-    parsed_args = parser.parse_args()
+    parsed_args = parser.parse_args(args)
     match parsed_args.mode:
         case "square":
-            _args, kwargs = get_square_args(args)
-            make_square_api(_args, **kwargs)
+            _args, kwargs = parse_square_args(vars(parsed_args)).unwrap()
+            make_square_cli(_args, **kwargs)
         case "cube":
-            _args, kwargs = get_block_args(args)
-            make_block_api(_args, **kwargs)
+            _args, kwargs = parse_block_args(vars(parsed_args)).unwrap()
+            make_block_cli(_args, **kwargs)
         case "cylinder":
-            _args, kwargs = get_cylinder_args(args)
-            make_cylinder_api(_args, **kwargs)
+            _args, kwargs = parse_cylinder_args(vars(parsed_args)).unwrap()
+            make_cylinder_cli(_args, **kwargs)
         case "interp":
             _args, kwargs = parser_interp_args(vars(parsed_args)).unwrap()
-            make_interp_api(_args, **kwargs)
+            make_interp_cli(_args, **kwargs)
         case _:
             parser.print_help()
 
