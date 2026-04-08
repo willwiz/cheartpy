@@ -187,7 +187,6 @@ REGEX_LIST: list[Callable[[str], LineParseResult | None]] = [
 
 
 def parse_line(line: str) -> LineParseResult:
-    # print(VARIABLE.match(r"!DefVariablePointer={F|TPQuad|9}"))
     if blank_line(line.strip()):
         return None
     for regex in REGEX_LIST:

@@ -2,6 +2,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, get_args
+from warnings import warn
 
 from pydantic import BaseModel, ValidationError
 from pytools.logging import LogLevel
@@ -102,10 +103,10 @@ _parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing w
 
 
 class PydanticParser(BaseModel):
-    files: Sequence[Path | str]
-    topology: Sequence[str]
-    boundary: Sequence[Sequence[str]] | None
-    add_mask: Sequence[Sequence[str]] | None
+    files: list[Path | str]
+    topology: list[str]
+    boundary: list[list[str]] | None
+    add_mask: list[list[str]] | None
     prefix: str | None
     log_level: LogLevel
     cores: int
@@ -144,6 +145,6 @@ def parse_cmdline_args(args: Sequence[str] | None = None) -> tuple[AbaqusAPIArgs
         case Ok(result):
             return result
         case Err(e):
-            print(f"Error parsing arguments: {e}")
+            warn(f"Error parsing arguments: {e}", stacklevel=2)
             _parser.print_help()
             raise SystemExit(1)

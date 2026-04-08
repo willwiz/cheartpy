@@ -1,7 +1,6 @@
 from collections import defaultdict
 from collections.abc import Mapping
 from pathlib import Path
-from pprint import pformat
 from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
@@ -44,7 +43,7 @@ def check_normal[F: np.floating](
         logger.debug(
             f"Normal check failed for elem = {elem}, patch normals of:",
             patch_normals,
-            pformat([node_normals[i] for i in elem]),
+            [node_normals[i] for i in elem],
         )
     return check
 

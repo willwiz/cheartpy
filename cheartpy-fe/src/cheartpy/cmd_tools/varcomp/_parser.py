@@ -74,7 +74,6 @@ def set_root_directories(folders: Sequence[Path] | None) -> Result[tuple[Path, P
             f2 = f1
         case [f1, f2]: ...  # fmt: skip
         case _:
-            print(folders)
             msg = "Error: Too many folders provided. Please provide at most two folders."
             return Err(ValueError(msg))
     return Ok((f1, f2))

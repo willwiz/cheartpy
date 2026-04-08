@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from warnings import warn
 
 from pydantic import BaseModel, ValidationError
 from pytools.result import Err, Ok, Result
@@ -60,7 +61,7 @@ interp_parser.add_argument(
 class ArgsModel(BaseModel):
     lin: str
     quad: str
-    vars: Sequence[str]
+    vars: list[str]
 
 
 class KwargsModel(BaseModel):
@@ -99,6 +100,6 @@ def get_interp_args(args: list[str] | None = None) -> tuple[InterpArgs, InterpKw
         case Ok(result):
             return result
         case Err(e):
-            print(f"Error parsing arguments: {e}")
+            warn(f"Error parsing arguments: {e}", stacklevel=2)
             interp_parser.print_help()
             raise SystemExit(1)

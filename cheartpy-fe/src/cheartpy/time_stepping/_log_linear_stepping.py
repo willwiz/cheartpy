@@ -62,7 +62,6 @@ def _left_contract[F: np.floating](
 ) -> Result[Sequence[A1[F]]]:
     repeat = kwargs.get("repeat_contract", 1)
     ramp_t = 4.5 * repeat * left
-    # print(f"_left_contract with parameters:{duration=}, {desired=}, {left=}, {right=}, {ramp_t=}")
     if duration < ramp_t:
         msg = (
             "Duration is too short to accommodate the desired time step from left!\n"
@@ -100,13 +99,7 @@ def _left_expand[F: np.floating](
 ) -> Result[Sequence[A1[F]]]:
     repeat = kwargs.get("repeat_expand", 1)
     ramp_t = 45.0 * repeat * left
-    # print(f"_left_expand with parameters:{duration=}, {desired=}, {left=}, {right=}, {ramp_t=}")
     if duration < ramp_t:
-        # print(
-        #     f"_left_expand: not enough time\n"
-        #     f"from left! {duration} < {ramp_t}\n"
-        #     f"changing desired from {desired} to {left} for the rest of the duration"
-        # )
         return _expand_dt(duration, left, left, right, dtype=dtype, **kwargs).next()
     match _expand_dt(duration - ramp_t, desired, 10 * left, right, dtype=dtype, **kwargs):
         case Ok(result): ...  # fmt: skip
@@ -172,7 +165,6 @@ def _right_expand[F: np.floating](
 ) -> Result[Sequence[A1[F]]]:
     repeat = kwargs.get("repeat_contract", 1)
     ramp_t = 4.5 * repeat * right
-    # print(f"_right_expand with parameters:{duration=}, {desired=}, {left=}, {right=}, {ramp_t=}")
     if duration < ramp_t:
         msg = (
             "Duration is too short to accommodate the desired time step from right!\n"
@@ -216,11 +208,9 @@ def expand_time_as_log_linear[F: np.floating](
     """
     if desired == left == right:
         return Ok([np.full(int(duration / desired), float(desired), dtype=dtype)])
-    # print(f"Arguments are: duration={duration}, desired={desired}, left={left}, right={right}")
     left = float(10 ** math.floor(math.log10(left)))
     right = float(10 ** math.floor(math.log10(right)))
     desired = float(10 ** math.floor(math.log10(desired)))
-    # print(f"Updated time steps are: desired={desired}, left={left}, right={right}")
     match _expand_dt(float(duration), desired, left, right, dtype=dtype, **kwargs):
         case Ok(dt): ...  # fmt: skip
         case Err(err):

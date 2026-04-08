@@ -104,12 +104,9 @@ def _expand_dt_power[F: np.floating](
     dtype: DType[F] = np.float64,
 ) -> Result[Sequence[A1[F]]]:
     if (step_sizes["left"]) and _is_different(step_sizes["desired"], step_sizes["left"]):
-        print("A")
         return _power_smooth_left(duration, step_sizes, nt, dtype=dtype).next()
     if (step_sizes["right"]) and _is_different(step_sizes["desired"], step_sizes["right"]):
-        print("B")
         return _power_smooth_right(duration, step_sizes, nt, dtype=dtype).next()
-    print("C")
     better_nt = int(np.ceil(duration / step_sizes["desired"]))
     better_dt = duration / better_nt
     return Ok([np.full(better_nt, better_dt, dtype=dtype)])
