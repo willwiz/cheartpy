@@ -20,7 +20,7 @@ from cheartpy.fe.trait import (
     ITimeScheme,
     IVariable,
 )
-from cheartpy.fe.utils import get_enum, hline, join_fields, splicegen
+from cheartpy.fe.utils import get_enum, join_fields, splicegen
 from pytools.result import Err, Ok
 
 from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
@@ -247,7 +247,6 @@ class SolverGroup(ISolverGroup):
 
     # WRITE
     def write(self, f: TextIO) -> None:
-        f.write(hline("Solver Groups"))
         f.write(f"!DefSolverGroup={{{self}|{self.time}}}\n")
         # Handle Additional Vars
         variables = [str(v) for v in self.get_aux_vars().unwrap()]

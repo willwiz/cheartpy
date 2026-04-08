@@ -2,7 +2,6 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.fe.trait import ITimeScheme
-from cheartpy.fe.utils import hline
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -22,6 +21,5 @@ class TimeScheme(ITimeScheme):
         return hash(self.name)
 
     def write(self, f: TextIO) -> None:
-        f.write(hline("Define Time Scheme"))
         f.write(f"!DefTimeStepScheme={{{self.name}}}\n")
         f.write(f"  {self.start}  {self.stop}  {self.value}\n")
