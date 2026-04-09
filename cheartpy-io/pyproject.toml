@@ -14,7 +14,7 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["pytools", "numpy"]
+dependencies = ["pytools >=1.2.0a", "numpy"]
 
 [tool.uv.build-backend]
 module-name = ["cheartpy.io", "cheartpy.search"]

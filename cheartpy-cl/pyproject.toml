@@ -16,7 +16,7 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 dependencies = [
-  "pytools",
+  "pytools >= 1.2.0a",
   "cheartpy-fe",
   "cheartpy-mesh",
   "numpy",

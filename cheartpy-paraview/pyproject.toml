@@ -14,7 +14,7 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk"]
+dependencies = ["pytools>=1.2.0a", "numpy", "cheartpy-io", "cheartpy-vtk"]
 
 [tool.uv.build-backend]
 module-name = "cheartpy.paraview"

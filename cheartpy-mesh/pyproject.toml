@@ -14,7 +14,7 @@ classifiers = [
   "Operating System :: Linux",
   "Development Status :: 0 - Alpha",
 ]
-dependencies = ["pytools", "numpy", "meshio", "cheartpy-io", "cheartpy-vtk", 'pydantic']
+dependencies = ["pytools>=1.2.0a", "numpy", "meshio", "cheartpy-io", "cheartpy-vtk", 'pydantic']
 
 [tool.uv.build-backend]
 module-name = ["cheartpy.mesh", "cheartpy.meshio", "cheartpy.mesh_tools"]

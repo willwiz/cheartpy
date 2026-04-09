@@ -14,7 +14,7 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = ["pytools", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic", "scipy-stubs[scipy]"]
+dependencies = ["pytools>=1.2.0a", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic", "scipy-stubs[scipy]"]
 
 [tool.uv.build-backend]
 module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping", "cheartpy.cheart_parsing"]

@@ -19,6 +19,7 @@ class VerbosityEnum(enum.Enum):
 
 class SolverArgs(TypedDict, total=True):
     pfile: Sequence[Path]
+    parallel: int
 
 
 class SolverKwargs(TypedDict, total=False):

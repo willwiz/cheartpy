@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "cheartpy"
-version = "1.2.0"
+version = "1.2.0a"
 authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
@@ -15,7 +15,7 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = ["pytools", "numpy", "meshio", "cheartpy-io"]
+dependencies = ["pytools>=1.2.0a", "numpy", "meshio", "cheartpy-io"]
 
 [project.optional-dependencies]
 all = [
@@ -43,7 +43,7 @@ cheartpy-mesh = { path = "cheartpy-mesh", editable = true }
 cheartpy-paraview = { path = "cheartpy-paraview", editable = true }
 cheartpy-vtk = { path = "cheartpy-vtk", editable = true }
 cheartpy-symbolic = { path = "cheartpy-symbolic", editable = true }
-pytools = { git = "https://github.com/willwiz/pytools" , tag = "v1.2"}
+pytools = { git = "https://github.com/willwiz/pytools"}
 
 [tool.uv.build-backend]
 module-name = []

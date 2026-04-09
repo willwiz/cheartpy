@@ -43,7 +43,7 @@ def interp_vars_api[F: np.floating, I: np.integer](
                     input_dir / f"{k}-{i}.{ext}",
                     input_dir / f"{v}-{i}.{ext}",
                     log=logger,
-                    overwrite=kwargs.get("overwrite"),
+                    overwrite=kwargs.get("overwrite", False),
                 )
 
 
@@ -73,6 +73,8 @@ def make_interp_cli2(args: InterpArgs, **kwargs: Unpack[InterpKwargs]) -> None:
         {k: f"{k}{kwargs.get('suffix', 'Quad')}" for k in args["vars"]},
         **kwargs,
     )
+
+
 def make_interp_cli(args: InterpArgs, **kwargs: Unpack[InterpKwargs]) -> None:
     lin_mesh = import_cheart_mesh(args["lin"]).unwrap()
     quad_mesh = import_cheart_mesh(args["quad"]).unwrap()

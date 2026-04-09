@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Unpack
 
 from cheartpy.cheart_parsing.pfile.find import find_output_dir
 from pytools.logging import get_logger
+from pytools.parallel import ThreadedRunner
 
 from ._parser import parse_prep_cmdline_args, parse_solver_cmdline_args
 from ._types import CheartErrorCode, PrepKwargs, SolverKwargs
@@ -55,6 +56,35 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
         ):
             return sp.run(cmd, stdout=f, stderr=ferr, check=False).returncode
     return sp.run(cmd, check=False).returncode
+
+
+def solver_cli_series(args: Sequence[str] | None = None) -> None:
+    _args, _kwargs = parse_solver_cmdline_args(args)
+    logger = get_logger()
+    _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
+    errs: list[int] = []
+    for p in _args["pfile"]:
+        errs.append(run_problem(p, **_kwargs))
+        if errs[-1] == CheartErrorCode.SUCCESS.value:
+            logger.disp(f"Problem {p} solved successfully.")
+        else:
+            err_code = (
+                f"{CheartErrorCode(errs[-1]).name!s}"
+                if errs[-1] in CheartErrorCode._value2member_map_
+                else f"{CheartErrorCode.UNKNOWN.name!s} = {errs[-1]}"
+            )
+            logger.error(f"Problem {p} failed with error code {err_code}.")
+    if any(errs):
+        msg = f"One or more problems failed with errors: {errs}"
+        raise RuntimeError(msg)
+
+
+def solver_cli_parallel(args: Sequence[str] | None = None) -> None:
+    _args, _kwargs = parse_solver_cmdline_args(args)
+    logger = get_logger()
+    _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
+    with ThreadedRunner(thread=_args["parallel"]) as runner:
+        [runner.submit(run_problem, p, **_kwargs) for p in _args["pfile"]]
 
 
 def solver_cli(args: Sequence[str] | None = None) -> None:
