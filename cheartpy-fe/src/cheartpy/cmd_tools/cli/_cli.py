@@ -17,12 +17,10 @@ def run_prep(pfile: Path | str, **kwargs: Unpack[PrepKwargs]) -> int:
     pfile = Path(pfile)
     cmd = ["cheartsolver.out", str(pfile), "--prep"]
     match kwargs.get("verbosity") or "DEFAULT":
-        case "PEDANTIC":
-            cmd = [*cmd, "--pedantic-printing"]
+        case "PEDANTIC" | "DEFAULT" | "NONE":
+            pass
         case "QUIET":
             cmd = [*cmd, "--no-output"]
-        case "NONE" | "DEFAULT":
-            pass
     logger = kwargs.get("logger", get_logger())
     logger.disp(" ".join(cmd))
     if kwargs.get("log"):
@@ -41,10 +39,12 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     if cores > 1:
         cmd = ["mpiexec", "-n", f"{cores}", *cmd]
     match kwargs.get("verbosity") or "DEFAULT":
-        case "PEDANTIC" | "DEFAULT" | "NONE":
-            pass
+        case "PEDANTIC":
+            cmd = [*cmd, "--pedantic-printing"]
         case "QUIET":
             cmd = [*cmd, "--no-output"]
+        case "NONE" | "DEFAULT":
+            pass
     if kwargs.get("dump_matrix", False):
         cmd = [*cmd, "--dump-matrix"]
     logger = kwargs.get("logger", get_logger())
