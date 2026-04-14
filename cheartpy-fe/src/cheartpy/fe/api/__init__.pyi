@@ -1,4 +1,4 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Literal, TypedDict, Unpack, overload
 
@@ -8,6 +8,7 @@ from cheartpy.fe.aliases import (
     CheartElementType,
     CheartQuadratureType,
     SolverSubgroupMethod,
+    TopologyDef,
     VariableExportFormat,
 )
 from cheartpy.fe.impl import CheartTopology, MumpsMatrix, NullTopology, PFile
@@ -35,7 +36,12 @@ class _CreateBasisKwargs(TypedDict, total=False):
 def create_basis(
     elem: CheartElementType, kind: CheartBasisType, order: int, **kwargs: Unpack[_CreateBasisKwargs]
 ) -> ICheartBasis: ...
+@overload
 def create_boundary_basis(vol: ICheartBasis) -> ICheartBasis: ...
+@overload
+def create_boundary_basis(vol: None) -> None: ...
+@overload
+def create_boundary_basis(vol: ICheartBasis | None) -> ICheartBasis | None: ...
 def create_bcpatch(
     label: int,
     var: IVariable | tuple[IVariable, int | None],
@@ -98,6 +104,9 @@ def create_top_interface(
     interface_file: Path | str,
     nest_in_bnd: int | None = None,
 ) -> ITopInterface: ...
+def create_topologies[T](
+    dct: Mapping[T, TopologyDef[T]],
+) -> tuple[Mapping[T, ICheartTopology], Sequence[ITopInterface]]: ...
 def add_statevar(p: IProblem | None, *var: IVariable | IExpression | None) -> None: ...
 
 class _ExtraCreateVarOptions(TypedDict, total=False):

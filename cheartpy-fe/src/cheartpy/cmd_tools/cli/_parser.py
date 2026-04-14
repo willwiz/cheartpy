@@ -20,12 +20,14 @@ solver_parser.set_defaults(verbosity="DEFAULT")
 verbosity = solver_parser.add_mutually_exclusive_group()
 verbosity.add_argument(
     "--verbose",
+    "-v",
     dest="verbosity",
     action="store_const",
     const="PEDANTIC",
 )
 verbosity.add_argument(
     "--quiet",
+    "-q",
     dest="verbosity",
     action="store_const",
     const="QUIET",

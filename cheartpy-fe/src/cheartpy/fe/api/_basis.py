@@ -59,7 +59,9 @@ def create_basis(
     return CheartBasis(_elem, Basis(_kind, order), Quadrature(quadrature, gp))
 
 
-def create_boundary_basis(vol: ICheartBasis) -> CheartBasis:
+def create_boundary_basis(vol: ICheartBasis | None) -> CheartBasis | None:
+    if vol is None:
+        return None
     match vol.elem:
         case CheartElementEnum.HEXAHEDRAL_ELEMENT | CheartElementEnum.hex:
             elem = "QUADRILATERAL_ELEMENT"

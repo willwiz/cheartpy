@@ -1,5 +1,6 @@
 import enum
-from typing import Literal
+from pathlib import Path
+from typing import Literal, TypedDict
 
 type CheartBasisType = Literal[
     "NODAL_LAGRANGE",
@@ -100,3 +101,18 @@ type CheartTopInterfaceType = Literal[
 class CheartTopInterfaceEnum(enum.StrEnum):
     OneToOne = "OneToOne"
     ManyToOne = "ManyToOne"
+
+
+class VolumeTopologyDef(TypedDict, total=True):
+    elem: CheartElementType | None
+    order: int
+    mesh: Path
+
+
+class EmbbededTopologyDef[T](TypedDict, total=True):
+    master: T
+    bnd: int
+    mesh: Path
+
+
+type TopologyDef[T] = VolumeTopologyDef | EmbbededTopologyDef[T]

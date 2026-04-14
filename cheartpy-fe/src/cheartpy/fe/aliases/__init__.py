@@ -48,6 +48,7 @@ from ._topology import (
     CheartTopInterfaceType,
     CheartTopologyEnum,
     CheartTopologySetting,
+    TopologyDef,
 )
 from ._variable import (
     VariableExportEnum,
@@ -100,6 +101,7 @@ __all__ = [
     "SolverSubgroupOption",
     "TolEnum",
     "TolSetting",
+    "TopologyDef",
     "VariableExportEnum",
     "VariableExportFormat",
     "VariableUpdateEnum",

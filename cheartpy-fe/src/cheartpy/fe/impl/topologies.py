@@ -116,6 +116,9 @@ class NullTopology(ICheartTopology):
     def get_basis(self) -> ICheartBasis | None:
         return None
 
+    def create_in_boundary(self, top: ICheartTopology, surf: int | str) -> None:
+        self.in_boundary = (top, surf)
+
     def add_setting(
         self,
         task: CheartTopologyEnum | CheartTopologySetting,

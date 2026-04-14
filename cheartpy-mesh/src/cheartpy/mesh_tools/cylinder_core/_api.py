@@ -82,5 +82,7 @@ def make_cylinder_cli(args: CylinderArgs, **kwargs: Unpack[CylinderKwargs]) -> N
         kwargs["axis"],
         make_quad=kwargs.get("make_quad", False),
     )
-    quad = quad or mesh
     mesh.save(args["prefix"])
+    quad = quad or mesh
+    if quad:
+        quad.save(args["prefix"] + "_quad")

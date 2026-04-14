@@ -183,6 +183,8 @@ class ICheartTopology(abc.ABC):
     @abc.abstractmethod
     def get_basis(self) -> ICheartBasis | None: ...
     @abc.abstractmethod
+    def create_in_boundary(self, top: ICheartTopology, surf: int | str) -> None: ...
+    @abc.abstractmethod
     def add_setting(
         self,
         task: CheartTopologyEnum | CheartTopologySetting,
