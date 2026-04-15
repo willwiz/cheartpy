@@ -278,6 +278,9 @@ class IBoundaryCondition(abc.ABC):
 
 class IProblem(abc.ABC):
     buffering: bool
+    aux_vars: dict[str, IVariable]
+    aux_expr: dict[str, IExpression]
+    bc: IBoundaryCondition
 
     @abc.abstractmethod
     def __repr__(self) -> str: ...

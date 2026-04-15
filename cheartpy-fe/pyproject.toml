@@ -17,7 +17,7 @@ license = "MIT"
 dependencies = ["pytools>=1.2.0a", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic", "scipy-stubs[scipy]"]
 
 [tool.uv.build-backend]
-module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping", "cheartpy.cheart_parsing"]
+module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping", "cheartpy.cheart_parsing", "cheartpy.examples"]
 namespace = true
 
 [project.scripts]
