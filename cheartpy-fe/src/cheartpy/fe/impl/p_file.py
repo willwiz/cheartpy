@@ -77,7 +77,7 @@ class PFile(IPFile):
 
     def add_expression(self, *expr: IExpression) -> None:
         for v in expr:
-            for x in v.get_values():
+            for x in v.values():
                 if isinstance(x, IDataInterp):
                     self.add_datapointer(x.get_datapointer())
                 elif isinstance(x, IVariable):

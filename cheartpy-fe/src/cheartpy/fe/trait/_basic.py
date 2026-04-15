@@ -77,6 +77,9 @@ class IDataInterp(abc.ABC):
 
 
 class IExpression(abc.ABC):
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
+
     @abc.abstractmethod
     def __repr__(self) -> str: ...
     @abc.abstractmethod
@@ -88,7 +91,7 @@ class IExpression(abc.ABC):
     @abc.abstractmethod
     def idx(self, key: int) -> str: ...
     @abc.abstractmethod
-    def get_values(
+    def values(
         self,
     ) -> Sequence[EXPRESSION_VALUE]: ...
     @abc.abstractmethod
@@ -211,6 +214,8 @@ class ITopInterface(abc.ABC):
 
 
 class IVariable(abc.ABC):
+    expr_deps: dict[str, IExpression]
+
     @abc.abstractmethod
     def __repr__(self) -> str: ...
     @abc.abstractmethod
@@ -278,8 +283,8 @@ class IBoundaryCondition(abc.ABC):
 
 class IProblem(abc.ABC):
     buffering: bool
-    aux_vars: dict[str, IVariable]
-    aux_expr: dict[str, IExpression]
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
     bc: IBoundaryCondition
 
     @abc.abstractmethod

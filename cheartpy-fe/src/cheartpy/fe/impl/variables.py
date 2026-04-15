@@ -20,7 +20,7 @@ class Variable(IVariable):
     freq: int = 1
     loop_step: int | None = None
     setting: tuple[VariableUpdateEnum, Path | str | IExpression] | None = None
-    deps_expr: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
+    expr_deps: dict[str, IExpression] = dc.field(default_factory=dict[str, IExpression])
 
     def __repr__(self) -> str:
         return self.name
@@ -66,7 +66,7 @@ class Variable(IVariable):
         match task, val:
             case "INIT_EXPR" | "TEMPORAL_UPDATE_EXPR", IExpression():
                 self.setting = (get_enum(task, VariableUpdateEnum), val)
-                self.deps_expr[str(val)] = val
+                self.expr_deps[str(val)] = val
             case "TEMPORAL_UPDATE_FILE", str() | Path():
                 self.setting = (get_enum(task, VariableUpdateEnum), val)
             case "TEMPORAL_UPDATE_FILE_LOOP", str() | Path():
@@ -92,7 +92,7 @@ class Variable(IVariable):
     def get_expr_deps(
         self,
     ) -> ValuesView[IExpression]:
-        return self.deps_expr.values()
+        return self.expr_deps.values()
 
     def set_export_frequency(self, v: int) -> None:
         self.freq = v

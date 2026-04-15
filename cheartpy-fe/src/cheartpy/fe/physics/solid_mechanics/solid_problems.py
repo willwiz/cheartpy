@@ -47,8 +47,8 @@ class SolidProblem(IProblem):
     problem: SolidProblemEnum
     matlaws: list[ILaw]
     variables: dict[SolidVariableValue, IVariable]
-    aux_vars: dict[str, IVariable]
-    aux_expr: dict[str, IExpression]
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
     state_vars: dict[str, IVariable]
     options: dict[str, list[float | int | str]]
     gravity: tuple[float, tuple[float, float, float]] | IExpression | None
@@ -111,15 +111,15 @@ class SolidProblem(IProblem):
         for v in var:
             if v is None:
                 continue
-            if str(v) not in self.aux_vars:
-                self.aux_vars[str(v)] = v
+            if str(v) not in self.var_deps:
+                self.var_deps[str(v)] = v
 
     def add_expr_deps(self, *expr: IExpression | None) -> None:
         for v in expr:
             if v is None:
                 continue
-            if str(v) not in self.aux_expr:
-                self.aux_expr[str(v)] = v
+            if str(v) not in self.expr_deps:
+                self.expr_deps[str(v)] = v
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
@@ -127,12 +127,12 @@ class SolidProblem(IProblem):
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
         _s_vars_ = {str(v): v for v in self.state_vars.values()}
         _e_vars_ = {str(v): v for e in self.get_expr_deps() for v in e.get_var_deps()}
-        return {**self.aux_vars, **_w_vars_, **_vars_, **_b_vars_, **_s_vars_, **_e_vars_}.values()
+        return {**self.var_deps, **_w_vars_, **_vars_, **_b_vars_, **_s_vars_, **_e_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
         _w_exprs_ = {str(e): e for w in self.matlaws for e in w.get_expr_deps()}
-        return {**_w_exprs_, **_expr_, **self.aux_expr}.values()
+        return {**_w_exprs_, **_expr_, **self.expr_deps}.values()
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patches = self.bc.get_patches()
@@ -142,7 +142,7 @@ class SolidProblem(IProblem):
         for w in law:
             self.matlaws.append(w)
             for v in w.get_var_deps():
-                self.aux_vars[str(v)] = v
+                self.var_deps[str(v)] = v
 
     @overload
     def add_residual_strain(self, strain: ResidualStrainI) -> None: ...
@@ -160,7 +160,7 @@ class SolidProblem(IProblem):
         for v in var:
             if isinstance(v, IVariable):
                 self.state_vars[str(v)] = v
-                self.aux_vars[str(v)] = v
+                self.var_deps[str(v)] = v
 
     def use_option(self, opt: SolidOption, val: str | float, *sub_val: str) -> None:
         self.options[opt] = [val, *sub_val]
@@ -185,7 +185,7 @@ class SolidProblem(IProblem):
                 self.gravity = (g, direction)
             case IExpression(), None:
                 self.gravity = g
-                self.aux_expr[str(g)] = g
+                self.expr_deps[str(g)] = g
             case _:
                 msg = "Gravity must be either (float, tuple) or IExpression"
                 raise ValueError(msg)

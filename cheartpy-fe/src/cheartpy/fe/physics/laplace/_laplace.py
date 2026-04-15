@@ -10,8 +10,8 @@ if TYPE_CHECKING:
 class LaplaceProblem(IProblem):
     name: str
     variables: dict[str, IVariable]
-    aux_vars: dict[str, IVariable]
-    aux_expr: dict[str, IExpression]
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
     bc: IBoundaryCondition
     buffering: bool = False
 
@@ -48,15 +48,15 @@ class LaplaceProblem(IProblem):
         for v in var:
             if v is None:
                 continue
-            if str(v) not in self.aux_vars:
-                self.aux_vars[str(v)] = v
+            if str(v) not in self.var_deps:
+                self.var_deps[str(v)] = v
 
     def add_expr_deps(self, *expr: IExpression | None) -> None:
         for e in expr:
             if e is None:
                 continue
-            if str(e) not in self.aux_expr:
-                self.aux_expr[str(e)] = e
+            if str(e) not in self.expr_deps:
+                self.expr_deps[str(e)] = e
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patchs = self.bc.get_patches() or []

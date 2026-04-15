@@ -49,5 +49,13 @@
         },
       },
     },
+    "pyrefly": {
+      "settings": {
+        "pyrefly": {
+          "project_includes": ["**/cheartpy-*/**/*.py"],
+          "ignore_errors_in_generated_code": true,
+        },
+      },
+    },
   },
 }

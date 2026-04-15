@@ -18,8 +18,8 @@ class L2SolidProjection(IProblem):
     solid_prob: SolidProblem
     calculation: L2SolidCalculationEnum = L2SolidCalculationEnum.cauchy_stress
     variables: dict[str, IVariable]
-    aux_vars: dict[str, IVariable]
-    aux_expr: dict[str, IExpression]
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
     bc: IBoundaryCondition
     buffering: bool = False
     _problem: str = "l2solidprojection_problem"
@@ -63,24 +63,24 @@ class L2SolidProjection(IProblem):
         for v in var:
             if v is None:
                 continue
-            if str(v) not in self.aux_vars:
-                self.aux_vars[str(v)] = v
+            if str(v) not in self.var_deps:
+                self.var_deps[str(v)] = v
 
     def add_expr_deps(self, *expr: IExpression | None) -> None:
         for v in expr:
             if v is None:
                 continue
-            if str(v) not in self.aux_expr:
-                self.aux_expr[str(v)] = v
+            if str(v) not in self.expr_deps:
+                self.expr_deps[str(v)] = v
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
-        return {**_vars_, **_b_vars_, **self.aux_vars}.values()
+        return {**_vars_, **_b_vars_, **self.var_deps}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
-        return {**_expr_, **self.aux_expr}.values()
+        return {**_expr_, **self.expr_deps}.values()
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None: ...
 
