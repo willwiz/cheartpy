@@ -35,6 +35,7 @@ _index_group_sub.add_argument(
 )
 _index_group_sub.add_argument(
     "--subindex-auto",
+    "-sa",
     action="store_const",
     dest="subindex",
     const=AUTO,
