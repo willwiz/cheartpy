@@ -47,25 +47,29 @@ def get_var_subindex(
     if r".\\" in prefix:
         msg = f"Prefix {prefix} should not contain '.\\'"
         return Err(ValueError(msg))
-    p = re.compile(rf"{prefix}-(\d+)\.(\d+)\.{suffix}")
-    matches = [p.fullmatch(s) for s in names]
+    p = re.compile(rf"{prefix}-(?P<index>\d+)\.(?P<subindex>\d+)\.(?P<suffix>D|D\.gz|res2|vtu)")
+    matches = [p.fullmatch(s.strip()) for s in names]
     if not any(matches):
         msg = (
             f"No matching variable files found with prefix {prefix} and suffix {suffix}\n"
             f"Pattern used: {p.pattern}\n"
         )
         return Err(ValueError(msg))
-    matches = sorted([m.groups() for m in matches if m])
+    matches = list(filter(None, matches))
+    filetype = {m.group("suffix") for m in matches}
+    if len(filetype) > 1:
+        msg = f"Multiple file types found for prefix {prefix}: {filetype}"
+        return Err(ValueError(msg))
     index_lists: dict[int, list[int]] = defaultdict(list)
-    for k, i in matches:
-        index_lists[int(k)].append(int(i))
+    for m in matches:
+        index_lists[int(m.group("index"))].append(int(m.group("subindex")))
     return Ok(index_lists)
 
 
 def get_var_index_all(
     names: Sequence[str] | Iterable[str],
     prefix: str,
-    suffix: Literal[r"D", r"D\.gz"] = r"D",
+    suffix: Literal[r"D", r"D\.gz", r"vtu", r"res2"] = r"D",
 ) -> list[str]:
     p = re.compile(rf"{prefix}-(\d+|\d+.\d+).{suffix}")
     matches = [p.fullmatch(s) for s in names]
@@ -85,12 +89,12 @@ def find_var_index(prefix: str, root: Path | str | None) -> Ok[list[int]] | Err:
 
 def find_var_subindex(prefix: str, root: Path | str | None) -> Ok[dict[int, list[int]]] | Err:
     root = Path(root) if root else Path()
-    var, suffix = root.glob(f"{prefix}-*.D"), r"D"
+    var, suffix = sorted(root.glob(f"{prefix}-*.D")), r"D"
     if not any(var):
-        var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
+        var, suffix = sorted(root.glob(f"{prefix}-*.D.gz")), r"D\.gz"
     if not any(var):
-        var, suffix = root.glob(f"{prefix}-*.*.res2"), r"res2"
+        var, suffix = sorted(root.glob(f"{prefix}-*.*.res2")), r"res2"
     if not any(var):
         msg = f"No matching variable files found with prefix {prefix} in {root}"
         return Err(ValueError(msg))
-    return get_var_subindex([v.name for v in var], prefix, suffix).next()
+    return get_var_subindex((v.name for v in var), prefix, suffix).next()

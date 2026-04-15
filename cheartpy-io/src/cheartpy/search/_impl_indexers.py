@@ -168,7 +168,7 @@ class TupleIndexer(IIndexIterator):
 
     def __iter__(self) -> Iterator[str]:
         for k, vlist in self.values.items():
-            yield str(k)
+            # yield str(k)
             for v in vlist:
                 yield f"{k}.{v}"
 

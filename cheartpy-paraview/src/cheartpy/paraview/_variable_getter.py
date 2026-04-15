@@ -57,6 +57,23 @@ class CheartZipFormat(IFormattedName):
     def name(self) -> str:
         return self.var
 
+class CheartResFormat(IFormattedName):
+    __slots__ = ["folder", "var"]
+
+    folder: Final[Path]
+    var: Final[str]
+
+    def __init__(self, folder: Path | str | None, var: str) -> None:
+        self.folder = Path(folder) if folder else Path()
+        self.var = var
+
+    def __getitem__(self, time: str | int) -> Path:
+        return self.folder / f"{self.var}-{time}.res2"
+
+    @property
+    def name(self) -> str:
+        return self.var
+
 
 class CheartVTUFormat(IFormattedName):
     __slots__ = ["folder", "prefix"]

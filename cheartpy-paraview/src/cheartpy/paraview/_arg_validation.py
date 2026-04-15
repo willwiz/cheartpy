@@ -8,7 +8,7 @@ from pytools.result import Err, Ok, all_ok
 
 from ._headers import compose_index_info, format_input_info
 from ._struct import ProgramArgs
-from ._variable_getter import CheartMeshFormat, CheartVarFormat, CheartZipFormat
+from ._variable_getter import CheartMeshFormat, CheartResFormat, CheartVarFormat, CheartZipFormat
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping, Sequence
@@ -26,7 +26,22 @@ class _MeshTopologyFiles(NamedTuple):
     u: Path | None
 
 
-def _parse_findmode_args(
+def _get_prefix(args: VTUProgArgs) -> str:
+    if args.prefix:
+        return args.prefix
+    return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
+
+
+def _check_dirs_inputs(args: VTUProgArgs) -> Ok[tuple[Path, Path]] | Err:
+    if not args.input_dir.is_dir():
+        msg = f"Input folder = {args.input_dir} does not exist"
+        return Err(ValueError(msg))
+    output_dir = Path(args.output_dir) if args.output_dir else Path()
+    output_dir.mkdir(exist_ok=True)
+    return Ok((args.input_dir, output_dir))
+
+
+def _parse_findmode_mesh(
     mesh: Path, space: Path | None, bnd: Path | None
 ) -> Ok[_MeshTopologyFiles] | Err:
     subs = fix_ch_sfx(mesh)
@@ -51,7 +66,7 @@ def _parse_findmode_args(
     return Ok(_MeshTopologyFiles(space or x, t, b, u))
 
 
-def _parse_indexmode_args(
+def _parse_indexmode_mesh(
     top: Path, space: Path | None, bnd: Path | None
 ) -> Ok[_MeshTopologyFiles] | Err:
     if space is None:
@@ -78,25 +93,9 @@ def _parse_indexmode_args(
 _MESH_FILE_PARSER: Mapping[
     SubparserModes, Callable[[Path, Path | None, Path | None], Ok[_MeshTopologyFiles] | Err]
 ] = {
-    "find": _parse_findmode_args,
-    "index": _parse_indexmode_args,
+    "find": _parse_findmode_mesh,
+    "index": _parse_indexmode_mesh,
 }
-
-
-def _get_prefix(args: VTUProgArgs) -> str:
-    if args.prefix:
-        return args.prefix
-    return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
-
-
-def _check_dirs_inputs(args: VTUProgArgs) -> Ok[tuple[Path, Path]] | Err:
-    if not args.input_dir.is_dir():
-        msg = f"Input folder = {args.input_dir} does not exist"
-        return Err(ValueError(msg))
-    output_dir = Path(args.output_dir) if args.output_dir else Path()
-    output_dir.mkdir(exist_ok=True)
-    return Ok((args.input_dir, output_dir))
-
 
 def _get_mesh_names(
     args: VTUProgArgs,
@@ -136,10 +135,13 @@ def _check_variable_format(
         return Ok(CheartVarFormat(u.parent, u.name))
     if (u.parent / f"{u.name}-{first}.D.gz").is_file():
         return Ok(CheartZipFormat(u.parent, u.name))
+    if (u.parent / f"{u.name}-{first}.res2").is_file():
+        return Ok(CheartResFormat(u.parent, u.name))
     msg = f"Variable {u} not recognized as one of:"
     msg += f" Mesh = {u}"
     msg += f" Var  = {u.parent / f'{u.name}-{first}.D'}"
     msg += f" Zip  = {u.parent / f'{u.name}-{first}.D.gz'}"
+    msg += f" Res  = {u.parent / f'{u.name}-{first}.res2'}"
     return Err(ValueError(msg))
 
 
@@ -194,12 +196,6 @@ def process_cmdline_args(
         case Ok((input_dir, output_dir)): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    match get_file_name_indexer(args.index, args.subindex, args.var, root=input_dir):
-        case Ok(indexer):
-            ifirst = next(iter(indexer))
-        case Err(e):
-            return Err(e)
-    log.disp(compose_index_info(indexer))
     """x: space, t: topology, b: boundary, u: displacement"""
     match _get_mesh_names(args):
         case Ok((x, top, bnd, u)):
@@ -207,6 +203,13 @@ def process_cmdline_args(
                 log.disp("<<< No boundary file specified/found.")
         case Err(e):
             return Err(e)
+    match get_file_name_indexer(args.index, args.subindex, args.var, root=input_dir):
+        case Ok(indexer):
+            print(indexer)
+            ifirst = next(iter(indexer))
+        case Err(e):
+            return Err(e)
+    log.disp(compose_index_info(indexer))
     match find_variable_formats(x, u, args.var, ifirst, input_dir):
         case Ok((xfile, disp, var)): ...  # fmt: skip
         case Err(e):
