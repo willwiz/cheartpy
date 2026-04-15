@@ -42,7 +42,7 @@ def get_var_index(
 def get_var_subindex(
     names: Iterable[str],
     prefix: str,
-    suffix: Literal[r"D", r"D\.gz"] = r"D",
+    suffix: Literal[r"D", r"D\.gz", r"res2"] = r"D",
 ) -> Ok[dict[int, list[int]]] | Err:
     if r".\\" in prefix:
         msg = f"Prefix {prefix} should not contain '.\\'"
@@ -86,9 +86,10 @@ def find_var_index(prefix: str, root: Path | str | None) -> Ok[list[int]] | Err:
 def find_var_subindex(prefix: str, root: Path | str | None) -> Ok[dict[int, list[int]]] | Err:
     root = Path(root) if root else Path()
     var, suffix = root.glob(f"{prefix}-*.D"), r"D"
-    # var = list(var)
     if not any(var):
         var, suffix = root.glob(f"{prefix}-*.D.gz"), r"D\.gz"
+    if not any(var):
+        var, suffix = root.glob(f"{prefix}-*.*.res2"), r"res2"
     if not any(var):
         msg = f"No matching variable files found with prefix {prefix} in {root}"
         return Err(ValueError(msg))

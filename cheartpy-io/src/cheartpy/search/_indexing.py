@@ -19,13 +19,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-__all__ = [
-    "find_common_index",
-    "find_common_subindex",
-    "get_file_name_indexer",
-]
-
-
 def find_common_index(var: Sequence[str], root: Path | str | None = None) -> Ok[list[int]] | Err:
     match find_var_index(var[0], root):
         case Ok(indices):
