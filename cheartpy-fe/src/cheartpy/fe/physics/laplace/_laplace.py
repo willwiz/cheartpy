@@ -1,8 +1,10 @@
-from collections.abc import Sequence
-from typing import TextIO
+from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class LaplaceProblem(IProblem):
@@ -58,7 +60,7 @@ class LaplaceProblem(IProblem):
 
     def get_bc_patches(self) -> Sequence[IBCPatch]:
         patchs = self.bc.get_patches() or []
-        return patchs
+        return list(patchs)
 
     def write(self, f: TextIO) -> None:
         _write_laplace(self, f)

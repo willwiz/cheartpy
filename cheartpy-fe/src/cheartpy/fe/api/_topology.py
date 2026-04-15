@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from cheartpy.fe.aliases._topology import EmbbededTopologyDef, TopologyDef, VolumeTopologyDef
     from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 
+
 def _hash_tops(tops: list[ICheartTopology] | list[str]) -> str:
     names = [str(t) for t in tops]
     return "_".join(names)
@@ -76,7 +77,7 @@ def create_top_interface(
     master: ICheartTopology | None = None,
     interface_file: Path | str | None = None,
     nest_in_bnd: int | None = None,
-) -> CheartTopInterfaceType:
+) -> ITopInterface:
     match method:
         case "OneToOne":
             name = _hash_tops(topologies)
