@@ -35,8 +35,7 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     if output_path:
         Path(output_path).mkdir(parents=True, exist_ok=True)
     cmd = ["cheartsolver.out", str(pfile)]
-    cores = kwargs.get("cores", 1)
-    if cores > 1:
+    if (cores := kwargs.get("cores", 1)) > 1:
         cmd = ["mpiexec", "-n", f"{cores}", *cmd]
     match kwargs.get("verbosity") or "DEFAULT":
         case "PEDANTIC":
@@ -47,6 +46,10 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
             pass
     if kwargs.get("dump_matrix", False):
         cmd = [*cmd, "--dump-matrix"]
+    if kwargs.get("dump_residual", False):
+        cmd = [*cmd, "--dump-residual"]
+    if macros := kwargs.get("macros"):
+        cmd = [*cmd, *(f"-#{k}={v}" for k, v in macros.items())]
     logger = kwargs.get("logger", get_logger())
     logger.disp(" ".join(cmd))
     if kwargs.get("log"):
@@ -58,13 +61,11 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     return sp.run(cmd, check=False).returncode
 
 
-def solver_cli_series(args: Sequence[str] | None = None) -> None:
-    _args, _kwargs = parse_solver_cmdline_args(args)
-    logger = get_logger()
-    _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
+def solver_cli_series(pfiles: Path | str, **kwargs: Unpack[SolverKwargs]) -> None:
+    logger = kwargs.get("logger") or get_logger()
     errs: list[int] = []
-    for p in _args["pfile"]:
-        errs.append(run_problem(p, **_kwargs))
+    for p in pfiles:
+        errs.append(run_problem(p, **kwargs))
         if errs[-1] == CheartErrorCode.SUCCESS.value:
             logger.disp(f"Problem {p} solved successfully.")
         else:
@@ -79,33 +80,21 @@ def solver_cli_series(args: Sequence[str] | None = None) -> None:
         raise RuntimeError(msg)
 
 
-def solver_cli_parallel(args: Sequence[str] | None = None) -> None:
-    _args, _kwargs = parse_solver_cmdline_args(args)
-    logger = get_logger()
-    _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
-    with ThreadedRunner(thread=_args["parallel"]) as runner:
-        [runner.submit(run_problem, p, **_kwargs) for p in _args["pfile"]]
+def solver_cli_parallel(
+    pfiles: Path | str, nthreads: int = 1, **kwargs: Unpack[SolverKwargs]
+) -> None:
+    with ThreadedRunner(thread=nthreads) as runner:
+        [runner.submit(run_problem, p, **kwargs) for p in pfiles]
 
 
 def solver_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_solver_cmdline_args(args)
     logger = get_logger()
     _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
-    errs: list[int] = []
-    for p in _args["pfile"]:
-        errs.append(run_problem(p, **_kwargs))
-        if errs[-1] == CheartErrorCode.SUCCESS.value:
-            logger.disp(f"Problem {p} solved successfully.")
-        else:
-            err_code = (
-                f"{CheartErrorCode(errs[-1]).name!s}"
-                if errs[-1] in CheartErrorCode._value2member_map_
-                else f"{CheartErrorCode.UNKNOWN.name!s} = {errs[-1]}"
-            )
-            logger.error(f"Problem {p} failed with error code {err_code}.")
-    if any(errs):
-        msg = f"One or more problems failed with errors: {errs}"
-        raise RuntimeError(msg)
+    if _args["parallel"] > 1:
+        solver_cli_parallel(_args["pfile"], nthreads=_kwargs["parallel"], **_kwargs)
+    else:
+        solver_cli_series(_args["pfile"], **_kwargs)
 
 
 def prep_cli(args: Sequence[str] | None = None) -> None:

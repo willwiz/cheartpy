@@ -2,7 +2,7 @@ import enum
 from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
     from pathlib import Path
 
     from pytools.logging import ILogger
@@ -26,6 +26,8 @@ class SolverKwargs(TypedDict, total=False):
     cores: int
     log: bool
     dump_matrix: bool
+    dump_residual: bool
+    macros: Mapping[str, str]
     verbosity: Verbosity
     logger: ILogger
 
