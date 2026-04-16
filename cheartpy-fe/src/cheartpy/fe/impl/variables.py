@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING, Literal, Self, TextIO, overload
 from cheartpy.fe.aliases import VariableExportEnum, VariableUpdateEnum, VariableUpdateSetting
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
 from cheartpy.fe.utils import get_enum, join_fields
+from cheartpy.fe.utils.dependency_search import variable_get_expr_deps, variable_get_var_deps
 
 if TYPE_CHECKING:
-    from collections.abc import ValuesView
+    from collections.abc import Collection
 
 
 @dc.dataclass(slots=True)
@@ -89,10 +90,11 @@ class Variable(IVariable):
     def get_top(self) -> ICheartTopology:
         return self.topology
 
-    def get_expr_deps(
-        self,
-    ) -> ValuesView[IExpression]:
-        return self.expr_deps.values()
+    def get_expr_deps(self) -> Collection[IExpression]:
+        return variable_get_expr_deps(self)
+
+    def get_var_deps(self) -> Collection[IVariable]:
+        return variable_get_var_deps(self)
 
     def set_export_frequency(self, v: int) -> None:
         self.freq = v

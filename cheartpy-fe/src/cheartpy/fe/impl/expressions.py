@@ -2,9 +2,10 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Self, TextIO
 
 from cheartpy.fe.trait import EXPRESSION_VALUE, IExpression, IVariable
+from cheartpy.fe.utils.dependency_search import expression_get_expr_deps, expression_get_var_deps
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence, ValuesView
+    from collections.abc import Collection, Sequence
 
 
 @dc.dataclass(slots=True)
@@ -41,16 +42,16 @@ class Expression(IExpression):
             if str(v) not in self.expr_deps:
                 self.expr_deps[str(v)] = v
 
-    def get_expr_deps(self) -> ValuesView[IExpression]:
-        return self.expr_deps.values()
-
     def add_var_deps(self, *var: IVariable) -> None:
         for v in var:
             if str(v) not in self.var_deps:
                 self.var_deps[str(v)] = v
 
-    def get_var_deps(self) -> ValuesView[IVariable]:
-        return self.var_deps.values()
+    def get_expr_deps(self) -> Collection[IExpression]:
+        return expression_get_expr_deps(self)
+
+    def get_var_deps(self) -> Collection[IVariable]:
+        return expression_get_var_deps(self)
 
     def idx(self, key: int) -> str:
         return f"{self.name}.{key}"

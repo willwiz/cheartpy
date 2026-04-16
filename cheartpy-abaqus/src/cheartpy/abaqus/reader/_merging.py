@@ -1,4 +1,5 @@
 import operator
+from collections import ChainMap
 from functools import reduce
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -7,7 +8,7 @@ import numpy as np
 from pytools.result import Err, Ok, all_ok
 
 from ._reader import import_abaqus_file
-from ._types import AbaqusMesh, Element, Headings, Nodes
+from ._types import AbaqusMesh, Element, Nodes
 
 if TYPE_CHECKING:
     from pytools.arrays import DType
@@ -41,9 +42,10 @@ def merge_abaqus_meshes[F: np.floating, I: np.integer](
                     f"Please check the Abaqus mesh files for consistency."
                 )
                 return Err(ValueError(msg))
-    headings = Headings(reduce(operator.add, [m.headings for m in meshes]))
-    nset = reduce(operator.__ior__, [m.nset for m in meshes])
-    elset = reduce(operator.__ior__, [m.elsets for m in meshes])
+    headings = reduce(operator.__add__, [m.headings for m in meshes])
+    nset_list = [m.nset for m in meshes]
+    nset = dict(ChainMap(*nset_list))
+    elset = dict(ChainMap(*[m.elsets for m in meshes]))
     return Ok(AbaqusMesh(headings, mesh.nodes, nset, elements, elset, mesh.ftype, mesh.dtype))
 
 
