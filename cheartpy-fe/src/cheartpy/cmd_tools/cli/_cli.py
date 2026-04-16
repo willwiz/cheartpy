@@ -61,7 +61,7 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     return sp.run(cmd, check=False).returncode
 
 
-def solver_cli_series(pfiles: Path | str, **kwargs: Unpack[SolverKwargs]) -> None:
+def solver_cli_series(*pfiles: Path | str, **kwargs: Unpack[SolverKwargs]) -> None:
     logger = kwargs.get("logger") or get_logger()
     errs: list[int] = []
     for p in pfiles:
@@ -81,7 +81,7 @@ def solver_cli_series(pfiles: Path | str, **kwargs: Unpack[SolverKwargs]) -> Non
 
 
 def solver_cli_parallel(
-    pfiles: Path | str, nthreads: int = 1, **kwargs: Unpack[SolverKwargs]
+    *pfiles: Path | str, nthreads: int = 1, **kwargs: Unpack[SolverKwargs]
 ) -> None:
     with ThreadedRunner(thread=nthreads) as runner:
         [runner.submit(run_problem, p, **kwargs) for p in pfiles]
@@ -92,9 +92,9 @@ def solver_cli(args: Sequence[str] | None = None) -> None:
     logger = get_logger()
     _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
     if _args["parallel"] > 1:
-        solver_cli_parallel(_args["pfile"], nthreads=_kwargs["parallel"], **_kwargs)
+        solver_cli_parallel(*_args["pfile"], nthreads=_args["parallel"], **_kwargs)
     else:
-        solver_cli_series(_args["pfile"], **_kwargs)
+        solver_cli_series(*_args["pfile"], **_kwargs)
 
 
 def prep_cli(args: Sequence[str] | None = None) -> None:
