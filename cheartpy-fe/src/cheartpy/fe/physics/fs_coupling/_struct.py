@@ -89,8 +89,8 @@ class FSCouplingProblem(IProblem):
     root_topology: ICheartTopology | None
     lm: FSCouplingTerm | None
     m_terms: dict[str, FSCouplingTerm]
-    aux_vars: dict[str, IVariable]
-    aux_expr: dict[str, IExpression]
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
     bc: IBoundaryCondition
     perturbation: bool = False
     buffering: bool = True
@@ -153,15 +153,15 @@ class FSCouplingProblem(IProblem):
         for v in var:
             if v is None:
                 continue
-            if str(v) not in self.aux_vars:
-                self.aux_vars[str(v)] = v
+            if str(v) not in self.var_deps:
+                self.var_deps[str(v)] = v
 
     def add_expr_deps(self, *expr: IExpression | None) -> None:
         for v in expr:
             if v is None:
                 continue
-            if str(v) not in self.aux_expr:
-                self.aux_expr[str(v)] = v
+            if str(v) not in self.expr_deps:
+                self.expr_deps[str(v)] = v
 
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
@@ -172,7 +172,7 @@ class FSCouplingProblem(IProblem):
         for v in self.m_terms.values():
             for t_var in v.get_var_deps():
                 _vars_[str(t_var)] = t_var
-        return {**self.aux_vars, **_vars_}.values()
+        return {**self.var_deps, **_vars_}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
         _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
@@ -182,7 +182,7 @@ class FSCouplingProblem(IProblem):
         for t in self.m_terms.values():
             for e in t.get_expr_deps():
                 _expr_[str(e)] = e
-        return {**self.aux_expr, **_expr_}.values()
+        return {**self.expr_deps, **_expr_}.values()
 
     def get_bc_patches(self) -> list[IBCPatch]:
         patches = self.bc.get_patches()

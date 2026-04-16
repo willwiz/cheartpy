@@ -2,7 +2,7 @@ import abc
 from typing import TYPE_CHECKING, Literal, Self, TextIO
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence, ValuesView
+    from collections.abc import Collection, Mapping, Sequence, ValuesView
     from pathlib import Path
 
     from cheartpy.fe.aliases import (
@@ -77,6 +77,9 @@ class IDataInterp(abc.ABC):
 
 
 class IExpression(abc.ABC):
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
+
     @abc.abstractmethod
     def __repr__(self) -> str: ...
     @abc.abstractmethod
@@ -88,7 +91,7 @@ class IExpression(abc.ABC):
     @abc.abstractmethod
     def idx(self, key: int) -> str: ...
     @abc.abstractmethod
-    def get_values(
+    def values(
         self,
     ) -> Sequence[EXPRESSION_VALUE]: ...
     @abc.abstractmethod
@@ -96,15 +99,11 @@ class IExpression(abc.ABC):
     @abc.abstractmethod
     def add_expr_deps(self, *var: IExpression) -> None: ...
     @abc.abstractmethod
-    def get_expr_deps(
-        self,
-    ) -> ValuesView[IExpression]: ...
-    @abc.abstractmethod
     def add_var_deps(self, *var: IVariable) -> None: ...
     @abc.abstractmethod
-    def get_var_deps(
-        self,
-    ) -> ValuesView[IVariable]: ...
+    def get_expr_deps(self) -> Collection[IExpression]: ...
+    @abc.abstractmethod
+    def get_var_deps(self) -> Collection[IVariable]: ...
     @abc.abstractmethod
     def write(self, f: TextIO) -> None: ...
 
@@ -211,6 +210,8 @@ class ITopInterface(abc.ABC):
 
 
 class IVariable(abc.ABC):
+    expr_deps: dict[str, IExpression]
+
     @abc.abstractmethod
     def __repr__(self) -> str: ...
     @abc.abstractmethod
@@ -229,7 +230,9 @@ class IVariable(abc.ABC):
     @abc.abstractmethod
     def get_top(self) -> ICheartTopology: ...
     @abc.abstractmethod
-    def get_expr_deps(self) -> ValuesView[IExpression]: ...
+    def get_expr_deps(self) -> Collection[IExpression]: ...
+    @abc.abstractmethod
+    def get_var_deps(self) -> Collection[IVariable]: ...
     @abc.abstractmethod
     def get_dim(self) -> int: ...
     @abc.abstractmethod
@@ -256,9 +259,9 @@ class IBCPatch:
     @abc.abstractmethod
     def use_option(self) -> None: ...
     @abc.abstractmethod
-    def get_var_deps(self) -> ValuesView[IVariable]: ...
+    def get_var_deps(self) -> Collection[IVariable]: ...
     @abc.abstractmethod
-    def get_expr_deps(self) -> ValuesView[IExpression]: ...
+    def get_expr_deps(self) -> Collection[IExpression]: ...
     @abc.abstractmethod
     def string(self) -> str: ...
 
@@ -278,6 +281,9 @@ class IBoundaryCondition(abc.ABC):
 
 class IProblem(abc.ABC):
     buffering: bool
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
+    bc: IBoundaryCondition
 
     @abc.abstractmethod
     def __repr__(self) -> str: ...

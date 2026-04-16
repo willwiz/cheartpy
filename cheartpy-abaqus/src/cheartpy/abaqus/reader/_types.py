@@ -32,6 +32,9 @@ def _is_mesh_elements(value: object) -> TypeIs[Element[np.integer[Any]]]:
 class Headings:
     v: list[str]
 
+    def __add__(self, other: Headings) -> Headings:
+        return Headings(self.v + other.v)
+
 
 def _is_node[F: np.floating](value: object, kind: type[F]) -> TypeIs[Nodes[F]]:
     origin = get_origin(value)

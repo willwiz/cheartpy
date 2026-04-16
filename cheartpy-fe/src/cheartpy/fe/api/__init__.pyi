@@ -107,7 +107,6 @@ def create_top_interface(
 def create_topologies[T](
     dct: Mapping[T, TopologyDef[T]],
 ) -> tuple[Mapping[T, ICheartTopology], Sequence[ITopInterface]]: ...
-def add_statevar(p: IProblem | None, *var: IVariable | IExpression | None) -> None: ...
 
 class _ExtraCreateVarOptions(TypedDict, total=False):
     fmt: VariableExportFormat
