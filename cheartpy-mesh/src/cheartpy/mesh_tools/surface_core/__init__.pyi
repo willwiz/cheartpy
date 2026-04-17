@@ -46,3 +46,6 @@ def create_new_surface_in_mesh[F: np.floating, I: np.integer](
 def create_new_surface_in_surf[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], surf_id: Iterable[int], constraints: _SURF_CONSTRAINTS, label: int
 ) -> Result[CheartMesh[F, I]]: ...
+def compute_surface_normal[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], in_surf: int
+) -> Result[A2[F]]: ...
