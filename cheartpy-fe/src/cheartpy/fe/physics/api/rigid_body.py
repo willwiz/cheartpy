@@ -7,7 +7,7 @@ from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from cheartpy.fe.aliases import RotationalConstraint
+    from cheartpy.fe.aliases import CartesianRigidBodyConstraint
 
 
 def _u(vs: Sequence[IVariable | IExpression], i: int) -> str:
@@ -18,7 +18,7 @@ def _u(vs: Sequence[IVariable | IExpression], i: int) -> str:
 
 def create_rotation_operator_expr(
     name: str,
-    choice: RotationalConstraint,
+    choice: CartesianRigidBodyConstraint,
     *space: IVariable | IExpression,
 ) -> Mapping[Literal["p", "m"], IExpression]:
     total_dof = sum(len(v) for v in choice.values())
@@ -55,7 +55,7 @@ class _RotationConstraintVariable(TypedDict, total=False):
 def create_rotation_constraint(
     prefix: str,
     root: ICheartTopology,
-    choice: RotationalConstraint,
+    choice: CartesianRigidBodyConstraint,
     **kwargs: Unpack[_RotationConstraintVariable],
 ) -> FSCouplingProblem:
     """Create a rotation constraint for a given space and displacement variable."""

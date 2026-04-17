@@ -10,10 +10,12 @@ from ._matrix import (
 )
 from ._problems import (
     BoundaryEnum,
+    BoundaryRigidBodyConstraint,
     BoundaryType,
+    CartesianRigidBodyConstraint,
     L2SolidCalculationEnum,
     L2SolidCalculationType,
-    RotationalConstraint,
+    RigidBodyConstraint,
     SolidFlag,
     SolidFlagEnum,
     SolidOption,
@@ -60,7 +62,9 @@ from ._variable import (
 
 __all__ = [
     "BoundaryEnum",
+    "BoundaryRigidBodyConstraint",
     "BoundaryType",
+    "CartesianRigidBodyConstraint",
     "CheartBasisEnum",
     "CheartBasisType",
     "CheartElementEnum",
@@ -83,7 +87,7 @@ __all__ = [
     "MUMPSSequentialOrderingOptions",
     "MatrixSolverEnum",
     "MatrixSolverOption",
-    "RotationalConstraint",
+    "RigidBodyConstraint",
     "SolidFlag",
     "SolidFlagEnum",
     "SolidOption",

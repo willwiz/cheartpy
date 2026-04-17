@@ -94,4 +94,7 @@ class L2SolidCalculationEnum(enum.StrEnum):
     deformation_gradient = "deformation_gradient"
 
 
-RotationalConstraint = Mapping[Literal["T", "R"], Collection[Literal["x", "y", "z"]]]
+CartesianRigidBodyConstraint = Mapping[Literal["T", "R"], Collection[Literal["x", "y", "z"]]]
+BoundaryRigidBodyConstraint = Mapping[Literal["T", "R"], Collection[Literal["n", "p"]]]
+
+type RigidBodyConstraint = CartesianRigidBodyConstraint | BoundaryRigidBodyConstraint
