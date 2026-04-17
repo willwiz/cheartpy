@@ -1,20 +1,23 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import get_vtk_boundary_element
 from cheartpy.vtk.api import get_vtk_elem
 from numpy.linalg import lstsq
 from pytools.logging import get_logger
+from pytools.result import Err, Ok, Result
+
+from .meshing import create_mesh_from_surface
 
 if TYPE_CHECKING:
-    from cheartpy.vtk.types import VtkElem
+    from cheartpy.vtk.struct import VtkElem
     from pytools.arrays import A1, A2
 
     from cheartpy.mesh import CheartMesh
 
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
-    "compute_surface_normal_at_center",
     "compute_surface_normal_at_nodes",
     "normalize_by_row",
 ]
@@ -29,6 +32,7 @@ def compute_normal_patch[F: np.floating, I: np.integer](
     elem: A1[I],
     ref_space: A2[np.floating],
 ) -> A1[F]:
+    # Grab the nodes of the element
     nodes = space[elem] - ref_space
     u = np.array([[nodes[:, i] @ b for b in basis] for i in range(3)])
     f = u + np.identity(3)
@@ -36,8 +40,8 @@ def compute_normal_patch[F: np.floating, I: np.integer](
         _g_log = get_logger()
         _g_log.debug("Element node order is inverted.")
         f = u - np.identity(3)
-    res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=float))
-    return cast("A1[F]", res)
+    res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=basis.dtype))
+    return res.astype(space.dtype)
 
 
 def normalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]:
@@ -101,3 +105,56 @@ def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     outer = np.einsum("...i,...i", normals, disp)
     normals = normals * np.sign(outer)[:, None]
     return normalize_by_row(normals)
+
+
+def compute_surface_normal[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], in_surf: int
+) -> Result[A2[F]]:
+    if mesh.bnd is None:
+        msg = "Mesh has no boundary"
+        return Err(ValueError(msg))
+    if in_surf not in mesh.bnd.v:
+        msg = f"Surface {in_surf} not found"
+        return Err(ValueError(msg))
+    surf_elem = get_vtk_boundary_element(mesh.top.TYPE)
+    if surf_elem is None:
+        msg = f"Unsupported mesh type: {mesh.top.TYPE}"
+        return Err(ValueError(msg))
+    bnd_elem = {k: mesh.top.v[k] for k in mesh.bnd.v[in_surf].k}
+    bnd_patches: dict[I, A1[I]] = dict(
+        zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
+    )
+    bnd_patch_outer = {
+        k: {
+            b: mesh.space.v[b] - np.mean(mesh.space.v[e], axis=0)
+            for b, e in zip(bnd_patches[k], elems, strict=True)
+        }
+        for k, elems in bnd_elem.items()
+    }
+    vtkelem = get_vtk_elem(surf_elem)
+    interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
+    normals = {
+        k: {
+            b: compute_normal_patch(basis, mesh.space.v, elem, vtkelem.ref)
+            for b, basis in zip(bnd_patches[k], interp_basis_at_refnodes, strict=True)
+        }
+        for k, elem in bnd_elem.items()
+    }
+    fix_direction = {
+        k: {b: np.sign(n.dot(bnd_patch_outer[k][b])) * n for b, n in surf.items()}
+        for k, surf in normals.items()
+    }
+    match create_mesh_from_surface(mesh, in_surf):
+        case Ok(surf_mesh): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    node_map = {
+        i: j
+        for old, new in zip(bnd_patches.values(), surf_mesh.top.v, strict=True)
+        for i, j in zip(old, new, strict=True)
+    }
+    normals = np.zeros_like(surf_mesh.space.v)
+    for ns in fix_direction.values():
+        for b, n in ns.items():
+            normals[node_map[b]] += n
+    return Ok(normalize_by_row(normals))
