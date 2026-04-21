@@ -1,8 +1,13 @@
 from pytools.result import Err, Ok, Result
 
-from ._types import CheartEnum, VtkEnum
+from ._types import CheartEnum, VtkElemShape, VtkEnum
 
 _Vtk2Cheart = {
+    VtkEnum.VtkConstLine: CheartEnum.LINE0,
+    VtkEnum.VtkConstTriangle: CheartEnum.TRIANGLE0,
+    VtkEnum.VtkConstQuadrilateral: CheartEnum.QUADRILATERAL0,
+    VtkEnum.VtkConstTetrahedron: CheartEnum.TETRAHEDRON0,
+    VtkEnum.VtkConstHexahedron: CheartEnum.HEXAHEDRON0,
     VtkEnum.VtkLinearLine: CheartEnum.LINE1,
     VtkEnum.VtkLinearTriangle: CheartEnum.TRIANGLE1,
     VtkEnum.VtkLinearQuadrilateral: CheartEnum.QUADRILATERAL1,
@@ -18,6 +23,11 @@ _Vtk2Cheart = {
 
 # fmt: off
 _Vtk2CheartNodeOrder = {
+    VtkEnum.VtkConstLine: (0,),
+    VtkEnum.VtkConstTriangle: (0,),
+    VtkEnum.VtkConstQuadrilateral: (0,),
+    VtkEnum.VtkConstTetrahedron: (0,),
+    VtkEnum.VtkConstHexahedron: (0,),
     VtkEnum.VtkLinearLine: (0, 1),
     VtkEnum.VtkLinearTriangle: (0, 1, 2),
     VtkEnum.VtkLinearQuadrilateral: (0, 1, 3, 2),
@@ -87,3 +97,26 @@ def guess_vtk_elem_from_dim(edim: int, bdim: int | None) -> Result[VtkEnum]:
             msg = f"Unsupported element dimensions: edim={edim}, bdim={bdim}"
             return Err(ValueError(msg))
     return Ok(elem)
+
+
+_VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
+    ("Line", 0): VtkEnum.VtkConstLine,
+    ("Triangle", 0): VtkEnum.VtkConstTriangle,
+    ("Quadrilateral", 0): VtkEnum.VtkConstQuadrilateral,
+    ("Tetrahedron", 0): VtkEnum.VtkConstTetrahedron,
+    ("Hexahedron", 0): VtkEnum.VtkConstHexahedron,
+    ("Line", 1): VtkEnum.VtkLinearLine,
+    ("Triangle", 1): VtkEnum.VtkLinearTriangle,
+    ("Quadrilateral", 1): VtkEnum.VtkLinearQuadrilateral,
+    ("Tetrahedron", 1): VtkEnum.VtkLinearTetrahedron,
+    ("Hexahedron", 1): VtkEnum.VtkLinearHexahedron,
+    ("Line", 2): VtkEnum.VtkQuadraticLine,
+    ("Triangle", 2): VtkEnum.VtkQuadraticTriangle,
+    ("Quadrilateral", 2): VtkEnum.VtkQuadraticQuadrilateral,
+    ("Tetrahedron", 2): VtkEnum.VtkQuadraticTetrahedron,
+    ("Hexahedron", 2): VtkEnum.VtkQuadraticHexahedron,
+}
+
+
+def get_vtkelem_with_polyorder(elem: VtkEnum, order: int) -> VtkEnum | None:
+    return _VtkEnumCategory.get((elem.value.shape, order))

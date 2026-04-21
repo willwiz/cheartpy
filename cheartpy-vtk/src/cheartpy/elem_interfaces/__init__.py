@@ -11,6 +11,7 @@ from ._vtk import (
     convert_vtk_to_cheart,
     get_cheart_order_for_vtk,
     get_vtk_boundary_element,
+    get_vtkelem_with_polyorder,
     guess_vtk_elem_from_dim,
 )
 
@@ -30,5 +31,6 @@ __all__ = [
     "get_cheart_order_for_vtk",
     "get_vtk_boundary_element",
     "get_vtk_element_for_abaqus",
+    "get_vtkelem_with_polyorder",
     "guess_vtk_elem_from_dim",
 ]

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from cheartpy.fe.trait import IVariable
     from pytools.arrays import A1, A2
 
-    from .struct import CLPartition, CLStructure
+    from ._types import CLPartition, CLStructure
 
 
 class _VaribleKwaargs(TypedDict, total=False):

@@ -1,6 +1,6 @@
 import dataclasses as dc
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Required, TypedDict
 
 import numpy as np
 from cheartpy.fe.trait import ICheartTopology, IExpression, IVariable
@@ -20,6 +20,35 @@ __all__ = [
     "CLTopologies",
     "PatchNode2ElemMap",
 ]
+
+
+class CLPrefix(TypedDict, total=False):
+    prefix: Required[str]
+    body: str
+    iface: str
+    domain: str
+    elem: str
+
+
+class CLVectorDef[F: np.floating](TypedDict, total=True):
+    """Defn for centerline topology given vector of nodes."""
+
+    home: Path
+    prefix: CLPrefix
+    a_z: A1[F]
+    nodes: A1[F]
+
+
+class CLSegmentDef[F: np.floating](TypedDict, total=True):
+    """Defn for centerline topology given segments."""
+
+    home: Path
+    prefix: CLPrefix
+    a_z: A1[F]
+    n: int
+
+
+type CLDef[F: np.floating] = CLVectorDef[F] | CLSegmentDef[F]
 
 CLNodalLMType = Mapping[int, IVariable]
 
