@@ -3,6 +3,11 @@ from pytools.result import Err, Ok, Result
 from ._types import CheartEnum, VtkEnum
 
 _Vtk2Cheart = {
+    VtkEnum.VtkConstLine: CheartEnum.LINE0,
+    VtkEnum.VtkConstTriangle: CheartEnum.TRIANGLE0,
+    VtkEnum.VtkConstQuadrilateral: CheartEnum.QUADRILATERAL0,
+    VtkEnum.VtkConstTetrahedron: CheartEnum.TETRAHEDRON0,
+    VtkEnum.VtkConstHexahedron: CheartEnum.HEXAHEDRON0,
     VtkEnum.VtkLinearLine: CheartEnum.LINE1,
     VtkEnum.VtkLinearTriangle: CheartEnum.TRIANGLE1,
     VtkEnum.VtkLinearQuadrilateral: CheartEnum.QUADRILATERAL1,
@@ -18,6 +23,11 @@ _Vtk2Cheart = {
 
 # fmt: off
 _Vtk2CheartNodeOrder = {
+    VtkEnum.VtkConstLine: (0,),
+    VtkEnum.VtkConstTriangle: (0,),
+    VtkEnum.VtkConstQuadrilateral: (0,),
+    VtkEnum.VtkConstTetrahedron: (0,),
+    VtkEnum.VtkConstHexahedron: (0,),
     VtkEnum.VtkLinearLine: (0, 1),
     VtkEnum.VtkLinearTriangle: (0, 1, 2),
     VtkEnum.VtkLinearQuadrilateral: (0, 1, 3, 2),

@@ -8,6 +8,11 @@ class _VtkElem(NamedTuple):
 
 
 type VtkElemType = Literal[
+    "VtkConstLine",
+    "VtkConstTriangle",
+    "VtkConstQuadrilateral",
+    "VtkConstTetrahedron",
+    "VtkConstHexahedron",
     "VtkLinearLine",
     "VtkLinearTriangle",
     "VtkLinearQuadrilateral",
@@ -22,6 +27,11 @@ type VtkElemType = Literal[
 
 
 class VtkEnum(enum.Enum):
+    VtkConstLine = _VtkElem("VtkConstLine", -1)
+    VtkConstTriangle = _VtkElem("VtkConstTriangle", -2)
+    VtkConstQuadrilateral = _VtkElem("VtkConstQuadrilateral", -3)
+    VtkConstTetrahedron = _VtkElem("VtkConstTetrahedron", -4)
+    VtkConstHexahedron = _VtkElem("VtkConstHexahedron", -5)
     VtkLinearLine = _VtkElem("VtkLinearLine", 3)
     VtkLinearTriangle = _VtkElem("VtkLinearTriangle", 5)
     VtkLinearQuadrilateral = _VtkElem("VtkLinearQuadrilateral", 9)
@@ -35,6 +45,11 @@ class VtkEnum(enum.Enum):
 
 
 type CheartElemType = Literal[
+    "LINE0",
+    "TRIANGLE0",
+    "QUADRILATERAL0",
+    "TETRAHEDRON0",
+    "HEXAHEDRON0",
     "LINE1",
     "TRIANGLE1",
     "QUADRILATERAL1",
@@ -49,6 +64,11 @@ type CheartElemType = Literal[
 
 
 class CheartEnum(enum.Enum):
+    LINE0 = enum.auto()
+    TRIANGLE0 = enum.auto()
+    QUADRILATERAL0 = enum.auto()
+    TETRAHEDRON0 = enum.auto()
+    HEXAHEDRON0 = enum.auto()
     LINE1 = enum.auto()
     TRIANGLE1 = enum.auto()
     QUADRILATERAL1 = enum.auto()
