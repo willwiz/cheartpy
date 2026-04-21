@@ -11,6 +11,8 @@ from pytools.result import Err, Ok, Result
 from .meshing import create_mesh_from_surface
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from cheartpy.vtk.struct import VtkElem
     from pytools.arrays import A1, A2
 
@@ -107,6 +109,51 @@ def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     return normalize_by_row(normals)
 
 
+def orient_normals_as_outward[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], in_surf: int, normals: Mapping[I, A1[F]]
+) -> Result[Mapping[I, A1[F]]]:
+    if mesh.bnd is None:
+        msg = "Mesh has no boundary"
+        return Err(ValueError(msg))
+    if in_surf not in mesh.bnd.v:
+        msg = f"Surface {in_surf} not found"
+        return Err(ValueError(msg))
+    surf_elem = get_vtk_boundary_element(mesh.top.TYPE)
+    if surf_elem is None:
+        msg = f"Unsupported mesh type: {mesh.top.TYPE}"
+        return Err(ValueError(msg))
+    bnd_elem = {k: mesh.top.v[k] for k in mesh.bnd.v[in_surf].k}
+    bnd_elem_centroids = {k: mesh.space.v[elem].mean(axis=0) for k, elem in bnd_elem.items()}
+    bnd_patch_outer = {
+        k: {b: mesh.space.v[b] - bnd_elem_centroids[k] for b in bnd}
+        for k, bnd in zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
+    }
+    fix_direction = {
+        k: {b: np.sign(n.dot(bnd_patch_outer[k][b])) * n for b, n in surf.items()}
+        for k, surf in normals.items()
+    }
+    return Ok(fix_direction)
+
+
+def pack_array_to_surface_topology[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], in_surf: int, dct_values: Mapping[I, A1[F]]
+) -> Ok[A2[F]]:
+    match create_mesh_from_surface(mesh, in_surf):
+        case Ok(surf_mesh): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    node_map = {
+        i: j
+        for old, new in zip(mesh.bnd.v[in_surf].v, surf_mesh.top.v, strict=True)
+        for i, j in zip(old, new, strict=True)
+    }
+    normal_array = np.zeros_like(surf_mesh.space.v)
+    for ns in dct_values.values():
+        for b, n in ns.items():
+            normal_array[node_map[b]] += n
+    return Ok(normalize_by_row(normal_array))
+
+
 def compute_surface_normal[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int
 ) -> Result[A2[F]]:
@@ -120,41 +167,24 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     if surf_elem is None:
         msg = f"Unsupported mesh type: {mesh.top.TYPE}"
         return Err(ValueError(msg))
-    bnd_elem = {k: mesh.top.v[k] for k in mesh.bnd.v[in_surf].k}
+    vtkelem = get_vtk_elem(surf_elem)
+    interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
     bnd_patches: dict[I, A1[I]] = dict(
         zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
     )
-    bnd_patch_outer = {
-        k: {
-            b: mesh.space.v[b] - np.mean(mesh.space.v[e], axis=0)
-            for b, e in zip(bnd_patches[k], elems, strict=True)
-        }
-        for k, elems in bnd_elem.items()
-    }
-    vtkelem = get_vtk_elem(surf_elem)
-    interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
     normals = {
         k: {
-            b: compute_normal_patch(basis, mesh.space.v, elem, vtkelem.ref)
-            for b, basis in zip(bnd_patches[k], interp_basis_at_refnodes, strict=True)
+            b: compute_normal_patch(basis, mesh.space.v, patch, vtkelem.ref)
+            for b, basis in zip(patch, interp_basis_at_refnodes, strict=True)
         }
-        for k, elem in bnd_elem.items()
+        for k, patch in bnd_patches.items()
     }
-    fix_direction = {
-        k: {b: np.sign(n.dot(bnd_patch_outer[k][b])) * n for b, n in surf.items()}
-        for k, surf in normals.items()
-    }
-    match create_mesh_from_surface(mesh, in_surf):
-        case Ok(surf_mesh): ...  # fmt: skip
+    match orient_normals_as_outward(mesh, in_surf, normals):
+        case Ok(normals): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    node_map = {
-        i: j
-        for old, new in zip(bnd_patches.values(), surf_mesh.top.v, strict=True)
-        for i, j in zip(old, new, strict=True)
-    }
-    normals = np.zeros_like(surf_mesh.space.v)
-    for ns in fix_direction.values():
-        for b, n in ns.items():
-            normals[node_map[b]] += n
-    return Ok(normalize_by_row(normals))
+    match pack_array_to_surface_topology(mesh, in_surf, normals):
+        case Ok(normal_array): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    return Ok(normalize_by_row(normal_array))

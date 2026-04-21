@@ -35,6 +35,7 @@ class CheartMeshBoundary[T: np.integer]:
     n: ToInt
     v: Mapping[int, CheartMeshPatch[T]]
     TYPE: VtkEnum
+    def add_patch(self, patch: CheartMeshPatch[T]) -> None: ...
     def save(self, name: Path | str) -> None: ...
 
 @dc.dataclass(slots=True)

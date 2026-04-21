@@ -102,7 +102,7 @@ def _shape_triangle_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
             [0.0, 1.0, 0.0],
         ],
         dtype=pos.dtype,
-    )
+    ).T
 
 
 VTKTRIANGLE1 = VtkElem(

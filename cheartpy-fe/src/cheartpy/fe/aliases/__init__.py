@@ -48,6 +48,7 @@ from ._topology import (
     CheartTopInterfaceType,
     CheartTopologyEnum,
     CheartTopologySetting,
+    EmbbededTopologyDef,
     TopologyDef,
 )
 from ._variable import (
@@ -70,6 +71,7 @@ __all__ = [
     "CheartTopInterfaceType",
     "CheartTopologyEnum",
     "CheartTopologySetting",
+    "EmbbededTopologyDef",
     "IterationEnum",
     "IterationSetting",
     "L2SolidCalculationEnum",

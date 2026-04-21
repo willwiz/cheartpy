@@ -67,6 +67,10 @@ class CheartMeshBoundary[T: np.integer]:
     v: Mapping[int, CheartMeshPatch[T]]
     TYPE: VtkEnum
 
+    def add_patch(self, patch: CheartMeshPatch[T]) -> None:
+        self.n += patch.n
+        self.v[patch.tag] = patch
+
     def save(self, name: Path | str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)
         chwrite_iarr_utf(name, data)
