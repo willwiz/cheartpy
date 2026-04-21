@@ -110,8 +110,8 @@ def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
 
 
 def orient_normals_as_outward[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], in_surf: int, normals: Mapping[I, A1[F]]
-) -> Result[Mapping[I, A1[F]]]:
+    mesh: CheartMesh[F, I], in_surf: int, normals: Mapping[I, Mapping[I, A1[F]]]
+) -> Result[Mapping[I, Mapping[I, A1[F]]]]:
     if mesh.bnd is None:
         msg = "Mesh has no boundary"
         return Err(ValueError(msg))
@@ -136,15 +136,19 @@ def orient_normals_as_outward[F: np.floating, I: np.integer](
 
 
 def pack_array_to_surface_topology[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], in_surf: int, dct_values: Mapping[I, A1[F]]
-) -> Ok[A2[F]]:
+    mesh: CheartMesh[F, I], in_surf: int, dct_values: Mapping[I, Mapping[I, A1[F]]]
+) -> Result[A2[F]]:
     match create_mesh_from_surface(mesh, in_surf):
         case Ok(surf_mesh): ...  # fmt: skip
         case Err(e):
             return Err(e)
+    mesh_bnd = mesh.bnd
+    if mesh_bnd is None:
+        msg = "Mesh has no boundary"
+        return Err(ValueError(msg))
     node_map = {
         i: j
-        for old, new in zip(mesh.bnd.v[in_surf].v, surf_mesh.top.v, strict=True)
+        for old, new in zip(mesh_bnd.v[in_surf].v, surf_mesh.top.v, strict=True)
         for i, j in zip(old, new, strict=True)
     }
     normal_array = np.zeros_like(surf_mesh.space.v)

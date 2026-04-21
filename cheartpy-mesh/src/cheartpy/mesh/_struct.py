@@ -69,7 +69,7 @@ class CheartMeshBoundary[T: np.integer]:
 
     def add_patch(self, patch: CheartMeshPatch[T]) -> None:
         self.n += patch.n
-        self.v[patch.tag] = patch
+        self.v = {**self.v, int(patch.tag): patch}
 
     def save(self, name: Path | str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)
