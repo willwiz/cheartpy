@@ -15,7 +15,7 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = ["pytools>=1.2.0a", "numpy", "meshio", "cheartpy-io"]
+dependencies = ["pytools>=1.2.1a", "numpy", "meshio", "cheartpy-io"]
 
 [project.optional-dependencies]
 all = [
@@ -43,7 +43,7 @@ cheartpy-mesh = { path = "cheartpy-mesh", editable = true }
 cheartpy-paraview = { path = "cheartpy-paraview", editable = true }
 cheartpy-vtk = { path = "cheartpy-vtk", editable = true }
 cheartpy-symbolic = { path = "cheartpy-symbolic", editable = true }
-pytools = { git = "https://github.com/willwiz/pytools"}
+pytools = { git = "https://github.com/willwiz/pytools", tag = "v1.2.1a" }
 
 [tool.uv.build-backend]
 module-name = []
