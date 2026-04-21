@@ -3,7 +3,7 @@ from typing import overload
 from cheartpy.fe.physics.fs_coupling import FSCouplingProblem
 from cheartpy.fe.trait import IVariable
 
-from .struct import CLStructure
+from ._types import CLStructure
 
 @overload
 def create_cl_dilation_constraint_problem(

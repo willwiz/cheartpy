@@ -18,7 +18,7 @@ from cheartpy.vtk.api import get_vtk_elem
 from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok, all_ok
 
-from .struct import CLNodalData, CLPartition, PatchNode2ElemMap
+from ._types import CLNodalData, CLPartition, PatchNode2ElemMap
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2, DType
