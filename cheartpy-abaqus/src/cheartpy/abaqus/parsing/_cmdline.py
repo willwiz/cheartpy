@@ -99,7 +99,9 @@ _parser.add_argument(
     choices=get_args(LogLevel),
     help="""Set the log level for the program.""",
 )
-_parser.add_argument("-c", "--cores", type=int, help="""Enable multiprocessing with n cores""")
+_parser.add_argument(
+    "-c", "--cores", type=int, default=1, help="""Enable multiprocessing with n cores"""
+)
 
 
 class PydanticParser(BaseModel):

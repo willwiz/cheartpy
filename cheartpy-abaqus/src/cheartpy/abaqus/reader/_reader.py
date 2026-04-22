@@ -76,25 +76,28 @@ def read_nodes[F: np.floating](
     )
 
 
+_ABAQUS_ELEM_HEADER = re.compile(
+    r"""
+    \*ELEMENT\s*,\s*type\s*=\s*(?P<type>\w+)\s*,\s*ELSET\s*=\s*(?P<name>\w+)
+    |\*ELEMENT\s*,\s*ELSET\s*=\s*(?P<name>\w+)\s*,\s*type\s*=\s*(?P<type>\w+)
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
 def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEnum]]:
-    terms = line.strip().split(",")
-    match terms:
-        case str(), str(kind_str), str(name_str): ...  # fmt: skip
-        case _:
-            msg = f"Line does not match `*ELEMENT, type={{type}}, ELSET={{name}}\nFound: {line}"
-            return Err(ValueError(msg))
-    match re.fullmatch(r"ELSET=(.*)", name_str.strip(), re.IGNORECASE):
+    line = line.strip()
+    match _ABAQUS_ELEM_HEADER.fullmatch(line):
         case None:
-            msg = f"Parsing error for name element: {name_str}, found: `{name_str.strip()}`"
+            msg = (
+                f"Parsing error for element: {line}. Header must follow either:\n"
+                "    *ELEMENT, type={{type}}, ELSET={{name}}\n"
+                "    *ELEMENT, ELSET={{name}}, type={{type}}"
+            )
             return Err(ValueError(msg))
         case match_obj:
-            name = match_obj.group(1)
-    match re.fullmatch(r"type=(.*)", kind_str.strip(), re.IGNORECASE):
-        case None:
-            msg = f"Parsing error for type element: {kind_str}"
-            return Err(ValueError(msg))
-        case match_obj:
-            kind = match_obj.group(1)
+            name = match_obj.group("name")
+            kind = match_obj.group("type").upper()
     if kind not in AbaqusEnum.__members__:
         msg = f"Element type = {kind} has not been implemented."
         return Err(ValueError(msg))
