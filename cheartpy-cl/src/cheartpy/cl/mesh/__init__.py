@@ -1,6 +1,6 @@
 from ._api import (
-    create_centerline_topology,
     create_centerline_topology_in_surf,
+    create_centerline_topology_in_vol,
     create_cl_partition,
     export_cl_mesh,
 )
@@ -13,8 +13,8 @@ __all__ = [
     "CLPartition",
     "CLSegmentDef",
     "CLVectorDef",
-    "create_centerline_topology",
     "create_centerline_topology_in_surf",
+    "create_centerline_topology_in_vol",
     "create_cl_partition",
     "export_cl_mesh",
 ]

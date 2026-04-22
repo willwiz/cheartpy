@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from cheartpy.mesh import CheartMesh
-    from pytools.arrays import A1, A2
+    from pytools.arrays import A1, A2, DType
 
 
 class APIKwargs[F: np.floating](TypedDict, total=False):
@@ -25,31 +25,33 @@ class CLPrefix(TypedDict, total=False):
     elem: str
 
 
-class CLVectorDef[F: np.floating](TypedDict, total=True):
+class CLVectorDef[F: np.floating](TypedDict, total=False):
     """Defn for centerline topology given vector of nodes."""
 
     home: Path
-    prefix: CLPrefix
-    a_z: A1[F]
-    nodes: A1[F]
+    prefix: Required[CLPrefix]
+    in_surf: int
+    a_z: Required[A1[F] | tuple[Path, DType[F]]]
+    nodes: Required[A1[F]]
 
 
-class CLSegmentDef[F: np.floating](TypedDict, total=True):
+class CLSegmentDef[F: np.floating = np.float64](TypedDict, total=False):
     """Defn for centerline topology given segments."""
 
     home: Path
-    prefix: CLPrefix
-    a_z: A1[F]
-    n: int
+    prefix: Required[CLPrefix]
+    in_surf: int
+    a_z: Required[A1[F] | tuple[Path, DType[F]]]
+    n: Required[int]
 
 
-type CLDef[F: np.floating] = CLVectorDef[F] | CLSegmentDef[F]
+type CLDef[F: np.floating = np.float64] = CLVectorDef[F] | CLSegmentDef[F]
 
 
 @dc.dataclass(slots=True)
 class CLPartition[F: np.floating]:
     prefix: str
-    in_surf: int
+    in_surf: int | None
     node: A1[F]
     domain: A2[F]
 

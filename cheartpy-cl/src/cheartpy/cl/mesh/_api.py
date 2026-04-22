@@ -1,24 +1,38 @@
 import dataclasses as dc
 from collections import defaultdict
+from pathlib import Path
 from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
-from cheartpy.io import chwrite_d_utf
+from cheartpy.io import chread_d, chwrite_d_utf
 from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools.surface_core import create_mesh_from_surface
 from pytools.result import Err, Ok, Result
 from typing_extensions import TypedDict
 
 from ._types import APIKwargs, CLDef, CLMesh, CLPartition
+from ._utils import get_cl_ftype
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
 
-    from pytools.arrays import A1
+    from pytools.arrays import A1, DType
+
+
+def _parse_az[F: np.floating](az: A1[F] | tuple[Path, DType[F]]) -> Result[A1[F]]:
+    match az:
+        case Path() as file, dtype:
+            ...
+        case v:
+            return Ok(v)
+    if file.is_file():
+        return Ok(chread_d(file, dtype=dtype)[:, 0])
+    msg = f"{file} not found"
+    return Err(FileNotFoundError(msg))
 
 
 def create_cl_partition[F: np.floating](defn: CLDef[F]) -> CLPartition[F]:
-    ftype = defn["a_z"].dtype
+    ftype = get_cl_ftype(defn)
     match defn:
         case {"nodes": nodes}: ...  # fmt: skip
         case {"n": nn}:
@@ -147,13 +161,17 @@ def assemble_interface_mesh[F: np.floating, I: np.integer](
     )
 
 
-def create_centerline_topology[F: np.floating, I: np.integer](
+def create_centerline_topology_in_vol[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs[F]]
 ) -> Result[CLMesh[F, I]]:
     partition = kwargs.get("partition") or create_cl_partition(defn)
+    match _parse_az(defn["a_z"]):
+        case Ok(a_z): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
     node_map = create_node2elem_map(mesh)
     node_mesh = {
-        k: create_node_mesh(mesh, defn["a_z"], domain, node_map=node_map)
+        k: create_node_mesh(mesh, a_z, domain, node_map=node_map)
         for k, domain in enumerate(partition.domain)
     }
     match assemble_cl_node_meshes(node_mesh):
@@ -176,17 +194,31 @@ def create_centerline_topology_in_surf[F: np.floating, I: np.integer](
         msg = "Mesh does not have boundary."
         return Err(ValueError(msg))
     surf_nodes = np.unique(mesh.bnd.v[in_surf].v)
-    a_z = defn["a_z"][surf_nodes]
+    match _parse_az(defn["a_z"]):
+        case Ok(a_z): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    a_z = a_z[surf_nodes]
     match create_mesh_from_surface(mesh, in_surf):
         case Ok(surf_mesh): ...  # fmt: skip
         case Err(e):
             return Err(e)
     defn["a_z"] = a_z
-    return create_centerline_topology(surf_mesh, defn, **kwargs).next()
+    return create_centerline_topology_in_vol(surf_mesh, defn, **kwargs).next()
+
+
+def create_centerline_topology[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs[F]]
+) -> Result[CLMesh[F, I]]:
+    match defn.get("in_surf"):
+        case int(in_surf):
+            return create_centerline_topology_in_surf(mesh, in_surf, defn, **kwargs).next()
+        case None:
+            return create_centerline_topology_in_vol(mesh, defn, **kwargs).next()
 
 
 def export_cl_mesh[F: np.floating, I: np.integer](mesh: CLMesh[F, I], defn: CLDef[F]) -> None:
-    root = defn["home"]
+    root = defn.get("home") or Path.cwd()
     p = defn["prefix"]
     mesh.body.save(root / f"{p['prefix']}{p.get('body') or 'Body'}")
     mesh.iface.save(root / f"{p['prefix']}{p.get('iface') or 'IFace'}")
