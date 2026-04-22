@@ -9,12 +9,11 @@ from cheartpy.mesh_tools.surface_core import create_mesh_from_surface
 from pytools.result import Err, Ok, Result
 from typing_extensions import TypedDict
 
-from ._types import APIKwargs, CLMesh, CLPartition
+from ._types import APIKwargs, CLDef, CLMesh, CLPartition
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
 
-    from cheartpy.cl.types import CLDef
     from pytools.arrays import A1
 
 

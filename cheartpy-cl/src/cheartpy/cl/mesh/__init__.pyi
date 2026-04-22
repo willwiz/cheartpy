@@ -1,13 +1,16 @@
 from typing import Unpack
 
 import numpy as np
-from cheartpy.cl.types import CLDef
 from cheartpy.mesh import CheartMesh
 from pytools.result import Result
 
 from ._types import APIKwargs as APIKwargs
+from ._types import CLDef as CLDef
 from ._types import CLMesh as CLMesh
 from ._types import CLPartition as CLPartition
+from ._types import CLPrefix as CLPrefix
+from ._types import CLSegmentDef as CLSegmentDef
+from ._types import CLVectorDef as CLVectorDef
 
 def create_cl_partition[F: np.floating](defn: CLDef[F]) -> CLPartition[F]: ...
 def create_centerline_topology[F: np.floating, I: np.integer](

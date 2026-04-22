@@ -1,4 +1,4 @@
-from ._types import CLDef, CLSegmentDef, CLVectorDef
+from .mesh import CLDef, CLSegmentDef, CLVectorDef
 
 __all__ = [
     "CLDef",
