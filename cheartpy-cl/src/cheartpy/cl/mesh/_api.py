@@ -75,14 +75,15 @@ def create_node_mesh[F: np.floating, I: np.integer](
     node_map = kwargs.get("node_map") or create_node2elem_map(mesh)
     nodes = node_map.key[(a_z >= partition[0]) & (a_z <= partition[-1])]
     elems = mesh.top.v[
-        np.fromiter(
-            sorted({e for n in nodes for e in node_map.n2e[int(n)]}), dtype=mesh.top.v.dtype
+        np.unique(
+            np.fromiter({e for n in nodes for e in node_map.n2e[int(n)]}, dtype=mesh.top.v.dtype)
         )
     ]
-    nodex_index = {n: i for i, n in enumerate(nodes)}
-    elems = np.array([[nodex_index[int(v)] for v in vs] for vs in elems], dtype=mesh.top.v.dtype)
+    expanded_nodelist = np.unique(elems)
+    nodex = {int(n): i for i, n in enumerate(expanded_nodelist)}
+    elems = np.array([[nodex[int(v)] for v in vs] for vs in elems], dtype=mesh.top.v.dtype)
     return CheartMesh(
-        space=CheartMeshSpace(len(nodes), mesh.space.v[nodes]),
+        space=CheartMeshSpace(len(expanded_nodelist), mesh.space.v[expanded_nodelist]),
         top=CheartMeshTopology(len(elems), elems, TYPE=mesh.top.TYPE),
         bnd=None,
     )
@@ -118,14 +119,21 @@ def assemble_interface_mesh[F: np.floating, I: np.integer](
     cl_top: CLPartition[F],
     nodal_meshes: Mapping[int, CheartMesh[F, I]],
 ) -> Result[CheartMesh[F, I]]:
-    node_count = np.array([len(x.space.v) for x in nodal_meshes.values()], dtype=np.intp)
+    dtypes = {x.top.v.dtype for x in nodal_meshes.values()}
+    if len(dtypes) != 1:
+        msg = f"Nodal meshes do not have the same dtype. cannot be combined: \n{dtypes}"
+        return Err(ValueError(msg))
+    ftypes = {x.space.v.dtype for x in nodal_meshes.values()}
+    if len(ftypes) != 1:
+        msg = f"Nodal meshes do not have the same float dtype. cannot be combined: \n{ftypes}"
+        return Err(ValueError(msg))
     cl_i_x = np.ascontiguousarray(
         [[c] for _, c, _ in cl_top.domain],
-        dtype=float,
+        dtype=ftypes.pop(),
     )
     cl_i_t = np.vstack(
-        [np.full((x, 1), i) for i, x in enumerate(node_count)],
-        dtype=int,
+        [np.full((x.top.n, 1), i) for i, x in enumerate(nodal_meshes.values())],
+        dtype=dtypes.pop(),
     )
     elem_types = {m.top.TYPE for m in nodal_meshes.values()}
     if len(elem_types) != 1:
@@ -174,13 +182,8 @@ def create_centerline_topology_in_surf[F: np.floating, I: np.integer](
         case Ok(surf_mesh): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    surf_defn: CLDef[F] = {
-        "home": defn["home"],
-        "prefix": defn["prefix"],
-        "a_z": a_z,
-        "n": len(surf_nodes),
-    }
-    return create_centerline_topology(surf_mesh, surf_defn, **kwargs).next()
+    defn["a_z"] = a_z
+    return create_centerline_topology(surf_mesh, defn, **kwargs).next()
 
 
 def export_cl_mesh[F: np.floating, I: np.integer](mesh: CLMesh[F, I], defn: CLDef[F]) -> None:
