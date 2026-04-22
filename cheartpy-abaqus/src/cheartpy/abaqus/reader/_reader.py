@@ -47,12 +47,7 @@ def read_headings(f: TextIO, _first_line: str) -> Ok[tuple[Headings, Content | N
                 headings.append(line)
     else:
         next_content = None
-    return Ok(
-        (
-            Headings(headings),
-            next_content,
-        )
-    )
+    return Ok((Headings(headings), next_content))
 
 
 def read_nodes[F: np.floating](
@@ -84,6 +79,11 @@ _ABAQUS_ELEM_HEADER = re.compile(
     re.IGNORECASE | re.VERBOSE,
 )
 
+_ABAQUS_ELSET_HEADER = re.compile(
+    r"\*ELEMENT\s*,\s*ELSET\s*=\s*(?P<name>\w+)",
+    re.IGNORECASE | re.VERBOSE,
+)
+
 
 def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEnum]]:
     line = line.strip()
@@ -105,15 +105,10 @@ def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEn
 
 
 def parse_name_from_elset_header(line: str) -> Result[str]:
-    terms = line.strip().split(",")
-    match terms:
-        case str(),str(name_str): ...  # fmt: skip
-        case _:
-            msg = f"Line does not match `*ELEMENT, ELSET={{name}}\nFound: {line}"
-            return Err(ValueError(msg))
-    match re.fullmatch(r"ELSET=(.*)", name_str.strip(), re.IGNORECASE):
+    line = line.strip()
+    match _ABAQUS_ELSET_HEADER.fullmatch(line):
         case None:
-            msg = f"Parsing error for name element: {name_str}"
+            msg = f"Line does not match `*ELEMENT, ELSET={{name}}\nFound: {line}"
             return Err(ValueError(msg))
         case match_obj:
             name = match_obj.group(1)
@@ -153,12 +148,7 @@ def read_element[I: np.integer](
                 elem_dict[int(i) - 1] = np.array([int(v) - 1 for v in vs], dtype=dtype)
     else:
         next_content = None
-    return Ok(
-        (
-            Element(name, kind, elem_dict),
-            next_content,
-        )
-    )
+    return Ok((Element(name, kind, elem_dict), next_content))
 
 
 def read_nset[I: np.integer](
@@ -177,12 +167,7 @@ def read_nset[I: np.integer](
                 set_ids.extend([int(v.strip()) - 1 for v in line.strip().split(",") if v.strip()])
     else:
         next_content = None
-    return Ok(
-        (
-            NSet(name, np.array(set_ids, dtype=dtype)),
-            next_content,
-        )
-    )
+    return Ok((NSet(name, np.array(set_ids, dtype=dtype)), next_content))
 
 
 def read_elset[I: np.integer](
@@ -201,12 +186,7 @@ def read_elset[I: np.integer](
                 set_ids.extend([int(v.strip()) - 1 for v in line.strip().split(",") if v.strip()])
     else:
         next_content = None
-    return Ok(
-        (
-            ElSet(name, np.array(set_ids, dtype=dtype)),
-            next_content,
-        )
-    )
+    return Ok((ElSet(name, np.array(set_ids, dtype=dtype)), next_content))
 
 
 type _AbaqusItem[F: np.floating, I: np.integer] = (
