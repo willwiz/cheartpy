@@ -38,10 +38,10 @@ def build_element_searchmap[I: np.integer](elements: ElemIntermediate[I]) -> Ele
 
 def search_element(search_map: ElemSearchMap, node: Iterable[ToInt]) -> Result[ToInt]:
     """Find elements that contain all of the given node."""
-    possible_elems: set[ToInt] = set()
-    possible_elems = possible_elems.intersection(*(search_map[n] for n in node))
+    possible_elems = set[ToInt].intersection(*(search_map[n] for n in node))
     if not possible_elems:
-        return Err(ValueError(f"No element contains all nodes {node}."))
+        msg = f"No element contains all nodes {node}."
+        return Err(ValueError(msg))
     if len(possible_elems) > 1:
         return Err(ValueError(f"Multiple elements contain all nodes {node}: {possible_elems}."))
     return Ok(possible_elems.pop())

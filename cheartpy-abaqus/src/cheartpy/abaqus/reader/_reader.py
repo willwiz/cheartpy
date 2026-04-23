@@ -65,16 +65,21 @@ def read_nodes[F: np.floating](
         next_content = None
     return Ok(
         (
-            Nodes(node_dict),
+            Nodes(node_dict, dtype=ftype),
             next_content,
         )
     )
 
 
-_ABAQUS_ELEM_HEADER = re.compile(
+_ABAQUS_ELEM_HEADER1 = re.compile(
+    r"""
+    \*ELEMENT\s*,\s*ELSET\s*=\s*(?P<name>\w+)\s*,\s*type\s*=\s*(?P<type>\w+)
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+_ABAQUS_ELEM_HEADER2 = re.compile(
     r"""
     \*ELEMENT\s*,\s*type\s*=\s*(?P<type>\w+)\s*,\s*ELSET\s*=\s*(?P<name>\w+)
-    |\*ELEMENT\s*,\s*ELSET\s*=\s*(?P<name>\w+)\s*,\s*type\s*=\s*(?P<type>\w+)
     """,
     re.IGNORECASE | re.VERBOSE,
 )
@@ -87,7 +92,7 @@ _ABAQUS_ELSET_HEADER = re.compile(
 
 def parse_type_name_from_element_header(line: str) -> Result[tuple[str, AbaqusEnum]]:
     line = line.strip()
-    match _ABAQUS_ELEM_HEADER.fullmatch(line):
+    match _ABAQUS_ELEM_HEADER1.fullmatch(line) or _ABAQUS_ELEM_HEADER2.fullmatch(line):
         case None:
             msg = (
                 f"Parsing error for element: {line}. Header must follow either:\n"
@@ -239,7 +244,7 @@ def _import_abaqus_file[F: np.floating, I: np.integer](
 ) -> Result[AbaqusMesh[F, I]]:
     first_line = f.readline()
     next_content = check_header(first_line)
-    mesh = AbaqusMesh(Headings(v=[]), Nodes({}), {}, {}, {}, ftype, dtype)
+    mesh = AbaqusMesh(Headings(v=[]), Nodes({}, dtype=ftype), {}, {}, {}, ftype, dtype)
     while next_content is not None:
         match read_next(next_content, f, ftype=ftype, dtype=dtype):
             case Ok((new_item, next_content)):

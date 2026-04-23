@@ -1,6 +1,6 @@
 import dataclasses as dc
 import enum
-from typing import TYPE_CHECKING, Any, Required, TypedDict, TypeIs, get_args, get_origin
+from typing import TYPE_CHECKING, Any, Required, TypedDict, TypeIs, cast
 
 import numpy as np
 
@@ -37,14 +37,16 @@ class Headings:
 
 
 def _is_node[F: np.floating](value: object, kind: type[F]) -> TypeIs[Nodes[F]]:
-    origin = get_origin(value)
-    subscript = get_args(value)
-    return origin is Nodes and len(subscript) == 1 and isinstance(subscript[0], kind)
+    if not isinstance(value, Nodes):
+        return False
+    value = cast("Nodes[Any]", value)
+    return value.dtype == kind
 
 
 @dc.dataclass(slots=True)
 class Nodes[F: np.floating]:
     v: dict[ToInt, A1[F]]
+    dtype: DType[F]
 
     def __hash__(self) -> int:
         return hash(tuple(self.v.keys()))
@@ -107,7 +109,7 @@ class AbaqusMesh[F: np.floating, I: np.integer]:
         )
 
     def add_nodes(self, item: Nodes[F]) -> AbaqusMesh[F, I]:
-        nodes = Nodes(self.nodes.v | item.v)
+        nodes = Nodes(self.nodes.v | item.v, dtype=self.ftype)
         return AbaqusMesh(
             self.headings, nodes, self.nset, self.elements, self.elsets, self.ftype, self.dtype
         )
