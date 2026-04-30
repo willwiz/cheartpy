@@ -15,6 +15,8 @@ class APIKwargs[F: np.floating](TypedDict, total=False):
     """Keyword arguments for CL API functions."""
 
     partition: CLPartition[F]
+    no_boundary: bool
+    keep_left: bool
 
 
 class CLPrefix(TypedDict, total=False):

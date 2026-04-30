@@ -19,6 +19,19 @@ if TYPE_CHECKING:
     from pytools.arrays import A1, DType
 
 
+def _create_cl_nodes[F: np.floating = np.float64](
+    n: int, *, dtype: DType[F] = np.float64, **kwargs: Unpack[APIKwargs]
+) -> A1[F]:
+    nodes = np.linspace(0.0, 1.0, n, dtype=dtype)
+    if kwargs.get("no_boundary"):
+        return nodes[1:-1]
+    if not kwargs.get("keep_left", True):
+        return nodes[1:]
+    if not kwargs.get("keep_right", True):
+        return nodes[:-1]
+    return nodes
+
+
 def _parse_az[F: np.floating](az: A1[F] | tuple[Path, DType[F]]) -> Result[A1[F]]:
     match az:
         case Path() as file, dtype:
@@ -31,17 +44,19 @@ def _parse_az[F: np.floating](az: A1[F] | tuple[Path, DType[F]]) -> Result[A1[F]
     return Err(FileNotFoundError(msg))
 
 
-def create_cl_partition[F: np.floating](defn: CLDef[F]) -> CLPartition[F]:
+def create_cl_partition[F: np.floating](
+    defn: CLDef[F], **kwargs: Unpack[APIKwargs]
+) -> CLPartition[F]:
     ftype = get_cl_ftype(defn)
     match defn:
         case {"nodes": nodes}: ...  # fmt: skip
         case {"n": nn}:
-            nodes = np.linspace(0.0, 1.0, nn, dtype=ftype)
+            nodes = _create_cl_nodes(nn, **kwargs)
         case _:
             msg = "Unreachable"
             raise RuntimeError(msg)
     extended_nodes = np.array(
-        [nodes[0] - nodes[1], *nodes, nodes[-1] + (nodes[-1] - nodes[-2])], dtype=ftype
+        [nodes[0] - (nodes[1] - nodes[0]), *nodes, nodes[-1] + (nodes[-1] - nodes[-2])], dtype=ftype
     )
     domain = np.array(
         [
@@ -164,7 +179,7 @@ def assemble_interface_mesh[F: np.floating, I: np.integer](
 def create_centerline_topology_in_vol[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs[F]]
 ) -> Result[CLMesh[F, I]]:
-    partition = kwargs.get("partition") or create_cl_partition(defn)
+    partition = kwargs.get("partition") or create_cl_partition(defn, **kwargs)
     match _parse_az(defn["a_z"]):
         case Ok(a_z): ...  # fmt: skip
         case Err(e):
