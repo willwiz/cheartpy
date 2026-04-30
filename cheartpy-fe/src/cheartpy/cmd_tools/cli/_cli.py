@@ -44,10 +44,12 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
             cmd = [*cmd, "--no-output"]
         case "NONE" | "DEFAULT":
             pass
-    if kwargs.get("dump_matrix", False):
-        cmd = [*cmd, "--dump-matrix"]
-    if kwargs.get("dump_residual", False):
-        cmd = [*cmd, "--dump-residual"]
+    extra_flags = [
+        f"--{k.replace('_', '-')}"
+        for k in ["dump_matrix", "dump_residual", "dump_intermediate"]
+        if kwargs.get(k, False)
+    ]
+    cmd = [*cmd, *extra_flags]
     if macros := kwargs.get("macros"):
         cmd = [*cmd, *(f"-#{k}={v}" for k, v in macros.items())]
     logger = kwargs.get("logger", get_logger())

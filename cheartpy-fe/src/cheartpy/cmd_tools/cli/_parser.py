@@ -19,6 +19,7 @@ solver_parser.add_argument("--cores", "-n", type=int, default=1, metavar="MPI_CO
 solver_parser.add_argument("--log", action="store_true")
 solver_parser.add_argument("--dump-matrix", action="store_true")
 solver_parser.add_argument("--dump-residual", action="store_true")
+solver_parser.add_argument("--dump-intermediate", action="store_true")
 solver_parser.add_argument("--parallel", type=int, default=1, metavar="PARALLEL_RUNS(int)")
 solver_parser.add_argument(
     "--macro",
@@ -61,6 +62,7 @@ class SolverModel(BaseModel):
     log: bool = False
     dump_matrix: bool = False
     dump_residual: bool = False
+    dump_intermediate: bool = False
     macro: list[str] | None = None
     parallel: int = 1
     verbosity: Verbosity
@@ -70,6 +72,7 @@ class PrepModel(BaseModel):
     pfile: list[Path]
     log: bool = False
     verbosity: Verbosity
+
 
 RX_MACRO = re.compile(r"\s*(?P<key>.+)=(?P<value>.+)\s*")
 
@@ -100,6 +103,7 @@ def parse_solver_cmdline_args(args: Sequence[str] | None = None) -> tuple[Solver
             log=parsed_args.log,
             dump_matrix=parsed_args.dump_matrix,
             dump_residual=parsed_args.dump_residual,
+            dump_intermediate=parsed_args.dump_intermediate,
             macros=macros,
             verbosity=parsed_args.verbosity,
         ),

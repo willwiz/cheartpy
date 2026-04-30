@@ -27,6 +27,7 @@ class SolverKwargs(TypedDict, total=False):
     log: bool
     dump_matrix: bool
     dump_residual: bool
+    dump_intermediate: bool
     macros: Mapping[str, str]
     verbosity: Verbosity
     logger: ILogger
