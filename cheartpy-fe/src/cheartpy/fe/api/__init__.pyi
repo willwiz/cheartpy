@@ -29,6 +29,8 @@ from cheartpy.fe.trait import (
     IVariable,
 )
 
+from ._topology import CompiledTopologies as CompiledTopologies
+
 class _CreateBasisKwargs(TypedDict, total=False):
     quadrature: CheartQuadratureType
     gp: int
@@ -104,7 +106,7 @@ def create_top_interface(
     interface_file: Path | str,
     nest_in_bnd: int | None = None,
 ) -> ITopInterface: ...
-def create_topologies[T](
+def create_topologies[T = str](
     dct: Mapping[T, TopologyDef[T]],
 ) -> tuple[Mapping[T, ICheartTopology], Sequence[ITopInterface]]: ...
 

@@ -12,21 +12,21 @@ if TYPE_CHECKING:
     from ._types import CLPartition, CLStructure
 
 
-class _VaribleKwaargs(TypedDict, total=False):
+class _VariableKwaargs(TypedDict, total=False):
     freq: int
     data: Path | str
 
 
 @overload
 def create_lm_on_cl(
-    cl: None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VariableKwaargs]
 ) -> None: ...
 @overload
 def create_lm_on_cl(
-    cl: CLStructure, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure, dim: int, sfx: str = "LM", **kwargs: Unpack[_VariableKwaargs]
 ) -> IVariable: ...
 def create_lm_on_cl(
-    cl: CLStructure | None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure | None, dim: int, sfx: str = "LM", **kwargs: Unpack[_VariableKwaargs]
 ):
     if cl is None:
         return None
@@ -37,14 +37,14 @@ def create_lm_on_cl(
 
 @overload
 def create_dm_on_cl(
-    cl: None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VariableKwaargs]
 ) -> None: ...
 @overload
 def create_dm_on_cl(
-    cl: CLStructure, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure, dim: int, sfx: str = "DM", **kwargs: Unpack[_VariableKwaargs]
 ) -> IVariable: ...
 def create_dm_on_cl(
-    cl: CLStructure | None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VaribleKwaargs]
+    cl: CLStructure | None, dim: int, sfx: str = "DM", **kwargs: Unpack[_VariableKwaargs]
 ):
     if cl is None:
         return None

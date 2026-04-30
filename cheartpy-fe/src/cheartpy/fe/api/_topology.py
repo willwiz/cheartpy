@@ -162,9 +162,12 @@ def create_embbeded_topologies[T](
     return {**tops}, interfaces
 
 
+type CompiledTopologies[T] = tuple[Mapping[T, ICheartTopology], Sequence[ITopInterface]]
+
+
 def create_topologies[T](
     dct: Mapping[T, TopologyDef[T]],
-) -> tuple[Mapping[T, ICheartTopology], Sequence[ITopInterface]]:
+) -> CompiledTopologies[T]:
     """Return dict of topologies and sequence of interfaces.
 
     Convenient way of creating topology basis and interfaces from a dictionary of definitions.

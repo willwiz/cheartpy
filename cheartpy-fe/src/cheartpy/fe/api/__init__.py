@@ -6,6 +6,7 @@ from ._pfile import create_pfile
 from ._solver_group import create_solver_group, create_solver_subgroup
 from ._time import create_time_scheme
 from ._topology import (
+    CompiledTopologies,
     create_embedded_topology,
     create_top_interface,
     create_topologies,
@@ -14,6 +15,7 @@ from ._topology import (
 from ._variable import create_variable
 
 __all__ = [
+    "CompiledTopologies",
     "create_basis",
     "create_bc",
     "create_bcpatch",

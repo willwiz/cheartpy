@@ -1,6 +1,8 @@
 import enum
-from pathlib import Path
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 type CheartBasisType = Literal[
     "NODAL_LAGRANGE",
@@ -109,10 +111,10 @@ class VolumeTopologyDef(TypedDict, total=True):
     mesh: Path
 
 
-class EmbbededTopologyDef[T](TypedDict, total=True):
+class EmbbededTopologyDef[T = str](TypedDict, total=True):
     master: T
     bnd: int
     mesh: Path
 
 
-type TopologyDef[T] = VolumeTopologyDef | EmbbededTopologyDef[T]
+type TopologyDef[T = str] = VolumeTopologyDef | EmbbededTopologyDef[T]
