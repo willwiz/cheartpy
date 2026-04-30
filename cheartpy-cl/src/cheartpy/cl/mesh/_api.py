@@ -34,8 +34,7 @@ def _create_cl_nodes[F: np.floating = np.float64](
 
 def _parse_az[F: np.floating](az: A1[F] | tuple[Path, DType[F]]) -> Result[A1[F]]:
     match az:
-        case Path() as file, dtype:
-            ...
+        case Path() as file, dtype: ...  # fmt: skip
         case v:
             return Ok(v)
     if file.is_file():
@@ -51,7 +50,7 @@ def create_cl_partition[F: np.floating](
     match defn:
         case {"nodes": nodes}: ...  # fmt: skip
         case {"n": nn}:
-            nodes = _create_cl_nodes(nn, **kwargs)
+            nodes = _create_cl_nodes(nn, dtype=ftype, **kwargs)
         case _:
             msg = "Unreachable"
             raise RuntimeError(msg)
@@ -177,9 +176,10 @@ def assemble_interface_mesh[F: np.floating, I: np.integer](
 
 
 def create_centerline_topology_in_vol[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs[F]]
+    mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs]
 ) -> Result[CLMesh[F, I]]:
     partition = kwargs.get("partition") or create_cl_partition(defn, **kwargs)
+    partition = partition.astype(mesh.space.v.dtype)
     match _parse_az(defn["a_z"]):
         case Ok(a_z): ...  # fmt: skip
         case Err(e):
@@ -203,7 +203,7 @@ def create_centerline_topology_in_vol[F: np.floating, I: np.integer](
 
 
 def create_centerline_topology_in_surf[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], in_surf: int, defn: CLDef[F], **kwargs: Unpack[APIKwargs[F]]
+    mesh: CheartMesh[F, I], in_surf: int, defn: CLDef[F], **kwargs: Unpack[APIKwargs]
 ) -> Result[CLMesh[F, I]]:
     if mesh.bnd is None:
         msg = "Mesh does not have boundary."
@@ -223,7 +223,7 @@ def create_centerline_topology_in_surf[F: np.floating, I: np.integer](
 
 
 def create_centerline_topology[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs[F]]
+    mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs]
 ) -> Result[CLMesh[F, I]]:
     match defn.get("in_surf"):
         case int(in_surf):

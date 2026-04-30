@@ -11,10 +11,10 @@ if TYPE_CHECKING:
     from pytools.arrays import A1, A2, DType
 
 
-class APIKwargs[F: np.floating](TypedDict, total=False):
+class APIKwargs(TypedDict, total=False):
     """Keyword arguments for CL API functions."""
 
-    partition: CLPartition[F]
+    partition: CLPartition[np.floating]
     no_boundary: bool
     keep_left: bool
 
@@ -62,6 +62,18 @@ class CLPartition[F: np.floating]:
 
     def __str__(self) -> str:
         return self.prefix
+
+    def astype[T: np.floating](self, dtype: DType[T]) -> CLPartition[T]:
+        return CLPartition(
+            prefix=self.prefix,
+            in_surf=self.in_surf,
+            node=self.node.astype(dtype),
+            domain=self.domain.astype(dtype),
+        )
+
+    @property
+    def dtype(self) -> DType[F]:
+        return self.node.dtype
 
 
 class CLMesh[F: np.floating, I: np.integer](NamedTuple):
