@@ -24,7 +24,7 @@ class CLPrefix(TypedDict, total=False):
     body: str
     iface: str
     domain: str
-    elem: str
+    map: str
 
 
 class CLVectorDef[F: np.floating](TypedDict, total=False):

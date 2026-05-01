@@ -155,7 +155,7 @@ def assemble_interface_mesh[F: np.floating, I: np.integer](
         msg = f"Nodal meshes do not have the same float dtype. cannot be combined: \n{ftypes}"
         return Err(ValueError(msg))
     cl_i_x = np.ascontiguousarray(
-        [[c] for _, c, _ in cl_top.domain],
+        np.arange(len(cl_top.domain)),
         dtype=ftypes.pop(),
     )
     cl_i_t = np.vstack(
@@ -236,6 +236,6 @@ def export_cl_mesh[F: np.floating, I: np.integer](mesh: CLMesh[F, I], defn: CLDe
     root = defn.get("home") or Path.cwd()
     p = defn["prefix"]
     mesh.body.save(root / f"{p['prefix']}{p.get('body') or 'Body'}")
-    mesh.iface.save(root / f"{p['prefix']}{p.get('iface') or 'IFace'}")
+    mesh.iface.save(root / f"{p['prefix']}{p.get('iface') or 'Line'}")
     chwrite_d_utf(root / f"{p['prefix']}{p.get('domain') or 'Domain'}-0.D", mesh.domain)
-    chwrite_d_utf(root / f"{p['prefix']}{p.get('elem') or 'Elem'}-0.D", mesh.elem)
+    chwrite_d_utf(root / f"{p['prefix']}{p.get('map') or 'Map'}-0.D", mesh.elem)
