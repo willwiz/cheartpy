@@ -31,16 +31,59 @@ def _interp_v[F: np.floating, I: np.integer](a_z: A1[F], part: CLPartition[F], v
     }
     res = np.zeros((len(a_z), v.shape[1]), dtype=v.dtype)
     for elem, (domain, b) in basis.items():
-        res[domain] = interpolate_v_on_elem(v[elem], b)
+        res[domain] = interpolate_v_on_elem((v[elem], v[elem + 1]), b)
     return res
 
 
 def interp_cl_var_to_volume[F: np.floating, I: np.integer](
     a_z: A1[F], part: CLDef[F] | CLPartition[F], *v: A2[F]
 ) -> list[A2[F]]:
-    """Interpolate variables define CL to the volume."""
+    """Interpolate variables define CL to the volume.
+
+    Parameters
+    ----------
+    a_z : A1[F]
+        The z coordinates of the volume.
+    part : CLDef[F] | CLPartition[F]
+        The CL partition.
+    *v : A2[F]
+        The variables defined on the CL, with shape (n_cl, v.shape[1]
+
+    Returns
+    -------
+    list[A2[F]]
+        The interpolated variables on the volume, with shape (a_z.shape[0], v.shape[1]).
+
+    """
     match part:
         case CLPartition(): ...  # fmt: skip
         case _:
             part = create_cl_partition(part)
     return [_interp_v(a_z, part, vi) for vi in v]
+
+
+def interp_cl_row_var_to_volume[F: np.floating, I: np.integer](
+    a_z: A1[F], part: CLDef[F] | CLPartition[F], *v: A2[F]
+) -> list[A2[F]]:
+    """Interpolate scalar variables [row vectors] define CL to the volume.
+
+    Parameters
+    ----------
+    a_z : A1[F]
+        The z coordinates of the volume.
+    part : CLDef[F] | CLPartition[F]
+        The CL partition.
+    *v : A2[F]
+        The variables defined on the CL, with shape (1, n_cl).
+
+    Returns
+    -------
+    list[A2[F]]
+        The interpolated variables on the volume, with shape (a_z.shape[0], v.shape[1]).
+
+    """
+    match part:
+        case CLPartition(): ...  # fmt: skip
+        case _:
+            part = create_cl_partition(part)
+    return [_interp_v(a_z, part, vi.T) for vi in v]

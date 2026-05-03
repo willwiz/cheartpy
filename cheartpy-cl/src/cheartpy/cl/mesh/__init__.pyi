@@ -2,6 +2,7 @@ from typing import Unpack
 
 import numpy as np
 from cheartpy.mesh import CheartMesh
+from pytools.arrays import DType
 from pytools.result import Result
 
 from ._types import APIKwargs as APIKwargs
@@ -12,6 +13,7 @@ from ._types import CLPrefix as CLPrefix
 from ._types import CLSegmentDef as CLSegmentDef
 from ._types import CLVectorDef as CLVectorDef
 
+def get_cl_ftype[F: np.floating = np.float64](defn: CLDef[F]) -> DType[F]: ...
 def create_cl_partition[F: np.floating](defn: CLDef[F]) -> CLPartition[F]: ...
 def create_centerline_topology[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], defn: CLDef[F], **kwargs: Unpack[APIKwargs]
