@@ -1,3 +1,4 @@
+from ._centroid import compute_a_c_coordinate
 from ._meshing import (
     create_centerline_topology_in_surf,
     create_centerline_topology_in_vol,
@@ -14,6 +15,7 @@ __all__ = [
     "CLPartition",
     "CLSegmentDef",
     "CLVectorDef",
+    "compute_a_c_coordinate",
     "create_centerline_topology_in_surf",
     "create_centerline_topology_in_vol",
     "create_cl_partition",
