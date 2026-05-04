@@ -13,7 +13,6 @@ class CentroidAPIKwargs[F: np.floating](TypedDict, total=False):
     width: float
     a_z: Required[A1[F]]
     v_z: Required[A2[F]]
-    v_r: Required[A2[F]]
 
 
 def _mesh_centroid[F: np.floating, I: np.integer](mesh: CheartMesh[F, I]) -> A1[F]:
@@ -42,7 +41,10 @@ def _compute_centroid_at_z[F: np.floating, I: np.integer](
 
 def _compute_a_c_coordinate_at_z[F: np.floating](v_z: A1[F], v_r: A1[F], v_ref: A1[F]) -> F:
     v_0 = v_ref - (v_z @ v_ref) * v_z
-    quat, *_ = Rotation.align_vectors(v_0, v_r)
+    v_0 = v_0 / np.linalg.norm(v_0) if np.linalg.norm(v_0) > 0 else v_z
+    v_p = v_r - (v_z @ v_r) * v_z
+    v_p = v_p / np.linalg.norm(v_p) if np.linalg.norm(v_p) > 0 else v_z
+    quat, *_ = Rotation.align_vectors(v_0, v_p)
     rot = quat.as_rotvec()
     q = np.linalg.norm(rot)
     axis = (rot / q).astype(v_z.dtype) if q > 0 else v_z
@@ -66,8 +68,6 @@ def compute_a_c_coordinate[F: np.floating, I: np.integer](
         The centerline a_z coordinate of the volume.
     v_z : A2[F]
         The local v_z axis.
-    v_r : A2[F]
-        The local v_r axis.
     width : float, optional
         The width of the basis function, by default 0.05
 
@@ -82,8 +82,9 @@ def compute_a_c_coordinate[F: np.floating, I: np.integer](
     ar_gen = (_compute_centroid_at_z(mesh, z, centroid, **kwargs) for z in a_z)
     v_ref = np.fromiter(ar_gen, dtype=np.dtype((a_z.dtype, 3)), count=len(a_z))
     v_ref = cast("A2[F]", v_ref)
+    v_p = mesh.space.v - v_ref
     ac_gen = (
         _compute_a_c_coordinate_at_z(z, r, c)
-        for z, r, c in zip(kwargs["v_z"], kwargs["v_r"], v_ref, strict=True)
+        for z, r, c in zip(kwargs["v_z"], v_p, v_ref, strict=True)
     )
     return np.fromiter(ac_gen, dtype=a_z.dtype, count=len(a_z))
