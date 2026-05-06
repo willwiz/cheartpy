@@ -82,7 +82,7 @@ def compute_a_c_coordinate[F: np.floating, I: np.integer](
     ar_gen = (_compute_centroid_at_z(mesh, z, centroid, **kwargs) for z in a_z)
     v_ref = np.fromiter(ar_gen, dtype=np.dtype((a_z.dtype, 3)), count=len(a_z))
     v_ref = cast("A2[F]", v_ref)
-    v_p = mesh.space.v - v_ref
+    v_p = mesh.space.v - centroid - v_ref
     ac_gen = (
         _compute_a_c_coordinate_at_z(z, r, c)
         for z, r, c in zip(kwargs["v_z"], v_p, v_ref, strict=True)
