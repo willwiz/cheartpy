@@ -1,5 +1,4 @@
 import dataclasses as dc
-from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Required, Unpack
 
 from cheartpy.fe.api import (
@@ -20,6 +19,7 @@ from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+    from pathlib import Path
 
     from cheartpy.fe.aliases import TopologyDef
     from cheartpy.fe.trait import IBCPatch, ICheartTopology, IPFile, IVariable
