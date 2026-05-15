@@ -125,6 +125,7 @@ def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
     sg = create_solver_group("Main", time, *solver_subgroups.values())
     pfile = create_pfile()
     pfile.add_solvergroup(sg)
-    pfile.set_outputpath(kwargs.get("output_dir") or Path.cwd())
+    if output_path := kwargs.get("output_dir"):
+        pfile.set_outputpath(output_path)
     pfile.add_interface(*iface)
     return pfile
