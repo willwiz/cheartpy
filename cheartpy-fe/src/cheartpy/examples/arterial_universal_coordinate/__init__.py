@@ -128,6 +128,7 @@ def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
         k: create_solver_subgroup("seq_fp_linesearch", m) for k, m in coord_matrices.items()
     } | {k: create_solver_subgroup("SOLVER_SEQUENTIAL", m) for k, m in vec_matrices.items()}
     sg = create_solver_group("Main", time, *solver_subgroups.values())
+    sg.export_initial_condition = False
     pfile = create_pfile()
     pfile.add_solvergroup(sg)
     if output_path := kwargs.get("output_dir"):
