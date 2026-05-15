@@ -62,7 +62,12 @@ def read_options[T](**kwargs: Unpack[APIKwargs[T]]) -> Options: ...
 
 
 def create_problem_topology[T](**kwargs: Unpack[APIKwargs[T]]) -> CompiledTopologies[TX]:
-    defn: Mapping[TX, TopologyDef[TX]] = {"X": kwargs["top"]}
+    match kwargs["top"]:
+        case {"mesh": mesh, "elem": elem, "order": order}:
+            defn: Mapping[TX, TopologyDef[TX]] = {"X": {"mesh": mesh, "elem": elem, "order": order}}
+        case _:
+            msg = f"Invalid topology definition: {kwargs['top']!r}."
+            raise ValueError(msg)
     return create_topologies(defn)
 
 
