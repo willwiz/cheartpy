@@ -1,0 +1,100 @@
+from typing import TYPE_CHECKING, TextIO
+
+from cheartpy.fe.aliases import L2VarProjectionEnum, L2VarProjectionType
+from cheartpy.fe.api import create_bc
+from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
+from cheartpy.fe.utils import get_enum, join_fields
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence, ValuesView
+
+
+class L2VarProjection(IProblem):
+    name: str
+    calculation: L2VarProjectionEnum = L2VarProjectionEnum.gradient
+    variables: dict[str, IVariable]
+    var_deps: dict[str, IVariable]
+    expr_deps: dict[str, IExpression]
+    bc: IBoundaryCondition
+    buffering: bool = False
+    _problem: str = "L2varprojection_problem"
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+
+    def __init__(
+        self,
+        name: str,
+        space: IVariable,
+        rhs: IVariable,
+        var: IVariable,
+        projection: L2VarProjectionType = "gradient",
+    ) -> None:
+        self.name = name
+        self.variables = {"Space": space, "RHS": rhs, "Variable": var}
+        self.calculation = get_enum(projection, L2VarProjectionEnum)
+        self.var_deps = {}
+        self.expr_deps = {}
+        self.bc = create_bc()
+        self.buffering = True
+
+    def get_prob_vars(self) -> Mapping[str, IVariable]:
+        _self_vars_ = {str(v): v for v in self.variables.values()}
+        # _vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        return {**_self_vars_}
+
+    def add_deps(self, *var: IVariable | IExpression | None) -> None:
+        for v in var:
+            if isinstance(v, IVariable):
+                self.add_var_deps(v)
+            else:
+                self.add_expr_deps(v)
+
+    def add_var_deps(self, *var: IVariable | None) -> None:
+        for v in var:
+            if v is None:
+                continue
+            if str(v) not in self.var_deps:
+                self.var_deps[str(v)] = v
+
+    def add_expr_deps(self, *expr: IExpression | None) -> None:
+        for v in expr:
+            if v is None:
+                continue
+            if str(v) not in self.expr_deps:
+                self.expr_deps[str(v)] = v
+
+    def get_var_deps(self) -> ValuesView[IVariable]:
+        _vars_ = self.get_prob_vars()
+        _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        return {**_vars_, **_b_vars_, **self.var_deps}.values()
+
+    def get_expr_deps(self) -> ValuesView[IExpression]:
+        _expr_ = {str(e): e for e in self.bc.get_expr_deps()}
+        return {**_expr_, **self.expr_deps}.values()
+
+    def add_state_variable(self, *var: IVariable | IExpression | None) -> None: ...
+
+    def get_bc_patches(self) -> Sequence[IBCPatch]:
+        patches = self.bc.get_patches()
+        return [] if patches is None else list(patches)
+
+    def set_projection(
+        self,
+        calc: L2VarProjectionType,
+    ) -> None:
+        self.calculation = get_enum(calc, L2VarProjectionEnum)
+
+    def write(self, f: TextIO) -> None:
+        f.write(f"!DefProblem={{{self.name}|{self._problem}}}\n")
+        f.writelines(
+            f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in self.variables.items()
+        )
+
+        f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
+        if not self.buffering:
+            f.write("  !No-buffering\n")
+        self.bc.write(f)

@@ -13,7 +13,7 @@ from cheartpy.fe.api import (
     create_topologies,
     create_variable,
 )
-from cheartpy.fe.physics.api import create_laplace_problem
+from cheartpy.fe.physics.api import create_l2varprojection_problem, create_laplace_problem
 from pydantic import BaseModel
 from pytools.result import Err, Ok, Result
 from typing_extensions import TypedDict
@@ -39,8 +39,8 @@ class BoundaryValueKwargs(TypedDict, total=True):
     r: Mapping[int, float]
 
 
-class APIKwargs(TypedDict, total=False):
-    top: Required[TopologyDef[Literal["X"]]]
+class APIKwargs[T](TypedDict, total=False):
+    top: Required[TopologyDef[T]]
     bc: Required[BoundaryValueKwargs]
     prefix: VariableNameKwargs
     output_dir: Path
@@ -58,32 +58,34 @@ class VariableList:
 class Options(BaseModel): ...
 
 
-def read_options(**kwargs: Unpack[APIKwargs]) -> Options: ...
+def read_options[T](**kwargs: Unpack[APIKwargs[T]]) -> Options: ...
 
 
-def create_problem_topology(**kwargs: Unpack[APIKwargs]) -> CompiledTopologies[TX]:
+def create_problem_topology[T](**kwargs: Unpack[APIKwargs[T]]) -> CompiledTopologies[TX]:
     defn: Mapping[TX, TopologyDef[TX]] = {"X": kwargs["top"]}
     return create_topologies(defn)
 
 
-def create_variable_list(t: ICheartTopology, **kwargs: Unpack[APIKwargs]) -> Result[VariableList]:
+def create_variable_list[T](
+    t: ICheartTopology, **kwargs: Unpack[APIKwargs[T]]
+) -> Result[VariableList]:
     if t.mesh is None:
         msg = f"Topology {t!s} does not have a mesh file specified."
         return Err(ValueError(msg))
-    space = create_variable("X", t, 3, data=t.mesh)
+    space = create_variable("X", t, 3, data=t.mesh, freq=-1)
     prefix = kwargs.get("prefix") or {}
     vs = VariableList(
         space=space,
-        a_z=create_variable(prefix.get("a_z", "a_z"), t, 1),
-        a_r=create_variable(prefix.get("a_r", "a_r"), t, 1),
-        v_z=create_variable(prefix.get("v_z", "v_z"), t, space.get_dim()),
-        v_r=create_variable(prefix.get("v_r", "v_r"), t, space.get_dim()),
+        a_z=create_variable(prefix.get("a_z", "Az"), t, 1),
+        a_r=create_variable(prefix.get("a_r", "Ar"), t, 1),
+        v_z=create_variable(prefix.get("v_z", "Vz"), t, space.get_dim()),
+        v_r=create_variable(prefix.get("v_r", "Vr"), t, space.get_dim()),
     )
     return Ok(vs)
 
 
-def create_bc_patches(
-    vlist: VariableList, **kwargs: Unpack[APIKwargs]
+def create_bc_patches[T](
+    vlist: VariableList, **kwargs: Unpack[APIKwargs[T]]
 ) -> dict[str, list[IBCPatch]]:
     return {
         f"{vlist.a_z!s}": [
@@ -95,7 +97,7 @@ def create_bc_patches(
     }
 
 
-def uac_pfile(**kwargs: Unpack[APIKwargs]) -> IPFile:
+def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
     time = create_time_scheme("time", 1, 1, 1)
     top, iface = create_problem_topology(**kwargs)
     var = create_variable_list(top["X"], **kwargs).unwrap()
@@ -103,15 +105,24 @@ def uac_pfile(**kwargs: Unpack[APIKwargs]) -> IPFile:
     coord_probs = {
         f"{v!s}": create_laplace_problem(f"Problem{v!s}", var.space, v) for v in (var.a_r, var.a_z)
     }
+
     for k, p in coord_probs.items():
         p.bc.add_patch(*bcs[k])
-    matrices = {
+    vec_probs = {
+        f"{v!s}": create_l2varprojection_problem(f"Problem{v!s}", var.space, a, v, "gradient")
+        for a, v in ((var.a_r, var.v_r), (var.a_z, var.v_z))
+    }
+    coord_matrices = {
         k: create_solver_matrix(f"Matrix{k!s}", "SOLVER_MUMPS", p) for k, p in coord_probs.items()
     }
-    solver_subgroups = {
-        k: create_solver_subgroup("seq_fp_linesearch", m) for k, m in matrices.items()
+    vec_matrices = {
+        k: create_solver_matrix(f"Matrix{k!s}", "SOLVER_MUMPS", p) for k, p in vec_probs.items()
     }
-    sg = create_solver_group("sg", time, *solver_subgroups.values())
+
+    solver_subgroups = {
+        k: create_solver_subgroup("seq_fp_linesearch", m) for k, m in coord_matrices.items()
+    } | {k: create_solver_subgroup("SOLVER_SEQUENTIAL", m) for k, m in vec_matrices.items()}
+    sg = create_solver_group("Main", time, *solver_subgroups.values())
     pfile = create_pfile()
     pfile.add_solvergroup(sg)
     pfile.set_outputpath(kwargs.get("output_dir") or Path.cwd())
