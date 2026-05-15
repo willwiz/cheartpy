@@ -15,6 +15,8 @@ from ._problems import (
     CartesianRigidBodyConstraint,
     L2SolidCalculationEnum,
     L2SolidCalculationType,
+    L2VarProjectionEnum,
+    L2VarProjectionType,
     RigidBodyConstraint,
     SolidFlag,
     SolidFlagEnum,
@@ -52,6 +54,7 @@ from ._topology import (
     CheartTopologySetting,
     EmbbededTopologyDef,
     TopologyDef,
+    VolumeTopologyDef,
 )
 from ._variable import (
     VariableExportEnum,
@@ -80,6 +83,8 @@ __all__ = [
     "IterationSetting",
     "L2SolidCalculationEnum",
     "L2SolidCalculationType",
+    "L2VarProjectionEnum",
+    "L2VarProjectionType",
     "MUMPSMatrixEnum",
     "MUMPSMatrixOptions",
     "MUMPSOrderingOptions",
@@ -112,4 +117,5 @@ __all__ = [
     "VariableExportFormat",
     "VariableUpdateEnum",
     "VariableUpdateSetting",
+    "VolumeTopologyDef",
 ]

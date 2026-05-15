@@ -94,6 +94,13 @@ class L2SolidCalculationEnum(enum.StrEnum):
     deformation_gradient = "deformation_gradient"
 
 
+L2VarProjectionType = Literal["gradient"]
+
+
+class L2VarProjectionEnum(enum.StrEnum):
+    gradient = "gradient"
+
+
 CartesianRigidBodyConstraint = Mapping[Literal["T", "R"], Collection[Literal["x", "y", "z"]]]
 BoundaryRigidBodyConstraint = Mapping[Literal["T", "R"], Collection[Literal["n", "p"]]]
 

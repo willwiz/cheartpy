@@ -32,8 +32,8 @@ class LaplaceProblem(IProblem):
     ) -> None:
         self.name = name
         self.variables = {"Space": space, "Variable": var}
-        self.aux_vars = {}
-        self.aux_expr = {}
+        self.var_deps = {}
+        self.expr_deps = {}
         self.state_vars = {}
         self.bc = create_bc()
 
@@ -86,6 +86,6 @@ class LaplaceProblem(IProblem):
 
 
 def _write_laplace(p: LaplaceProblem, f: TextIO) -> None:
-    f.write(f"!DefProblem={{{p.name}|LAPLACE_PROBLEM}}")
+    f.write(f"!DefProblem={{{p.name}|LAPLACE_PROBLEM}}\n")
     f.writelines(f"  !UseVariablePointer={{{k}|{v}}}\n" for k, v in p.variables.items())
     p.bc.write(f)

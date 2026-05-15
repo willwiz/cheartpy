@@ -50,7 +50,7 @@ def create_basis(
     if 2 * gp < order + 1:
         msg = f"For {_elem}, order {2 * gp} < {order + 1}"
         raise ValueError(msg)
-    if quadrature is CheartQuadratureEnum.KEAST_LYNESS and elem not in [
+    if quadrature is CheartQuadratureEnum.KEAST_LYNESS and _elem not in [
         CheartElementEnum.TETRAHEDRAL_ELEMENT,
         CheartElementEnum.TRIANGLE_ELEMENT,
     ]:

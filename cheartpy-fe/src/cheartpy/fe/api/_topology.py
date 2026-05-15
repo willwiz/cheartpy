@@ -132,8 +132,8 @@ def create_volume_topologies[T](
     tops: Mapping[T, ICheartTopology] = {
         k: create_topology(f"TP{k}", basis=basis[k], mesh=v["mesh"]) for k, v in dct.items()
     }
-    interface = create_top_interface("OneToOne", [*tops.values()])
-    return tops, [interface]
+    interface = [create_top_interface("OneToOne", [*tops.values()])] if len(tops) > 1 else []
+    return tops, interface
 
 
 def create_embbeded_topologies[T](
