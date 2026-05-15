@@ -168,6 +168,8 @@ def _get_variable_frequency_list(
 def _get_writer(
     header: str, *obj: Sequence[HasWriter] | Mapping[str, HasWriter]
 ) -> Generator[HasWriter]:
+    if sum(len(o) for o in obj) == 0:
+        return
     yield Header(header)
     for o in obj:
         match o:
