@@ -1,19 +1,16 @@
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
+from pathlib import Path
 from typing import Literal
 
 import numpy as np
+from cheartpy.fe.aliases import TopologyDef
 from cheartpy.vtk.types import VtkElem
 from pytools.arrays import A2
 from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
+from cheartpy.mesh_tools.tools import MergedMesh
 
-__all__ = [
-    "compute_mesh_outer_normal_at_nodes",
-    "compute_surface_normal_at_center",
-    "compute_surface_normal_at_nodes",
-    "normalize_by_row",
-]
 type _COMPONENT = Literal["X", "Y", "Z"]
 type _BOUND = (
     tuple[float, float]
@@ -49,3 +46,8 @@ def create_new_surface_in_surf[F: np.floating, I: np.integer](
 def compute_surface_normal[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int
 ) -> Result[A2[F]]: ...
+def make_cutplane_topology[T](
+    defn: Mapping[T, TopologyDef[T]],
+    planes: Sequence[T],
+    new_home: Path,
+) -> Result[MergedMesh[np.float64, np.intp]]: ...
