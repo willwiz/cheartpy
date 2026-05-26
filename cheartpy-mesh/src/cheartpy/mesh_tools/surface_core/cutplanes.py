@@ -7,12 +7,13 @@ from pytools.math import householder_orthogonal_basis
 from pytools.result import Err, Result
 
 from cheartpy.mesh import import_cheart_mesh
-from cheartpy.mesh_tools.surface_core import (
+from cheartpy.mesh_tools.tools import MergedMesh, merge_meshes
+
+from .normals import (
     compute_surface_normal,
     create_mesh_from_surface,
     normalize_by_row,
 )
-from cheartpy.mesh_tools.tools import MergedMesh, merge_meshes
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

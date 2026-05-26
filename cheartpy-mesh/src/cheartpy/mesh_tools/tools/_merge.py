@@ -5,6 +5,8 @@ from pytools.result import Ok, Result
 
 from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
 
+from ._types import MergedMesh
+
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
 
 def merge_meshes[F: np.floating, I: np.integer](
     meshes: Sequence[CheartMesh[F, I]], vs: Mapping[str, Sequence[A2[F]]]
-) -> Result[tuple[CheartMesh[F, I], CheartMesh[F, I], Mapping[str, A2[F]]]]:
+) -> Result[MergedMesh[F, I]]:
     """Merge Cheart meshes into one, and combine variable field if given.
 
     Parameters
@@ -63,4 +65,8 @@ def merge_meshes[F: np.floating, I: np.integer](
         ),
         bnd=None,
     )
-    return Ok((merged_mesh, interface_mesh, {k: np.concatenate(v, axis=0) for k, v in vs.items()}))
+    return Ok(
+        MergedMesh(
+            merged_mesh, interface_mesh, {k: np.concatenate(v, axis=0) for k, v in vs.items()}
+        )
+    )
