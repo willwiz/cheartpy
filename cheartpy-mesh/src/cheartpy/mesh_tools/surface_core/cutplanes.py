@@ -4,6 +4,7 @@ import numpy as np
 from cheartpy.elem_interfaces import get_vtk_boundary_element
 from pytools.logging import get_logger
 from pytools.math import householder_orthogonal_basis
+from pytools.result import Err, Result
 
 from cheartpy.mesh import import_cheart_mesh
 from cheartpy.mesh_tools.surface_core import (
@@ -19,7 +20,6 @@ if TYPE_CHECKING:
 
     from cheartpy.fe.aliases import EmbbededTopologyDef, TopologyDef
     from pytools.arrays import A2
-    from pytools.result import Result
 
 
 def is_cutplane[T](top: TopologyDef[T]) -> TypeGuard[EmbbededTopologyDef[T]]:
@@ -78,15 +78,15 @@ def make_cutplane_topology[T](
         if is_cutplane(t)
     }
     master = find_cutplane_master(*cutplanes.values())
-    master_mesh = import_cheart_mesh(defn[master]["mesh"]).unwrap()
+    master_mesh = import_cheart_mesh(defn[master]["mesh"], ftype=np.float64, itype=np.intp).unwrap()
     master_mesh.save(new_home / "Lin")
     if master_mesh.bnd is None:
         msg = f"Master mesh {master} has no boundary"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     bnd_type = get_vtk_boundary_element(master_mesh.bnd.TYPE)
     if bnd_type is None:
         msg = f"Unsupported boundary type {master_mesh.bnd.TYPE}"
-        raise ValueError(msg)
+        return Err(ValueError(msg))
     bnd_meshes = {
         k: create_mesh_from_surface(master_mesh, pln["bnd"]).unwrap()
         for k, pln in cutplanes.items()
@@ -97,7 +97,7 @@ def make_cutplane_topology[T](
     bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
     bnd_zrc_bases = {k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}
     ids = {k: pln["bnd"] * np.ones((bnd_meshes[k].space.n, 1)) for k, pln in cutplanes.items()}
-    merge_meshes(
+    return merge_meshes(
         list(bnd_meshes.values()),
         {
             "Normal": list(bnd_normals.values()),
