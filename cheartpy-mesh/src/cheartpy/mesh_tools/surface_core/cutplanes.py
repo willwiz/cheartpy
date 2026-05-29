@@ -80,7 +80,6 @@ def make_cutplane_topology[T](
     }
     master = find_cutplane_master(*cutplanes.values())
     master_mesh = import_cheart_mesh(defn[master]["mesh"], ftype=np.float64, itype=np.intp).unwrap()
-    master_mesh.save(new_home / "Lin")
     if master_mesh.bnd is None:
         msg = f"Master mesh {master} has no boundary"
         return Err(ValueError(msg))
