@@ -1,3 +1,0 @@
-[submodule ".deps/pytools"]
-	path = .deps/pytools
-	url = git@github.com:willwiz/pytools.git
