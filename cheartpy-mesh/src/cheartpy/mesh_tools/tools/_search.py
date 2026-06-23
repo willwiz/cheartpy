@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import numpy as np
 from pytools.arrays import ToIndex, ToInt
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from ._types import ElemSearchMap, IndexUpdateMap
 
 
-def build_index_update_map[I: np.integer](elements: Mapping[int, A1[I]]) -> IndexUpdateMap:
+def build_index_update_map[I: np.integer](elements: A2[I]) -> IndexUpdateMap:
     """Create a mapping from old node to new continuous node numbering.
 
     Parameters
@@ -28,7 +28,7 @@ def build_index_update_map[I: np.integer](elements: Mapping[int, A1[I]]) -> Inde
         Mapping[int, int] where the key is the old node index and the value is the new node index.
 
     """
-    unique_nodes = {n for nodes in elements.values() for n in nodes}
+    unique_nodes = {n for nodes in elements for n in nodes}
     return {n: i for i, n in enumerate(unique_nodes)}
 
 
@@ -72,20 +72,6 @@ def search_element_unique(search_map: ElemSearchMap, node: Collection[ToInt]) ->
     if len(possible_elems) > 1:
         return Err(ValueError(f"Multiple elements contain all nodes {node}: {possible_elems}."))
     return Ok(possible_elems.pop())
-
-
-def _all_ok_dict[K, V](result: Mapping[K, Ok[V] | Err]) -> Ok[Mapping[K, V]] | Err:
-    for res in result.values():
-        if isinstance(res, Err):
-            return Err(res.val)
-    return Ok({key: res.val for key, res in cast("Mapping[K, Ok[V]]", result).items()})
-
-
-def _all_ok_sequence[V](result: Sequence[Ok[V] | Err]) -> Ok[Sequence[V]] | Err:
-    for res in result:
-        if isinstance(res, Err):
-            return res
-    return Ok([res.val for res in cast("Sequence[Ok[V]]", result)])
 
 
 def search_elements_from_boundary_set[I: np.integer](
