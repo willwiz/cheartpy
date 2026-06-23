@@ -1,5 +1,4 @@
 from collections import defaultdict
-from collections.abc import Collection, Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -7,10 +6,11 @@ from pytools.arrays import ToIndex
 from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
+
     from pytools.arrays import A1
 
-type ElemSearchMap = Mapping[ToIndex, set[int]]
-type IndexUpdateMap = Mapping[ToIndex, int]
+    from ._types import ElemSearchMap, IndexUpdateMap
 
 
 def build_index_update_map[I: np.integer](elements: Mapping[int, A1[I]]) -> IndexUpdateMap:

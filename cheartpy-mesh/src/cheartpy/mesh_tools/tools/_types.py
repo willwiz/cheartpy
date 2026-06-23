@@ -8,11 +8,12 @@ from cheartpy.io import chwrite_d_utf
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A2
+    from pytools.arrays import A2, ToIndex
 
     from cheartpy.mesh import CheartMesh
 
-
+type ElemSearchMap = Mapping[ToIndex, set[int]]
+type IndexUpdateMap = Mapping[ToIndex, int]
 @dc.dataclass(slots=True)
 class MergedMesh[F: np.floating, I: np.integer]:
     vol: CheartMesh[F, I]
