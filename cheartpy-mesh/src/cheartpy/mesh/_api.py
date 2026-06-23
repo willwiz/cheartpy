@@ -8,7 +8,7 @@ from cheartpy.elem_interfaces import (
     guess_vtk_elem_from_dim,
 )
 from cheartpy.io import fix_ch_sfx
-from pytools.result import Err, Ok
+from pytools.result import Err, Ok, Result
 
 from ._struct import (
     CheartMesh,
@@ -42,6 +42,22 @@ def _create_cheart_mesh_surf_from_raw[T: np.integer](
     return CheartMeshBoundary(len(raw_bnd), bnd, surf_type)
 
 
+def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
+    space: A2[F], top: A2[I], bnd: A2[I] | None = None, *, elem: VtkEnum | None = None
+) -> Result[CheartMesh[F, I]]:
+    el_dim = top.shape[1]
+    b_dim = bnd.shape[1] - 2 if bnd else None
+    if elem is None:
+        match guess_vtk_elem_from_dim(el_dim, b_dim):
+            case Ok(elem): ...  # fmt: skip
+            case Err(e):
+                return Err(e)
+    boundary_type = get_vtk_boundary_element(elem)
+    topology = CheartMeshTopology(len(top), top, elem)
+    boundary = _create_cheart_mesh_surf_from_raw(bnd, boundary_type)
+    return Ok(CheartMesh(CheartMeshSpace(len(space), space), topology, boundary))
+
+
 def import_cheart_mesh[F: np.floating, I: np.integer](
     name: Path | str,
     forced_type: VtkEnum | None = None,
@@ -52,19 +68,7 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
     raw_top = np.loadtxt(f"{prefix}T", dtype=itype, skiprows=1) - 1
-    edim = raw_top.shape[1]
-    if Path(f"{prefix}B").is_file():
-        raw_bnd = np.loadtxt(f"{prefix}B", dtype=itype, skiprows=1)
-        bdim = raw_bnd.shape[1] - 2
-    else:
-        raw_bnd, bdim = None, None
-    if forced_type is None:
-        match guess_vtk_elem_from_dim(edim, bdim):
-            case Ok(forced_type): ...  # fmt: skip
-            case Err(e):
-                return Err(e)
-    space = CheartMeshSpace(len(raw_space), raw_space)
-    top = CheartMeshTopology(len(raw_top), raw_top, forced_type)
-    boundary_type = get_vtk_boundary_element(forced_type)
-    bnd = _create_cheart_mesh_surf_from_raw(raw_bnd, boundary_type)
-    return Ok(CheartMesh(space, top, bnd))
+    raw_bnd = (
+        np.loadtxt(f"{prefix}B", dtype=itype, skiprows=1) if Path(f"{prefix}B").is_file() else None
+    )
+    return cheart_mesh_from_arrays(raw_space, raw_top, raw_bnd, elem=forced_type).next()

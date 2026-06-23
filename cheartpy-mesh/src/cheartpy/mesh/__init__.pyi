@@ -45,6 +45,9 @@ class CheartMesh[F: np.floating, I: np.integer]:
     bnd: CheartMeshBoundary[I] | None
     def save(self, prefix: Path | str, *, forced: bool = False) -> None: ...
 
+def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
+    space: A2[F], top: A2[I], bnd: A2[I] | None = None, *, elem: VtkEnum | None = None
+) -> Result[CheartMesh[F, I]]: ...
 def import_cheart_mesh[F: np.floating, I: np.integer](
     name: Path | str,
     forced_type: VtkEnum | None = None,
