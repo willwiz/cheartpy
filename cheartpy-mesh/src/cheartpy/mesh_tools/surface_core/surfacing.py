@@ -128,6 +128,25 @@ def find_unique_surf_patches[I: np.integer](
 def find_surface_in_mesh[F: np.floating, I: np.integer](
     bnd: CheartMeshBoundary[I], node_map: _NodeMap[F, I], label: int
 ) -> CheartMeshPatch[I] | None:
+    """Return Cheart Boundary Patch with given label if it exists.
+
+    Parameters
+    ----------
+    bnd : CheartMeshBoundary[I]
+        The mesh boundary of the mesh to be searched.
+
+    node_map : _NodeMap[F, I]
+        The node map containing the indices and coordinates of the nodes to be searched.
+
+    label : int
+        The label of the boundary patch to be searched for.
+
+    Returns
+    -------
+    CheartMeshPatch[I] | None
+        The Cheart Boundary Patch with the given label if it exists, otherwise None.
+
+    """
     nodes_set = set(node_map.idx)
     surf_patches_index = find_unique_surf_patches(bnd)
     dtype = bnd.v[next(iter(bnd.v))].v.dtype
@@ -142,6 +161,25 @@ def find_surface_in_mesh[F: np.floating, I: np.integer](
 def create_new_surface_in_mesh[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], constraints: _SURF_CONSTRAINTS, label: int
 ) -> Ok[CheartMesh[F, I]] | Err:
+    """Create a new surface in the mesh based on the given constraints and label.
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The mesh in which the new surface will be created.
+
+    constraints : _SURF_CONSTRAINTS
+        The constraints for creating the new surface.
+
+    label : int
+        The label for the new surface.
+
+    Returns
+    -------
+    Ok[CheartMesh[F, I]] | Err
+        Result type containing CheartMesh[F, I] if successful, otherwise an error.
+
+    """
     if mesh.bnd is None:
         msg = "Mesh has no boundary."
         return Err(ValueError(msg))
@@ -173,6 +211,28 @@ def create_new_surface_in_mesh[F: np.floating, I: np.integer](
 def create_new_surface_in_surf[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], surf_id: Iterable[int], constraints: _SURF_CONSTRAINTS, label: int
 ) -> Result[CheartMesh[F, I]]:
+    """Create a new surface in the mesh based on the given constraints and label.
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The mesh in which the new surface will be created.
+
+    surf_id : Iterable[int]
+        The new surface will be created within surfaces specified by these IDs.
+
+    constraints : _SURF_CONSTRAINTS
+        The constraints for creating the new surface.
+
+    label : int
+        The label for the new surface.
+
+    Returns
+    -------
+    Result[CheartMesh[F, I]]
+        Result type containing CheartMesh[F, I]).
+
+    """
     if mesh.bnd is None:
         msg = "Mesh has no boundary."
         return Err(ValueError(msg))
