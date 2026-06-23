@@ -3,13 +3,14 @@ from collections.abc import Collection, Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
+from pytools.arrays import ToIndex
 from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
     from pytools.arrays import A1
 
-type ElemSearchMap = Mapping[int, set[int]]
-type IndexUpdateMap = Mapping[int, int]
+type ElemSearchMap = Mapping[ToIndex, set[int]]
+type IndexUpdateMap = Mapping[ToIndex, int]
 
 
 def build_index_update_map[I: np.integer](elements: Mapping[int, A1[I]]) -> IndexUpdateMap:
@@ -46,7 +47,7 @@ def build_element_searchmap[I: np.integer](elements: Mapping[int, A1[I]]) -> Ele
         Mapping[int, set[int]] where the key is the node and the value is a set of element indices.
 
     """
-    search_map = defaultdict[int, set[int]](set)
+    search_map = defaultdict[ToIndex, set[int]](set)
     for elem, nodes in elements.items():
         for node in nodes:
             search_map[node].add(elem)
