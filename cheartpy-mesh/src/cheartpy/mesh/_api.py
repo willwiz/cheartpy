@@ -46,7 +46,7 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
     space: A2[F], top: A2[I], bnd: A2[I] | None = None, *, elem: VtkEnum | None = None
 ) -> Result[CheartMesh[F, I]]:
     el_dim = top.shape[1]
-    b_dim = bnd.shape[1] - 2 if bnd else None
+    b_dim = None if bnd is None else bnd.shape[1] - 2
     if elem is None:
         match guess_vtk_elem_from_dim(el_dim, b_dim):
             case Ok(elem): ...  # fmt: skip
