@@ -157,6 +157,26 @@ def chwrite_d_utf[T: np.floating, S: tuple[int, ...]](file: Path | str, data: Ar
         comments="",  # Avoids the default '# ' comment prefix
     )
 
+def chwrite_i_utf[T: np.integer, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None:
+    match data.shape:
+        case (int(),):
+            ne = data.size
+            nn = 1
+        case int(), int():
+            ne, nn = data.shape
+        case _:
+            msg = "Data must be 1D or 2D array"
+            raise ValueError(msg)
+    np.savetxt(
+        file,
+        data,
+        delimiter=" ",
+        fmt="%g",
+        newline="\n",
+        header=f"{ne:12d}{nn:12d}",
+        comments="",  # Avoids the default '# ' comment prefix
+    )
+
 
 def chwrite_d_binary[T: np.floating](file: Path | str, arr: A2[T]) -> None:
     dim = arr.shape
