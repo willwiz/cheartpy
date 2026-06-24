@@ -13,7 +13,6 @@ from cheartpy.fe.api import (
     create_variable,
 )
 from cheartpy.fe.physics.api import create_l2varprojection_problem, create_laplace_problem
-from pydantic import BaseModel
 from pytools.result import Err, Ok, Result
 from typing_extensions import TypedDict
 
@@ -28,10 +27,8 @@ TX = Literal["X"]
 
 
 class VariableNameKwargs(TypedDict, total=False):
-    a_z: str
-    a_r: str
-    v_z: str
-    v_r: str
+    a: str
+    v: str
 
 
 class BoundaryValueKwargs(TypedDict, total=True):
@@ -41,24 +38,17 @@ class BoundaryValueKwargs(TypedDict, total=True):
 
 class APIKwargs[T](TypedDict, total=False):
     top: Required[TopologyDef[T]]
-    bc: Required[BoundaryValueKwargs]
+    bc: Required[Mapping[int, float]]
     prefix: VariableNameKwargs
     output_dir: Path
 
 
 @dc.dataclass(slots=True)
 class VariableList:
-    space: IVariable
-    a_z: IVariable
-    a_r: IVariable
-    v_z: IVariable
-    v_r: IVariable
+    x: IVariable
+    a: IVariable
+    v: IVariable
 
-
-class Options(BaseModel): ...
-
-
-def read_options[T](**kwargs: Unpack[APIKwargs[T]]) -> Options: ...
 
 
 def create_problem_topology[T](**kwargs: Unpack[APIKwargs[T]]) -> CompiledTopologies[TX]:
@@ -80,54 +70,52 @@ def create_variable_list[T](
     space = create_variable("X", t, 3, data=t.mesh, freq=-1)
     prefix = kwargs.get("prefix") or {}
     vs = VariableList(
-        space=space,
-        a_z=create_variable(prefix.get("a_z", "Az"), t, 1),
-        a_r=create_variable(prefix.get("a_r", "Ar"), t, 1),
-        v_z=create_variable(prefix.get("v_z", "Vz"), t, space.get_dim()),
-        v_r=create_variable(prefix.get("v_r", "Vr"), t, space.get_dim()),
+        x=space,
+        a=create_variable(prefix.get("a", "Field"), t, 1),
+        v=create_variable(prefix.get("v", "Vector"), t, space.get_dim()),
     )
     return Ok(vs)
 
 
-def create_bc_patches[T](
-    vlist: VariableList, **kwargs: Unpack[APIKwargs[T]]
-) -> dict[str, list[IBCPatch]]:
-    return {
-        f"{vlist.a_z!s}": [
-            create_bcpatch(i, vlist.a_z, "dirichlet", v) for i, v in kwargs["bc"]["z"].items()
-        ],
-        f"{vlist.a_r!s}": [
-            create_bcpatch(i, vlist.a_r, "dirichlet", v) for i, v in kwargs["bc"]["r"].items()
-        ],
-    }
+def create_bc_patches[T](vlist: VariableList, **kwargs: Unpack[APIKwargs[T]]) -> list[IBCPatch]:
+    return [create_bcpatch(i, vlist.a, "dirichlet", v) for i, v in kwargs["bc"].items()]
 
 
 def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
+    """Create a P-File for generating fiber fields.
+
+    Parameters
+    ----------
+    top : TopologyDef[T]
+        The topology definition for the problem.
+    bc : Mapping[int, float]
+        The boundary conditions for the problem.
+    prefix : VariableNameKwargs, optional
+        The prefixes for the variable names. Defaults to {"a": "Field", "v": "Vector"}.
+    output_dir : Path, optional
+        The output directory for the problem. Defaults to the current working directory.
+
+    Returns
+    -------
+    IPFile
+        The generated P-File for the problem.
+
+    """
     time = create_time_scheme("time", 1, 1, 1)
     top, iface = create_problem_topology(**kwargs)
     var = create_variable_list(top["X"], **kwargs).unwrap()
     bcs = create_bc_patches(var, **kwargs)
-    coord_probs = {
-        f"{v!s}": create_laplace_problem(f"Problem{v!s}", var.space, v) for v in (var.a_r, var.a_z)
-    }
+    coord_prob = create_laplace_problem(f"Problem{var.a!s}", var.x, var.a)
+    coord_prob.bc.add_patch(*bcs)
+    vec_probs = create_l2varprojection_problem(f"Problem{var.v!s}", var.x, var.a, var.v, "gradient")
+    coord_matrices = create_solver_matrix(f"Matrix{coord_prob!s}", "SOLVER_MUMPS", coord_prob)
+    vec_matrices = create_solver_matrix(f"Matrix{vec_probs!s}", "SOLVER_MUMPS", vec_probs)
 
-    for k, p in coord_probs.items():
-        p.bc.add_patch(*bcs[k])
-    vec_probs = {
-        f"{v!s}": create_l2varprojection_problem(f"Problem{v!s}", var.space, a, v, "gradient")
-        for a, v in ((var.a_r, var.v_r), (var.a_z, var.v_z))
-    }
-    coord_matrices = {
-        k: create_solver_matrix(f"Matrix{k!s}", "SOLVER_MUMPS", p) for k, p in coord_probs.items()
-    }
-    vec_matrices = {
-        k: create_solver_matrix(f"Matrix{k!s}", "SOLVER_MUMPS", p) for k, p in vec_probs.items()
-    }
-
-    solver_subgroups = {
-        k: create_solver_subgroup("seq_fp_linesearch", m) for k, m in coord_matrices.items()
-    } | {k: create_solver_subgroup("SOLVER_SEQUENTIAL", m) for k, m in vec_matrices.items()}
-    sg = create_solver_group("Main", time, *solver_subgroups.values())
+    solver_subgroups = [
+        create_solver_subgroup("seq_fp_linesearch", coord_matrices),
+        create_solver_subgroup("SOLVER_SEQUENTIAL", vec_matrices),
+    ]
+    sg = create_solver_group("Main", time, *solver_subgroups)
     sg.export_initial_condition = False
     pfile = create_pfile()
     pfile.add_solvergroup(sg)

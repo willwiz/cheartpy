@@ -205,7 +205,6 @@ def process_cmdline_args(
             return Err(e)
     match get_file_name_indexer(args.index, args.subindex, args.var, root=input_dir):
         case Ok(indexer):
-            print(indexer)
             ifirst = next(iter(indexer))
         case Err(e):
             return Err(e)
