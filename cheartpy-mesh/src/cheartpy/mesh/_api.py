@@ -53,7 +53,7 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
             case Err(e):
                 return Err(e)
     boundary_type = get_vtk_boundary_element(elem)
-    topology = CheartMeshTopology(len(top), top, elem)
+    topology = CheartMeshTopology(len(top), top - 1, elem)
     boundary = _create_cheart_mesh_surf_from_raw(bnd, boundary_type)
     return Ok(CheartMesh(CheartMeshSpace(len(space), space), topology, boundary))
 
@@ -67,7 +67,7 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
 ) -> Ok[CheartMesh[F, I]] | Err:
     prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
-    raw_top = np.loadtxt(f"{prefix}T", dtype=itype, skiprows=1) - 1
+    raw_top = np.loadtxt(f"{prefix}T", dtype=itype, skiprows=1)
     raw_bnd = (
         np.loadtxt(f"{prefix}B", dtype=itype, skiprows=1) if Path(f"{prefix}B").is_file() else None
     )

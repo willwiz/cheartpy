@@ -48,6 +48,21 @@ class CheartMeshTopology[T: np.integer]:
 
 @dc.dataclass(slots=True)
 class CheartMeshPatch[T: np.integer]:
+    """Cheart Mesh Data for one face.
+
+    tag: ToInt
+        Label id for the patch
+    n: ToInt
+        No. of face elements in the patch
+    k: A1[T]
+        Array of element ids containing the corresponding face elements
+    v: A2[T]
+        Connectivity array of the face elements
+    TYPE: VtkEnum
+        VTK cell type of the face elements
+
+    """
+
     tag: ToInt
     n: ToInt
     k: A1[T]
