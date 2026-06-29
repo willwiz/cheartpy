@@ -1,6 +1,10 @@
-from cheartpy.fe.aliases import L2VarProjectionType
+from typing import TYPE_CHECKING
+
 from cheartpy.fe.physics.l2_projection import L2VarProjection
-from cheartpy.fe.trait import IVariable
+
+if TYPE_CHECKING:
+    from cheartpy.fe.aliases import L2VarProjectionType
+    from cheartpy.fe.trait import IVariable
 
 
 def create_l2varprojection_problem(

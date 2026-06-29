@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, TextIO
 
 from cheartpy.fe.api import create_bc
 from cheartpy.fe.trait import IBCPatch, IBoundaryCondition, IExpression, IProblem, IVariable
+from cheartpy.fe.utils import join_fields
 
 if TYPE_CHECKING:
     from collections.abc import Sequence, ValuesView
@@ -16,6 +17,7 @@ class LaplaceProblem(IProblem):
     var_deps: dict[str, IVariable]
     expr_deps: dict[str, IExpression]
     bc: IBoundaryCondition
+    mask: tuple[IVariable, int] | None
     buffering: bool = False
 
     def __repr__(self) -> str:
@@ -35,6 +37,7 @@ class LaplaceProblem(IProblem):
         self.var_deps = {}
         self.expr_deps = {}
         self.state_vars = {}
+        self.mask = None
         self.bc = create_bc()
 
     def add_state_variable(self, *var: IVariable | IExpression | None) -> None:
@@ -70,6 +73,8 @@ class LaplaceProblem(IProblem):
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        if self.mask is not None:
+            _b_vars_[str(self.mask[0])] = self.mask[0]
         _e_vars_ = {str(v): v for e in self.get_expr_deps() for v in e.get_var_deps()}
         return {**self.var_deps, **_vars_, **_b_vars_, **_e_vars_}.values()
 
@@ -88,4 +93,6 @@ class LaplaceProblem(IProblem):
 def _write_laplace(p: LaplaceProblem, f: TextIO) -> None:
     f.write(f"!DefProblem={{{p.name}|LAPLACE_PROBLEM}}\n")
     f.writelines(f"  !UseVariablePointer={{{k}|{v}}}\n" for k, v in p.variables.items())
+    if p.mask is not None:
+        f.write(f"  !ProblemMask={{{join_fields(*p.mask)}}}\n")
     p.bc.write(f)

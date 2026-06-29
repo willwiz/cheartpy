@@ -17,6 +17,7 @@ class L2VarProjection(IProblem):
     expr_deps: dict[str, IExpression]
     bc: IBoundaryCondition
     buffering: bool = False
+    mask: tuple[IVariable, int] | None
     _problem: str = "L2varprojection_problem"
 
     def __repr__(self) -> str:
@@ -40,6 +41,7 @@ class L2VarProjection(IProblem):
         self.expr_deps = {}
         self.bc = create_bc()
         self.buffering = True
+        self.mask = None
 
     def get_prob_vars(self) -> Mapping[str, IVariable]:
         _self_vars_ = {str(v): v for v in self.variables.values()}
@@ -70,6 +72,8 @@ class L2VarProjection(IProblem):
     def get_var_deps(self) -> ValuesView[IVariable]:
         _vars_ = self.get_prob_vars()
         _b_vars_ = {str(v): v for v in self.bc.get_vars_deps()}
+        if self.mask is not None:
+            _b_vars_[str(self.mask[0])] = self.mask[0]
         return {**_vars_, **_b_vars_, **self.var_deps}.values()
 
     def get_expr_deps(self) -> ValuesView[IExpression]:
@@ -95,6 +99,8 @@ class L2VarProjection(IProblem):
         )
 
         f.write(f"  !Projected-Variable={{{self.calculation}}}\n")
+        if self.mask is not None:
+            f.write(f"  !ProblemMask={{{join_fields(*self.mask)}}}\n")
         if not self.buffering:
             f.write("  !No-buffering\n")
         self.bc.write(f)
