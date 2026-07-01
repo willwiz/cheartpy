@@ -17,6 +17,7 @@ from ._cheart import (
     fix_ch_sfx,
     is_binary,
 )
+from ._debug import import_cheart_matrix
 from ._raw import read_array_float, read_array_int, write_array_float, write_array_int
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "chwrite_t_utf",
     "chwrite_time_utf",
     "fix_ch_sfx",
+    "import_cheart_matrix",
     "is_binary",
     "read_array_float",
     "read_array_int",

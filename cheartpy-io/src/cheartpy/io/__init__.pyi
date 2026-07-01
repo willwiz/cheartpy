@@ -3,6 +3,9 @@ from pathlib import Path
 
 import numpy as np
 from pytools.arrays import A1, A2, Arr, DType
+from pytools.result import Result
+
+from ._debug import CheartMatrix
 
 def read_array_int[I: np.integer](
     name: Path | str, skip: int = 0, *, dtype: DType[I] = np.intc
@@ -34,3 +37,6 @@ def chwrite_iarr_utf[T: np.integer](file: Path | str, data: A2[T]) -> None: ...
 def chwrite_str_utf[T: np.str_](file: Path | str, data: A2[T]) -> None: ...
 def chwrite_time_utf[F: np.floating](file: Path | str, data: A1[F]) -> None: ...
 def chwrite_i_utf[T: np.integer, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None: ...
+def import_cheart_matrix[F: np.floating = np.float64, I: np.integer = np.intp](
+    file: Path, *, ftype: DType[F] = np.float64, dtype: DType[I] = np.intp
+) -> Result[CheartMatrix[F]]: ...
