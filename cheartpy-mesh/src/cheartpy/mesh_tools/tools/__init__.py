@@ -6,9 +6,11 @@ from ._search import (
     search_element_unique,
     search_elements_from_boundary_set,
 )
-from ._types import MergedMesh
+from ._types import ElemSearchMap, IndexUpdateMap, MergedMesh
 
 __all__ = [
+    "ElemSearchMap",
+    "IndexUpdateMap",
     "MergedMesh",
     "build_element_searchmap",
     "build_index_update_map",

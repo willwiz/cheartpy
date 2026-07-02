@@ -6,7 +6,8 @@ from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
 
-from ._types import ElemSearchMap, IndexUpdateMap
+from ._types import ElemSearchMap as ElemSearchMap
+from ._types import IndexUpdateMap as IndexUpdateMap
 from ._types import MergedMesh as MergedMesh
 
 def merge_meshes[F: np.floating, I: np.integer](
