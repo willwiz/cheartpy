@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 def _u(vs: Sequence[IVariable | IExpression], i: int) -> str:
     if len(vs) == 1:
         return f"{vs[0]}.{i}"
-    return f"({'-'.join(f'{v}.{i}' for v in vs)})"
+    return f"({'-'.join([f'{v}.{i}' for v in vs])})"
 
 
 def create_rotation_operator_expr(

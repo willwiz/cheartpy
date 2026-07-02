@@ -88,7 +88,7 @@ def export_boundary[F: np.floating, I: np.integer](
         vtk_xml.write(fout)
     if inp.compress:
         compress_vtu(foutfile, log=log)
-    log.info(f"<<< Exported the boundary to {foutfile}")
+    log.info("Exported the boundary to:", f"{foutfile!s}")
 
 
 def create_xml_for_mesh[F: np.floating, I: np.integer](
@@ -174,7 +174,7 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
-    silent_logger = get_logger("thread", level="NULL", verbose=False)
+    silent_logger = get_logger("thread", level="NULL")
     with ThreadedRunner(**mpi, prog_bar=bart) as executor:
         for arg in get_arguments(inp, cache, indexer, log=log):
             executor.submit(export_mesh_iter, arg, log=silent_logger)

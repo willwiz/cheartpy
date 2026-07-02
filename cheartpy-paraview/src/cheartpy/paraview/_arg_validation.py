@@ -190,7 +190,7 @@ def process_cmdline_args(
     log: ILogger,
 ) -> Ok[tuple[ProgramArgs, IIndexIterator]] | Err:
     """Process command line arguments raw into program structs."""
-    log.info(*format_input_info(args))
+    log.info("Current Run Information:", *format_input_info(args))
     prefix = _get_prefix(args)
     match _check_dirs_inputs(args):
         case Ok((input_dir, output_dir)): ...  # fmt: skip

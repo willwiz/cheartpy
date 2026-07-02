@@ -98,7 +98,7 @@ class XMLData[S: SAny, T: np.number](XMLDataTrait):
             return
         for arr in self._data:
             fout.write(" " * (level + 2))
-            fout.write("  ".join(f"{p:<{self._fmt}}" for p in arr[self._order]))
+            fout.write("  ".join([f"{p:<{self._fmt}}" for p in arr[self._order]]))
             fout.write("\n")
 
 
