@@ -85,7 +85,11 @@ _ABAQUS_ELEM_HEADER2 = re.compile(
 )
 
 _ABAQUS_ELSET_HEADER = re.compile(
-    r"\*ELEMENT\s*,\s*ELSET\s*=\s*(?P<name>\w+)",
+    r"\*ELSET\s*,\s*ELSET\s*=\s*(?P<name>\w+)",
+    re.IGNORECASE | re.VERBOSE,
+)
+_ABAQUS_NSET_HEADER = re.compile(
+    r"\*NSET\s*,\s*NSET\s*=\s*(?P<name>\w+)",
     re.IGNORECASE | re.VERBOSE,
 )
 
@@ -113,26 +117,21 @@ def parse_name_from_elset_header(line: str) -> Result[str]:
     line = line.strip()
     match _ABAQUS_ELSET_HEADER.fullmatch(line):
         case None:
-            msg = f"Line does not match `*ELEMENT, ELSET={{name}}\nFound: {line}"
+            msg = f"Line does not match `*ELSET, ELSET={{name}}\nFound: {line}"
             return Err(ValueError(msg))
         case match_obj:
-            name = match_obj.group(1)
+            name = match_obj.group("name")
     return Ok(name)
 
 
 def parse_name_from_nset_header(line: str) -> Result[str]:
-    terms = line.strip().split(",")
-    match terms:
-        case str(),str(name_str): ...  # fmt: skip
-        case _:
-            msg = f"Line does not match `*ELEMENT, ELSET={{name}}\nFound: {line}"
-            return Err(ValueError(msg))
-    match re.fullmatch(r"NSET=(\s+)", name_str.strip(), re.IGNORECASE):
+    line = line.strip()
+    match _ABAQUS_NSET_HEADER.fullmatch(line):
         case None:
-            msg = f"Parsing error for name element: {name_str}"
+            msg = f"Line does not match `*NSET, NSET={{name}}\nFound: {line}"
             return Err(ValueError(msg))
         case match_obj:
-            name = match_obj.group(1)
+            name = match_obj.group("name")
     return Ok(name)
 
 
