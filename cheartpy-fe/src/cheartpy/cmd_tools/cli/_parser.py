@@ -15,11 +15,12 @@ if TYPE_CHECKING:
 
 solver_parser = argparse.ArgumentParser("chsolve")
 solver_parser.add_argument("pfile", nargs="+", type=Path)
-solver_parser.add_argument("--cores", "-n", type=int, default=1, metavar="MPI_CORES(int)")
+solver_parser.add_argument("--cores", "--mpi", "-n", type=int, default=1, metavar="MPI_CORES(int)")
 solver_parser.add_argument("--log", action="store_true")
 solver_parser.add_argument("--dump-matrix", action="store_true")
 solver_parser.add_argument("--dump-residual", action="store_true")
 solver_parser.add_argument("--dump-intermediate", action="store_true")
+solver_parser.add_argument("--clear", "--clean", "-c", action="store_true")
 solver_parser.add_argument("--parallel", type=int, default=1, metavar="PARALLEL_RUNS(int)")
 solver_parser.add_argument(
     "--macro",
@@ -66,6 +67,7 @@ class SolverModel(BaseModel):
     macro: list[str] | None = None
     parallel: int = 1
     verbosity: Verbosity
+    clear: bool = False
 
 
 class PrepModel(BaseModel):
@@ -106,6 +108,7 @@ def parse_solver_cmdline_args(args: Sequence[str] | None = None) -> tuple[Solver
             dump_intermediate=parsed_args.dump_intermediate,
             macros=macros,
             verbosity=parsed_args.verbosity,
+            clear=parsed_args.clear,
         ),
     )
 

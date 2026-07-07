@@ -34,6 +34,9 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     output_path = find_output_dir(pfile)
     if output_path:
         Path(output_path).mkdir(parents=True, exist_ok=True)
+    if kwargs.get("clear") and output_path:
+        for f in Path(output_path).glob("*"):
+            f.unlink()
     cmd = ["cheartsolver.out", str(pfile)]
     if (cores := kwargs.get("cores", 1)) > 1:
         cmd = ["mpiexec", "-n", f"{cores}", *cmd]
