@@ -177,6 +177,42 @@ def chwrite_i_utf[T: np.integer, S: tuple[int, ...]](file: Path | str, data: Arr
         comments="",  # Avoids the default '# ' comment prefix
     )
 
+def chwrite_list_utf[T: np.number](
+    file: Path | str, data: A1[T], *, dtype: DType[T] = np.float64
+) -> None:
+    """Write a 1D array of numbers to a file.
+
+    Useful for node assignments.
+
+    Parameters
+    ----------
+    file : Path | str
+        The file path to write the data to.
+    data : A1[T]
+        The 1D array of numbers to write.
+    dtype : DType[T], optional
+        The data type to use for writing the numbers (default: np.float64).
+
+    Raises
+    ------
+    ValueError
+        If the input data is not a 1D array.
+
+    """
+    match data.shape:
+        case (int(nn),): ...  # fmt: skip
+        case _:
+            msg = "Data must be 1D."
+            raise ValueError(msg)
+    np.savetxt(
+        file,
+        data[:, np.newaxis].astype(dtype),
+        fmt="%16d" if np.issubdtype(dtype, np.integer) else "%24.16e",
+        delimiter=" ",
+        newline="\n",
+        header=f"{nn:12d}",
+        comments="",  # Avoids the default '# ' comment prefix
+    )
 
 def chwrite_d_binary[T: np.floating](file: Path | str, arr: A2[T]) -> None:
     dim = arr.shape

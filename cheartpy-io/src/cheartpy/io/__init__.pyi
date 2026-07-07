@@ -40,3 +40,7 @@ def chwrite_i_utf[T: np.integer, S: tuple[int, ...]](file: Path | str, data: Arr
 def import_cheart_matrix[F: np.floating = np.float64, I: np.integer = np.intp](
     file: Path, *, ftype: DType[F] = np.float64, dtype: DType[I] = np.intp
 ) -> Result[CheartMatrix[F]]: ...
+
+def chwrite_list_utf[T: np.number](
+    file: Path | str, data: A1[T], *, dtype: DType[T] = np.intc
+) -> None: ...
