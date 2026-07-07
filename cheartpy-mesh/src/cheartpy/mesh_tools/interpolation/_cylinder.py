@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 
@@ -42,9 +42,10 @@ def create_quad_space_cylinder[F: np.floating](
     sine = np.sin(x.v[:, 1])
     elem_nodes = (np.array(list(elem)) for elem in quad_map)
     new_space = np.fromiter(
-        (mean_cylindrical_position(x.v[n, 0], cosine[n], sine[n], x.v[n, 2]) for n in elem_nodes),
-        dtype=f"3{x.v.dtype.str}",
+        [mean_cylindrical_position(x.v[n, 0], cosine[n], sine[n], x.v[n, 2]) for n in elem_nodes],
+        dtype=np.dtype((x.v.dtype, 3)),
     )
+    new_space = cast("A2[F]", new_space)
     return CheartMeshSpace(len(new_space), new_space)
 
 

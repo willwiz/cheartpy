@@ -29,7 +29,7 @@ def define_ramp_steps[F: np.floating](
 
 def compute_total_expected_ramp_time[F: np.floating](
     left: ToFloat | None, right: ToFloat | None, ddt: ToFloat, *, dtype: DType[F] = np.float64
-) -> float:
+) -> ToFloat:
     if left is None or right is None:
         return 0.0
     return np.arange(left, right, math.copysign(ddt, right - left), dtype=dtype).sum()

@@ -78,9 +78,10 @@ def merge_meshes[F: np.floating, I: np.integer](
         )
     )
 
+
 def _create_new_bnd[T: np.integer](
-    p: CheartMeshPatch()[T],
-    node_map: Mapping[T, ToInt],
+    p: CheartMeshPatch[T],
+    node_map: Mapping[ToInt, ToInt],
 ) -> CheartMeshPatch[T]:
     new_v = np.array([[node_map[i] for i in patch] for patch in p.v], dtype=int)
     return CheartMeshPatch(p.tag, p.n, p.k, new_v, p.TYPE)
@@ -103,7 +104,7 @@ def recompile_cheart_mesh[F: np.floating, I: np.integer](
 
     """
     node_map = build_index_update_map(mesh.top.v)
-    new_x = mesh.space.v[list(node_map.keys())]
+    new_x = mesh.space.v[tuple(node_map.keys())]
     new_t = np.ascontiguousarray(
         [[node_map[i] for i in elem] for elem in mesh.top.v], dtype=mesh.top.v.dtype
     )

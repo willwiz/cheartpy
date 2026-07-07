@@ -8,11 +8,16 @@ from scipy.sparse import csr_matrix
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from numpy.typing import DTypeLike
     from pytools.arrays import A1, DType
 
+
 _SIZE_OF_HEADER = 2
-_RES_LAYOUT = {"names": ("start", "end", "res", "res2"), "formats": ("i4", "i4", "f8", "f8")}
-_MATRIX_LAYOUT = {"names": ("row", "col", "value"), "formats": ("i4", "i4", "f8")}
+_RES_LAYOUT: DTypeLike = {
+    "names": ("start", "end", "res", "res2"),
+    "formats": ("i4", "i4", "f8", "f8"),
+}
+_MATRIX_LAYOUT: DTypeLike = {"names": ("row", "col", "value"), "formats": ("i4", "i4", "f8")}
 
 
 @dc.dataclass(slots=True)
@@ -27,7 +32,7 @@ class CheartMatrix[F: np.floating = np.float64, I: np.integer = np.intp]:
 
 def _import_matrix_core[F: np.floating, I: np.integer](
     f: TextIO, *, ftype: DType[F], dtype: DType[I]
-) -> Result[CheartMatrix[F]]:
+) -> Result[CheartMatrix[F, I]]:
     first_line = f.readline().strip().split()
     if len(first_line) != _SIZE_OF_HEADER:
         return Err(ValueError("First line must contain exactly two integers."))
@@ -56,7 +61,7 @@ def _import_matrix_core[F: np.floating, I: np.integer](
 
 def import_cheart_matrix[F: np.floating = np.float64, I: np.integer = np.intp](
     file: Path, *, ftype: DType[F] = np.float64, dtype: DType[I] = np.intp
-) -> Result[CheartMatrix[F]]:
+) -> Result[CheartMatrix[F, I]]:
     if not file.is_file():
         return Err(ValueError(f"File {file} does not exist."))
     with file.open("r") as f:

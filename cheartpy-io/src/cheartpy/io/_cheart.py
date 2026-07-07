@@ -157,6 +157,7 @@ def chwrite_d_utf[T: np.floating, S: tuple[int, ...]](file: Path | str, data: Ar
         comments="",  # Avoids the default '# ' comment prefix
     )
 
+
 def chwrite_i_utf[T: np.integer, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None:
     match data.shape:
         case (int(),):
@@ -176,6 +177,7 @@ def chwrite_i_utf[T: np.integer, S: tuple[int, ...]](file: Path | str, data: Arr
         header=f"{ne:12d}{nn:12d}",
         comments="",  # Avoids the default '# ' comment prefix
     )
+
 
 def chwrite_list_utf[T: np.number](
     file: Path | str, data: A1[T], *, dtype: DType[T] = np.float64
@@ -199,11 +201,7 @@ def chwrite_list_utf[T: np.number](
         If the input data is not a 1D array.
 
     """
-    match data.shape:
-        case (int(nn),): ...  # fmt: skip
-        case _:
-            msg = "Data must be 1D."
-            raise ValueError(msg)
+    nn = data.shape[0]
     np.savetxt(
         file,
         data[:, np.newaxis].astype(dtype),
@@ -213,6 +211,7 @@ def chwrite_list_utf[T: np.number](
         header=f"{nn:12d}",
         comments="",  # Avoids the default '# ' comment prefix
     )
+
 
 def chwrite_d_binary[T: np.floating](file: Path | str, arr: A2[T]) -> None:
     dim = arr.shape
@@ -225,7 +224,7 @@ def chwrite_d_binary[T: np.floating](file: Path | str, arr: A2[T]) -> None:
 
 def chwrite_t_utf[T: np.integer](file: Path | str, data: A2[T], nn: int | None = None) -> None:
     ne = len(data)
-    nn = data.max() if nn is None else nn
+    nn = int(data.max()) if nn is None else nn
     if data.ndim != 2:  # noqa: PLR2004
         msg = "Topology must be 2D array of integers"
         raise ValueError(msg)
