@@ -104,7 +104,7 @@ def recompile_cheart_mesh[F: np.floating, I: np.integer](
 
     """
     node_map = build_index_update_map(mesh.top.v)
-    new_x = mesh.space.v[tuple(node_map.keys())]
+    new_x = mesh.space.v[np.fromiter(node_map.keys(), dtype=np.intp, count=len(node_map))]
     new_t = np.ascontiguousarray(
         [[node_map[i] for i in elem] for elem in mesh.top.v], dtype=mesh.top.v.dtype
     )
