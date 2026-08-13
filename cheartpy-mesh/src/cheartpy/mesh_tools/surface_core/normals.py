@@ -8,6 +8,8 @@ from numpy.linalg import lstsq
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result
 
+from cheartpy.mesh_tools import normalize_by_row
+
 from .meshing import create_mesh_from_surface
 
 if TYPE_CHECKING:
@@ -21,7 +23,6 @@ if TYPE_CHECKING:
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
     "compute_surface_normal_at_nodes",
-    "normalize_by_row",
 ]
 
 _REGRESS_TOL = 0.01
@@ -44,12 +45,6 @@ def compute_normal_patch[F: np.floating, I: np.integer](
         f = u - np.identity(3)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=basis.dtype))
     return res.astype(space.dtype)
-
-
-def normalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]:
-    norm = np.sqrt(np.einsum("...i,...i", vals, vals))
-    # norm[norm < _DBL_TOL] = 1.0
-    return vals / norm[:, np.newaxis]
 
 
 def compute_surface_normal_at_center[F: np.floating, I: np.integer](

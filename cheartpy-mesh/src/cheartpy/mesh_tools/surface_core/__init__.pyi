@@ -9,7 +9,7 @@ from pytools.arrays import A2
 from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
-from cheartpy.mesh_tools.tools import MergedMesh
+from cheartpy.mesh_tools import MergedMesh
 
 type _COMPONENT = Literal["X", "Y", "Z"]
 type _BOUND = (
@@ -23,7 +23,6 @@ type _SURF_CONSTRAINTS = Mapping[_COMPONENT, _BOUND]
 def create_mesh_from_surface[F: np.floating, I: np.integer](
     body: CheartMesh[F, I], surf_id: int
 ) -> Result[CheartMesh[F, I]]: ...
-def normalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]: ...
 def compute_surface_normal_at_center[F: np.floating, I: np.integer](
     kind: VtkElem,
     space: A2[F],

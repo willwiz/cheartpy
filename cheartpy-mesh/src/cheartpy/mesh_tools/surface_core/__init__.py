@@ -4,7 +4,6 @@ from .normals import (
     compute_mesh_outer_normal_at_nodes,
     compute_surface_normal,
     compute_surface_normal_at_center,
-    normalize_by_row,
 )
 from .surfacing import create_new_surface_in_mesh, create_new_surface_in_surf
 
