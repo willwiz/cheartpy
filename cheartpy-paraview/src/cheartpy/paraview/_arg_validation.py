@@ -97,6 +97,7 @@ _MESH_FILE_PARSER: Mapping[
     "index": _parse_indexmode_mesh,
 }
 
+
 def _get_mesh_names(
     args: VTUProgArgs,
 ) -> Ok[_MeshTopologyFiles] | Err:
@@ -203,13 +204,13 @@ def process_cmdline_args(
                 log.disp("<<< No boundary file specified/found.")
         case Err(e):
             return Err(e)
-    match get_file_name_indexer(args.index, args.subindex, args.var, root=input_dir):
+    match get_file_name_indexer(args.index, args.subindex, args.point_var, root=input_dir):
         case Ok(indexer):
             ifirst = next(iter(indexer))
         case Err(e):
             return Err(e)
     log.disp(compose_index_info(indexer))
-    match find_variable_formats(x, u, args.var, ifirst, input_dir):
+    match find_variable_formats(x, u, args.point_var, ifirst, input_dir):
         case Ok((xfile, disp, var)): ...  # fmt: skip
         case Err(e):
             return Err(e)
@@ -230,7 +231,8 @@ def process_cmdline_args(
                 xfile=xfile[ifirst],
                 space=space,
                 disp=disp,
-                var={v.name: v for v in var},
+                cell_var={},
+                point_var={v.name: v for v in var},
             ),
             indexer,
         )

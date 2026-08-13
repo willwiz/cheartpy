@@ -36,7 +36,7 @@ find = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-find.add_argument("var", nargs="*", type=str, help="Optional: variables")
+find.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
 index = _subparsers.add_parser(
     "index",
     help="determine settings automatically",
@@ -48,7 +48,7 @@ index = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-index.add_argument("var", nargs="*", type=str, help="Optional: variables")
+index.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
 
 
 main_parser = argparse.ArgumentParser()
@@ -64,7 +64,7 @@ find = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-find.add_argument("var", nargs="*", type=str, help="Optional: variables")
+find.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
 index = _subparsers.add_parser(
     "index",
     help="determine settings automatically",
@@ -76,7 +76,7 @@ index = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-index.add_argument("var", nargs="*", type=str, help="Optional: variables")
+index.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
 time = _subparsers.add_parser(
     "time",
     help="create time series from existing vtu files",

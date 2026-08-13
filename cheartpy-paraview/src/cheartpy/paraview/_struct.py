@@ -31,7 +31,8 @@ class ProgramArgs:
     bfile: Final[Path | None]
     space: Final[IFormattedName | None]
     disp: Final[IFormattedName | None]
-    var: Final[Mapping[str, IFormattedName]]
+    cell_var: Final[Mapping[str, IFormattedName]]
+    point_var: Final[Mapping[str, IFormattedName]]
 
 
 @dc.dataclass(slots=True, frozen=True)

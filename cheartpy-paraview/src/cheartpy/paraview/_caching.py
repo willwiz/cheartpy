@@ -38,7 +38,7 @@ def init_variable_cache[F: np.floating, I: np.integer](
     top = ParaviewTopology(space, inp.tfile, inp.bfile, dtype=dtype)
     fx = None if inp.space is None else inp.space[i0]
     fd = None if inp.disp is None else inp.disp[i0]
-    fv = {k: v[i0] for k, v in inp.var.items()}
+    fv = {k: v[i0] for k, v in inp.point_var.items()}
     return Ok(VariableCache(top, i0, fx, fd, fv, ftype, dtype))
 
 
@@ -74,7 +74,7 @@ def update_variable_cache[F: np.floating, I: np.integer](
         return cache
     fx = check_validate_v(inp.space, time, cache.fx)
     fd = check_validate_v(inp.disp, time, cache.fd)
-    fv = {k: check_validate_v(v, time, cache.fv[k]) for k, v in inp.var.items()}
+    fv = {k: check_validate_v(v, time, cache.fv[k]) for k, v in inp.point_var.items()}
     return VariableCache(cache.top, time, fx, fd, fv, cache.ftype, cache.dtype)
 
 

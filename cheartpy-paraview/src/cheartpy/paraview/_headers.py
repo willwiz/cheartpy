@@ -43,7 +43,7 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
                 f"{'<<< The space file to use is:':<{_H_STR_LEN_}} {inp.space}",
                 f"{'<<< The topology file to use is:':<{_H_STR_LEN_}} {inp.mesh_or_top}",
                 f"{'<<< The boundary file to use is:':<{_H_STR_LEN_}} {inp.boundary}",
-                f"{'<<< The varibles to add are:':<{_H_STR_LEN_}} ",
+                f"{'<<< The point variables are:':<{_H_STR_LEN_}} ",
             ]
 
     match inp.index:
@@ -72,7 +72,7 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
     return [
         *msg,
         f"{'<<< Variables to be added are:':<{_H_STR_LEN_}}",
-        pformat(inp.var, compact=True),
+        pformat(inp.point_var, compact=True),
     ]
 
 

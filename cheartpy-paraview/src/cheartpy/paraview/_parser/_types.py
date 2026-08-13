@@ -97,7 +97,7 @@ class VTUProgArgs:
     core: Final[int | None]
     thread: Final[int | None]
     interpreter: Final[int | None]
-    var: Final[Sequence[str]]
+    point_var: Final[Sequence[str]]
 
 
 @dc.dataclass(slots=True)
