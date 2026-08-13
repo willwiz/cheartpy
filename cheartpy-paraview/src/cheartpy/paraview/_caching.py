@@ -39,7 +39,8 @@ def init_variable_cache[F: np.floating, I: np.integer](
     fx = None if inp.space is None else inp.space[i0]
     fd = None if inp.disp is None else inp.disp[i0]
     fv = {k: v[i0] for k, v in inp.point_var.items()}
-    return Ok(VariableCache(top, i0, fx, fd, fv, ftype, dtype))
+    fc = {k: v[i0] for k, v in inp.cell_var.items()}
+    return Ok(VariableCache(top, i0, fx, fd, fv, fc, ftype, dtype))
 
 
 @overload
@@ -75,12 +76,14 @@ def update_variable_cache[F: np.floating, I: np.integer](
     fx = check_validate_v(inp.space, time, cache.fx)
     fd = check_validate_v(inp.disp, time, cache.fd)
     fv = {k: check_validate_v(v, time, cache.fv[k]) for k, v in inp.point_var.items()}
-    return VariableCache(cache.top, time, fx, fd, fv, cache.ftype, cache.dtype)
+    fc = {k: check_validate_v(v, time, cache.fc[k]) for k, v in inp.cell_var.items()}
+    return VariableCache(cache.top, time, fx, fd, fv, fc, cache.ftype, cache.dtype)
 
 
 class _TExportVariable[F: np.floating](NamedTuple):
     x: A2[F]
     v: Mapping[str, A2[F]]
+    c: Mapping[str, A2[F]]
 
 
 def get_arguments[F: np.floating, I: np.integer](
@@ -96,24 +99,27 @@ def get_arguments[F: np.floating, I: np.integer](
             top=cache.top,
             x=cache.fx,
             u=cache.fd,
-            var=cache.fv,
+            point_var=cache.fv,
+            cell_var=cache.fc,
             compress=inp.compress,
+            ftype=cache.ftype,
+            dtype=cache.dtype,
         )
 
 
-def get_variables[F: np.floating, I: np.integer](
-    top: ParaviewTopology[F, I],
-    fx: Path | None,
-    fu: Path | None,
-    fv: Mapping[str, Path] | Mapping[str, A2[np.floating]],
-    *,
-    dtype: DType[F] = np.float64,
+def get_xml_variables[F: np.floating, I: np.integer](
+    xml: XMLDataInputs[F, I],
 ) -> _TExportVariable[F]:
-    fx_data = chread_d(fx, dtype=dtype) if isinstance(fx, Path) else top.x
-    if fu is not None:
-        fx_data = (fx_data + chread_d(fu, dtype=dtype)).astype(dtype)
+    dtype = xml.ftype
+    fx_data = chread_d(xml.x, dtype=dtype) if isinstance(xml.x, Path) else xml.top.x
+    if xml.u is not None:
+        fx_data = (fx_data + chread_d(xml.u, dtype=dtype)).astype(dtype)
     fv_data = {
         k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v.astype(dtype)
-        for k, v in fv.items()
+        for k, v in xml.point_var.items()
     }
-    return _TExportVariable(x=fx_data, v=fv_data)
+    fc_data = {
+        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v.astype(dtype)
+        for k, v in xml.cell_var.items()
+    }
+    return _TExportVariable(x=fx_data, v=fv_data, c=fc_data)

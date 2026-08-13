@@ -147,28 +147,43 @@ def _check_variable_format(
 
 
 def find_variable_formats(
-    x: Path,
-    u: Path | None,
-    variables: Sequence[str],
+    space: Path | tuple[Path, Path | None],
+    point_var: Sequence[str],
+    cell_var: Sequence[str],
     ifirst: str | int,
     input_dir: Path,
-) -> Ok[tuple[IFormattedName, IFormattedName | None, Sequence[IFormattedName]]] | Err:
+) -> (
+    Ok[
+        tuple[
+            IFormattedName,
+            IFormattedName | None,
+            Sequence[IFormattedName],
+            Sequence[IFormattedName],
+        ]
+    ]
+    | Err
+):
+    match space:
+        case x, u: ...  # fmt: skip
+        case x:
+            u = None
     match _check_variable_format(x, ifirst):
-        case Ok(space):
-            ...
+        case Ok(_space): ...  # fmt: skip
         case Err(e):
             return Err(e)
     match _check_variable_format(u, ifirst):
-        case Ok(disp):
-            ...
+        case Ok(disp): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    match all_ok([_check_variable_format(v, ifirst, input_dir) for v in variables]):
-        case Ok(var):
-            ...
+    match all_ok([_check_variable_format(v, ifirst, input_dir) for v in point_var]):
+        case Ok(p_v): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    return Ok((space, disp, var))
+    match all_ok([_check_variable_format(v, ifirst, input_dir) for v in cell_var]):
+        case Ok(c_v): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    return Ok((_space, disp, p_v, c_v))
 
 
 class _MPITypeModeArgs(TypedDict, total=False):
@@ -210,8 +225,8 @@ def process_cmdline_args(
         case Err(e):
             return Err(e)
     log.disp(compose_index_info(indexer))
-    match find_variable_formats(x, u, args.point_var, ifirst, input_dir):
-        case Ok((xfile, disp, var)): ...  # fmt: skip
+    match find_variable_formats((x, u), args.point_var, args.cell_var, ifirst, input_dir):
+        case Ok((xfile, disp, point_v, cell_v)): ...  # fmt: skip
         case Err(e):
             return Err(e)
     space = None if isinstance(xfile, CheartMeshFormat) else xfile
@@ -231,8 +246,8 @@ def process_cmdline_args(
                 xfile=xfile[ifirst],
                 space=space,
                 disp=disp,
-                cell_var={},
-                point_var={v.name: v for v in var},
+                cell_var={v.name: v for v in cell_v},
+                point_var={v.name: v for v in point_v},
             ),
             indexer,
         )

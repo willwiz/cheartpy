@@ -1,5 +1,4 @@
 from ._parser.types import (
-    APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
     SubparserModes,
@@ -9,7 +8,6 @@ from ._struct import ProgramArgs, VariableCache
 from ._trait import ProgramMode
 
 __all__ = [
-    "APIKwargs",
     "APIKwargsFind",
     "APIKwargsIndex",
     "ProgramArgs",

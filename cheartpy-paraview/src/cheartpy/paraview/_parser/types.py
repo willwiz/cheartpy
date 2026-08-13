@@ -1,5 +1,4 @@
 from ._types import (
-    APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
     SubparserModes,
@@ -9,7 +8,6 @@ from ._types import (
 )
 
 __all__ = [
-    "APIKwargs",
     "APIKwargsFind",
     "APIKwargsIndex",
     "SubparserModes",

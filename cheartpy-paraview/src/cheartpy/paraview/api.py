@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, Unpack, overload
+from typing import TYPE_CHECKING, Unpack
 
 from pytools.logging import get_logger
 
@@ -7,17 +7,13 @@ from ._caching import init_variable_cache
 from ._core import export_boundary, run_exports_in_parallel, run_exports_in_series
 from ._headers import compose_header, header_guard
 from ._parser.main_parser import (
-    get_api_args,
     get_api_args_find,
     get_api_args_index,
     get_cmd_args,
-    get_vtu_cmd_args,
 )
 from ._parser.types import (
-    APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
-    SubparserModes,
     TimeProgArgs,
     VTUProgArgs,
 )
@@ -33,8 +29,6 @@ if TYPE_CHECKING:
 
 
 __all__ = [
-    "cheart2vtu_api",
-    "cheart2vtu_cli",
     "cheart2vtu_find",
     "cheart2vtu_index",
     "create_time_series_api",
@@ -63,15 +57,6 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log.disp("", header_guard())
 
 
-@overload
-def cheart2vtu_api(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> None: ...
-@overload
-def cheart2vtu_api(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> None: ...
-def cheart2vtu_api(cmd: SubparserModes, **kwargs: Unpack[APIKwargs]) -> None:
-    args = get_api_args(cmd=cmd, **kwargs)
-    cheart2vtu(args)
-
-
 def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:
     args = get_api_args_find(**kwargs)
     cheart2vtu(args)
@@ -79,11 +64,6 @@ def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:
 
 def cheart2vtu_index(**kwargs: Unpack[APIKwargsIndex]) -> None:
     args = get_api_args_index(**kwargs)
-    cheart2vtu(args)
-
-
-def cheart2vtu_cli(cmd_args: Sequence[str] | None = None) -> None:
-    args = get_vtu_cmd_args(cmd_args)
     cheart2vtu(args)
 
 

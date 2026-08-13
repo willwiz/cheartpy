@@ -100,6 +100,7 @@ class VariableCache[F: np.floating, I: np.integer]:
     fx: Path | None
     fd: Path | None
     fv: dict[str, Path]
+    fc: dict[str, Path]
     ftype: Final[DType[F]]
     dtype: Final[DType[I]]
 
@@ -112,5 +113,8 @@ class XMLDataInputs[F: np.floating, I: np.integer]:
     top: Final[ParaviewTopology[F, I]]
     x: Final[Path | None]
     u: Final[Path | None]
-    var: Final[Mapping[str, A2[F]]] | Final[Mapping[str, Path]]
+    point_var: Final[Mapping[str, A2[F]]] | Final[Mapping[str, Path]]
+    cell_var: Final[Mapping[str, A2[F]]] | Final[Mapping[str, Path]]
     compress: Final[bool]
+    ftype: Final[DType[F]]
+    dtype: Final[DType[I]]

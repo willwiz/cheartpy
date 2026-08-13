@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Literal, Unpack, overload
+from typing import Unpack
 
 import numpy as np
 from pytools.arrays import A1
@@ -10,10 +10,6 @@ from ._parser.types import APIKwargsFind, APIKwargsIndex
 from ._time_series import TimeSeriesKwargs
 from ._trait import TIME_SERIES
 
-@overload
-def cheart2vtu_api(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> None: ...
-@overload
-def cheart2vtu_api(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> None: ...
 def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None: ...
 def cheart2vtu_index(**kwargs: Unpack[APIKwargsIndex]) -> None: ...
 def cheart2vtu_cli(cmd_args: Sequence[str] | None = None) -> None: ...

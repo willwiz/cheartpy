@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Unpack, overload
+from typing import TYPE_CHECKING, Unpack
 
 from cheartpy.search import AUTO
 from pytools.logging import LogEnum
@@ -11,10 +11,8 @@ from ._io import io_parser
 from ._settings import multiprocessing_parser, setting_parser
 from ._topology import find_topology_parser, index_topology_parser
 from ._types import (
-    APIKwargs,
     APIKwargsFind,
     APIKwargsIndex,
-    SubparserModes,
     TimeProgArgs,
     VTUProgArgs,
 )
@@ -22,33 +20,6 @@ from .time_parser import time_parser
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-cheart2vtu_parser = argparse.ArgumentParser()
-_subparsers = cheart2vtu_parser.add_subparsers(dest="cmd")
-find = _subparsers.add_parser(
-    "find",
-    help="determine settings automatically",
-    parents=[
-        find_subparser,
-        io_parser,
-        find_topology_parser,
-        setting_parser,
-        multiprocessing_parser,
-    ],
-)
-find.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
-index = _subparsers.add_parser(
-    "index",
-    help="determine settings automatically",
-    parents=[
-        index_subparser,
-        io_parser,
-        index_topology_parser,
-        setting_parser,
-        multiprocessing_parser,
-    ],
-)
-index.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
 
 
 main_parser = argparse.ArgumentParser()
@@ -64,7 +35,8 @@ find = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-find.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
+find.add_argument("--cell-var", nargs="+", type=str, help="Optional: cell variables")
+find.add_argument("point_var", nargs="*", type=str, help="Optional: point variables")
 index = _subparsers.add_parser(
     "index",
     help="determine settings automatically",
@@ -76,39 +48,13 @@ index = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-index.add_argument("point_var", nargs="*", type=str, help="Optional: variables")
+index.add_argument("--cell-var", nargs="+", type=str, help="Optional: cell variables")
+index.add_argument("point_var", nargs="*", type=str, help="Optional: point variables")
 time = _subparsers.add_parser(
     "time",
     help="create time series from existing vtu files",
     parents=[time_parser],
 )
-
-
-def get_vtu_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs:
-    """Parse command line arguments.
-
-    Parameters
-    ----------
-    args : Sequence[str] | None
-        List of command line arguments to parse. If None, defaults to sys.argv.
-
-    Returns
-    -------
-    CmdLineArgs
-        Parsed command line arguments as a CmdLineArgs object.
-
-    """
-    # Require subparsers to be called, which sets args.cmd
-    # If args.cmd is None, display help message and exit
-    parsed_args = cheart2vtu_parser.parse_args(args)
-    match parsed_args.cmd:
-        case "find":
-            return VTUProgArgs(**vars(parsed_args))
-        case "index":
-            return VTUProgArgs(**vars(parsed_args))
-        case _:
-            cheart2vtu_parser.print_help()
-            raise SystemExit(0)
 
 
 def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArgs:
@@ -138,23 +84,6 @@ def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArg
         case _:
             main_parser.print_help()
             raise SystemExit(0)
-
-
-@overload
-def get_api_args(cmd: Literal["find"], **kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs: ...
-@overload
-def get_api_args(cmd: Literal["index"], **kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs: ...
-@overload
-def get_api_args(cmd: SubparserModes, **kwargs: Unpack[APIKwargs]) -> VTUProgArgs: ...
-def get_api_args(cmd: SubparserModes, **kwargs: Unpack[APIKwargs]) -> VTUProgArgs:
-    match cmd:
-        case "find":
-            return get_api_args_find(**kwargs)
-        case "index":
-            if kwargs.get("top") is None:
-                msg = "`top` is a required keyword argument for 'index' command"
-                raise TypeError(msg)
-            return get_api_args_index(**kwargs)  # type: ignore[arg-type]
 
 
 def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
@@ -187,7 +116,8 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
         core=kwargs.get("core"),
         thread=kwargs.get("thread"),
         interpreter=kwargs.get("interpreter"),
-        var=kwargs.get("var", []),
+        cell_var=kwargs.get("cell_var", []),
+        point_var=kwargs.get("var", []),
     )
 
 
@@ -221,5 +151,6 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
         core=kwargs.get("core"),
         thread=kwargs.get("thread"),
         interpreter=kwargs.get("interpreter"),
-        var=kwargs.get("var", []),
+        cell_var=kwargs.get("cell_var", []),
+        point_var=kwargs.get("var", []),
     )

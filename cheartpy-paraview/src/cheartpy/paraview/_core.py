@@ -9,7 +9,7 @@ from pytools.logging import ILogger, get_logger
 from pytools.parallel import ThreadedRunner, ThreadMethods
 from pytools.progress import ProgressBar
 
-from ._caching import get_arguments, get_variables
+from ._caching import get_arguments, get_xml_variables
 from ._third_party import compress_vtu
 
 if TYPE_CHECKING:
@@ -53,20 +53,20 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii"),
     )
-    dataarr.add_data(fbid)
+    dataarr.add_data(fbid.astype(np.int8))
     cell = piece.create_elem(XMLElement("Cells", Scalars="scalars"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(fb, order=get_vtk_elem(vtk_id).connectivity)
+    dataarr.add_data(fb.astype(np.int64), order=get_vtk_elem(vtk_id).connectivity)
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
-    dataarr.add_data(np.arange(fb.shape[1], fb.size + 1, fb.shape[1]))
+    dataarr.add_data(np.arange(fb.shape[1], fb.size + 1, fb.shape[1], dtype=np.int64))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
-    dataarr.add_data(np.full((fb.shape[0],), vtk_id.value.idx))
+    dataarr.add_data(np.full((fb.shape[0],), vtk_id.value.idx, dtype=np.int8))
     return vtkfile
 
 
@@ -95,7 +95,8 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
     prefix: str,
     top: ParaviewTopology[F, I],
     x: A2[F],
-    var: Mapping[str, A2[F]],
+    point_var: Mapping[str, A2[F]],
+    cell_var: Mapping[str, A2[F]],
 ) -> XMLElement:
     vtkfile = XMLElement("VTKFile", type="UnstructuredGrid")
     grid = vtkfile.create_elem(XMLElement("UnstructuredGrid"))
@@ -111,23 +112,23 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
     dataarr = points.create_elem(
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
-    dataarr.add_data(x)
+    dataarr.add_data(x.astype(np.float64))
 
     cell = piece.create_elem(XMLElement("Cells"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(top.t, order=get_vtk_elem(top.vtkelementtype).connectivity)
+    dataarr.add_data(top.t.astype(np.int64), order=get_vtk_elem(top.vtkelementtype).connectivity)
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
-    dataarr.add_data(np.arange(top.nc, top.nc * (top.ne + 1), top.nc))
+    dataarr.add_data(np.arange(top.nc, top.nc * (top.ne + 1), top.nc, dtype=np.int64))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
-    dataarr.add_data(np.full((top.ne,), top.vtkelementtype.value.idx))
+    dataarr.add_data(np.full((top.ne,), top.vtkelementtype.value.idx, dtype=np.int8))
     points = piece.create_elem(XMLElement("PointData", Scalars="scalars"))
-    for v, dv in var.items():
+    for v, dv in point_var.items():
         dataarr = points.create_elem(
             XMLElement(
                 "DataArray",
@@ -137,7 +138,21 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
                 Format="ascii",
             ),
         )
-        dataarr.add_data(dv)
+        dataarr.add_data(dv.astype(np.float64))
+    if not cell_var:
+        return vtkfile
+    cells = piece.create_elem(XMLElement("CellData", Scalars="scalars"))
+    for v, dv in cell_var.items():
+        dataarr = cells.create_elem(
+            XMLElement(
+                "DataArray",
+                type="Float64",
+                Name=f"{v}",
+                NumberOfComponents=f"{dv.shape[1]}",
+                Format="ascii",
+            ),
+        )
+        dataarr.add_data(dv.astype(np.float64))
     return vtkfile
 
 
@@ -145,8 +160,8 @@ def export_mesh_iter[F: np.floating, I: np.integer](
     args: XMLDataInputs[F, I],
     log: ILogger,
 ) -> None:
-    x, var = get_variables(args.top, args.x, args.u, args.var)
-    vtk_xml = create_xml_for_mesh(args.prefix, args.top, x, var)
+    x, point_var, cell_var = get_xml_variables(args)
+    vtk_xml = create_xml_for_mesh(args.prefix, args.top, x, point_var, cell_var)
     with args.path.open("w") as fout:
         vtk_xml.write(fout)
     if args.compress:

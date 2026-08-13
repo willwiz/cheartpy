@@ -13,26 +13,6 @@ if TYPE_CHECKING:
 SubparserModes = Literal["index", "find"]
 
 
-class APIKwargs(TypedDict, total=False):
-    index: tuple[int, int, int] | None
-    subindex: tuple[int, int, int] | Literal["auto", "none"]
-    mesh: Path | str
-    prefix: str | None
-    input_dir: Path | str
-    output_dir: Path | str | None
-    top: Path | str
-    space: Path | str | None
-    boundary: Path | str | None
-    prog_bar: bool
-    log: LogLevel
-    binary: bool
-    compress: bool
-    core: int | None
-    thread: int | None
-    interpreter: int | None
-    var: Sequence[str]
-
-
 class APIKwargsFind(TypedDict, total=False):
     index: tuple[int, int, int] | None
     subindex: tuple[int, int, int] | Literal["auto", "none"]
@@ -49,7 +29,8 @@ class APIKwargsFind(TypedDict, total=False):
     core: int | None
     thread: int | None
     interpreter: int | None
-    var: Sequence[str]
+    cell_var: Sequence[str]
+    point_var: Sequence[str]
 
 
 class APIKwargsIndex(TypedDict, total=False):
@@ -68,7 +49,8 @@ class APIKwargsIndex(TypedDict, total=False):
     core: int | None
     thread: int | None
     interpreter: int | None
-    var: Sequence[str]
+    cell_var: Sequence[str]
+    point_var: Sequence[str]
 
 
 class TimeSeriesKwargs(TypedDict, total=False):
@@ -97,6 +79,7 @@ class VTUProgArgs:
     core: Final[int | None]
     thread: Final[int | None]
     interpreter: Final[int | None]
+    cell_var: Final[Sequence[str]]
     point_var: Final[Sequence[str]]
 
 
