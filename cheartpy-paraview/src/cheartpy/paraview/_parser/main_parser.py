@@ -35,7 +35,7 @@ find = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-find.add_argument("--cell-var", nargs="+", type=str, help="Optional: cell variables")
+find.add_argument("--cell-var", nargs="+", type=str, default=[], help="Optional: cell variables")
 find.add_argument("point_var", nargs="*", type=str, help="Optional: point variables")
 index = _subparsers.add_parser(
     "index",
@@ -48,7 +48,7 @@ index = _subparsers.add_parser(
         multiprocessing_parser,
     ],
 )
-index.add_argument("--cell-var", nargs="+", type=str, help="Optional: cell variables")
+index.add_argument("--cell-var", nargs="+", type=str, default=[], help="Optional: cell variables")
 index.add_argument("point_var", nargs="*", type=str, help="Optional: point variables")
 time = _subparsers.add_parser(
     "time",
