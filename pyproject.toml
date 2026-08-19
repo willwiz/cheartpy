@@ -15,7 +15,12 @@ classifiers = [
   "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = ["pytools>=1.2.1a", "numpy", "meshio", "cheartpy-io"]
+dependencies = [
+    "pytools>=1.2.1a",
+    "numpy",
+    "meshio",
+    "cheartpy-io",
+]
 
 [project.optional-dependencies]
 all = [
@@ -26,6 +31,7 @@ all = [
   "cheartpy-mesh",
   "cheartpy-paraview",
   "cheartpy-vtk",
+  "cheartpy-gmsh",
 ]
 mesh = ["cheartpy-mesh"]
 vtu = ["cheartpy-mesh", "cheartpy-paraview"]
@@ -36,6 +42,7 @@ fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
 [tool.uv.sources]
 cheartpy = { path = ".", package = false }
 cheartpy-abaqus = { path = "cheartpy-abaqus", editable = true }
+cheartpy-gmsh = { path = "cheartpy-gmsh", editable = true }
 cheartpy-cl = { path = "cheartpy-cl", editable = true }
 cheartpy-fe = { path = "cheartpy-fe", editable = true }
 cheartpy-io = { path = "cheartpy-io", editable = true }
@@ -52,6 +59,7 @@ namespace = true
 [dependency-groups]
 dev = [
   "cheartpy-abaqus",
+  "cheartpy-gmsh",
   "cheartpy-cl",
   "cheartpy-fe",
   "cheartpy-io",

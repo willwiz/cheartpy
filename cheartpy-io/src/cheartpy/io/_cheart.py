@@ -69,11 +69,11 @@ def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> 
     return all((home / s).is_file() for s in meshes)
 
 
-def chread_d_utf[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
+def chread_d_utf[F: np.number](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
-def chread_d_bin[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
+def chread_d_bin[F: np.number](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
     with Path(file).open("rb") as f:
         nnodes = struct.unpack("i", f.read(4))[0]
         dim = struct.unpack("i", f.read(4))[0]
@@ -88,7 +88,7 @@ def chread_d_bin[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float
     return arr
 
 
-def chread_d[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
+def chread_d[F: np.number](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
     if is_binary(file):
         return chread_d_bin(file, dtype=dtype)
     return chread_d_utf(file, dtype=dtype)

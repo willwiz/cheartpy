@@ -8,14 +8,15 @@ if TYPE_CHECKING:
 _Abaqus2Vtk = {
     AbaqusEnum.T3D2: VtkEnum.VtkLinearLine,
     AbaqusEnum.T3D3: VtkEnum.VtkQuadraticLine,
-    AbaqusEnum.S3R: VtkEnum.VtkLinearTriangle,
     AbaqusEnum.CPS3: VtkEnum.VtkLinearTriangle,
-    AbaqusEnum.CPS6: VtkEnum.VtkQuadraticTriangle,
+    AbaqusEnum.S3R: VtkEnum.VtkLinearTriangle,
     AbaqusEnum.CPEG6: VtkEnum.VtkQuadraticTriangle,
+    AbaqusEnum.CPS6: VtkEnum.VtkQuadraticTriangle,
     AbaqusEnum.CPS4: VtkEnum.VtkLinearQuadrilateral,
     AbaqusEnum.C3D4: VtkEnum.VtkLinearTetrahedron,
     AbaqusEnum.C3D10: VtkEnum.VtkQuadraticTetrahedron,
 }
+_Vtk2Abaqus = {v: k for k, v in _Abaqus2Vtk.items()}
 
 _Abaqus2Cheart = {
     AbaqusEnum.T3D2: CheartEnum.LINE1,
@@ -54,6 +55,10 @@ _AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
 
 def convert_abaqus_to_vtk(elem: AbaqusEnum) -> VtkEnum | None:
     return _Abaqus2Vtk.get(elem)
+
+
+def convert_vtk_to_abaqus(elem: VtkEnum) -> AbaqusEnum | None:
+    return _Vtk2Abaqus.get(elem)
 
 
 def convert_abaqus_to_cheart(elem: AbaqusEnum) -> CheartEnum | None:

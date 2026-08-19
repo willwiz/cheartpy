@@ -93,11 +93,34 @@ class CheartMeshBoundary[T: np.integer]:
 
 @dc.dataclass(slots=True)
 class CheartMesh[F: np.floating, I: np.integer]:
+    """Cheart Mesh Data.
+
+    Attributes
+    ----------
+    space : CheartMeshSpace[F]
+        The spatial data of the mesh.
+    top : CheartMeshTopology[I]
+        The topological data of the mesh.
+    bnd : CheartMeshBoundary[I] | None
+        The boundary data of the mesh, if it exists.
+
+    """
+
     space: CheartMeshSpace[F]
     top: CheartMeshTopology[I]
     bnd: CheartMeshBoundary[I] | None
 
     def save(self, prefix: Path | str, *, forced: bool = False) -> None:
+        """Save the Cheart mesh data to files with the given prefix.
+
+        Parameters
+        ----------
+        prefix : Path | str
+            The prefix for the output files.
+        forced : bool, optional
+            If True, overwrite existing files. Default is False.
+
+        """
         if check_for_meshes("prefix") and not forced:
             return
         prefix = fix_ch_sfx(prefix)
