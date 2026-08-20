@@ -5,6 +5,7 @@ from ._abaqus import (
     get_cheart_order_for_abaqus,
     get_vtk_element_for_abaqus,
 )
+from ._cheart import get_cheart_elem_from_vtk
 from ._gmsh import get_gmsh_elem_from_vtk, get_vtk_elem_from_gmsh
 from ._types import (
     AbaqusEnum,
@@ -28,6 +29,7 @@ __all__ = [
     "VtkEnum",
     "get_abaqus_boundary_element",
     "get_abaqus_elem_from_vtk",
+    "get_cheart_elem_from_vtk",
     "get_cheart_element_for_abaqus",
     "get_cheart_order_for_abaqus",
     "get_cheart_order_for_vtk",

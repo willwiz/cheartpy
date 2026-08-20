@@ -13,3 +13,7 @@ Vtk2Cheart = {
     VtkEnum.HEXAHEDRON2: CheartEnum.HEXAHEDRON2,
 }
 Cheart2Vtk = {v: k for k, v in Vtk2Cheart.items()}
+
+
+def get_cheart_elem_from_vtk(elem: VtkEnum) -> CheartEnum | None:
+    return Vtk2Cheart.get(elem)

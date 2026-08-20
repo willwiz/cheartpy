@@ -9,12 +9,15 @@ Abaqus2Vtk = {
     AbaqusEnum.LINE1: VtkEnum.LINE1,
     AbaqusEnum.LINE2: VtkEnum.LINE2,
     AbaqusEnum.TRIANGLE1: VtkEnum.TRIANGLE1,
-    AbaqusEnum.S3R: VtkEnum.TRIANGLE1,
-    AbaqusEnum.CPEG6: VtkEnum.TRIANGLE2,
     AbaqusEnum.TRIANGLE2: VtkEnum.TRIANGLE2,
     AbaqusEnum.QUADRILATERAL1: VtkEnum.QUADRILATERAL1,
+    AbaqusEnum.QUADRILATERAL2: VtkEnum.QUADRILATERAL2,
     AbaqusEnum.TETRAHEDRON1: VtkEnum.TETRAHEDRON1,
     AbaqusEnum.TETRAHEDRON2: VtkEnum.TETRAHEDRON2,
+    AbaqusEnum.HEXAHEDRON1: VtkEnum.HEXAHEDRON1,
+    AbaqusEnum.HEXAHEDRON2: VtkEnum.HEXAHEDRON2,
+    AbaqusEnum.S3R: VtkEnum.TRIANGLE1,
+    AbaqusEnum.CPEG6: VtkEnum.TRIANGLE2,
 }
 Vtk2Abaqus = {v: k for k, v in Abaqus2Vtk.items()}
 
