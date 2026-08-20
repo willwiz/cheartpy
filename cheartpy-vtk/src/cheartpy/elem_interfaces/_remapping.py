@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING
+
 import numpy as np
-from pytools.arrays import A1
 
 from ._abaqus import Abaqus2Vtk
 from ._cheart import Vtk2Cheart
 from ._gmsh import Vtk2Gmsh
 from ._types import AbaqusEnum, VtkEnum
+
+if TYPE_CHECKING:
+    from pytools.arrays import A1
 
 # fmt: off
 Vtk2CheartNodeOrder: dict[VtkEnum, A1[np.intp]] = {

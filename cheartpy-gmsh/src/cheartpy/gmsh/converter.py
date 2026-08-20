@@ -1,117 +1,123 @@
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.mesh import CheartMesh
+from cheartpy.elem_interfaces._gmsh import Vtk2Gmsh
+
+import gmsh
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+    from pathlib import Path
+
+    from cheartpy.mesh import CheartMesh
+    from pytools.arrays import A1
+
+
+class Counter:
+    __slots__ = ("count",)
+
+    def __init__(self) -> None:
+        self.count = 0
+
+    def __call__(self) -> int:
+        self.count = self.count + 1
+        return self.count
 
 
 def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I],
-    filename: Path,
-    nodes_coord,
-    elements_conn,
-    bnd_conns,
-    group_idxs,
-    bnd_names=None,
-    group_names=None,
-):
-    """Converts 3D Volumetric arrays (Tetrahedral or Hexahedral) to Gmsh MSH format.
+    mesh: CheartMesh[F, I], filename: Path, regions: Mapping[str, A1[I]] | None = None
+) -> None:
+    """Convert 3D Volumetric arrays (Tetrahedral or Hexahedral) to Gmsh MSH format.
 
     Parameters
     ----------
-    - filename: Output file path (e.g., 'model.msh')
-    - nodes_coord: 2D numpy float array of shape (N, 3) -> [X, Y, Z]
-    - elements_conn: 2D numpy int array of shape (M, 4) for Teds or (M, 8) for Hexes
-    - bnd_conns: List of 3 numpy 2D arrays containing surface face connectivities (Tri or Quad)
-    - group_idxs: List of 3 numpy 1D arrays containing row indices of elements in elements_conn
+    mesh : CheartMesh[F, I]
+        The 3D volumetric mesh to convert.
+    filename : Path
+        The output filename for the Gmsh MSH file.
+    regions : Mapping[str, A1[I]] | None
+        Optional mapping of region names to element indices for defining physical groups.
 
     """
+    new_entity = Counter()  # Unique entity tag generator
+    new_surface = Counter()  # Unique surface tag generator
     gmsh.initialize()
-    gmsh.model.add("numpy_3d_volume_mesh")
+    gmsh.model.add("3D_Volumetric_Mesh")
 
-    num_nodes = len(nodes_coord)
+    num_nodes, dim = mesh.space.v.shape
+    n_elem, _ = mesh.top.v.shape
 
-    if bnd_names is None:
-        bnd_names = ["Boundary_Surface_1", "Boundary_Surface_2", "Boundary_Surface_3"]
-    if group_names is None:
-        group_names = ["VolumeGroup_1", "VolumeGroup_2", "VolumeGroup_3"]
+    vol_elem = Vtk2Gmsh[mesh.top.TYPE]
 
     # 1. DYNAMICALLY DETECT 3D ELEMENT TYPES
-    nodes_per_elem = elements_conn.shape[1]
-
-    if nodes_per_elem == 4:
-        elem_type_id = 4  # 4-node Tetrahedron
-        bnd_type_id = 2  # 3-node Triangle boundary faces
-    elif nodes_per_elem == 8:
-        elem_type_id = 5  # 8-node Hexahedron
-        bnd_type_id = 3  # 4-node Quadrilateral boundary faces
-    else:
-        raise ValueError(
-            f"Unsupported number of nodes per element: {nodes_per_elem}. Expected 4 (Tet) or 8 (Hex)."
-        )
+    vol_type_id = vol_elem.value
 
     # 2. ADD ALL NODES TO A GLOBAL DISCRETE VOLUME ENTITY
     # For 3D meshes, we store the global node pool inside a base volume entity (Dim=3, Tag=1)
-    global_volume_tag = 1
-    gmsh.model.addDiscreteEntity(dim=3, tag=global_volume_tag)
-
+    global_volume_tag = new_entity()
+    gmsh.model.add_discrete_entity(dim=dim, tag=global_volume_tag)
     node_tags = np.arange(1, num_nodes + 1)
 
     # Coordinates must be a flat 1D array: [x1, y1, z1, x2, y2, z2...]
-    gmsh.model.mesh.addNodes(
-        dim=3, tag=global_volume_tag, nodeTags=node_tags, coord=nodes_coord.flatten()
+    gmsh.model.mesh.add_nodes(
+        dim=dim, tag=global_volume_tag, nodeTags=node_tags, coord=mesh.space.v.flatten()
     )
+    current_elem = 1
+    elem_tags = np.arange(current_elem, current_elem + n_elem)
+    current_elem = current_elem + n_elem
+    gmsh.model.mesh.add_elements(
+        dim=dim,
+        tag=global_volume_tag,
+        elementTypes=[vol_type_id],
+        elementTags=[elem_tags],
+        nodeTags=[mesh.top.v.flatten() + 1],
+    )
+    gmsh.model.add_physical_group(dim=dim, tags=[global_volume_tag], name="Volume1")
 
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
-    bnd_element_offset = 1  # Track unique element IDs across the entire file
+    if mesh.bnd is not None:
+        for k, v in mesh.bnd.v.items():
+            surface_tag = new_surface()  # Tags: 1, 2, 3
+            bnd_elem = Vtk2Gmsh[mesh.bnd.TYPE]
+            bnd_type_id = bnd_elem.value
+            gmsh.model.add_discrete_entity(dim=dim - 1, tag=surface_tag)
 
-    for i in range(3):
-        surface_tag = i + 1  # Tags: 1, 2, 3
-        gmsh.model.addDiscreteEntity(dim=2, tag=surface_tag)
+            bnd_data = v.v + 1
+            num_bnd_elems = len(bnd_data)
+            bnd_tags = np.arange(current_elem, current_elem + num_bnd_elems)
+            current_elem = current_elem + num_bnd_elems
 
-        bnd_data = bnd_conns[i]
-        num_bnd_elems = len(bnd_data)
-        bnd_tags = np.arange(bnd_element_offset, bnd_element_offset + num_bnd_elems)
+            # Inject boundary faces into Dimension 2
+            gmsh.model.mesh.add_elements(
+                dim=dim - 1,
+                tag=surface_tag,
+                elementTypes=[bnd_type_id],
+                elementTags=[bnd_tags],
+                nodeTags=[bnd_data.flatten()],
+            )
 
-        # Inject boundary faces into Dimension 2
-        gmsh.model.mesh.addElements(
-            dim=2,
-            tag=surface_tag,
-            elementTypes=[bnd_type_id],
-            elementTags=[bnd_tags],
-            nodeTags=[bnd_data.flatten()],
-        )
-
-        # Physical group for boundaries is now Dimension 2 (Surfaces)
-        gmsh.model.addPhysicalGroup(dim=2, tags=[surface_tag], name=bnd_names[i])
-
-        bnd_element_offset += num_bnd_elems
+            # Physical group for boundaries is now Dimension 2 (Surfaces)
+            gmsh.model.add_physical_group(dim=dim - 1, tags=[surface_tag], name=f"Surface{k}")
 
     # 4. ADD PHYSICAL VOLUMES / DOMAINS (Dimension 3)
-    for i in range(3):
-        # Tags: 2, 3, 4 (Since tag 1 was already used for the global node tracking entity)
-        volume_tag = i + 2
-        gmsh.model.addDiscreteEntity(dim=3, tag=volume_tag)
-
-        target_indices = group_idxs[i]
-        domain_data = elements_conn[target_indices]
-        num_domain_elems = len(domain_data)
-        domain_tags = np.arange(bnd_element_offset, bnd_element_offset + num_domain_elems)
-
-        # Inject volumetric elements into Dimension 3
-        gmsh.model.mesh.addElements(
-            dim=3,
-            tag=volume_tag,
-            elementTypes=[elem_type_id],
-            elementTags=[domain_tags],
-            nodeTags=[domain_data.flatten()],
-        )
-
-        # Physical group for volumes is Dimension 3 (Volumes)
-        gmsh.model.addPhysicalGroup(dim=3, tags=[volume_tag], name=group_names[i])
-
-        bnd_element_offset += num_domain_elems
+    if regions is not None:
+        for k, v in regions.items():
+            # Tags: 2, 3, 4 (Since tag 1 was already used for the global node tracking entity)
+            volume_tag = new_entity()
+            gmsh.model.add_discrete_entity(dim=dim, tag=volume_tag)
+            domain_data = mesh.top.v[v] + 1
+            # Inject volumetric elements into Dimension 3
+            gmsh.model.mesh.add_elements(
+                dim=dim,
+                tag=volume_tag,
+                elementTypes=[vol_type_id],
+                elementTags=[elem_tags[v]],
+                nodeTags=[domain_data.flatten()],
+            )
+            # Physical group for volumes is Dimension 3 (Volumes)
+            gmsh.model.add_physical_group(dim=dim, tags=[volume_tag], name=k)
 
     # 5. EXPORT AND FINALIZE
-    gmsh.write(filename)
+    gmsh.write(str(filename))
     gmsh.finalize()
     print(f"Successfully converted 3D volumetric mesh to {filename}")
