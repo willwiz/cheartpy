@@ -57,7 +57,7 @@ def convert_abaqus_to_vtk(elem: AbaqusEnum) -> VtkEnum | None:
     return Abaqus2Vtk.get(elem)
 
 
-def convert_vtk_to_abaqus(elem: VtkEnum) -> AbaqusEnum | None:
+def get_abaqus_elem_from_vtk(elem: VtkEnum) -> AbaqusEnum | None:
     return Vtk2Abaqus.get(elem)
 
 

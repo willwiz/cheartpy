@@ -1,5 +1,6 @@
 from ._abaqus import (
     get_abaqus_boundary_element,
+    get_abaqus_elem_from_vtk,
     get_cheart_element_for_abaqus,
     get_cheart_order_for_abaqus,
     get_vtk_element_for_abaqus,
@@ -26,6 +27,7 @@ __all__ = [
     "VtkElemType",
     "VtkEnum",
     "get_abaqus_boundary_element",
+    "get_abaqus_elem_from_vtk",
     "get_cheart_element_for_abaqus",
     "get_cheart_order_for_abaqus",
     "get_cheart_order_for_vtk",

@@ -2,7 +2,7 @@ import textwrap
 from typing import TYPE_CHECKING, TextIO, Unpack
 
 import numpy as np
-from cheartpy.elem_interfaces import convert_vtk_to_abaqus
+from cheartpy.elem_interfaces import get_abaqus_elem_from_vtk
 from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
@@ -67,7 +67,7 @@ def write_nodes[F: np.floating, I: np.integer](f: TextIO, mesh: CheartMesh[F, I]
 
 
 def write_volume[F: np.floating, I: np.integer](f: TextIO, mesh: CheartMesh[F, I]) -> Result[int]:
-    element_type = convert_vtk_to_abaqus(mesh.top.TYPE)
+    element_type = get_abaqus_elem_from_vtk(mesh.top.TYPE)
     header = f"*ELEMENT, TYPE={element_type!s}, ELSET=Volume1\n"
     nelem, nnode = mesh.top.v.shape
     dtype = [("index", np.intp), *[(f"i_{i}", np.intp) for i in range(nnode)]]
@@ -84,7 +84,7 @@ def write_volume[F: np.floating, I: np.integer](f: TextIO, mesh: CheartMesh[F, I
 def write_surface[F: np.floating, I: np.integer](
     f: TextIO, idx: int, patch: CheartMeshPatch[I], current_elem: int
 ) -> Result[int]:
-    element_type = convert_vtk_to_abaqus(patch.TYPE)
+    element_type = get_abaqus_elem_from_vtk(patch.TYPE)
     header = f"*ELEMENT, TYPE={element_type!s}, ELSET=Surface{idx}\n"
     nelem, nnode = patch.v.shape
     dtype = [("index", np.intp), *[(f"i_{i}", np.intp) for i in range(nnode)]]
