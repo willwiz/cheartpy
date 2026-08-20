@@ -6,6 +6,7 @@ type VtkElemShape = Literal["Line", "Triangle", "Quadrilateral", "Tetrahedron", 
 
 class _VtkElem(NamedTuple):
     name: str
+    enum: str
     shape: VtkElemShape
     order: int
     idx: int
@@ -31,40 +32,18 @@ type VtkElemType = Literal[
 
 
 class VtkEnum(enum.Enum):
-    VtkConstLine = _VtkElem("VtkConstLine", "Line", 0, -1)
-    VtkConstTriangle = _VtkElem("VtkConstTriangle", "Triangle", 0, -2)
-    VtkConstQuadrilateral = _VtkElem("VtkConstQuadrilateral", "Quadrilateral", 0, -3)
-    VtkConstTetrahedron = _VtkElem("VtkConstTetrahedron", "Tetrahedron", 0, -4)
-    VtkConstHexahedron = _VtkElem("VtkConstHexahedron", "Hexahedron", 0, -5)
-    VtkLinearLine = _VtkElem("VtkLinearLine", "Line", 1, 3)
-    VtkLinearTriangle = _VtkElem("VtkLinearTriangle", "Triangle", 1, 5)
-    VtkLinearQuadrilateral = _VtkElem("VtkLinearQuadrilateral", "Quadrilateral", 1, 9)
-    VtkLinearTetrahedron = _VtkElem("VtkLinearTetrahedron", "Tetrahedron", 1, 10)
-    VtkLinearHexahedron = _VtkElem("VtkLinearHexahedron", "Hexahedron", 1, 12)
-    VtkQuadraticLine = _VtkElem("VtkQuadraticLine", "Line", 2, 21)
-    VtkQuadraticTriangle = _VtkElem("VtkQuadraticTriangle", "Triangle", 2, 22)
-    VtkQuadraticQuadrilateral = _VtkElem("VtkQuadraticQuadrilateral", "Quadrilateral", 2, 28)
-    VtkQuadraticTetrahedron = _VtkElem("VtkQuadraticTetrahedron", "Tetrahedron", 2, 24)
-    VtkQuadraticHexahedron = _VtkElem("VtkQuadraticHexahedron", "Hexahedron", 2, 29)
-
-
-type CheartElemType = Literal[
-    "LINE0",
-    "TRIANGLE0",
-    "QUADRILATERAL0",
-    "TETRAHEDRON0",
-    "HEXAHEDRON0",
-    "LINE1",
-    "TRIANGLE1",
-    "QUADRILATERAL1",
-    "TETRAHEDRON1",
-    "HEXAHEDRON1",
-    "LINE2",
-    "TRIANGLE2",
-    "QUADRILATERAL2",
-    "TETRAHEDRON2",
-    "HEXAHEDRON2",
-]
+    LINE1 = _VtkElem("vtkLine", "VTK_LINE", "Line", 1, 3)
+    TRIANGLE1 = _VtkElem("vtkTriangle", "VTK_TRIANGLE", "Triangle", 1, 5)
+    QUADRILATERAL1 = _VtkElem("vtkQuad", "VTK_QUAD", "Quadrilateral", 1, 9)
+    TETRAHEDRON1 = _VtkElem("vtkTetra", "VTK_TETRA", "Tetrahedron", 1, 10)
+    HEXAHEDRON1 = _VtkElem("vtkHexahedron", "VTK_HEXAHEDRON", "Hexahedron", 1, 12)
+    LINE2 = _VtkElem("vtkQuadraticEdge", "VTK_QUADRATIC_EDGE", "Line", 2, 21)
+    TRIANGLE2 = _VtkElem("VtkQuadraticTriangle", "VTK_QUADRATIC_TRIANGLE", "Triangle", 2, 22)
+    QUADRILATERAL2 = _VtkElem("VtkBiquadraticQuad", "VTK_BIQUADRATIC_QUAD", "Quadrilateral", 2, 28)
+    TETRAHEDRON2 = _VtkElem("VtkQuadraticTetra", "VTK_QUADRATIC_TETRA", "Tetrahedron", 2, 24)
+    HEXAHEDRON2 = _VtkElem(
+        "VtkQuadraticHexahedron", "VTK_QUADRATIC_HEXAHEDRON", "Hexahedron", 2, 29
+    )
 
 
 class CheartEnum(enum.Enum):
@@ -86,25 +65,28 @@ class CheartEnum(enum.Enum):
 
 
 class AbaqusEnum(enum.StrEnum):
-    T3D2 = "T3D2"
-    T3D3 = "T3D3"
-    CPS3 = "CPS3"
-    CPS4 = "CPS4"
-    CPS6 = "CPS6"
-    C3D4 = "C3D4"
-    S3R = "S3R"
-    C3D10 = "C3D10"
-    CPEG6 = "CPEG6"
+    S3R = "S3R"  # 3-node linear shell element with reduced integration
+    CPEG6 = "CPEG6"  # 6-node quadratic plane strain element
+    LINE1 = "T3D2"  # 2-node linear 3D truss element
+    LINE2 = "T3D3"  # 3-node quadratic 3D truss element
+    TRIANGLE1 = "CPS3"  # 3-node linear triangle plane stress element
+    TRIANGLE2 = "CPS6"  # 6-node quadratic triangle plane stress element
+    QUADRILATERAL1 = "CPS4"  # 4-node linear plane stress element
+    QUADRILATERAL2 = "M3D9"  # 8-node quadratic plane stress element
+    TETRAHEDRON1 = "C3D4"  # 4-node linear 3D tetrahedral element
+    TETRAHEDRON2 = "C3D10"  # 10-node quadratic 3D tetrahedral element
+    HEXAHEDRON1 = "C3D8"  # 8-node linear 3D hexahedral element
+    HEXAHEDRON2 = "C3D20"  # 20-node quadratic 3D hexahedral element
 
 
-type AbaqusElemType = Literal[
-    "T3D2",
-    "T3D3",
-    "CPS3",
-    "CPS4",
-    "CPS6",
-    "C3D4",
-    "S3R",
-    "C3D10",
-    "CPEG6",
-]
+class GmshEnum(enum.IntEnum):
+    LINE1 = 1
+    TRIANGLE1 = 2
+    QUADRILATERAL1 = 3
+    TETRAHEDRON1 = 4
+    HEXAHEDRON1 = 5
+    LINE2 = 8
+    TRIANGLE2 = 9
+    QUADRILATERAL2 = 10
+    TETRAHEDRON2 = 11
+    HEXAHEDRON2 = 12

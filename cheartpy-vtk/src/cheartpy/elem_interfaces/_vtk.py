@@ -3,41 +3,31 @@ from pytools.result import Err, Ok, Result
 from ._types import CheartEnum, VtkElemShape, VtkEnum
 
 _Vtk2Cheart = {
-    VtkEnum.VtkConstLine: CheartEnum.LINE0,
-    VtkEnum.VtkConstTriangle: CheartEnum.TRIANGLE0,
-    VtkEnum.VtkConstQuadrilateral: CheartEnum.QUADRILATERAL0,
-    VtkEnum.VtkConstTetrahedron: CheartEnum.TETRAHEDRON0,
-    VtkEnum.VtkConstHexahedron: CheartEnum.HEXAHEDRON0,
-    VtkEnum.VtkLinearLine: CheartEnum.LINE1,
-    VtkEnum.VtkLinearTriangle: CheartEnum.TRIANGLE1,
-    VtkEnum.VtkLinearQuadrilateral: CheartEnum.QUADRILATERAL1,
-    VtkEnum.VtkLinearTetrahedron: CheartEnum.TETRAHEDRON1,
-    VtkEnum.VtkLinearHexahedron: CheartEnum.HEXAHEDRON1,
-    VtkEnum.VtkQuadraticLine: CheartEnum.LINE2,
-    VtkEnum.VtkQuadraticTriangle: CheartEnum.TRIANGLE2,
-    VtkEnum.VtkQuadraticQuadrilateral: CheartEnum.QUADRILATERAL2,
-    VtkEnum.VtkQuadraticTetrahedron: CheartEnum.TETRAHEDRON2,
-    VtkEnum.VtkQuadraticHexahedron: CheartEnum.HEXAHEDRON2,
+    VtkEnum.LINE1: CheartEnum.LINE1,
+    VtkEnum.TRIANGLE1: CheartEnum.TRIANGLE1,
+    VtkEnum.QUADRILATERAL1: CheartEnum.QUADRILATERAL1,
+    VtkEnum.TETRAHEDRON1: CheartEnum.TETRAHEDRON1,
+    VtkEnum.HEXAHEDRON1: CheartEnum.HEXAHEDRON1,
+    VtkEnum.LINE2: CheartEnum.LINE2,
+    VtkEnum.TRIANGLE2: CheartEnum.TRIANGLE2,
+    VtkEnum.QUADRILATERAL2: CheartEnum.QUADRILATERAL2,
+    VtkEnum.TETRAHEDRON2: CheartEnum.TETRAHEDRON2,
+    VtkEnum.HEXAHEDRON2: CheartEnum.HEXAHEDRON2,
 }
 
 
 # fmt: off
 _Vtk2CheartNodeOrder = {
-    VtkEnum.VtkConstLine: (0,),
-    VtkEnum.VtkConstTriangle: (0,),
-    VtkEnum.VtkConstQuadrilateral: (0,),
-    VtkEnum.VtkConstTetrahedron: (0,),
-    VtkEnum.VtkConstHexahedron: (0,),
-    VtkEnum.VtkLinearLine: (0, 1),
-    VtkEnum.VtkLinearTriangle: (0, 1, 2),
-    VtkEnum.VtkLinearQuadrilateral: (0, 1, 3, 2),
-    VtkEnum.VtkLinearTetrahedron: (0, 1, 2, 3),
-    VtkEnum.VtkLinearHexahedron: (0, 1, 5, 4, 2, 3, 7, 6),
-    VtkEnum.VtkQuadraticLine: (0, 1, 2),
-    VtkEnum.VtkQuadraticTriangle: (0, 1, 2, 3, 5, 4),
-    VtkEnum.VtkQuadraticQuadrilateral: (0, 1, 3, 2, 4, 7, 8, 5, 6),
-    VtkEnum.VtkQuadraticTetrahedron: (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
-    VtkEnum.VtkQuadraticHexahedron: (
+    VtkEnum.LINE1: (0, 1),
+    VtkEnum.TRIANGLE1: (0, 1, 2),
+    VtkEnum.QUADRILATERAL1: (0, 1, 3, 2),
+    VtkEnum.TETRAHEDRON1: (0, 1, 2, 3),
+    VtkEnum.HEXAHEDRON1: (0, 1, 5, 4, 2, 3, 7, 6),
+    VtkEnum.LINE2: (0, 1, 2),
+    VtkEnum.TRIANGLE2: (0, 1, 2, 3, 5, 4),
+    VtkEnum.QUADRILATERAL2: (0, 1, 3, 2, 4, 7, 8, 5, 6),
+    VtkEnum.TETRAHEDRON2: (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
+    VtkEnum.HEXAHEDRON2: (
         0,  1,  5,  4,  2,  3,  7, 6,  8,  15,
         22, 13, 12, 21, 26, 19, 9, 11, 25, 23,
         16, 18, 10, 24, 14, 20, 17,
@@ -46,14 +36,14 @@ _Vtk2CheartNodeOrder = {
 # fmt: on
 
 _VtkBoundaryElement: dict[VtkEnum, VtkEnum] = {
-    VtkEnum.VtkLinearTriangle: VtkEnum.VtkLinearLine,
-    VtkEnum.VtkLinearQuadrilateral: VtkEnum.VtkLinearLine,
-    VtkEnum.VtkLinearTetrahedron: VtkEnum.VtkLinearTriangle,
-    VtkEnum.VtkLinearHexahedron: VtkEnum.VtkLinearQuadrilateral,
-    VtkEnum.VtkQuadraticTriangle: VtkEnum.VtkQuadraticLine,
-    VtkEnum.VtkQuadraticQuadrilateral: VtkEnum.VtkQuadraticLine,
-    VtkEnum.VtkQuadraticTetrahedron: VtkEnum.VtkQuadraticTriangle,
-    VtkEnum.VtkQuadraticHexahedron: VtkEnum.VtkQuadraticQuadrilateral,
+    VtkEnum.TRIANGLE1: VtkEnum.LINE1,
+    VtkEnum.QUADRILATERAL1: VtkEnum.LINE1,
+    VtkEnum.TETRAHEDRON1: VtkEnum.TRIANGLE1,
+    VtkEnum.HEXAHEDRON1: VtkEnum.QUADRILATERAL1,
+    VtkEnum.TRIANGLE2: VtkEnum.LINE2,
+    VtkEnum.QUADRILATERAL2: VtkEnum.LINE2,
+    VtkEnum.TETRAHEDRON2: VtkEnum.TRIANGLE2,
+    VtkEnum.HEXAHEDRON2: VtkEnum.QUADRILATERAL2,
 }
 
 
@@ -72,21 +62,21 @@ def get_vtk_boundary_element(elem: VtkEnum) -> VtkEnum | None:
 def guess_vtk_elem_from_dim(edim: int, bdim: int | None) -> Result[VtkEnum]:
     match edim, bdim:
         case 3, 2 | None:
-            elem = VtkEnum.VtkLinearTriangle
+            elem = VtkEnum.TRIANGLE1
         case 6, 3 | None:
-            elem = VtkEnum.VtkQuadraticTriangle
+            elem = VtkEnum.TRIANGLE2
         case 4, 2:
-            elem = VtkEnum.VtkLinearQuadrilateral
+            elem = VtkEnum.QUADRILATERAL1
         case 9, 3 | None:
-            elem = VtkEnum.VtkQuadraticQuadrilateral
+            elem = VtkEnum.QUADRILATERAL2
         case 4, 3:
-            elem = VtkEnum.VtkLinearTetrahedron
+            elem = VtkEnum.TETRAHEDRON1
         case 10, 6 | None:
-            elem = VtkEnum.VtkQuadraticTetrahedron
+            elem = VtkEnum.TETRAHEDRON2
         case 8, 4 | None:
-            elem = VtkEnum.VtkLinearHexahedron
+            elem = VtkEnum.HEXAHEDRON1
         case 27, 9 | None:
-            elem = VtkEnum.VtkQuadraticHexahedron
+            elem = VtkEnum.HEXAHEDRON2
         case 4, None:
             msg = (
                 "Cannot detect between Bilinear quadrilateral and Trilinear tetrahedron,"
@@ -100,21 +90,16 @@ def guess_vtk_elem_from_dim(edim: int, bdim: int | None) -> Result[VtkEnum]:
 
 
 _VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
-    ("Line", 0): VtkEnum.VtkConstLine,
-    ("Triangle", 0): VtkEnum.VtkConstTriangle,
-    ("Quadrilateral", 0): VtkEnum.VtkConstQuadrilateral,
-    ("Tetrahedron", 0): VtkEnum.VtkConstTetrahedron,
-    ("Hexahedron", 0): VtkEnum.VtkConstHexahedron,
-    ("Line", 1): VtkEnum.VtkLinearLine,
-    ("Triangle", 1): VtkEnum.VtkLinearTriangle,
-    ("Quadrilateral", 1): VtkEnum.VtkLinearQuadrilateral,
-    ("Tetrahedron", 1): VtkEnum.VtkLinearTetrahedron,
-    ("Hexahedron", 1): VtkEnum.VtkLinearHexahedron,
-    ("Line", 2): VtkEnum.VtkQuadraticLine,
-    ("Triangle", 2): VtkEnum.VtkQuadraticTriangle,
-    ("Quadrilateral", 2): VtkEnum.VtkQuadraticQuadrilateral,
-    ("Tetrahedron", 2): VtkEnum.VtkQuadraticTetrahedron,
-    ("Hexahedron", 2): VtkEnum.VtkQuadraticHexahedron,
+    ("Line", 1): VtkEnum.LINE1,
+    ("Triangle", 1): VtkEnum.TRIANGLE1,
+    ("Quadrilateral", 1): VtkEnum.QUADRILATERAL1,
+    ("Tetrahedron", 1): VtkEnum.TETRAHEDRON1,
+    ("Hexahedron", 1): VtkEnum.HEXAHEDRON1,
+    ("Line", 2): VtkEnum.LINE2,
+    ("Triangle", 2): VtkEnum.TRIANGLE2,
+    ("Quadrilateral", 2): VtkEnum.QUADRILATERAL2,
+    ("Tetrahedron", 2): VtkEnum.TETRAHEDRON2,
+    ("Hexahedron", 2): VtkEnum.HEXAHEDRON2,
 }
 
 

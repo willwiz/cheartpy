@@ -6,16 +6,16 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 MESHIO_2_CHEART_CONNECTIVITY: Mapping[VtkEnum, Mapping[int, int]] = {
-    VtkEnum.VtkLinearLine: {0: 0, 1: 1},
-    VtkEnum.VtkQuadraticLine: {0: 0, 1: 2, 2: 1},
-    VtkEnum.VtkLinearTriangle: {0: 0, 1: 1, 2: 2},
-    VtkEnum.VtkQuadraticTriangle: {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4},
-    VtkEnum.VtkLinearQuadrilateral: {0: 0, 1: 1, 2: 3, 3: 2},
-    VtkEnum.VtkQuadraticQuadrilateral: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 7, 6: 8, 7: 5, 8: 6},
-    VtkEnum.VtkLinearTetrahedron: {0: 0, 1: 1, 2: 2, 3: 3},
-    VtkEnum.VtkQuadraticTetrahedron: {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 6, 6: 5, 7: 7, 8: 8, 9: 9},
-    VtkEnum.VtkLinearHexahedron: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 5, 6: 7, 7: 6},
-    VtkEnum.VtkQuadraticHexahedron: {
+    VtkEnum.LINE1: {0: 0, 1: 1},
+    VtkEnum.LINE2: {0: 0, 1: 2, 2: 1},
+    VtkEnum.TRIANGLE1: {0: 0, 1: 1, 2: 2},
+    VtkEnum.TRIANGLE2: {0: 0, 1: 1, 2: 2, 3: 3, 4: 5, 5: 4},
+    VtkEnum.QUADRILATERAL1: {0: 0, 1: 1, 2: 3, 3: 2},
+    VtkEnum.QUADRILATERAL2: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 7, 6: 8, 7: 5, 8: 6},
+    VtkEnum.TETRAHEDRON1: {0: 0, 1: 1, 2: 2, 3: 3},
+    VtkEnum.TETRAHEDRON2: {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 6, 6: 5, 7: 7, 8: 8, 9: 9},
+    VtkEnum.HEXAHEDRON1: {0: 0, 1: 1, 2: 3, 3: 2, 4: 4, 5: 5, 6: 7, 7: 6},
+    VtkEnum.HEXAHEDRON2: {
         0: 0,
         1: 1,
         2: 3,

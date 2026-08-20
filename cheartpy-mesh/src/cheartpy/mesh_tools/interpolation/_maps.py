@@ -89,16 +89,16 @@ _HEX_L2QMAP: Final[L2QMAP] = [
 
 
 L2QMAPDICT = {
-    VtkEnum.VtkLinearLine: _LIN_L2QMAP,
-    VtkEnum.VtkLinearTriangle: _TRI_L2QMAP,
-    VtkEnum.VtkLinearQuadrilateral: _QUA_L2QMAP,
-    VtkEnum.VtkLinearTetrahedron: _TET_L2QMAP,
-    VtkEnum.VtkLinearHexahedron: _HEX_L2QMAP,
+    VtkEnum.LINE1: _LIN_L2QMAP,
+    VtkEnum.TRIANGLE1: _TRI_L2QMAP,
+    VtkEnum.QUADRILATERAL1: _QUA_L2QMAP,
+    VtkEnum.TETRAHEDRON1: _TET_L2QMAP,
+    VtkEnum.HEXAHEDRON1: _HEX_L2QMAP,
 }
 L2QTYPEDICT = {
-    VtkEnum.VtkLinearLine: VTKLINE2,
-    VtkEnum.VtkLinearTriangle: VTKTRIANGLE2,
-    VtkEnum.VtkLinearQuadrilateral: VTKQUADRILATERAL2,
-    VtkEnum.VtkLinearTetrahedron: VTKTETRAHEDRON2,
-    VtkEnum.VtkLinearHexahedron: VTKHEXAHEDRON2,
+    VtkEnum.LINE1: VTKLINE2,
+    VtkEnum.TRIANGLE1: VTKTRIANGLE2,
+    VtkEnum.QUADRILATERAL1: VTKQUADRILATERAL2,
+    VtkEnum.TETRAHEDRON1: VTKTETRAHEDRON2,
+    VtkEnum.HEXAHEDRON1: VTKHEXAHEDRON2,
 }

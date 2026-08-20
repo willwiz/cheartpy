@@ -5,60 +5,60 @@ from ._types import AbaqusEnum, CheartEnum, VtkEnum
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-_Abaqus2Vtk = {
-    AbaqusEnum.T3D2: VtkEnum.VtkLinearLine,
-    AbaqusEnum.T3D3: VtkEnum.VtkQuadraticLine,
-    AbaqusEnum.CPS3: VtkEnum.VtkLinearTriangle,
-    AbaqusEnum.S3R: VtkEnum.VtkLinearTriangle,
-    AbaqusEnum.CPEG6: VtkEnum.VtkQuadraticTriangle,
-    AbaqusEnum.CPS6: VtkEnum.VtkQuadraticTriangle,
-    AbaqusEnum.CPS4: VtkEnum.VtkLinearQuadrilateral,
-    AbaqusEnum.C3D4: VtkEnum.VtkLinearTetrahedron,
-    AbaqusEnum.C3D10: VtkEnum.VtkQuadraticTetrahedron,
+Abaqus2Vtk = {
+    AbaqusEnum.LINE1: VtkEnum.LINE1,
+    AbaqusEnum.LINE2: VtkEnum.LINE2,
+    AbaqusEnum.TRIANGLE1: VtkEnum.TRIANGLE1,
+    AbaqusEnum.S3R: VtkEnum.TRIANGLE1,
+    AbaqusEnum.CPEG6: VtkEnum.TRIANGLE2,
+    AbaqusEnum.TRIANGLE2: VtkEnum.TRIANGLE2,
+    AbaqusEnum.QUADRILATERAL1: VtkEnum.QUADRILATERAL1,
+    AbaqusEnum.TETRAHEDRON1: VtkEnum.TETRAHEDRON1,
+    AbaqusEnum.TETRAHEDRON2: VtkEnum.TETRAHEDRON2,
 }
-_Vtk2Abaqus = {v: k for k, v in _Abaqus2Vtk.items()}
+Vtk2Abaqus = {v: k for k, v in Abaqus2Vtk.items()}
 
 _Abaqus2Cheart = {
-    AbaqusEnum.T3D2: CheartEnum.LINE1,
-    AbaqusEnum.T3D3: CheartEnum.LINE2,
+    AbaqusEnum.LINE1: CheartEnum.LINE1,
+    AbaqusEnum.LINE2: CheartEnum.LINE2,
     AbaqusEnum.S3R: CheartEnum.TRIANGLE1,
-    AbaqusEnum.CPS3: CheartEnum.TRIANGLE1,
-    AbaqusEnum.CPS6: CheartEnum.TRIANGLE2,
+    AbaqusEnum.TRIANGLE1: CheartEnum.TRIANGLE1,
+    AbaqusEnum.TRIANGLE2: CheartEnum.TRIANGLE2,
     AbaqusEnum.CPEG6: CheartEnum.TRIANGLE2,
-    AbaqusEnum.CPS4: CheartEnum.QUADRILATERAL1,
-    AbaqusEnum.C3D4: CheartEnum.TETRAHEDRON1,
-    AbaqusEnum.C3D10: CheartEnum.TETRAHEDRON2,
+    AbaqusEnum.QUADRILATERAL1: CheartEnum.QUADRILATERAL1,
+    AbaqusEnum.TETRAHEDRON1: CheartEnum.TETRAHEDRON1,
+    AbaqusEnum.TETRAHEDRON2: CheartEnum.TETRAHEDRON2,
 }
 
 _Abaqus2CheartNodeOrder: Mapping[AbaqusEnum, tuple[int, ...]] = {
-    AbaqusEnum.T3D2: (0, 1),
-    AbaqusEnum.T3D3: (0, 1, 2),
+    AbaqusEnum.LINE1: (0, 1),
+    AbaqusEnum.LINE2: (0, 1, 2),
     AbaqusEnum.S3R: (0, 1, 2),
-    AbaqusEnum.CPS3: (0, 1, 2),
-    AbaqusEnum.CPS6: (0, 1, 2, 3, 5, 4),
+    AbaqusEnum.TRIANGLE1: (0, 1, 2),
+    AbaqusEnum.TRIANGLE2: (0, 1, 2, 3, 5, 4),
     AbaqusEnum.CPEG6: (0, 1, 2, 3, 5, 4),
-    AbaqusEnum.CPS4: (0, 1, 2, 3),
-    AbaqusEnum.C3D4: (0, 1, 2, 3),
-    AbaqusEnum.C3D10: (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
+    AbaqusEnum.QUADRILATERAL1: (0, 1, 2, 3),
+    AbaqusEnum.TETRAHEDRON1: (0, 1, 2, 3),
+    AbaqusEnum.TETRAHEDRON2: (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
 }
 
 _AbaqusBoundaryElement: Mapping[AbaqusEnum, AbaqusEnum] = {
-    AbaqusEnum.S3R: AbaqusEnum.T3D2,
-    AbaqusEnum.CPS3: AbaqusEnum.T3D2,
-    AbaqusEnum.CPS6: AbaqusEnum.T3D3,
-    AbaqusEnum.CPEG6: AbaqusEnum.T3D3,
-    AbaqusEnum.CPS4: AbaqusEnum.T3D2,
-    AbaqusEnum.C3D4: AbaqusEnum.CPS3,
-    AbaqusEnum.C3D10: AbaqusEnum.CPEG6,
+    AbaqusEnum.S3R: AbaqusEnum.LINE1,
+    AbaqusEnum.TRIANGLE1: AbaqusEnum.LINE1,
+    AbaqusEnum.TRIANGLE2: AbaqusEnum.LINE2,
+    AbaqusEnum.CPEG6: AbaqusEnum.LINE2,
+    AbaqusEnum.QUADRILATERAL1: AbaqusEnum.LINE1,
+    AbaqusEnum.TETRAHEDRON1: AbaqusEnum.TRIANGLE1,
+    AbaqusEnum.TETRAHEDRON2: AbaqusEnum.CPEG6,
 }
 
 
 def convert_abaqus_to_vtk(elem: AbaqusEnum) -> VtkEnum | None:
-    return _Abaqus2Vtk.get(elem)
+    return Abaqus2Vtk.get(elem)
 
 
 def convert_vtk_to_abaqus(elem: VtkEnum) -> AbaqusEnum | None:
-    return _Vtk2Abaqus.get(elem)
+    return Vtk2Abaqus.get(elem)
 
 
 def convert_abaqus_to_cheart(elem: AbaqusEnum) -> CheartEnum | None:
@@ -66,7 +66,7 @@ def convert_abaqus_to_cheart(elem: AbaqusEnum) -> CheartEnum | None:
 
 
 def get_vtk_element_for_abaqus(body: AbaqusEnum) -> VtkEnum | None:
-    return _Abaqus2Vtk.get(body)
+    return Abaqus2Vtk.get(body)
 
 
 def get_cheart_element_for_abaqus(body: AbaqusEnum) -> CheartEnum | None:

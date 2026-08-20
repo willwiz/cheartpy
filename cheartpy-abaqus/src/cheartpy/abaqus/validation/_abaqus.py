@@ -13,19 +13,19 @@ if TYPE_CHECKING:
 def get_abaqus_element(tag: str, dim: int) -> Ok[AbaqusEnum] | Err:
     match tag, dim:
         case "T3D2", 2:
-            kind = AbaqusEnum.T3D2
+            kind = AbaqusEnum.LINE1
         case "T3D3", 3:
-            kind = AbaqusEnum.T3D3
+            kind = AbaqusEnum.LINE2
         case "CPS3", 3:
-            kind = AbaqusEnum.CPS3
+            kind = AbaqusEnum.TRIANGLE1
         case "CPS4", 4:
-            kind = AbaqusEnum.CPS4
+            kind = AbaqusEnum.QUADRILATERAL1
         case "C3D4", 4:
-            kind = AbaqusEnum.C3D4
+            kind = AbaqusEnum.TETRAHEDRON1
         case "S3R", 3:
             kind = AbaqusEnum.S3R
         case "C3D10", 10:
-            kind = AbaqusEnum.C3D10
+            kind = AbaqusEnum.TETRAHEDRON2
         case "CPEG6", 6:
             kind = AbaqusEnum.CPEG6
         case _:

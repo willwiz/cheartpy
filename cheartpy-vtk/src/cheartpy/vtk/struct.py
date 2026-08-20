@@ -75,7 +75,7 @@ def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 VTKLINE2 = VtkElem(
     VtkEnum.VtkQuadraticLine,
     None,
-    (0, 2, 1),
+    (0, 1, 2),
     np.array([[0, 0, 0], [2, 0, 0], [1, 0, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0.5, 0, 0]], dtype=np.float64),
     _shape_line_2,
@@ -385,7 +385,7 @@ def _shape_hexahedron_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 VTKHEXAHEDRON1 = VtkElem(
     VtkEnum.VtkLinearHexahedron,
     VtkEnum.VtkLinearQuadrilateral,
-    (0, 1, 5, 4, 2, 3, 7, 6),
+    (0, 1, 3, 2, 4, 5, 7, 6),
     np.array(
         [
             [0, 0, 0],
@@ -433,9 +433,9 @@ VTKHEXAHEDRON2 = VtkElem(
     VtkEnum.VtkQuadraticHexahedron,
     VtkEnum.VtkQuadraticQuadrilateral,
     (
-        0,  1,  5,  4,  2,  3,  7, 6,  8,  15,
-        22, 13, 12, 21, 26, 19, 9, 11, 25, 23,
-        16, 18, 10, 24, 14, 20, 17,
+        0,   1,  3,  2,  4,  5,  7,  6,  8, 11,
+        24,  9, 10, 16, 22, 17, 20, 26, 21, 19,
+        23, 18, 12, 15, 26, 13, 15
     ),
     np.array(
         [

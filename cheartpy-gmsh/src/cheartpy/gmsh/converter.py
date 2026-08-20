@@ -1,5 +1,18 @@
-def convert_3d_to_msh_via_api(
-    filename, nodes_coord, elements_conn, bnd_conns, group_idxs, bnd_names=None, group_names=None
+from pathlib import Path
+
+import numpy as np
+from cheartpy.mesh import CheartMesh
+
+
+def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I],
+    filename: Path,
+    nodes_coord,
+    elements_conn,
+    bnd_conns,
+    group_idxs,
+    bnd_names=None,
+    group_names=None,
 ):
     """Converts 3D Volumetric arrays (Tetrahedral or Hexahedral) to Gmsh MSH format.
 
