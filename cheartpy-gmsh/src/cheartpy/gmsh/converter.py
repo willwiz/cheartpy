@@ -159,7 +159,7 @@ def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
     # gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
     # gmsh.model.occ.remove_all_duplicates()
     # gmsh.model.occ.synchronize()
-    gmsh.model.mesh.optimize(method="UntangleMeshGeometry", niter=2, force=True)
+    # gmsh.model.mesh.optimize(method="UntangleMeshGeometry", niter=2, force=True)
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
     gmsh.model.mesh.optimize("Netgen", niter=20)
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
@@ -201,9 +201,21 @@ def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
     # gmsh.option.set_number("Mesh.Algorithm3D", 10)
     # gmsh.model.mesh.generate(top.dim)
     # gmsh.model.mesh.classify_surfaces(40 * np.pi / 180.0, boundary=True, forReparametrization=True)
+    gmsh.model.mesh.remove_duplicate_nodes()
+    angle_rad = 40.0 * np.pi / 180.0
+    gmsh.model.mesh.classify_surfaces(angle=angle_rad, boundary=True, forReparametrization=True)
     gmsh.model.mesh.create_topology()
     gmsh.model.mesh.create_geometry()
+    gmsh.model.mesh.remove_duplicate_nodes()
     gmsh.model.geo.synchronize()
+    # gmsh.option.set_number("Mesh.Algorithm", 1)  # 1 = MeshAdapt
+    gmsh.option.set_number("Mesh.Optimize", 1)
+    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
+    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
+
+    # # 5. Regenerate the mesh cleanly from your new geometry definitions
+    # # This builds new 2D surface triangles and 3D tets seamlessly
+    # gmsh.model.mesh.generate(3)
     gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)
     if regions is None:
         optimization_loop([], top.dim)
@@ -249,33 +261,33 @@ def print_element_set_quality(before: MeshQualityMetrics, after: MeshQualityMetr
         f" (after) {np.min(after.rr)}" if after else "",
     )
     print(
-        "  Mean   : ",
+        "  Mean   :",
         f" (before) {np.mean(before.rr):10.4f}",
         f" (after) {np.mean(after.rr)}" if after else "",
     )
     print(
-        "  Maximum: ",
-        f"(before) {np.max(before.rr):10.4f}",
-        f"(after) {np.max(after.rr)}" if after else "",
+        "  Maximum:",
+        f" (before) {np.max(before.rr):10.4f}",
+        f" (after) {np.max(after.rr)}" if after else "",
     )
     print("Mesh Quality (Minimum SICN):")
     print(
-        "  Minimum: ",
+        "  Minimum:",
         f" (before) {np.min(before.sicn):10.4f} ",
         f" (after) {np.min(after.sicn)}" if after else "",
     )
     print(
-        "  Mean   : ",
+        "  Mean   :",
         f" (before) {np.mean(before.sicn):10.4f} ",
         f" (after) {np.mean(after.sicn)}" if after else "",
     )
     print(
-        "  Maximum: ",
+        "  Maximum:",
         f" (before) {np.max(before.sicn):10.4f} ",
         f" (after) {np.max(after.sicn)}" if after else "",
     )
     print(
-        "  Inverted Elements: ",
+        "  Inverted Elements:",
         f" (before) {before.inverted}",
         f" (after) {after.inverted}" if after else "",
     )
@@ -357,7 +369,6 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
         region_tags = None
     if mesh.bnd is not None:
         for v in mesh.bnd.v.values():
-            print(v.tag)
             current_elem = add_cheart_boundary_to_gmsh(v, top.dim, current_elem)
     gmsh.model.occ.synchronize()
     # gmsh.option.set_number("Mesh.QualityType", 0)
