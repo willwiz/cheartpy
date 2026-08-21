@@ -144,6 +144,12 @@ def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
         The dimension of the mesh (2 for surfaces, 3 for volumes).
 
     """
+    # gmsh.plugin.set_number("Remesh", "Force", 1.0)  # Forces local restructuring
+
+    # 3. Execute the plugin on your volume mesh
+    # gmsh.option.set_number("Mesh.MeshOnlyOnBoundaries", 0)
+    # gmsh.option.set_number("Mesh.Algorithm", 1)
+
     # gmsh.model.mesh.classify_surfaces(
     #     angle_deg * np.pi / 180.0, boundary=True, forReparametrization=True
     # )
@@ -153,8 +159,12 @@ def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
     # gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
     # gmsh.model.occ.remove_all_duplicates()
     # gmsh.model.occ.synchronize()
-    gmsh.model.mesh.optimize("Gmsh", niter=10)
-    gmsh.model.mesh.optimize("Netgen", niter=10)
+    gmsh.model.mesh.optimize(method="UntangleMeshGeometry", niter=2, force=True)
+    gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
+    gmsh.model.mesh.optimize("Netgen", niter=20)
+    gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
+    # gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
+    # gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
     # gmsh.model.mesh.optimize("UntangleMeshGeometry", niter=2, dimTags=dim_tags)
     # gmsh.model.mesh.optimize("Gmsh", niter=10, dimTags=dim_tags)
     # gmsh.model.mesh.optimize("Netgen", niter=10, dimTags=dim_tags)
@@ -172,8 +182,8 @@ def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
     # gmsh.model.mesh.optimize("UntangleMeshGeometry")
     # gmsh.model.mesh.optimize("Relocate3D")
     # gmsh.model.mesh.optimize("Netgen")
-    gmsh.model.mesh.optimize("Gmsh", niter=10)
-    gmsh.model.mesh.optimize("Netgen", niter=10)
+    # gmsh.model.mesh.optimize("Gmsh", niter=10)
+    # gmsh.model.mesh.optimize("Netgen", niter=10)
 
 
 def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
@@ -188,8 +198,12 @@ def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
 
     """
     # gmsh.option.set_number("Mesh.Remeshing", 1)
-    gmsh.option.set_number("Mesh.Algorithm3D", 10)
-    gmsh.model.mesh.generate(top.dim)
+    # gmsh.option.set_number("Mesh.Algorithm3D", 10)
+    # gmsh.model.mesh.generate(top.dim)
+    # gmsh.model.mesh.classify_surfaces(40 * np.pi / 180.0, boundary=True, forReparametrization=True)
+    gmsh.model.mesh.create_topology()
+    gmsh.model.mesh.create_geometry()
+    gmsh.model.geo.synchronize()
     gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)
     if regions is None:
         optimization_loop([], top.dim)
@@ -288,6 +302,26 @@ def print_mesh_quality(before: Quality, after: Quality | None) -> None:
                 print_element_set_quality(before, v)
 
 
+def print_physical_groups() -> None:
+    # 1. Get all physical groups in the model (returns a list of tuples: (dim, tag))
+    physical_groups = gmsh.model.get_physical_groups()
+
+    print(f"{'Dimension':<10} | {'Tag':<5} | {'Physical Group Name'}")
+    print("-" * 45)
+
+    # 2. Loop through each group and fetch its metadata
+    for dim, tag in physical_groups:
+        # Look up the string name assigned to the physical group tag
+        name = gmsh.model.get_physical_name(dim, tag)
+
+        # Translate dimension integer to a readable string label
+        dim_label = {0: "Node (0D)", 1: "Line (1D)", 2: "Surface (2D)", 3: "Volume (3D)"}.get(
+            dim, f"{dim}D"
+        )
+
+        print(f"{dim_label:<10} | {tag:<5} | {name}")
+
+
 def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     regions: Mapping[int, A1[np.integer]] | None = None,
@@ -334,7 +368,11 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
         optimize_mesh(top, regions=None)
         after = get_mesh_quality(top, regions=region_tags)
         print_mesh_quality(before, after)
-    gmsh.plugin.run("AnalyseMeshQuality")
+        # if mesh.bnd is not None:
+        #     for b in mesh.bnd.v.values():
+        #         gmsh.model.add_physical_group(dim=2, tags=[int(b.tag)], tag=100)
+    print_physical_groups()
+    # gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
     if filename:
         # gmsh.option.set_number("Mesh.SaveAll", 1)
