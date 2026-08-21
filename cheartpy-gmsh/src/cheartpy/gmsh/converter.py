@@ -1,15 +1,14 @@
+import dataclasses as dc
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, NamedTuple, Protocol, Unpack
 
 import numpy as np
-from cheartpy.elem_interfaces import get_cheart_elem_from_vtk
-from cheartpy.elem_interfaces._gmsh import Vtk2Gmsh
-from cheartpy.elem_interfaces._remapping import Cheart2VtkNodeOrder
+from cheartpy.elem_interfaces import Cheart2VtkNodeOrder, Vtk2Gmsh, get_cheart_elem_from_vtk
 from typing_extensions import TypedDict
 
 import gmsh
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
     from pathlib import Path
 
     from cheartpy.mesh import CheartMesh, CheartMeshPatch
@@ -113,7 +112,7 @@ def add_cheart_boundary_to_gmsh[I: np.integer](
 
 def add_physical_group_by_elset[F: np.floating, I: np.integer](
     top: GmshTopInfo, k: int, elset: A1[I]
-) -> None:
+) -> int:
     # volume_tag = new_entity()
     volume_tag = gmsh.model.add_discrete_entity(dim=top.dim)
     domain_data = top.connectivity[elset]
@@ -126,7 +125,7 @@ def add_physical_group_by_elset[F: np.floating, I: np.integer](
         nodeTags=[domain_data.flatten()],
     )
     # Physical group for volumes is Dimension 3 (Volumes)
-    gmsh.model.add_physical_group(dim=top.dim, tags=[volume_tag], name=f"elset{k}")
+    return gmsh.model.add_physical_group(dim=top.dim, tags=[volume_tag], name=f"elset{k}")
 
 
 class MeshConverterKwargs(TypedDict, total=False):
@@ -134,38 +133,159 @@ class MeshConverterKwargs(TypedDict, total=False):
     angle_deg: float
 
 
-def optimize_mesh() -> None:
-    """Optimize the mesh using Gmsh's built-in optimization algorithms.
+def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
+    """Run the optimization loop for the given dimension tags.
 
     Parameters
     ----------
-    angle_deg : float, default=40.0
-        The angle threshold in degrees for classifying surfaces. Surfaces with angles below this
-        threshold will be considered for optimization.
+    dim_tags : list[int]
+        List of dimension tags to optimize.
+    dim : int
+        The dimension of the mesh (2 for surfaces, 3 for volumes).
 
     """
     # gmsh.model.mesh.classify_surfaces(
     #     angle_deg * np.pi / 180.0, boundary=True, forReparametrization=True
     # )
     #
-    gmsh.option.set_number("Mesh.Algorithm3D", 7)
-    gmsh.option.set_number("Mesh.Optimize", 1)
-    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
-    gmsh.model.occ.remove_all_duplicates()
-    gmsh.model.occ.synchronize()
-    gmsh.model.mesh.optimize("Netgen")
-    gmsh.model.mesh.optimize("Gmsh")
-    gmsh.model.mesh.optimize("Relocate3D")
-    gmsh.model.mesh.optimize("UntangleMeshGeometry")
-    gmsh.model.mesh.optimize("UntangleMeshGeometry")
-    gmsh.model.mesh.optimize("Gmsh")
-    gmsh.model.mesh.optimize("Netgen")
-    gmsh.model.mesh.optimize("Gmsh")
-    gmsh.model.mesh.optimize("Relocate3D")
-    gmsh.model.mesh.optimize("UntangleMeshGeometry")
-    gmsh.model.mesh.optimize("Relocate3D")
-    gmsh.model.mesh.optimize("Netgen")
-    gmsh.model.mesh.optimize("Gmsh")
+    # gmsh.option.set_number("Mesh.Algorithm3D", 10)
+    # gmsh.option.set_number("Mesh.Optimize", 1)
+    # gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
+    # gmsh.model.occ.remove_all_duplicates()
+    # gmsh.model.occ.synchronize()
+    gmsh.model.mesh.optimize("Gmsh", niter=10)
+    gmsh.model.mesh.optimize("Netgen", niter=10)
+    # gmsh.model.mesh.optimize("UntangleMeshGeometry", niter=2, dimTags=dim_tags)
+    # gmsh.model.mesh.optimize("Gmsh", niter=10, dimTags=dim_tags)
+    # gmsh.model.mesh.optimize("Netgen", niter=10, dimTags=dim_tags)
+    # match dim:
+    #     case 3:
+    #         gmsh.model.mesh.optimize("Relocate3D", niter=1, dimTags=dim_tags)
+    #     case 2:
+    #         gmsh.model.mesh.optimize("Relocate2D", niter=1, dimTags=dim_tags)
+    #     case _:
+    #         pass
+    # gmsh.model.mesh.optimize("Gmsh")
+    # gmsh.model.mesh.optimize("Netgen")
+    # gmsh.model.mesh.optimize("Gmsh")
+    # gmsh.model.mesh.optimize("Relocate3D")
+    # gmsh.model.mesh.optimize("UntangleMeshGeometry")
+    # gmsh.model.mesh.optimize("Relocate3D")
+    # gmsh.model.mesh.optimize("Netgen")
+    gmsh.model.mesh.optimize("Gmsh", niter=10)
+    gmsh.model.mesh.optimize("Netgen", niter=10)
+
+
+def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
+    """Optimize the mesh using Gmsh's built-in optimization algorithms.
+
+    Parameters
+    ----------
+    top : GmshTopInfo
+        The GmshTopInfo object containing mesh information.
+    regions : list[int] | None
+        Optional list of region tags to optimize. If None, the entire mesh is optimized.
+
+    """
+    # gmsh.option.set_number("Mesh.Remeshing", 1)
+    gmsh.option.set_number("Mesh.Algorithm3D", 10)
+    gmsh.model.mesh.generate(top.dim)
+    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)
+    if regions is None:
+        optimization_loop([], top.dim)
+        return
+    print(f"Optimizing mesh for regions: {regions}")
+    for mask in regions:
+        tags = gmsh.model.get_entities_for_physical_group(dim=top.dim, tag=mask)
+        dim_tags = [(top.dim, tag) for tag in tags]
+        optimization_loop(dim_tags, top.dim)
+
+
+@dc.dataclass(slots=True)
+class MeshQualityMetrics:
+    rr: A1[np.floating]
+    sicn: A1[np.floating]
+    inverted: int
+
+
+def get_element_mesh_quality(elements: A1[np.integer]) -> MeshQualityMetrics:
+    radius_ratios = gmsh.model.mesh.get_element_qualities(elements, qualityName="gamma")
+    sicn_values = gmsh.model.mesh.get_element_qualities(elements, qualityName="minSICN")
+    inverted_elements = len([i for i, v in enumerate(sicn_values) if v < 0])
+    return MeshQualityMetrics(np.array(radius_ratios), np.array(sicn_values), inverted_elements)
+
+
+def get_mesh_quality(
+    top: GmshTopInfo, regions: list[int] | None
+) -> MeshQualityMetrics | Mapping[int, MeshQualityMetrics]:
+    if regions is None:
+        return get_element_mesh_quality(top.elem_tags)
+    quality_metrics: dict[int, MeshQualityMetrics] = {}
+    for elset in regions:
+        _, tags, _ = gmsh.model.mesh.get_elements(top.dim, elset)
+        quality_metrics[elset] = get_element_mesh_quality(np.array(tags[0]))
+    return quality_metrics
+
+
+def print_element_set_quality(before: MeshQualityMetrics, after: MeshQualityMetrics | None) -> None:
+    print("Mesh Quality (Radius Ratio / Gamma):")
+    print(
+        "  Minimum:",
+        f" (before) {np.min(before.rr):10.4f}",
+        f" (after) {np.min(after.rr)}" if after else "",
+    )
+    print(
+        "  Mean   : ",
+        f" (before) {np.mean(before.rr):10.4f}",
+        f" (after) {np.mean(after.rr)}" if after else "",
+    )
+    print(
+        "  Maximum: ",
+        f"(before) {np.max(before.rr):10.4f}",
+        f"(after) {np.max(after.rr)}" if after else "",
+    )
+    print("Mesh Quality (Minimum SICN):")
+    print(
+        "  Minimum: ",
+        f" (before) {np.min(before.sicn):10.4f} ",
+        f" (after) {np.min(after.sicn)}" if after else "",
+    )
+    print(
+        "  Mean   : ",
+        f" (before) {np.mean(before.sicn):10.4f} ",
+        f" (after) {np.mean(after.sicn)}" if after else "",
+    )
+    print(
+        "  Maximum: ",
+        f" (before) {np.max(before.sicn):10.4f} ",
+        f" (after) {np.max(after.sicn)}" if after else "",
+    )
+    print(
+        "  Inverted Elements: ",
+        f" (before) {before.inverted}",
+        f" (after) {after.inverted}" if after else "",
+    )
+
+
+type Quality = Mapping[int, MeshQualityMetrics] | MeshQualityMetrics
+
+
+def print_mesh_quality(before: Quality, after: Quality | None) -> None:
+    match before, after:
+        case MeshQualityMetrics(), MeshQualityMetrics() | None:
+            print_element_set_quality(before, after)
+        case Mapping(), Mapping():
+            for k in before:
+                print(f"Element Set: {k}")
+                print_element_set_quality(before[k], after[k] if after else None)
+        case Mapping(), MeshQualityMetrics() | None:
+            for k, v in before.items():
+                print(f"Element Set: {k}")
+                print_element_set_quality(v, after)
+        case MeshQualityMetrics(), Mapping():
+            for k, v in after.items():
+                print(f"Element Set: {k}")
+                print_element_set_quality(before, v)
 
 
 def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
@@ -197,8 +317,10 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
     current_elem, top = add_cheart_top_to_gmsh(mesh, current_elem=1)
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
     if regions is not None:
-        for k, v in regions.items():
-            add_physical_group_by_elset(top, k, v)
+        region_tags = [add_physical_group_by_elset(top, k, v) for k, v in regions.items()]
+
+    else:
+        region_tags = None
     if mesh.bnd is not None:
         for v in mesh.bnd.v.values():
             print(v.tag)
@@ -206,8 +328,12 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
     gmsh.model.occ.synchronize()
     # gmsh.option.set_number("Mesh.QualityType", 0)
     # Run the plugin safely
+    before = get_mesh_quality(top, regions=region_tags)
+    print_mesh_quality(before, None)
     if kwargs.get("optimize", False):
-        optimize_mesh()
+        optimize_mesh(top, regions=None)
+        after = get_mesh_quality(top, regions=region_tags)
+        print_mesh_quality(before, after)
     gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
     if filename:
