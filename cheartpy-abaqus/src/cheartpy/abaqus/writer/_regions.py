@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from pytools.arrays import A1, DType
 
 
-def import_region_mask[I: np.integer](file: Path, dtype: DType[I] = np.intp) -> Mapping[str, A1[I]]:
+def import_region_mask[I: np.integer](file: Path, dtype: DType[I] = np.intp) -> Mapping[int, A1[I]]:
     """Import region mask to dictionary of mask to nodes.
 
     Parameters
@@ -28,4 +28,4 @@ def import_region_mask[I: np.integer](file: Path, dtype: DType[I] = np.intp) -> 
     """
     # Implementation goes here
     mask = chread_d(file, dtype=dtype).flatten()
-    return {f"elset{k!s}": np.nonzero(mask == k)[0].astype(dtype) for k in np.unique(mask)}
+    return {k: np.nonzero(mask == k)[0].astype(dtype) for k in np.unique(mask)}

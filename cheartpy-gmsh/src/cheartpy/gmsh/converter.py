@@ -60,32 +60,30 @@ def add_cheart_top_to_gmsh[F: np.floating, I: np.integer](
 
     # 2. ADD ALL NODES TO A GLOBAL DISCRETE VOLUME ENTITY
     # For 3D meshes, we store the global node pool inside a base volume entity (Dim=3, Tag=1)
-    global_volume_tag = new_entity()
-    gmsh.model.add_discrete_entity(dim=dim, tag=global_volume_tag)
+    gmsh.model.add_discrete_entity(dim=dim, tag=1)
     node_tags = np.arange(1, num_nodes + 1)
 
     # Coordinates must be a flat 1D array: [x1, y1, z1, x2, y2, z2...]
-    gmsh.model.mesh.add_nodes(
-        dim=dim, tag=global_volume_tag, nodeTags=node_tags, coord=mesh.space.v.flatten()
-    )
+    gmsh.model.mesh.add_nodes(dim=dim, tag=1, nodeTags=node_tags, coord=mesh.space.v.flatten())
     current_elem = 1
     elem_tags = np.arange(current_elem, current_elem + n_elem)
     current_elem = current_elem + n_elem
     gmsh.model.mesh.add_elements(
         dim=dim,
-        tag=global_volume_tag,
+        tag=1,
         elementTypes=[vol_type_id],
         elementTags=[elem_tags],
         nodeTags=[connectivity.flatten()],
     )
-    gmsh.model.add_physical_group(dim=dim, tags=[global_volume_tag], name="Volume1")
+    gmsh.model.add_physical_group(dim=dim, tags=[1], name="Volume1")
     return current_elem, GmshTopInfo(elem_tags, connectivity, vol_type_id, dim)
 
 
 def add_cheart_boundary_to_gmsh[I: np.integer](
     bnd: CheartMeshPatch[I], dim: int, current_elem: int
 ) -> int:
-    surface_tag = new_entity()  # Tags: 1, 2, 3
+    new_entity()
+    # surface_tag = int(bnd.tag)  # Tags: 1, 2, 3
     bnd_elem = Vtk2Gmsh[bnd.TYPE]
     cheart_elem = get_cheart_elem_from_vtk(bnd.TYPE)
     if cheart_elem is None:
@@ -93,7 +91,7 @@ def add_cheart_boundary_to_gmsh[I: np.integer](
         raise ValueError(msg)
     bnd_reorder = Cheart2VtkNodeOrder[cheart_elem]
     bnd_type_id = bnd_elem.value
-    gmsh.model.add_discrete_entity(dim=dim - 1, tag=surface_tag)
+    surface_tag = gmsh.model.add_discrete_entity(dim=dim - 1, tag=int(bnd.tag))
 
     bnd_data = bnd.v[:, bnd_reorder] + 1
     num_bnd_elems = len(bnd_data)
@@ -114,10 +112,10 @@ def add_cheart_boundary_to_gmsh[I: np.integer](
 
 
 def add_physical_group_by_elset[F: np.floating, I: np.integer](
-    top: GmshTopInfo, name: str, elset: A1[I]
+    top: GmshTopInfo, k: int, elset: A1[I]
 ) -> None:
-    volume_tag = new_entity()
-    gmsh.model.add_discrete_entity(dim=top.dim, tag=volume_tag)
+    # volume_tag = new_entity()
+    volume_tag = gmsh.model.add_discrete_entity(dim=top.dim)
     domain_data = top.connectivity[elset]
     # Inject volumetric elements into Dimension 3
     gmsh.model.mesh.add_elements(
@@ -128,7 +126,7 @@ def add_physical_group_by_elset[F: np.floating, I: np.integer](
         nodeTags=[domain_data.flatten()],
     )
     # Physical group for volumes is Dimension 3 (Volumes)
-    gmsh.model.add_physical_group(dim=top.dim, tags=[volume_tag], name=name)
+    gmsh.model.add_physical_group(dim=top.dim, tags=[volume_tag], name=f"elset{k}")
 
 
 class MeshConverterKwargs(TypedDict, total=False):
@@ -136,7 +134,7 @@ class MeshConverterKwargs(TypedDict, total=False):
     angle_deg: float
 
 
-def optimize_mesh(**kwargs: Unpack[MeshConverterKwargs]) -> None:
+def optimize_mesh() -> None:
     """Optimize the mesh using Gmsh's built-in optimization algorithms.
 
     Parameters
@@ -146,22 +144,33 @@ def optimize_mesh(**kwargs: Unpack[MeshConverterKwargs]) -> None:
         threshold will be considered for optimization.
 
     """
-    angle_deg = kwargs.get("angle_deg", 40.0)
-    gmsh.model.mesh.classify_surfaces(
-        angle_deg * np.pi / 180.0, boundary=True, forReparametrization=True
-    )
-    # gmsh.model.mesh.create_geometry()
+    # gmsh.model.mesh.classify_surfaces(
+    #     angle_deg * np.pi / 180.0, boundary=True, forReparametrization=True
+    # )
+    #
+    gmsh.option.set_number("Mesh.Algorithm3D", 7)
+    gmsh.option.set_number("Mesh.Optimize", 1)
+    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
+    gmsh.model.occ.remove_all_duplicates()
+    gmsh.model.occ.synchronize()
+    gmsh.model.mesh.optimize("Netgen")
+    gmsh.model.mesh.optimize("Gmsh")
+    gmsh.model.mesh.optimize("Relocate3D")
+    gmsh.model.mesh.optimize("UntangleMeshGeometry")
     gmsh.model.mesh.optimize("UntangleMeshGeometry")
     gmsh.model.mesh.optimize("Gmsh")
     gmsh.model.mesh.optimize("Netgen")
     gmsh.model.mesh.optimize("Gmsh")
     gmsh.model.mesh.optimize("Relocate3D")
+    gmsh.model.mesh.optimize("UntangleMeshGeometry")
     gmsh.model.mesh.optimize("Relocate3D")
+    gmsh.model.mesh.optimize("Netgen")
+    gmsh.model.mesh.optimize("Gmsh")
 
 
 def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
-    regions: Mapping[str, A1[np.integer]] | None = None,
+    regions: Mapping[int, A1[np.integer]] | None = None,
     filename: Path | None = None,
     **kwargs: Unpack[MeshConverterKwargs],
 ) -> None:
@@ -184,22 +193,27 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
     gmsh.initialize()
     gmsh.model.add("3D_Volumetric_Mesh")
 
+    # 4. ADD PHYSICAL VOLUMES / DOMAINS (Dimension 3)
     current_elem, top = add_cheart_top_to_gmsh(mesh, current_elem=1)
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
-    if mesh.bnd is not None:
-        for v in mesh.bnd.v.values():
-            current_elem = add_cheart_boundary_to_gmsh(v, top.dim, current_elem)
-
-    # 4. ADD PHYSICAL VOLUMES / DOMAINS (Dimension 3)
     if regions is not None:
         for k, v in regions.items():
             add_physical_group_by_elset(top, k, v)
-
+    if mesh.bnd is not None:
+        for v in mesh.bnd.v.values():
+            print(v.tag)
+            current_elem = add_cheart_boundary_to_gmsh(v, top.dim, current_elem)
+    gmsh.model.occ.synchronize()
+    # gmsh.option.set_number("Mesh.QualityType", 0)
+    # Run the plugin safely
     if kwargs.get("optimize", False):
-        optimize_mesh(**kwargs)
-
+        optimize_mesh()
+    gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
     if filename:
+        # gmsh.option.set_number("Mesh.SaveAll", 1)
+        # gmsh.option.set_number("Mesh.SaveParametric", 0)
+        # gmsh.option.set_number("Mesh.SaveTopology", 1)
         gmsh.write(str(filename))
     else:
         gmsh.fltk.run()

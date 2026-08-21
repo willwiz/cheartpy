@@ -76,11 +76,11 @@ def find_element_from_elset[F: np.floating, I: np.integer](
 def find_elements[F: np.floating, I: np.integer](
     mesh: AbaqusMesh[F, I], selection: str
 ) -> Result[ElemIntermediate[I]]:
+    if selection in mesh.elsets:
+        return find_element_from_elset(mesh, selection).next()
     if selection in mesh.elements:
         elem = mesh.elements[selection]
         return Ok(ElemIntermediate(type=elem.type, v=elem.v))
-    if selection in mesh.elsets:
-        return find_element_from_elset(mesh, selection).next()
     msg = f"Topology '{selection}' is not defined in the elements or elsets."
     return Err(ValueError(msg))
 

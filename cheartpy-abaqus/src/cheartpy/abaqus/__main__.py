@@ -29,7 +29,9 @@ def export_cli(cmd_args: list[str] | None = None) -> None:
     output_file = args.prefix or args.mesh
     output_file = output_file.with_suffix(".inp")
     mesh = import_cheart_mesh(args.mesh).unwrap()
-    kwargs: AbaqusWriterKwargs = {"elset": regions} if regions else {}
+    kwargs: AbaqusWriterKwargs = (
+        {"elset": {f"elset{k}": v for k, v in regions.items()}} if regions else {}
+    )
     write_inp_from_cheart(mesh, output_file, **kwargs).unwrap()
 
 
