@@ -144,46 +144,22 @@ def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
         The dimension of the mesh (2 for surfaces, 3 for volumes).
 
     """
-    # gmsh.plugin.set_number("Remesh", "Force", 1.0)  # Forces local restructuring
+    gmsh.option.set_number("Mesh.Optimize", 1)
+    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
+    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
 
-    # 3. Execute the plugin on your volume mesh
-    # gmsh.option.set_number("Mesh.MeshOnlyOnBoundaries", 0)
-    # gmsh.option.set_number("Mesh.Algorithm", 1)
-
-    # gmsh.model.mesh.classify_surfaces(
-    #     angle_deg * np.pi / 180.0, boundary=True, forReparametrization=True
-    # )
-    #
-    # gmsh.option.set_number("Mesh.Algorithm3D", 10)
-    # gmsh.option.set_number("Mesh.Optimize", 1)
-    # gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
-    # gmsh.model.occ.remove_all_duplicates()
-    # gmsh.model.occ.synchronize()
-    # gmsh.model.mesh.optimize(method="UntangleMeshGeometry", niter=2, force=True)
+    gmsh.model.mesh.optimize("", force=True, niter=10)
+    gmsh.model.mesh.optimize("UntangleMeshGeometry", force=True, niter=2, dimTags=dim_tags)
+    match dim:
+        case 3:
+            gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5, dimTags=dim_tags)
+        case 2:
+            gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5, dimTags=dim_tags)
+        case _:
+            pass
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
     gmsh.model.mesh.optimize("Netgen", niter=20)
-    gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
-    # gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
-    # gmsh.model.mesh.optimize("Gmsh", force=True, niter=20)
-    # gmsh.model.mesh.optimize("UntangleMeshGeometry", niter=2, dimTags=dim_tags)
-    # gmsh.model.mesh.optimize("Gmsh", niter=10, dimTags=dim_tags)
-    # gmsh.model.mesh.optimize("Netgen", niter=10, dimTags=dim_tags)
-    # match dim:
-    #     case 3:
-    #         gmsh.model.mesh.optimize("Relocate3D", niter=1, dimTags=dim_tags)
-    #     case 2:
-    #         gmsh.model.mesh.optimize("Relocate2D", niter=1, dimTags=dim_tags)
-    #     case _:
-    #         pass
-    # gmsh.model.mesh.optimize("Gmsh")
-    # gmsh.model.mesh.optimize("Netgen")
-    # gmsh.model.mesh.optimize("Gmsh")
-    # gmsh.model.mesh.optimize("Relocate3D")
-    # gmsh.model.mesh.optimize("UntangleMeshGeometry")
-    # gmsh.model.mesh.optimize("Relocate3D")
-    # gmsh.model.mesh.optimize("Netgen")
-    # gmsh.model.mesh.optimize("Gmsh", niter=10)
-    # gmsh.model.mesh.optimize("Netgen", niter=10)
+    gmsh.model.mesh.optimize("RelocateNodes")
 
 
 def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
@@ -197,26 +173,16 @@ def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
         Optional list of region tags to optimize. If None, the entire mesh is optimized.
 
     """
-    # gmsh.option.set_number("Mesh.Remeshing", 1)
-    # gmsh.option.set_number("Mesh.Algorithm3D", 10)
-    # gmsh.model.mesh.generate(top.dim)
-    # gmsh.model.mesh.classify_surfaces(40 * np.pi / 180.0, boundary=True, forReparametrization=True)
-    gmsh.model.mesh.remove_duplicate_nodes()
-    angle_rad = 40.0 * np.pi / 180.0
-    gmsh.model.mesh.classify_surfaces(angle=angle_rad, boundary=True, forReparametrization=True)
-    gmsh.model.mesh.create_topology()
-    gmsh.model.mesh.create_geometry()
-    gmsh.model.mesh.remove_duplicate_nodes()
-    gmsh.model.geo.synchronize()
-    # gmsh.option.set_number("Mesh.Algorithm", 1)  # 1 = MeshAdapt
-    gmsh.option.set_number("Mesh.Optimize", 1)
-    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
-    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
+    gmsh.model.occ.synchronize()
 
-    # # 5. Regenerate the mesh cleanly from your new geometry definitions
-    # # This builds new 2D surface triangles and 3D tets seamlessly
-    # gmsh.model.mesh.generate(3)
-    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)
+    gmsh.model.mesh.remove_duplicate_nodes()
+    gmsh.model.occ.remove_all_duplicates()
+
+    # 5. GENERATE THE MESH
+    gmsh.option.set_number("Mesh.Algorithm", 6)  # 2D Mesh: Frontal-Delaunay
+    gmsh.option.set_number("Mesh.Algorithm3D", 4)  # 3D Mesh: Frontal-Delaunay
+    # gmsh.model.mesh.generate(3)  # Use 2 for 2D meshes
+
     if regions is None:
         optimization_loop([], top.dim)
         return
@@ -361,27 +327,27 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
 
     # 4. ADD PHYSICAL VOLUMES / DOMAINS (Dimension 3)
     current_elem, top = add_cheart_top_to_gmsh(mesh, current_elem=1)
-    # 3. ADD BOUNDARY SURFACES (Dimension 2)
-    if regions is not None:
-        region_tags = [add_physical_group_by_elset(top, k, v) for k, v in regions.items()]
-
-    else:
-        region_tags = None
     if mesh.bnd is not None:
         for v in mesh.bnd.v.values():
             current_elem = add_cheart_boundary_to_gmsh(v, top.dim, current_elem)
     gmsh.model.occ.synchronize()
     # gmsh.option.set_number("Mesh.QualityType", 0)
     # Run the plugin safely
-    before = get_mesh_quality(top, regions=region_tags)
+    before = get_mesh_quality(top, None)
     print_mesh_quality(before, None)
     if kwargs.get("optimize", False):
         optimize_mesh(top, regions=None)
-        after = get_mesh_quality(top, regions=region_tags)
+        after = get_mesh_quality(top, None)
         print_mesh_quality(before, after)
         # if mesh.bnd is not None:
         #     for b in mesh.bnd.v.values():
         #         gmsh.model.add_physical_group(dim=2, tags=[int(b.tag)], tag=100)
+    # 3. ADD BOUNDARY SURFACES (Dimension 2)
+    if regions is not None:
+        _ = [add_physical_group_by_elset(top, k, v) for k, v in regions.items()]
+
+    # else:
+    #     region_tags = None
     print_physical_groups()
     # gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
