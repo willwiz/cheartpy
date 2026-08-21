@@ -155,11 +155,9 @@ def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
             gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5, dimTags=dim_tags)
         case 2:
             gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5, dimTags=dim_tags)
-        case _:
-            pass
+        case _: ...  # fmt: skip
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
     gmsh.model.mesh.optimize("Netgen", niter=20)
-    gmsh.model.mesh.optimize("RelocateNodes")
 
 
 def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
