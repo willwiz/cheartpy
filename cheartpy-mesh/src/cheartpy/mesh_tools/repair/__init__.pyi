@@ -6,3 +6,6 @@ from cheartpy.mesh import CheartMesh
 def fix_tetra_mesh[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
 ) -> Result[CheartMesh[F, I]]: ...
+def reorder_cheartmesh[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I],
+) -> CheartMesh[F, I]: ...
