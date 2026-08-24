@@ -1,3 +1,4 @@
+from pprint import pprint
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -15,17 +16,22 @@ if TYPE_CHECKING:
 def classify_boundary_to_region[F: np.floating, I: np.integer](
     patch: CheartMeshPatch[I], elems: A1[np.integer]
 ) -> BoundaryAssociation:
+    print("checking for patch", patch.tag)
     assoc = np.isin(patch.k, elems, assume_unique=True)
     if np.all(assoc):
+        print("full association")
         return BoundaryAssociation.FULL
     if np.any(assoc):
+        print("partial association")
         return BoundaryAssociation.PARTIAL
+    print("no association")
     return BoundaryAssociation.NONE
 
 
 def find_subdomain_boundary[F: np.floating, I: np.integer](
-    bnd: CheartMeshBoundary[I], region_elems: A1[np.integer]
+    bnd: CheartMeshBoundary[I], region_elems: A1[np.integer], k: int
 ) -> CheartMeshBoundary[I]:
+    print(f"Finding subdomain boundary for region {k}")
     patches = {
         k: v
         for k, v in bnd.v.items()
@@ -59,7 +65,8 @@ def split_subdomain[F: np.floating, I: np.integer](
     if not mesh.bnd:
         msg = "Mesh has no boundary information, cannot split into subdomains."
         return Err(ValueError(msg))
-    region_bnds = {k: find_subdomain_boundary(mesh.bnd, v) for k, v in regions.items()}
+    region_bnds = {k: find_subdomain_boundary(mesh.bnd, v, k) for k, v in regions.items()}
+    pprint({k: {t: (v.tag, v.TYPE.name) for t, v in b.v.items()} for k, b in region_bnds.items()})
     return Ok(
         MultiDomainMesh(
             mesh, {k: v.astype(mesh.top.v.dtype) for k, v in regions.items()}, region_bnds

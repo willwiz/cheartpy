@@ -7,12 +7,9 @@ import numpy as np
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from cheartpy.gmsh.types import Entity
     from cheartpy.mesh import CheartMesh, CheartMeshBoundary
     from pytools.arrays import A1, A2
-
-
-type Tag = int
-type Entity = int
 
 
 class BoundaryAssociation(enum.IntEnum):
@@ -29,6 +26,7 @@ class MultiDomainMesh[F: np.floating, I: np.integer]:
 
 
 class GmshTopInfo(NamedTuple):
+    tag: Entity
     node_tags: A1[np.integer]
     elem_tags: A1[np.integer]
     connectivity: A2[np.integer]

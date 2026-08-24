@@ -6,11 +6,12 @@ from typing import TYPE_CHECKING, Protocol, Unpack
 
 import numpy as np
 from cheartpy.elem_interfaces import Cheart2VtkNodeOrder, Vtk2Gmsh, get_cheart_elem_from_vtk
+from cheartpy.gmsh.types import Entity, GmshMeshTags, Tag
 from typing_extensions import TypedDict
 
 import gmsh
 
-from ._types import Entity, GmshTopInfo, MultiDomainMesh, Tag
+from ._types import GmshTopInfo, MultiDomainMesh
 from .subdomain import split_subdomain
 
 if TYPE_CHECKING:
@@ -36,7 +37,6 @@ class Counter:
 
 
 new_entity: IndexGenerator = Counter()  # Unique entity tag generator
-new_surface: IndexGenerator = Counter()  # Unique surface tag generator
 
 
 def add_cheart_master_topology[F: np.floating, I: np.integer](
@@ -45,8 +45,7 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
     n_nodes, dim = mesh.volume.space.v.shape
     node_tags = np.arange(1, n_nodes + 1)
     elem_tags = np.arange(1, mesh.volume.top.n + 1)
-    tag = new_entity()
-    gmsh.model.add_discrete_entity(dim=dim, tag=tag)
+    tag = gmsh.model.add_discrete_entity(dim=dim)
     gmsh.model.mesh.add_nodes(
         dim=dim, tag=tag, nodeTags=node_tags, coord=mesh.volume.space.v.flatten()
     )
@@ -57,7 +56,7 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
         raise ValueError(msg)
     element_reorder = Cheart2VtkNodeOrder[cheart_elem]
     connectivity = np.ascontiguousarray(mesh.volume.top.v[:, element_reorder] + 1)
-    return GmshTopInfo(node_tags, elem_tags, connectivity, vol_elem.value, dim)
+    return GmshTopInfo(tag, node_tags, elem_tags, connectivity, vol_elem.value, dim)
 
 
 def add_boundary_to_gmsh[F: np.floating, I: np.integer](
@@ -228,7 +227,7 @@ def print_quality(qual: QualityType, a: A1[np.floating], b: A1[np.floating] | No
         case QualityType.num:
             print(f"  (before) {u}", f" (after) {v}" if v else "")
         case _:
-            print(f"  {qual}", f" (before) {u:10.4f}", f" (after) {v:10.4f}" if v else "")
+            print(f"  {qual:7}", f" (before) {u:8.4f}", f" (after) {v:8.4f}" if v else "")
 
 
 def print_element_set_quality(before: MeshQualityMetrics, after: MeshQualityMetrics | None) -> None:
@@ -275,36 +274,43 @@ def print_physical_groups() -> None:
     # 1. Get all physical groups in the model (returns a list of tuples: (dim, tag))
     physical_groups = gmsh.model.get_physical_groups()
 
-    print(f"{'Dimension':<10} | {'Tag':<5} | {'Physical Group Name'}")
+    print(f"{'Dimension':<12} | {'Tag':<5} | {'Physical Group Name'}")
     print("-" * 45)
 
     # 2. Loop through each group and fetch its metadata
     for dim, tag in physical_groups:
         # Look up the string name assigned to the physical group tag
         name = gmsh.model.get_physical_name(dim, tag)
-
         # Translate dimension integer to a readable string label
         dim_label = {0: "Node (0D)", 1: "Line (1D)", 2: "Surface (2D)", 3: "Volume (3D)"}.get(
             dim, f"{dim}D"
         )
+        print(f"{dim_label:<12} | {tag:<5} | {name}")
 
-        print(f"{dim_label:<10} | {tag:<5} | {name}")
+
+def reverse_find_domain_for_boundary[F: np.floating, I: np.integer](
+    domain_mesh: MultiDomainMesh[F, I], boundary_tag: int
+) -> int:
+    for domain_id, bnd in domain_mesh.boundaries.items():
+        if bnd is None:
+            continue
+        if boundary_tag in bnd.v:
+            return domain_id
+    msg = f"Boundary tag {boundary_tag} not found in any domain."
+    raise ValueError(msg)
 
 
-def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
+def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     regions: Mapping[int, A1[np.integer]] | None = None,
-    filename: Path | None = None,
     **kwargs: Unpack[MeshConverterKwargs],
-) -> None:
+) -> GmshMeshTags:
     """Convert 3D Volumetric arrays (Tetrahedral or Hexahedral) to Gmsh MSH format.
 
     Parameters
     ----------
     mesh : CheartMesh[F, I]
         The 3D volumetric mesh to convert.
-    filename : Path
-        The output filename for the Gmsh MSH file.
     regions : Mapping[str, A1[I]] | None
         Optional mapping of region names to element indices for defining physical groups.
     optimize : bool, default=False
@@ -314,7 +320,8 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
 
     """
     domain_mesh = split_subdomain(mesh, regions).unwrap()
-    gmsh.initialize()
+    if not gmsh.is_initialized():
+        gmsh.initialize()
     gmsh.model.add("3D_Volumetric_Mesh")
 
     # 4. ADD PHYSICAL VOLUMES / DOMAINS (Dimension 3)
@@ -338,17 +345,22 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
         #     for b in mesh.bnd.v.values():
         #         gmsh.model.add_physical_group(dim=2, tags=[int(b.tag)], tag=100)
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
-    # else:
-    #     region_tags = None
     print_physical_groups()
     # gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
+    print("Successfully imported mesh.")
+    boundaries = {
+        k: (reverse_find_domain_for_boundary(domain_mesh, k), v) for k, v in boundary_map.items()
+    }
+    return GmshMeshTags(dim=top.dim, domains=domains, boundarys=boundaries)
+
+
+def gmsh_finalize(filename: Path | None = None) -> None:
+    """Finalize the GMSH API."""
+    if not gmsh.is_initialized():
+        print("GMSH API is not initialized. No need to finalize.")
     if filename:
-        # gmsh.option.set_number("Mesh.SaveAll", 1)
-        # gmsh.option.set_number("Mesh.SaveParametric", 0)
-        # gmsh.option.set_number("Mesh.SaveTopology", 1)
         gmsh.write(str(filename))
     else:
         gmsh.fltk.run()
     gmsh.finalize()
-    print(f"Successfully converted 3D volumetric mesh to {filename}")

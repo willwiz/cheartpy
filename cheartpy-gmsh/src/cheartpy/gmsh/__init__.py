@@ -1,3 +1,3 @@
-from .converter import convert_3d_to_msh_via_api
+from .reader import read_cheartmesh_into_gmsh_api
 
-__all__ = ["convert_3d_to_msh_via_api"]
+__all__ = ["read_cheartmesh_into_gmsh_api"]
