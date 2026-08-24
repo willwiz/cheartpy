@@ -137,7 +137,7 @@ CHeart Write Array functions
 """
 
 
-def chwrite_d_utf[T: np.floating, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None:
+def chwrite_d_utf[T: np.number, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None:
     match data.shape:
         case (int(),):
             ne = data.size
@@ -147,10 +147,17 @@ def chwrite_d_utf[T: np.floating, S: tuple[int, ...]](file: Path | str, data: Ar
         case _:
             msg = "Data must be 1D or 2D array"
             raise ValueError(msg)
+    if np.issubdtype(data.dtype, np.integer):
+        fmt = "%16d"
+    elif np.issubdtype(data.dtype, np.floating):
+        fmt = "%24.16e"
+    else:
+        msg = f"Unsupported data type: {data.dtype}"
+        raise TypeError(msg)
     np.savetxt(
         file,
         data,
-        fmt="%24.16e",
+        fmt=fmt,
         delimiter=" ",
         newline="\n",
         header=f"{ne:12d}{nn:12d}",

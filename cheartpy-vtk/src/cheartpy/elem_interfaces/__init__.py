@@ -6,8 +6,8 @@ from ._abaqus import (
     get_vtk_element_for_abaqus,
 )
 from ._cheart import get_cheart_elem_from_vtk
-from ._gmsh import Vtk2Gmsh, get_gmsh_elem_from_vtk, get_vtk_elem_from_gmsh
-from ._remapping import Cheart2VtkNodeOrder
+from ._gmsh import Gmsh2Vtk, Vtk2Gmsh, get_gmsh_elem_from_vtk, get_vtk_elem_from_gmsh
+from ._remapping import Cheart2VtkNodeOrder, Vtk2CheartNodeOrder
 from ._types import (
     AbaqusEnum,
     CheartEnum,
@@ -26,7 +26,9 @@ __all__ = [
     "AbaqusEnum",
     "Cheart2VtkNodeOrder",
     "CheartEnum",
+    "Gmsh2Vtk",
     "GmshEnum",
+    "Vtk2CheartNodeOrder",
     "Vtk2Gmsh",
     "VtkElemType",
     "VtkEnum",
