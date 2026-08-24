@@ -1,6 +1,8 @@
 import dataclasses as dc
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, NamedTuple, Protocol, Unpack
+import enum
+from collections.abc import Mapping, Sequence
+from pprint import pprint
+from typing import TYPE_CHECKING, Protocol, Unpack
 
 import numpy as np
 from cheartpy.elem_interfaces import Cheart2VtkNodeOrder, Vtk2Gmsh, get_cheart_elem_from_vtk
@@ -8,11 +10,14 @@ from typing_extensions import TypedDict
 
 import gmsh
 
+from ._types import Entity, GmshTopInfo, MultiDomainMesh, Tag
+from .subdomain import split_subdomain
+
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from cheartpy.mesh import CheartMesh, CheartMeshPatch
-    from pytools.arrays import A1, A2
+    from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
+    from pytools.arrays import A1, ToFloat
 
 
 class IndexGenerator(Protocol):
@@ -25,107 +30,112 @@ class Counter:
     def __init__(self) -> None:
         self.count = 0
 
-    def __call__(self) -> int:
+    def __call__(self) -> Entity:
         self.count = self.count + 1
         return self.count
-
-
-class GmshTopInfo(NamedTuple):
-    elem_tags: A1[np.integer]
-    connectivity: A2[np.integer]
-    vol_type_id: int
-    dim: int
 
 
 new_entity: IndexGenerator = Counter()  # Unique entity tag generator
 new_surface: IndexGenerator = Counter()  # Unique surface tag generator
 
 
-def add_cheart_top_to_gmsh[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], current_elem: int = 1
-) -> tuple[int, GmshTopInfo]:
-    num_nodes, dim = mesh.space.v.shape
-    n_elem, _ = mesh.top.v.shape
-
-    vol_elem = Vtk2Gmsh[mesh.top.TYPE]
-    cheart_elem = get_cheart_elem_from_vtk(mesh.top.TYPE)
+def add_cheart_master_topology[F: np.floating, I: np.integer](
+    mesh: MultiDomainMesh[F, I],
+) -> GmshTopInfo:
+    n_nodes, dim = mesh.volume.space.v.shape
+    node_tags = np.arange(1, n_nodes + 1)
+    elem_tags = np.arange(1, mesh.volume.top.n + 1)
+    tag = new_entity()
+    gmsh.model.add_discrete_entity(dim=dim, tag=tag)
+    gmsh.model.mesh.add_nodes(
+        dim=dim, tag=tag, nodeTags=node_tags, coord=mesh.volume.space.v.flatten()
+    )
+    vol_elem = Vtk2Gmsh[mesh.volume.top.TYPE]
+    cheart_elem = get_cheart_elem_from_vtk(mesh.volume.top.TYPE)
     if cheart_elem is None:
-        msg = f"Unsupported element type: {mesh.top.TYPE}"
+        msg = f"Unsupported element type: {mesh.volume.top.TYPE}"
         raise ValueError(msg)
     element_reorder = Cheart2VtkNodeOrder[cheart_elem]
-    connectivity = np.ascontiguousarray(mesh.top.v[:, element_reorder] + 1)
-    # 1. DYNAMICALLY DETECT 3D ELEMENT TYPES
-    vol_type_id = vol_elem.value
-
-    # 2. ADD ALL NODES TO A GLOBAL DISCRETE VOLUME ENTITY
-    # For 3D meshes, we store the global node pool inside a base volume entity (Dim=3, Tag=1)
-    gmsh.model.add_discrete_entity(dim=dim, tag=1)
-    node_tags = np.arange(1, num_nodes + 1)
-
-    # Coordinates must be a flat 1D array: [x1, y1, z1, x2, y2, z2...]
-    gmsh.model.mesh.add_nodes(dim=dim, tag=1, nodeTags=node_tags, coord=mesh.space.v.flatten())
-    current_elem = 1
-    elem_tags = np.arange(current_elem, current_elem + n_elem)
-    current_elem = current_elem + n_elem
-    gmsh.model.mesh.add_elements(
-        dim=dim,
-        tag=1,
-        elementTypes=[vol_type_id],
-        elementTags=[elem_tags],
-        nodeTags=[connectivity.flatten()],
-    )
-    gmsh.model.add_physical_group(dim=dim, tags=[1], name="Volume1")
-    return current_elem, GmshTopInfo(elem_tags, connectivity, vol_type_id, dim)
+    connectivity = np.ascontiguousarray(mesh.volume.top.v[:, element_reorder] + 1)
+    return GmshTopInfo(node_tags, elem_tags, connectivity, vol_elem.value, dim)
 
 
-def add_cheart_boundary_to_gmsh[I: np.integer](
-    bnd: CheartMeshPatch[I], dim: int, current_elem: int
-) -> int:
-    new_entity()
-    # surface_tag = int(bnd.tag)  # Tags: 1, 2, 3
-    bnd_elem = Vtk2Gmsh[bnd.TYPE]
+def add_boundary_to_gmsh[F: np.floating, I: np.integer](
+    top: GmshTopInfo, bnd: CheartMeshPatch[I], current_elem: int = 1
+) -> tuple[int, Entity]:
     cheart_elem = get_cheart_elem_from_vtk(bnd.TYPE)
     if cheart_elem is None:
         msg = f"Unsupported boundary element type: {bnd.TYPE}"
         raise ValueError(msg)
     bnd_reorder = Cheart2VtkNodeOrder[cheart_elem]
-    bnd_type_id = bnd_elem.value
-    surface_tag = gmsh.model.add_discrete_entity(dim=dim - 1, tag=int(bnd.tag))
-
+    bnd_type_id = Vtk2Gmsh[bnd.TYPE].value
     bnd_data = bnd.v[:, bnd_reorder] + 1
     num_bnd_elems = len(bnd_data)
     bnd_tags = np.arange(current_elem, current_elem + num_bnd_elems)
-
-    # Inject boundary faces into Dimension 2
+    tag = gmsh.model.add_discrete_entity(dim=top.dim - 1)
     gmsh.model.mesh.add_elements(
-        dim=dim - 1,
-        tag=surface_tag,
+        dim=top.dim - 1,
+        tag=tag,
         elementTypes=[bnd_type_id],
         elementTags=[bnd_tags],
         nodeTags=[bnd_data.flatten()],
     )
-
-    # Physical group for boundaries is now Dimension 2 (Surfaces)
-    gmsh.model.add_physical_group(dim=dim - 1, tags=[surface_tag], name=f"Surface{bnd.tag}")
-    return current_elem + num_bnd_elems
+    gmsh.model.add_physical_group(dim=top.dim - 1, tags=[tag], name=f"Surface{bnd.tag}")
+    return current_elem + num_bnd_elems, tag
 
 
-def add_physical_group_by_elset[F: np.floating, I: np.integer](
-    top: GmshTopInfo, k: int, elset: A1[I]
-) -> int:
-    # volume_tag = new_entity()
-    volume_tag = gmsh.model.add_discrete_entity(dim=top.dim)
-    domain_data = top.connectivity[elset]
-    # Inject volumetric elements into Dimension 3
+def add_boundaries_to_gmsh[F: np.floating, I: np.integer](
+    mesh: MultiDomainMesh[F, I], top: GmshTopInfo, current_elem: int = 1
+) -> tuple[int, Mapping[Tag, Entity]]:
+    if mesh.volume.bnd is None:
+        return current_elem, {}
+    bnd_tags = dict[Tag, Entity]()
+    for k, v in mesh.volume.bnd.v.items():
+        current_elem, tag = add_boundary_to_gmsh(top, v, current_elem)
+        bnd_tags[k] = tag
+    print("Adding boundaries to model: ", end="")
+    pprint(bnd_tags)
+    return current_elem, bnd_tags
+
+
+def add_physical_domain[F: np.floating, I: np.integer](
+    top: GmshTopInfo,
+    k: int,
+    elems: A1[I],
+    bnd: CheartMeshBoundary[I],
+    boundary_map: Mapping[Tag, Entity],
+) -> Entity:
+    boundaries = [boundary_map[k] for k in bnd.v]
+    domain_tag = gmsh.model.add_discrete_entity(dim=top.dim, boundary=boundaries)
+    print(f"Attaching boundaries to entity {domain_tag}, name = Elset{k}: ", end="")
+    pprint(boundaries)
+    domain_data = top.connectivity[elems]
     gmsh.model.mesh.add_elements(
         dim=top.dim,
-        tag=volume_tag,
+        tag=domain_tag,
         elementTypes=[top.vol_type_id],
-        elementTags=[top.elem_tags[elset]],
+        elementTags=[top.elem_tags[elems]],
         nodeTags=[domain_data.flatten()],
     )
-    # Physical group for volumes is Dimension 3 (Volumes)
-    return gmsh.model.add_physical_group(dim=top.dim, tags=[volume_tag], name=f"elset{k}")
+    gmsh.model.add_physical_group(dim=top.dim, tags=[domain_tag], name=f"Elset{k}")
+    return domain_tag
+
+
+def add_physical_domains[F: np.floating, I: np.integer](
+    mesh: MultiDomainMesh[F, I], top: GmshTopInfo, boundary_map: Mapping[Tag, Entity]
+) -> Mapping[Tag, Entity]:
+    if mesh.volume.bnd is None:
+        msg = "Mesh has no boundary information, cannot add physical domains."
+        raise ValueError(msg)
+    return {
+        k: add_physical_domain(top, k, v, mesh.volume.bnd, boundary_map)
+        for k, v in mesh.subdomains.items()
+    }
+
+
+def create_volume(top: GmshTopInfo, domains: Sequence[Entity]) -> Entity:
+    """Create a volume from as the combined domains."""
+    return gmsh.model.add_physical_group(dim=top.dim, tags=domains, name="Volume1")
 
 
 class MeshConverterKwargs(TypedDict, total=False):
@@ -133,75 +143,50 @@ class MeshConverterKwargs(TypedDict, total=False):
     angle_deg: float
 
 
-def optimization_loop(dim_tags: list[tuple[int, int]], dim: int) -> None:
-    """Run the optimization loop for the given dimension tags.
-
-    Parameters
-    ----------
-    dim_tags : list[int]
-        List of dimension tags to optimize.
-    dim : int
-        The dimension of the mesh (2 for surfaces, 3 for volumes).
-
-    """
-    gmsh.option.set_number("Mesh.Optimize", 1)
-    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
-    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
-
-    gmsh.model.mesh.optimize("", force=True, niter=10)
-    gmsh.model.mesh.optimize("UntangleMeshGeometry", force=True, niter=2, dimTags=dim_tags)
-    match dim:
-        case 3:
-            gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5, dimTags=dim_tags)
-        case 2:
-            gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5, dimTags=dim_tags)
-        case _: ...  # fmt: skip
-    gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
-    gmsh.model.mesh.optimize("Netgen", niter=20)
-
-
-def optimize_mesh(top: GmshTopInfo, regions: list[int] | None = None) -> None:
+def optimize_mesh(top: GmshTopInfo) -> None:
     """Optimize the mesh using Gmsh's built-in optimization algorithms.
 
     Parameters
     ----------
     top : GmshTopInfo
         The GmshTopInfo object containing mesh information.
-    regions : list[int] | None
-        Optional list of region tags to optimize. If None, the entire mesh is optimized.
 
     """
     gmsh.model.occ.synchronize()
-
     gmsh.model.mesh.remove_duplicate_nodes()
     gmsh.model.occ.remove_all_duplicates()
-
     # 5. GENERATE THE MESH
-    gmsh.option.set_number("Mesh.Algorithm", 6)  # 2D Mesh: Frontal-Delaunay
-    gmsh.option.set_number("Mesh.Algorithm3D", 4)  # 3D Mesh: Frontal-Delaunay
+    # gmsh.option.set_number("Mesh.Algorithm", 6)  # 2D Mesh: Frontal-Delaunay
+    # gmsh.option.set_number("Mesh.Algorithm3D", 4)  # 3D Mesh: Frontal-Delaunay
     # gmsh.model.mesh.generate(3)  # Use 2 for 2D meshes
 
-    if regions is None:
-        optimization_loop([], top.dim)
-        return
-    print(f"Optimizing mesh for regions: {regions}")
-    for mask in regions:
-        tags = gmsh.model.get_entities_for_physical_group(dim=top.dim, tag=mask)
-        dim_tags = [(top.dim, tag) for tag in tags]
-        optimization_loop(dim_tags, top.dim)
+    gmsh.option.set_number("Mesh.Optimize", 1)
+    gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
+    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
+
+    gmsh.model.mesh.optimize("", force=True, niter=10)
+    gmsh.model.mesh.optimize("UntangleMeshGeometry", force=True, niter=2)
+    match top.dim:
+        case 3:
+            gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5)
+        case 2:
+            gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5)
+        case _: ...  # fmt: skip
+    gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
+    gmsh.model.mesh.optimize("Netgen", niter=20)
 
 
 @dc.dataclass(slots=True)
 class MeshQualityMetrics:
     rr: A1[np.floating]
     sicn: A1[np.floating]
-    inverted: int
+    inverted: A1[np.floating]
 
 
 def get_element_mesh_quality(elements: A1[np.integer]) -> MeshQualityMetrics:
     radius_ratios = gmsh.model.mesh.get_element_qualities(elements, qualityName="gamma")
     sicn_values = gmsh.model.mesh.get_element_qualities(elements, qualityName="minSICN")
-    inverted_elements = len([i for i, v in enumerate(sicn_values) if v < 0])
+    inverted_elements = np.array([i for i, v in enumerate(sicn_values) if v < 0])
     return MeshQualityMetrics(np.array(radius_ratios), np.array(sicn_values), inverted_elements)
 
 
@@ -217,44 +202,52 @@ def get_mesh_quality(
     return quality_metrics
 
 
+class QualityType(enum.StrEnum):
+    min = "Minimum"
+    max = "Maximum"
+    mean = "Mean"
+    num = ""
+
+
+def compute_quality_metric(qual: QualityType, metric: A1[np.floating]) -> ToFloat | int:
+    match qual:
+        case QualityType.min:
+            return np.min(metric)
+        case QualityType.mean:
+            return np.mean(metric)
+        case QualityType.max:
+            return np.max(metric)
+        case QualityType.num:
+            return len(metric)
+
+
+def print_quality(qual: QualityType, a: A1[np.floating], b: A1[np.floating] | None) -> None:
+    u = compute_quality_metric(qual, a)
+    v = compute_quality_metric(qual, b) if b else None
+    match qual:
+        case QualityType.num:
+            print(f"  (before) {u}", f" (after) {v}" if v else "")
+        case _:
+            print(f"  {qual}", f" (before) {u:10.4f}", f" (after) {v:10.4f}" if v else "")
+
+
 def print_element_set_quality(before: MeshQualityMetrics, after: MeshQualityMetrics | None) -> None:
+    data = dict.fromkeys(
+        [QualityType.min, QualityType.mean, QualityType.max],
+        (before.rr, after.rr if after else None),
+    )
     print("Mesh Quality (Radius Ratio / Gamma):")
-    print(
-        "  Minimum:",
-        f" (before) {np.min(before.rr):10.4f}",
-        f" (after) {np.min(after.rr)}" if after else "",
-    )
-    print(
-        "  Mean   :",
-        f" (before) {np.mean(before.rr):10.4f}",
-        f" (after) {np.mean(after.rr)}" if after else "",
-    )
-    print(
-        "  Maximum:",
-        f" (before) {np.max(before.rr):10.4f}",
-        f" (after) {np.max(after.rr)}" if after else "",
+    for k, (a, b) in data.items():
+        print_quality(k, a, b)
+    data = dict.fromkeys(
+        [QualityType.min, QualityType.mean, QualityType.max],
+        (before.sicn, after.sicn if after else None),
     )
     print("Mesh Quality (Minimum SICN):")
-    print(
-        "  Minimum:",
-        f" (before) {np.min(before.sicn):10.4f} ",
-        f" (after) {np.min(after.sicn)}" if after else "",
-    )
-    print(
-        "  Mean   :",
-        f" (before) {np.mean(before.sicn):10.4f} ",
-        f" (after) {np.mean(after.sicn)}" if after else "",
-    )
-    print(
-        "  Maximum:",
-        f" (before) {np.max(before.sicn):10.4f} ",
-        f" (after) {np.max(after.sicn)}" if after else "",
-    )
-    print(
-        "  Inverted Elements:",
-        f" (before) {before.inverted}",
-        f" (after) {after.inverted}" if after else "",
-    )
+    for k, (a, b) in data.items():
+        print_quality(k, a, b)
+    print("Inverted Elements:")
+    print_quality(QualityType.num, before.inverted, after.inverted if after else None)
 
 
 type Quality = Mapping[int, MeshQualityMetrics] | MeshQualityMetrics
@@ -320,30 +313,31 @@ def convert_3d_to_msh_via_api[F: np.floating, I: np.integer](
         The angle threshold in degrees for classifying surfaces during optimization.
 
     """
+    domain_mesh = split_subdomain(mesh, regions).unwrap()
     gmsh.initialize()
     gmsh.model.add("3D_Volumetric_Mesh")
 
     # 4. ADD PHYSICAL VOLUMES / DOMAINS (Dimension 3)
-    current_elem, top = add_cheart_top_to_gmsh(mesh, current_elem=1)
-    if mesh.bnd is not None:
-        for v in mesh.bnd.v.values():
-            current_elem = add_cheart_boundary_to_gmsh(v, top.dim, current_elem)
+    top = add_cheart_master_topology(domain_mesh)
+    _, boundary_map = add_boundaries_to_gmsh(
+        domain_mesh, top, current_elem=int(top.elem_tags.max())
+    )
+    domains = add_physical_domains(domain_mesh, top, boundary_map)
+    _ = create_volume(top, list(domains.values()))
+    gmsh.model.mesh.reclassify_nodes()
     gmsh.model.occ.synchronize()
     # gmsh.option.set_number("Mesh.QualityType", 0)
     # Run the plugin safely
     before = get_mesh_quality(top, None)
     print_mesh_quality(before, None)
     if kwargs.get("optimize", False):
-        optimize_mesh(top, regions=None)
+        optimize_mesh(top)
         after = get_mesh_quality(top, None)
         print_mesh_quality(before, after)
         # if mesh.bnd is not None:
         #     for b in mesh.bnd.v.values():
         #         gmsh.model.add_physical_group(dim=2, tags=[int(b.tag)], tag=100)
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
-    if regions is not None:
-        _ = [add_physical_group_by_elset(top, k, v) for k, v in regions.items()]
-
     # else:
     #     region_tags = None
     print_physical_groups()

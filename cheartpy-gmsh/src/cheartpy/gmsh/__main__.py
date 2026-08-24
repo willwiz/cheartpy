@@ -2,10 +2,11 @@ import argparse
 from pathlib import Path
 
 import numpy as np
-from cheartpy.abaqus.writer import import_region_mask
 from cheartpy.gmsh import convert_3d_to_msh_via_api
 from cheartpy.mesh import import_cheart_mesh
 from cheartpy.mesh_tools.repair import fix_tetra_mesh
+
+from .regions import import_region_mask
 
 parser = argparse.ArgumentParser(description="Convert a 3D mesh to GMSH format.")
 parser.add_argument("file", type=Path, help="Path to the 3D mesh file.")
