@@ -5,11 +5,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 from cheartpy.io import chwrite_d_utf
 from cheartpy.mesh import import_cheart_mesh
-from cheartpy.mesh_tools.repair import fix_tetra_mesh
 
 import gmsh
 
-from .reader import gmsh_finalize, import_region_mask, read_cheartmesh_into_gmsh_api
+from .reader import import_region_mask, read_cheartmesh_into_gmsh_api
 from .writter import build_cheart_mesh_from_gmsh
 
 if TYPE_CHECKING:
@@ -37,9 +36,11 @@ def export_mesh(tags: GmshMeshTags, filename: Path) -> None:
         case ".msh" | ".inp":
             gmsh.write(str(filename))
         case ".xtb":
+            print("exporting in cheart format")
             mesh, mask = build_cheart_mesh_from_gmsh(tags.dim, tags.domains, tags.boundarys)
-            mesh.save(filename.name)
-            if mask:
+            # mesh = fix_tetra_mesh(mesh).unwrap()
+            mesh.save(filename.stem)
+            if mask is not None:
                 chwrite_d_utf(filename.parent / f"{filename.stem}_mask-0.D", mask)
         case _:
             msg = f"Unsupported file format: {filename.suffix}"
@@ -50,16 +51,15 @@ def import_to_gmsh[I: np.integer](
     file: Path, domains: Path | None = None, *, save: Path | None = None, optimize: bool = False
 ) -> None:
     mesh = import_cheart_mesh(file).unwrap()
-    mesh = fix_tetra_mesh(mesh).unwrap()
+    # mesh = fix_tetra_mesh(mesh).unwrap()
     regions = import_region_mask(domains) if domains else None
-    filename = file.with_suffix(".inp") if save else None
     gmsh.initialize()
     tags = read_cheartmesh_into_gmsh_api(mesh, regions=regions, optimize=optimize)
     if save:
+        print("trying to export")
         export_mesh(tags, save)
     else:
         gmsh.fltk.run()
-    gmsh_finalize(filename=filename)
     gmsh.finalize()
 
 

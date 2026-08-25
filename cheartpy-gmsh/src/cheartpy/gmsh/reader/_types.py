@@ -3,12 +3,14 @@ import enum
 from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
+from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from cheartpy.gmsh.tools import GmshBoundaryType
     from cheartpy.gmsh.types import Entity
-    from cheartpy.mesh import CheartMesh, CheartMeshBoundary
+    from cheartpy.mesh import CheartMesh, CheartMeshPatch
     from pytools.arrays import A1, A2
 
 
@@ -18,11 +20,16 @@ class BoundaryAssociation(enum.IntEnum):
     FULL = enum.auto()
 
 
+class GmshBndClass[I: np.integer](TypedDict, total=True):
+    patch: CheartMeshPatch[I]
+    kind: GmshBoundaryType
+
+
 @dc.dataclass(slots=True)
 class MultiDomainMesh[F: np.floating, I: np.integer]:
     volume: CheartMesh[F, I]
     subdomains: Mapping[int, A1[I]]
-    boundaries: Mapping[int, CheartMeshBoundary[I] | None]
+    boundaries: Mapping[int, Mapping[int, GmshBndClass[I]]]
 
 
 class GmshTopInfo(NamedTuple):

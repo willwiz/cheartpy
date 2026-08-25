@@ -2,22 +2,26 @@ from pprint import pprint
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.gmsh.tools import build_element_searchmap, search_element
-from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
+from cheartpy.gmsh.tools import (
+    GmshBoundaryType,
+    build_element_searchmap,
+    search_element_association,
+)
 from pytools.result import Err, Ok, Result
 
-from ._types import BoundaryAssociation, MultiDomainMesh
+from ._types import BoundaryAssociation, GmshBndClass, MultiDomainMesh
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
     from pytools.arrays import A1
 
 
 def classify_boundary_to_region[F: np.floating, I: np.integer](
     patch: CheartMeshPatch[I],
     search_map: Mapping[int, set[int]],
-) -> BoundaryAssociation:
+) -> tuple[BoundaryAssociation, GmshBoundaryType]:
     """Determine the relation between a boundary patch and a region of elements.
 
     Parameters
@@ -36,31 +40,39 @@ def classify_boundary_to_region[F: np.floating, I: np.integer](
         -   not associated no patches are in elements of the region.
 
     """
-    print("checking for patch", patch.tag)
-    search_results = [search_element(search_map, n) for n in patch.v]
-    found = np.array([isinstance(r, Ok) for r in search_results])
+    print("    Checking for patch", patch.tag, end=": ")
+    search_results = [search_element_association(search_map, n) for n in patch.v]
+    found = np.array([r is not GmshBoundaryType.NONE for r in search_results])
+    kind = set(search_results)
+    if len(kind) > 1:
+        msg = "Boundary patch has mixed association with the region: " + " + ".join(
+            str(k) for k in kind
+        )
+        raise ValueError(msg)
     if np.all(found):
-        print("full association")
-        return BoundaryAssociation.FULL
-    if np.any(found):
-        print("partial association")
-        return BoundaryAssociation.PARTIAL
-    print("no association")
-    return BoundaryAssociation.NONE
+        assoc = BoundaryAssociation.FULL
+    elif np.any(found):
+        assoc = BoundaryAssociation.PARTIAL
+    else:
+        assoc = BoundaryAssociation.NONE
+    print(f"{assoc.name!s}")
+    return assoc, kind.pop()
 
 
 def find_subdomain_boundary[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], bnd: CheartMeshBoundary[I], region_elems: A1[np.integer], k: int
-) -> CheartMeshBoundary[I]:
+) -> Mapping[int, GmshBndClass[I]]:
     """Find all of the boundary patches that are associated with a given region of elements."""
-    print(f"Finding subdomain boundary for region {k}")
+    print(f">>> Finding subdomain boundary for region {k}")
     search_map = build_element_searchmap(region_elems, mesh.top.v[region_elems])
-    patches = {
-        k: v
-        for k, v in bnd.v.items()
-        if classify_boundary_to_region(v, search_map) is BoundaryAssociation.FULL
+    patch_assoc = {k: (classify_boundary_to_region(v, search_map)) for k, v in bnd.v.items()}
+    patches: Mapping[int, GmshBndClass[I]] = {
+        k: {"patch": v, "kind": patch_assoc[k][1]}
+        for k, (v) in bnd.v.items()
+        if patch_assoc[k][0] is BoundaryAssociation.FULL
     }
-    return CheartMeshBoundary(len(patches), patches, bnd.TYPE)
+    print(patches.keys())
+    return patches
 
 
 def split_subdomain[F: np.floating, I: np.integer](
@@ -82,14 +94,17 @@ def split_subdomain[F: np.floating, I: np.integer](
 
     """
     if not regions:
-        return Ok(
-            MultiDomainMesh(mesh, {1: np.arange(mesh.top.n, dtype=mesh.top.v.dtype)}, {1: mesh.bnd})
-        )
+        regions = {1: np.arange(len(mesh.top.v), dtype=mesh.top.v.dtype)}
     if not mesh.bnd:
         msg = "Mesh has no boundary information, cannot split into subdomains."
         return Err(ValueError(msg))
     region_bnds = {k: find_subdomain_boundary(mesh, mesh.bnd, v, k) for k, v in regions.items()}
-    pprint({k: {t: (v.tag, v.TYPE.name) for t, v in b.v.items()} for k, b in region_bnds.items()})
+    pprint(
+        {
+            k: {t: (v["patch"].tag, v["patch"].TYPE.name) for t, v in b.items()}
+            for k, b in region_bnds.items()
+        }
+    )
     return Ok(
         MultiDomainMesh(
             mesh, {k: v.astype(mesh.top.v.dtype) for k, v in regions.items()}, region_bnds

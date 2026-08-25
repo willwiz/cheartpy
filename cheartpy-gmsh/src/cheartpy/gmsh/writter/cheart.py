@@ -4,7 +4,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import Gmsh2Vtk, GmshEnum, Vtk2CheartNodeOrder
-from cheartpy.gmsh.tools import build_element_searchmap, search_element
+from cheartpy.gmsh.tools import (
+    build_element_searchmap,
+    find_elem_for_boundary,
+)
 from cheartpy.mesh import (
     CheartMesh,
     CheartMeshBoundary,
@@ -17,7 +20,7 @@ from pytools.result import Err, Ok, all_ok
 import gmsh
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping, Sequence
+    from collections.abc import Mapping, Sequence
 
     from cheartpy.elem_interfaces._types import VtkEnum
     from cheartpy.gmsh.types import Entity, Tag
@@ -25,25 +28,27 @@ if TYPE_CHECKING:
 
 
 @dc.dataclass(slots=True)
-class GmshSpace[F: np.floating, I: np.integer]:
+class GmshNodes[F: np.floating, I: np.integer]:
     dim: int
-    tags: A1[I]
+    k: A1[I]
     coord: A2[F]
 
 
 @dc.dataclass(slots=True)
 class GmshElements[I: np.integer]:
     type: GmshEnum
-    tags: A1[I]
+    e: A1[I]
     conn: A2[I]
 
 
-def search_entity_by_physical_group(name: str, dim: int) -> list[Entity]:
+def search_entity_by_physical_name(name: str, dim: int) -> list[Entity]:
+    print(f"Searching for physical group '{name}' with dimension {dim}...")
     entities = gmsh.model.get_entities_for_physical_name(name)
+    print(f"Found entities: {entities}")
     if not entities:
         msg = f"No entity found for physical group '{name}'."
         raise ValueError(msg)
-    return [i for i, d in entities if d == dim]
+    return [i for d, i in entities if d == dim]
 
 
 def get_element[I: np.integer = np.intp](
@@ -52,13 +57,15 @@ def get_element[I: np.integer = np.intp](
     _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
     return GmshElements(
         type=GmshEnum(el_type),
-        tags=np.ascontiguousarray(tags, dtype=dtype),
+        e=np.ascontiguousarray(tags, dtype=dtype),
         conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size),
     )
 
 
-def merge_elements[I: np.integer](elements: Iterable[GmshElements[I]]) -> GmshElements[I]:
+def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshElements[I]:
+    print(f"Merging {len(elements)} GmshElements...")
     elements = list(elements)
+
     if not elements:
         msg = "No elements to merge."
         raise ValueError(msg)
@@ -66,16 +73,19 @@ def merge_elements[I: np.integer](elements: Iterable[GmshElements[I]]) -> GmshEl
     if len(el_types) != 1:
         msg = f"Cannot merge elements of different types: {el_types}."
         raise ValueError(msg)
-    tags = np.concatenate([el.tags for el in elements])
+    tags = np.concatenate([el.e for el in elements])
     conn = np.concatenate([el.conn for el in elements])
-    return GmshElements(type=el_types.pop(), tags=tags, conn=conn)
+    return GmshElements(type=el_types.pop(), e=tags, conn=conn)
 
 
 def get_gmsh_entity[I: np.integer = np.intp](
     dim: int, entity_tag: Sequence[Tag], *, dtype: DType[I] = np.intp
 ) -> GmshElements[I]:
-    res = itertools.chain.from_iterable(
-        zip(*gmsh.model.mesh.get_elements(dim=dim, tag=i), strict=True) for i in entity_tag
+    print(f"Getting GMSH entity for dimension {dim} and entity tags {entity_tag}...")
+    res = list(
+        itertools.chain.from_iterable(
+            zip(*gmsh.model.mesh.get_elements(dim=dim, tag=i), strict=True) for i in entity_tag
+        )
     )
     return merge_elements([get_element(t, tag, nodes, dtype=dtype) for t, tag, nodes in res])
 
@@ -83,17 +93,18 @@ def get_gmsh_entity[I: np.integer = np.intp](
 def get_gmsh_entity_by_physical_group[I: np.integer = np.intp](
     name: Sequence[str], dim: int, *, dtype: DType[I] = np.intp
 ) -> GmshElements[I]:
-    entity_tags = [i for s in name for i in search_entity_by_physical_group(s, dim)]
+    entity_tags = [i for s in name for i in search_entity_by_physical_name(s, dim)]
+    print(f"Found entity tags for physical groups {name}: {entity_tags}")
     return get_gmsh_entity(dim, entity_tags, dtype=dtype)
 
 
 def get_gmsh_space[F: np.floating, I: np.integer](
     dim: int, *, ftype: DType[F] = np.float64, dtype: DType[I] = np.intp
-) -> GmshSpace[F, I]:
+) -> GmshNodes[F, I]:
     node_tags, coordinates, _ = gmsh.model.mesh.get_nodes(dim=dim, tag=-1)
-    return GmshSpace(
+    return GmshNodes(
         dim=dim,
-        tags=np.ascontiguousarray(node_tags, dtype=dtype),
+        k=np.ascontiguousarray(node_tags, dtype=dtype),
         coord=np.ascontiguousarray(coordinates, dtype=ftype).reshape(-1, dim),
     )
 
@@ -103,16 +114,19 @@ class GmshBoundaries[I: np.integer = np.intp]:
     dim: int
     entity: Entity
     type: GmshEnum
-    k: A1[I]
-    v: A2[I]
+    e: A1[I]
+    conn: A2[I]
 
 
 def get_gmsh_boundaries[I: np.integer](
-    dim: int, entity: Entity, domain: GmshElements[I]
+    dim: int, entity: Entity, domain: GmshElements[I], k: int
 ) -> GmshBoundaries[I]:
-    bnd = get_gmsh_entity(dim, [entity], dtype=domain.tags.dtype)
-    search_map = build_element_searchmap(domain.tags, domain.conn)
-    match all_ok([search_element(search_map, nodes) for nodes in bnd.conn]):
+    print(f"Working on Boundary {k} in dimension {dim}...")
+    tags = search_entity_by_physical_name(f"Surface{k}", dim)
+    print(f"Surface{k} found Entities: {tags} expect entity {entity}")
+    bnd = get_gmsh_entity(dim, [entity], dtype=domain.e.dtype)
+    search_map = build_element_searchmap(domain.e, domain.conn)
+    match all_ok([find_elem_for_boundary(search_map, nodes, strict=False) for nodes in bnd.conn]):
         case Ok(top_id): ...  # fmt: skip
         case Err(e):
             raise e
@@ -121,17 +135,15 @@ def get_gmsh_boundaries[I: np.integer](
         dim=dim,
         entity=entity,
         type=el_type,
-        k=np.array(top_id, dtype=domain.tags.dtype),
-        v=bnd.conn,
+        e=np.array(top_id, dtype=domain.e.dtype),
+        conn=bnd.conn,
     )
 
 
 def convert_gmsh_space_to_cheart[F: np.floating = np.float64, I: np.integer = np.intp](
-    space: GmshSpace[F, I],
+    space: GmshNodes[F, I],
 ) -> CheartMeshSpace[F]:
-    nodes = np.zeros((space.tags.max() + 1, space.coord.shape[1]), dtype=space.coord.dtype)
-    nodes[space.tags] = space.coord
-    return CheartMeshSpace(len(nodes), nodes)
+    return CheartMeshSpace(len(space.coord), space.coord)
 
 
 def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
@@ -139,6 +151,7 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
 ) -> CheartMeshTopology[I]:
     vtk_type = Gmsh2Vtk[top.type]
     reorder = Vtk2CheartNodeOrder[vtk_type]
+    print(f"Vtk type: {vtk_type}, reorder: {reorder}")
     return CheartMeshTopology(
         n=len(top.conn),
         v=np.ascontiguousarray(top.conn[:, reorder] - 1, dtype=dtype),
@@ -152,9 +165,9 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
     reorder = Vtk2CheartNodeOrder[vtk_type]
     return CheartMeshPatch(
         tag=tag,
-        n=len(bnd.k),
-        k=bnd.k - 1,
-        v=np.ascontiguousarray(bnd.v[:, reorder] - 1, dtype=dtype),
+        n=len(bnd.e),
+        k=bnd.e - 1,
+        v=np.ascontiguousarray(bnd.conn[:, reorder] - 1, dtype=dtype),
         TYPE=vtk_type,
     )
 
@@ -180,19 +193,72 @@ def convert_gmsh_bnd_to_cheart[I: np.integer = np.intp](
 def create_mask_from_domains[I: np.integer](
     domains: Mapping[int, GmshElements[I]], top: GmshElements[I]
 ) -> A1[I]:
-    master_index = np.unique(top.tags, sorted=True)
-    if len(master_index) != len(top.tags):
+    master_index = np.unique(top.e, sorted=True)
+    if len(master_index) != len(top.e):
         msg = "Duplicate element tags found in the master topology."
         raise ValueError(msg)
-    total_domain_elems = sum(len(d.tags) for d in domains.values())
-    merged_domain_tags = np.concatenate([d.tags for d in domains.values()])
+    total_domain_elems = sum(len(d.e) for d in domains.values())
+    merged_domain_tags = np.concatenate([d.e for d in domains.values()])
     if total_domain_elems != len(merged_domain_tags):
         msg = "Duplicate element tags found across subdomains."
         raise ValueError(msg)
-    mask = np.zeros(len(master_index), dtype=top.tags.dtype)
+    mask = np.zeros(len(master_index), dtype=top.e.dtype)
     for domain_id, domain in domains.items():
-        mask[np.searchsorted(master_index, domain.tags)] = domain_id
+        mask[np.searchsorted(master_index, domain.e) - 1] = domain_id
     return mask
+
+
+def reset_node_index[F: np.floating, I: np.integer](
+    space: GmshNodes[F, I], top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
+) -> tuple[GmshNodes[F, I], GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
+    perm_inv = space.k
+    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
+    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
+    space = GmshNodes(
+        dim=space.dim,
+        k=np.arange(len(perm_inv), dtype=perm_inv.dtype),
+        coord=space.coord,
+    )
+    top = GmshElements(
+        type=top.type,
+        e=top.e,
+        conn=perm_fwd[top.conn],
+    )
+    bnd = {
+        k: GmshBoundaries(
+            dim=v.dim,
+            entity=v.entity,
+            type=v.type,
+            e=v.e,
+            conn=perm_fwd[v.conn],
+        )
+        for k, v in bnd.items()
+    }
+    return space, top, bnd
+
+
+def reset_top_index[F: np.floating, I: np.integer](
+    top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
+) -> tuple[GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
+    perm_inv = top.e
+    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
+    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
+    top = GmshElements(
+        type=top.type,
+        e=np.arange(len(perm_inv), dtype=perm_inv.dtype),
+        conn=top.conn,
+    )
+    bnd = {
+        k: GmshBoundaries(
+            dim=v.dim,
+            entity=v.entity,
+            type=v.type,
+            e=perm_fwd[v.e],
+            conn=v.conn,
+        )
+        for k, v in bnd.items()
+    }
+    return top, bnd
 
 
 def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
@@ -205,10 +271,13 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
 ) -> tuple[CheartMesh[F, I], A1[I] | None]:
     gmsh_space = get_gmsh_space(dim, ftype=ftype, dtype=dtype)
     subdomains = {k: get_gmsh_entity(dim, [v], dtype=dtype) for k, v in domains.items()}
-    gmsh_top = merge_elements(subdomains.values())
+    gmsh_top = merge_elements(list(subdomains.values()))
+    # gmsh_top = get_gmsh_entity_by_physical_group(["Volume1"], dim, dtype=dtype)
     gmsh_bnd = {
-        k: get_gmsh_boundaries(dim - 1, v, subdomains[d]) for k, (d, v) in boundaries.items()
+        k: get_gmsh_boundaries(dim - 1, v, subdomains[d], k) for k, (d, v) in boundaries.items()
     }
+    gmsh_space, gmsh_top, gmsh_bnd = reset_node_index(gmsh_space, gmsh_top, gmsh_bnd)
+    gmsh_top, gmsh_bnd = reset_top_index(gmsh_top, gmsh_bnd)
     space = convert_gmsh_space_to_cheart(gmsh_space)
     top = convert_gmsh_top_to_cheart(gmsh_top, dtype=dtype)
     bnd = convert_gmsh_bnd_to_cheart(gmsh_bnd, dtype=dtype)

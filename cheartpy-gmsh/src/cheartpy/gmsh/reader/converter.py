@@ -1,24 +1,31 @@
 import dataclasses as dc
 import enum
+import itertools
 from collections.abc import Mapping, Sequence
 from pprint import pprint
 from typing import TYPE_CHECKING, Protocol, Unpack
 
 import numpy as np
-from cheartpy.elem_interfaces import Cheart2VtkNodeOrder, Vtk2Gmsh, get_cheart_elem_from_vtk
+from cheartpy.elem_interfaces import (
+    Cheart2VtkNodeOrder,
+    GmshEnum,
+    Vtk2Gmsh,
+    get_cheart_elem_from_vtk,
+)
+from cheartpy.gmsh.tools import GmshBoundaryType
 from cheartpy.gmsh.types import Entity, GmshMeshTags, Tag
 from typing_extensions import TypedDict
 
 import gmsh
 
-from ._types import GmshTopInfo, MultiDomainMesh
+from ._types import GmshBndClass, GmshTopInfo, MultiDomainMesh
 from .subdomain import split_subdomain
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
-    from pytools.arrays import A1, ToFloat
+    from cheartpy.mesh import CheartMesh, CheartMeshPatch
+    from pytools.arrays import A1, A2, DType, ToFloat
 
 
 class IndexGenerator(Protocol):
@@ -55,6 +62,7 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
         msg = f"Unsupported element type: {mesh.volume.top.TYPE}"
         raise ValueError(msg)
     element_reorder = Cheart2VtkNodeOrder[cheart_elem]
+    print("Reordering element nodes for Gmsh compatibility with : ", element_reorder)
     connectivity = np.ascontiguousarray(mesh.volume.top.v[:, element_reorder] + 1)
     return GmshTopInfo(tag, node_tags, elem_tags, connectivity, vol_elem.value, dim)
 
@@ -101,13 +109,22 @@ def add_physical_domain[F: np.floating, I: np.integer](
     top: GmshTopInfo,
     k: int,
     elems: A1[I],
-    bnd: CheartMeshBoundary[I],
+    bnd: Mapping[int, GmshBndClass[I]],
     boundary_map: Mapping[Tag, Entity],
 ) -> Entity:
-    boundaries = [boundary_map[k] for k in bnd.v]
-    domain_tag = gmsh.model.add_discrete_entity(dim=top.dim, boundary=boundaries)
+    surface_boundaries = [
+        boundary_map[k] for k, v in bnd.items() if v["kind"] is GmshBoundaryType.SURF
+    ]
+    internal_boundaries = [
+        boundary_map[k] for k, v in bnd.items() if v["kind"] is GmshBoundaryType.INTERNAL
+    ]
+    domain_tag = gmsh.model.add_discrete_entity(dim=top.dim, boundary=surface_boundaries)
+    gmsh.model.mesh.embed(
+        dim=top.dim - 1, tags=internal_boundaries, inDim=top.dim, inTag=domain_tag
+    )
     print(f"Attaching boundaries to entity {domain_tag}, name = Elset{k}: ", end="")
-    pprint(boundaries)
+    pprint(surface_boundaries)
+    pprint(internal_boundaries)
     domain_data = top.connectivity[elems]
     gmsh.model.mesh.add_elements(
         dim=top.dim,
@@ -127,7 +144,7 @@ def add_physical_domains[F: np.floating, I: np.integer](
         msg = "Mesh has no boundary information, cannot add physical domains."
         raise ValueError(msg)
     return {
-        k: add_physical_domain(top, k, v, mesh.volume.bnd, boundary_map)
+        k: add_physical_domain(top, k, v, mesh.boundaries[k], boundary_map)
         for k, v in mesh.subdomains.items()
     }
 
@@ -158,19 +175,19 @@ def optimize_mesh(top: GmshTopInfo) -> None:
     # gmsh.option.set_number("Mesh.Algorithm", 6)  # 2D Mesh: Frontal-Delaunay
     # gmsh.option.set_number("Mesh.Algorithm3D", 4)  # 3D Mesh: Frontal-Delaunay
     # gmsh.model.mesh.generate(3)  # Use 2 for 2D meshes
-
     gmsh.option.set_number("Mesh.Optimize", 1)
     gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
-    gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
+    # gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
 
-    gmsh.model.mesh.optimize("", force=True, niter=10)
-    gmsh.model.mesh.optimize("UntangleMeshGeometry", force=True, niter=2)
-    match top.dim:
-        case 3:
-            gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5)
-        case 2:
-            gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5)
-        case _: ...  # fmt: skip
+    # gmsh.model.mesh.optimize("", force=True, niter=10)
+    # gmsh.model.mesh.optimize("UntangleMeshGeometry", force=True, niter=2)
+    # match top.dim:
+    #     case 3:
+    #         gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5)
+    #     case 2:
+    #         gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5)
+    #     case _: ...  # fmt: skip
+    # gmsh.model.mesh.optimize("CGAL")
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
     gmsh.model.mesh.optimize("Netgen", niter=20)
 
@@ -222,7 +239,7 @@ def compute_quality_metric(qual: QualityType, metric: A1[np.floating]) -> ToFloa
 
 def print_quality(qual: QualityType, a: A1[np.floating], b: A1[np.floating] | None) -> None:
     u = compute_quality_metric(qual, a)
-    v = compute_quality_metric(qual, b) if b else None
+    v = None if b is None else compute_quality_metric(qual, b)
     match qual:
         case QualityType.num:
             print(f"  (before) {u}", f" (after) {v}" if v else "")
@@ -292,12 +309,56 @@ def reverse_find_domain_for_boundary[F: np.floating, I: np.integer](
     domain_mesh: MultiDomainMesh[F, I], boundary_tag: int
 ) -> int:
     for domain_id, bnd in domain_mesh.boundaries.items():
-        if bnd is None:
-            continue
-        if boundary_tag in bnd.v:
+        if boundary_tag in bnd:
             return domain_id
     msg = f"Boundary tag {boundary_tag} not found in any domain."
     raise ValueError(msg)
+
+
+@dc.dataclass(slots=True)
+class GmshElements[I: np.integer]:
+    type: GmshEnum
+    e: A1[I]
+    conn: A2[I]
+
+
+def get_element[I: np.integer = np.intp](
+    el_type: int, tags: Sequence[int], nodes: Sequence[int], *, dtype: DType[I] = np.intp
+) -> GmshElements[I]:
+    _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
+    return GmshElements(
+        type=GmshEnum(el_type),
+        e=np.ascontiguousarray(tags, dtype=dtype),
+        conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size),
+    )
+
+
+def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshElements[I]:
+    print(f"Merging {len(elements)} GmshElements...")
+    elements = list(elements)
+
+    if not elements:
+        msg = "No elements to merge."
+        raise ValueError(msg)
+    el_types = {el.type for el in elements}
+    if len(el_types) != 1:
+        msg = f"Cannot merge elements of different types: {el_types}."
+        raise ValueError(msg)
+    tags = np.concatenate([el.e for el in elements])
+    conn = np.concatenate([el.conn for el in elements])
+    return GmshElements(type=el_types.pop(), e=tags, conn=conn)
+
+
+def get_gmsh_entity[I: np.integer = np.intp](
+    dim: int, entity_tag: Sequence[Tag], *, dtype: DType[I] = np.intp
+) -> GmshElements[I]:
+    print(f"Getting GMSH entity for dimension {dim} and entity tags {entity_tag}...")
+    res = list(
+        itertools.chain.from_iterable(
+            zip(*gmsh.model.mesh.get_elements(dim=dim, tag=i), strict=True) for i in entity_tag
+        )
+    )
+    return merge_elements([get_element(t, tag, nodes, dtype=dtype) for t, tag, nodes in res])
 
 
 def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
@@ -330,29 +391,54 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
         domain_mesh, top, current_elem=int(top.elem_tags.max())
     )
     domains = add_physical_domains(domain_mesh, top, boundary_map)
-    _ = create_volume(top, list(domains.values()))
-    gmsh.model.mesh.reclassify_nodes()
+    print_physical_groups()
+    # gmsh.model.mesh.reclassify_nodes()
     gmsh.model.occ.synchronize()
     # gmsh.option.set_number("Mesh.QualityType", 0)
     # Run the plugin safely
     before = get_mesh_quality(top, None)
     print_mesh_quality(before, None)
+    old_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
+    old_volume = get_gmsh_entity(top.dim, list(domains.values()))
     if kwargs.get("optimize", False):
         optimize_mesh(top)
         after = get_mesh_quality(top, None)
+        gmsh.model.mesh.remove_duplicate_nodes()
+        gmsh.model.mesh.remove_duplicate_elements()
+        gmsh.model.geo.synchronize()
         print_mesh_quality(before, after)
         # if mesh.bnd is not None:
         #     for b in mesh.bnd.v.values():
         #         gmsh.model.add_physical_group(dim=2, tags=[int(b.tag)], tag=100)
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
+    volume_tag = create_volume(top, list(domains.values()))
     print_physical_groups()
+    new_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
+    new_volume = get_gmsh_entity(top.dim, list(domains.values()))
+    for k in boundary_map:
+        old_bnd = old_boundaries[k]
+        new_bnd = new_boundaries[k]
+        if not np.array_equal(old_bnd.conn, new_bnd.conn):
+            print(f"Boundary {k} has changed after optimization.")
+            print(f"Old boundary nodes:\n{old_bnd.conn}")
+            print(f"New boundary nodes:\n{new_bnd.conn}")
+        else:
+            print(f"Boundary {k} remains unchanged after optimization.")
+
+    if not np.array_equal(old_volume.conn, new_volume.conn):
+        print("Volume has changed after optimization.")
+        print(f"Old volume nodes:\n{old_volume.conn}")
+        print(f"New volume nodes:\n{new_volume.conn}")
+    else:
+        print("Volume remains unchanged after optimization.")
     # gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
+    gmsh.option.set_number("Mesh.SaveGroupsOfNodes", 1)
     print("Successfully imported mesh.")
     boundaries = {
         k: (reverse_find_domain_for_boundary(domain_mesh, k), v) for k, v in boundary_map.items()
     }
-    return GmshMeshTags(dim=top.dim, domains=domains, boundarys=boundaries)
+    return GmshMeshTags(dim=top.dim, volume=volume_tag, domains=domains, boundarys=boundaries)
 
 
 def gmsh_finalize(filename: Path | None = None) -> None:

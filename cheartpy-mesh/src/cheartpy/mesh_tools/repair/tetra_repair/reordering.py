@@ -42,6 +42,13 @@ def fix_negative_volume[F: np.floating, I: np.integer](nodes: A2[F], connectivit
     if len(negative_volume_indices) == 0:
         print("No negative volume.")
         return connectivity
+    print(
+        "negative volume found for",
+        len(negative_volume_indices),
+        " of ",
+        len(connectivity),
+        "elements.",
+    )
     # Swap two vertices to correct the orientation for negative volume elements
     connectivity[negative_volume_indices] = connectivity[negative_volume_indices][:, [0, 1, 3, 2]]
 
@@ -81,6 +88,13 @@ def fix_boundary_orientation[F: np.floating, I: np.integer](
     if len(negative_orientation_indices) == 0:
         print("No boundary faces with negative orientation.")
         return patch
+    print(
+        "negative orientation found for",
+        len(negative_orientation_indices),
+        "of",
+        len(patch),
+        "faces.",
+    )
     patch[negative_orientation_indices] = patch[negative_orientation_indices][:, [0, 2, 1]]
     return patch
 
@@ -134,6 +148,7 @@ def fix_tetra_mesh[F: np.floating, I: np.integer](
         The corrected mesh with positive volume and consistent boundary orientation.
 
     """
+    print("Trying to fix tetrahedral mesh.")
     if mesh.top.TYPE is not VtkEnum.TETRAHEDRON1:
         msg = f"Unsupported element type: {mesh.top.TYPE}. Only TETRAHEDRON1 is supported."
         return Err(ValueError(msg))
