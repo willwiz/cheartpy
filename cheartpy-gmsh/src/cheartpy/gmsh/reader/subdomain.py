@@ -2,6 +2,7 @@ from pprint import pprint
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.gmsh.tools import build_element_searchmap, search_element
 from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
 from pytools.result import Err, Ok, Result
 
@@ -14,14 +15,16 @@ if TYPE_CHECKING:
 
 
 def classify_boundary_to_region[F: np.floating, I: np.integer](
-    patch: CheartMeshPatch[I], elems: A1[np.integer]
+    patch: CheartMeshPatch[I],
+    search_map: Mapping[int, set[int]],
 ) -> BoundaryAssociation:
     print("checking for patch", patch.tag)
-    assoc = np.isin(patch.k, elems, assume_unique=True)
-    if np.all(assoc):
+    search_results = [search_element(search_map, n) for n in patch.v]
+    found = np.array([isinstance(r, Ok) for r in search_results])
+    if np.all(found):
         print("full association")
         return BoundaryAssociation.FULL
-    if np.any(assoc):
+    if np.any(found):
         print("partial association")
         return BoundaryAssociation.PARTIAL
     print("no association")
@@ -29,13 +32,14 @@ def classify_boundary_to_region[F: np.floating, I: np.integer](
 
 
 def find_subdomain_boundary[F: np.floating, I: np.integer](
-    bnd: CheartMeshBoundary[I], region_elems: A1[np.integer], k: int
+    mesh: CheartMesh[F, I], bnd: CheartMeshBoundary[I], region_elems: A1[np.integer], k: int
 ) -> CheartMeshBoundary[I]:
     print(f"Finding subdomain boundary for region {k}")
+    search_map = build_element_searchmap(region_elems, mesh.top.v[region_elems])
     patches = {
         k: v
         for k, v in bnd.v.items()
-        if classify_boundary_to_region(v, region_elems) is BoundaryAssociation.FULL
+        if classify_boundary_to_region(v, search_map) is BoundaryAssociation.FULL
     }
     return CheartMeshBoundary(len(patches), patches, bnd.TYPE)
 
@@ -65,7 +69,7 @@ def split_subdomain[F: np.floating, I: np.integer](
     if not mesh.bnd:
         msg = "Mesh has no boundary information, cannot split into subdomains."
         return Err(ValueError(msg))
-    region_bnds = {k: find_subdomain_boundary(mesh.bnd, v, k) for k, v in regions.items()}
+    region_bnds = {k: find_subdomain_boundary(mesh, mesh.bnd, v, k) for k, v in regions.items()}
     pprint({k: {t: (v.tag, v.TYPE.name) for t, v in b.v.items()} for k, b in region_bnds.items()})
     return Ok(
         MultiDomainMesh(
