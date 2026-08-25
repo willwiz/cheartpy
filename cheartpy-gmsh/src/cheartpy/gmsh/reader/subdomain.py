@@ -18,6 +18,24 @@ def classify_boundary_to_region[F: np.floating, I: np.integer](
     patch: CheartMeshPatch[I],
     search_map: Mapping[int, set[int]],
 ) -> BoundaryAssociation:
+    """Determine the relation between a boundary patch and a region of elements.
+
+    Parameters
+    ----------
+    patch : CheartMeshPatch[I]
+        The boundary patch to classify.
+    search_map : Mapping[int, set[int]]
+        A mapping from node indices to sets of element indices that contain those nodes.
+
+    Returns
+    -------
+    BoundaryAssociation
+        An enumeration indicating whether the boundary patch is:
+        -   fully associated all patches are in elements of the region,
+        -   partially associated some patches are in elements of the region, or
+        -   not associated no patches are in elements of the region.
+
+    """
     print("checking for patch", patch.tag)
     search_results = [search_element(search_map, n) for n in patch.v]
     found = np.array([isinstance(r, Ok) for r in search_results])
@@ -34,6 +52,7 @@ def classify_boundary_to_region[F: np.floating, I: np.integer](
 def find_subdomain_boundary[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], bnd: CheartMeshBoundary[I], region_elems: A1[np.integer], k: int
 ) -> CheartMeshBoundary[I]:
+    """Find all of the boundary patches that are associated with a given region of elements."""
     print(f"Finding subdomain boundary for region {k}")
     search_map = build_element_searchmap(region_elems, mesh.top.v[region_elems])
     patches = {
