@@ -208,9 +208,15 @@ def create_mask_from_domains[I: np.integer](
     return mask
 
 
-def reset_node_index[F: np.floating, I: np.integer](
-    space: GmshNodes[F, I], top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
-) -> tuple[GmshNodes[F, I], GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
+@dc.dataclass(slots=True)
+class IndexPermutation[I: np.integer]:
+    fwd: A1[I]
+    inv: A1[I]
+
+
+def get_nodal_mapping_permutation[F: np.floating, I: np.integer](
+    space: GmshNodes[F, I],
+) -> tuple[IndexPermutation[I], GmshNodes[F, I]]:
     perm_inv = space.k
     perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
     perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
@@ -219,10 +225,26 @@ def reset_node_index[F: np.floating, I: np.integer](
         k=np.arange(len(perm_inv), dtype=perm_inv.dtype),
         coord=space.coord,
     )
+    return IndexPermutation(perm_fwd, perm_inv), space
+
+
+def get_index_mapping_permutation[I: np.integer](
+    top: GmshElements[I],
+) -> IndexPermutation[I]:
+    perm_inv = top.e
+    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
+    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
+    return IndexPermutation(perm_fwd, perm_inv)
+
+
+def reset_node_index[F: np.floating, I: np.integer](
+    space: GmshNodes[F, I], top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
+) -> tuple[GmshNodes[F, I], GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
+    perm, space = get_nodal_mapping_permutation(space)
     top = GmshElements(
         type=top.type,
         e=top.e,
-        conn=perm_fwd[top.conn],
+        conn=perm.fwd[top.conn],
     )
     bnd = {
         k: GmshBoundaries(
@@ -230,7 +252,7 @@ def reset_node_index[F: np.floating, I: np.integer](
             entity=v.entity,
             type=v.type,
             e=v.e,
-            conn=perm_fwd[v.conn],
+            conn=perm.fwd[v.conn],
         )
         for k, v in bnd.items()
     }
@@ -238,14 +260,14 @@ def reset_node_index[F: np.floating, I: np.integer](
 
 
 def reset_top_index[F: np.floating, I: np.integer](
-    top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
-) -> tuple[GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
-    perm_inv = top.e
-    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
-    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
+    top: GmshElements[I],
+    bnd: Mapping[int, GmshBoundaries[I]],
+    region: Mapping[int, GmshElements[I]],
+) -> tuple[GmshElements[I], Mapping[int, GmshBoundaries[I]], Mapping[int, GmshElements[I]]]:
+    perm = get_index_mapping_permutation(top)
     top = GmshElements(
         type=top.type,
-        e=np.arange(len(perm_inv), dtype=perm_inv.dtype),
+        e=np.arange(1, len(perm.inv) + 1, dtype=perm.inv.dtype),
         conn=top.conn,
     )
     bnd = {
@@ -253,12 +275,33 @@ def reset_top_index[F: np.floating, I: np.integer](
             dim=v.dim,
             entity=v.entity,
             type=v.type,
-            e=perm_fwd[v.e],
+            e=perm.fwd[v.e],
             conn=v.conn,
         )
         for k, v in bnd.items()
     }
-    return top, bnd
+    regions = {
+        k: GmshElements(
+            type=v.type,
+            e=perm.fwd[v.e],
+            conn=v.conn,
+        )
+        for k, v in region.items()
+    }
+    return top, bnd, regions
+
+
+def create_mask_from_subdomains[I: np.integer](
+    top: GmshElements[I],
+    subdomains: Mapping[int, GmshElements[I]],
+) -> A1[I] | None:
+    """Create a mask array that maps each element in subdomain to the master topology."""
+    if len(subdomains) <= 1:
+        return None
+    mask = np.full_like(top.e, -1)
+    for k, v in subdomains.items():
+        mask[v.e] = k
+    return mask
 
 
 def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
@@ -277,7 +320,7 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
         k: get_gmsh_boundaries(dim - 1, v, subdomains[d], k) for k, (d, v) in boundaries.items()
     }
     gmsh_space, gmsh_top, gmsh_bnd = reset_node_index(gmsh_space, gmsh_top, gmsh_bnd)
-    gmsh_top, gmsh_bnd = reset_top_index(gmsh_top, gmsh_bnd)
+    gmsh_top, gmsh_bnd, subdomains = reset_top_index(gmsh_top, gmsh_bnd, subdomains)
     space = convert_gmsh_space_to_cheart(gmsh_space)
     top = convert_gmsh_top_to_cheart(gmsh_top, dtype=dtype)
     bnd = convert_gmsh_bnd_to_cheart(gmsh_bnd, dtype=dtype)
