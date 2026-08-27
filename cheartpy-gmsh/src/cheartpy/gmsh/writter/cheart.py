@@ -1,6 +1,6 @@
 import dataclasses as dc
 import itertools
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from cheartpy.elem_interfaces import Gmsh2Vtk, GmshEnum, Vtk2CheartNodeOrder
@@ -242,7 +242,7 @@ def reset_node_index[F: np.floating, I: np.integer](
     top = GmshElements(
         type=top.type,
         e=top.e,
-        conn=perm.fwd[top.conn],
+        conn=perm.fwd[top.conn].astype(top.conn.dtype),
     )
     bnd = {
         k: GmshBoundaries(
@@ -250,46 +250,53 @@ def reset_node_index[F: np.floating, I: np.integer](
             entity=v.entity,
             type=v.type,
             e=v.e,
-            conn=perm.fwd[v.conn],
+            conn=perm.fwd[v.conn].astype(v.conn.dtype),
         )
         for k, v in bnd.items()
     }
     return space, top, bnd
 
 
-def reset_top_index[F: np.floating, I: np.integer](
-    perm: IndexPermutation[I],
-    top: GmshElements[I],
-    bnd: Mapping[int, GmshBoundaries[I]],
-    elems: Mapping[int, GmshElements[I]],
-) -> tuple[GmshElements[I], Mapping[int, GmshBoundaries[I]], Mapping[int, GmshElements[I]]]:
-    # perm_inv = top.e
-    # perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
-    # perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
-    top = GmshElements(
-        type=top.type,
-        e=np.arange(len(perm.fwd), dtype=perm.fwd.dtype),
-        conn=top.conn,
-    )
-    bnd = {
-        k: GmshBoundaries(
-            dim=v.dim,
-            entity=v.entity,
-            type=v.type,
-            e=perm.fwd[v.e],
-            conn=v.conn,
+@overload
+def reset_index_elem[I: np.integer](
+    perm: IndexPermutation[I], item: GmshElements[I]
+) -> GmshElements[I]: ...
+@overload
+def reset_index_elem[I: np.integer](
+    perm: IndexPermutation[I], item: Mapping[int, GmshElements[I]]
+) -> dict[int, GmshElements[I]]: ...
+def reset_index_elem[I: np.integer](
+    perm: IndexPermutation[I], item: GmshElements[I] | Mapping[int, GmshElements[I]]
+):
+    if isinstance(item, GmshElements):
+        return GmshElements(
+            type=item.type,
+            e=perm.fwd[item.e].astype(item.e.dtype),
+            conn=item.conn,
         )
-        for k, v in bnd.items()
-    }
-    elems = {
-        k: GmshElements(
-            type=v.type,
-            e=perm.fwd[v.e],
-            conn=v.conn,
+    return {k: reset_index_elem(perm, v) for k, v in item.items()}
+
+
+@overload
+def reset_index_boundary[I: np.integer](
+    perm: IndexPermutation[I], item: GmshBoundaries[I]
+) -> GmshBoundaries[I]: ...
+@overload
+def reset_index_boundary[I: np.integer](
+    perm: IndexPermutation[I], item: Mapping[int, GmshBoundaries[I]]
+) -> dict[int, GmshBoundaries[I]]: ...
+def reset_index_boundary[I: np.integer](
+    perm: IndexPermutation[I], item: GmshBoundaries[I] | Mapping[int, GmshBoundaries[I]]
+):
+    if isinstance(item, GmshBoundaries):
+        return GmshBoundaries(
+            dim=item.dim,
+            entity=item.entity,
+            type=item.type,
+            e=perm.fwd[item.e].astype(item.e.dtype),
+            conn=item.conn,
         )
-        for k, v in elems.items()
-    }
-    return top, bnd, elems
+    return {k: reset_index_boundary(perm, v) for k, v in item.items()}
 
 
 def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
@@ -309,7 +316,9 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
     }
     gmsh_space, gmsh_top, gmsh_bnd = reset_node_index(gmsh_space, gmsh_top, gmsh_bnd)
     elem_perm = create_index_permutation(gmsh_top.e)
-    gmsh_top, gmsh_bnd, subdomains = reset_top_index(elem_perm, gmsh_top, gmsh_bnd, subdomains)
+    gmsh_top = reset_index_elem(elem_perm, gmsh_top)
+    gmsh_bnd = reset_index_boundary(elem_perm, gmsh_bnd)
+    subdomains = reset_index_elem(elem_perm, subdomains)
     space = convert_gmsh_space_to_cheart(gmsh_space)
     top = convert_gmsh_top_to_cheart(gmsh_top, dtype=dtype)
     bnd = convert_gmsh_bnd_to_cheart(gmsh_bnd, dtype=dtype)
