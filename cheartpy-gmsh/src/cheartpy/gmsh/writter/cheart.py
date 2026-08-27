@@ -1,5 +1,6 @@
 import dataclasses as dc
 import itertools
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -20,8 +21,6 @@ from pytools.result import Err, Ok, all_ok
 import gmsh
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
-
     from cheartpy.elem_interfaces._types import VtkEnum
     from cheartpy.gmsh.types import Entity, Tag
     from pytools.arrays import A1, A2, DType
@@ -190,21 +189,65 @@ def convert_gmsh_bnd_to_cheart[I: np.integer = np.intp](
     )
 
 
+@overload
+def search_unique[I: np.integer](a: A1[I], b: A1[I]) -> A1[I]: ...
+@overload
+def search_unique[I: np.integer](a: A1[I], b: Sequence[A1[I]]) -> Sequence[A1[I]]: ...
+@overload
+def search_unique[I: np.integer](a: A1[I], b: Mapping[int, A1[I]]) -> Mapping[int, A1[I]]: ...
+def search_unique[I: np.integer](
+    a: A1[I], b: A1[I] | Sequence[A1[I]] | Mapping[int, A1[I]]
+) -> A1[I] | Sequence[A1[I]] | Mapping[int, A1[I]]:
+    """Return the position of every index of each array b.
+
+    Assume every element in a and b are unique.
+
+    Parameters
+    ----------
+    a : A1[I]
+        The array to search in.
+    b : A1[I] | Sequence[A1[I]] | Mapping[int, A1[I]]
+        The arrays to search for.
+
+    Returns
+    -------
+    A1[I] | Sequence[A1[I]] | Mapping[int, A1[I]]
+        The positions of each array b in a.
+
+    """
+    sorter = np.argsort(a).astype(a.dtype)
+    match b:
+        case Mapping():
+            return {k: sorter[np.searchsorted(a, v, sorter=sorter)] for k, v in b.items()}
+        case Sequence():
+            return [sorter[np.searchsorted(a, v, sorter=sorter)] for v in b]
+        case np.ndarray():
+            return sorter[np.searchsorted(a, b, sorter=sorter)]
+
+
 def create_mask_from_domains[I: np.integer](
     domains: Mapping[int, GmshElements[I]], top: GmshElements[I]
 ) -> A1[I]:
-    master_index = np.unique(top.e, sorted=True)
-    if len(master_index) != len(top.e):
+    if len(np.unique(top.e)) != len(top.e):
         msg = "Duplicate element tags found in the master topology."
         raise ValueError(msg)
-    total_domain_elems = sum(len(d.e) for d in domains.values())
+    for k, v in domains.items():
+        if len(np.unique(v.e)) != len(v.e):
+            msg = f"Duplicate element tags found in subdomain {k}."
+            raise ValueError(msg)
+        if not np.all(np.isin(top.e, v.e)):
+            msg = f"Elements in subdomain {k} is not found in master"
+
     merged_domain_tags = np.concatenate([d.e for d in domains.values()])
-    if total_domain_elems != len(merged_domain_tags):
+    if len(np.unique(merged_domain_tags)) != len(merged_domain_tags):
         msg = "Duplicate element tags found across subdomains."
         raise ValueError(msg)
-    mask = np.zeros(len(master_index), dtype=top.e.dtype)
-    for domain_id, domain in domains.items():
-        mask[np.searchsorted(master_index, domain.e) - 1] = domain_id
+    if len(merged_domain_tags) != len(top.e):
+        msg = "merged domain tags do not cover all elements in the master topology."
+    mask = np.full_like(top.e, -1)
+    index = {k: v.e for k, v in domains.items()}
+    for domain_id, domain in search_unique(top.e, index).items():
+        mask[domain] = domain_id
     return mask
 
 

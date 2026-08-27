@@ -177,17 +177,19 @@ def optimize_mesh(_top: GmshTopInfo) -> None:
     gmsh.option.set_number("Mesh.OptimizeNetgen", 1)
     # gmsh.option.set_number("Mesh.OptimizeThreshold", 0.3)  # Target quality bar
 
-    # gmsh.model.mesh.optimize("", force=True, niter=10)
     # gmsh.model.mesh.optimize("UntangleMeshGeometry", force=True, niter=2)
-    # match top.dim:
+    gmsh.model.mesh.optimize("", force=True, niter=10)
+    gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
+    gmsh.model.mesh.optimize("Netgen", niter=100)
+    # match gmsh.model.get_dimension():
     #     case 3:
     #         gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5)
     #     case 2:
     #         gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5)
-    #     case _: ...
-    # gmsh.model.mesh.optimize("CGAL")
+    #     case _:
+    #         ...
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
-    gmsh.model.mesh.optimize("Netgen", niter=20)
+    # gmsh.model.mesh.optimize("Netgen", niter=20)
 
 
 @dc.dataclass(slots=True)
