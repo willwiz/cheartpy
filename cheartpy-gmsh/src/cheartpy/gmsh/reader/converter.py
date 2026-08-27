@@ -169,8 +169,6 @@ def optimize_mesh(top: GmshTopInfo) -> None:
 
     """
     gmsh.model.occ.synchronize()
-    gmsh.model.mesh.remove_duplicate_nodes()
-    gmsh.model.occ.remove_all_duplicates()
     # 5. GENERATE THE MESH
     # gmsh.option.set_number("Mesh.Algorithm", 6)  # 2D Mesh: Frontal-Delaunay
     # gmsh.option.set_number("Mesh.Algorithm3D", 4)  # 3D Mesh: Frontal-Delaunay
@@ -186,7 +184,7 @@ def optimize_mesh(top: GmshTopInfo) -> None:
     #         gmsh.model.mesh.optimize("Relocate3D", force=True, niter=5)
     #     case 2:
     #         gmsh.model.mesh.optimize("Relocate2D", force=True, niter=5)
-    #     case _: ...  # fmt: skip
+    #     case _: ...
     # gmsh.model.mesh.optimize("CGAL")
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
     gmsh.model.mesh.optimize("Netgen", niter=20)
@@ -403,8 +401,6 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     if kwargs.get("optimize", False):
         optimize_mesh(top)
         after = get_mesh_quality(top, None)
-        gmsh.model.mesh.remove_duplicate_nodes()
-        gmsh.model.mesh.remove_duplicate_elements()
         gmsh.model.geo.synchronize()
         print_mesh_quality(before, after)
         # if mesh.bnd is not None:
@@ -412,6 +408,8 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
         #         gmsh.model.add_physical_group(dim=2, tags=[int(b.tag)], tag=100)
     # 3. ADD BOUNDARY SURFACES (Dimension 2)
     volume_tag = create_volume(top, list(domains.values()))
+    gmsh.model.mesh.remove_duplicate_nodes()
+    gmsh.model.occ.remove_all_duplicates()
     print_physical_groups()
     new_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
     new_volume = get_gmsh_entity(top.dim, list(domains.values()))
