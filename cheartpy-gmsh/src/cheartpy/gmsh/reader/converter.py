@@ -193,13 +193,13 @@ def optimize_mesh(_top: GmshTopInfo) -> None:
 
 
 @dc.dataclass(slots=True)
-class MeshQualityMetrics:
-    rr: A1[np.floating]
-    sicn: A1[np.floating]
-    inverted: A1[np.floating]
+class MeshQualityMetrics[F: np.floating = np.float64, I: np.integer = np.intp]:
+    rr: A1[F]
+    sicn: A1[F]
+    inverted: A1[I]
 
 
-def get_element_mesh_quality(elements: A1[np.integer]) -> MeshQualityMetrics:
+def get_element_mesh_quality(elements: A1[np.integer]) -> MeshQualityMetrics[np.float64, np.intp]:
     radius_ratios = gmsh.model.mesh.get_element_qualities(elements, qualityName="gamma")
     sicn_values = gmsh.model.mesh.get_element_qualities(elements, qualityName="minSICN")
     inverted_elements = np.array([i for i, v in enumerate(sicn_values) if v < 0])
@@ -225,19 +225,19 @@ class QualityType(enum.StrEnum):
     num = ""
 
 
-def compute_quality_metric(qual: QualityType, metric: A1[np.floating]) -> ToFloat | int:
+def compute_quality_metric(qual: QualityType, metric: A1[np.number]) -> ToFloat | int:
     match qual:
         case QualityType.min:
-            return np.min(metric)
+            return float(np.min(metric))
         case QualityType.mean:
             return np.mean(metric)
         case QualityType.max:
-            return np.max(metric)
+            return float(np.max(metric))
         case QualityType.num:
             return len(metric)
 
 
-def print_quality(qual: QualityType, a: A1[np.floating], b: A1[np.floating] | None) -> None:
+def print_quality(qual: QualityType, a: A1[np.number], b: A1[np.number] | None) -> None:
     u = compute_quality_metric(qual, a)
     v = None if b is None else compute_quality_metric(qual, b)
     match qual:
