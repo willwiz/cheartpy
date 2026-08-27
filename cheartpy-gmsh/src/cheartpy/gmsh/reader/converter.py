@@ -159,7 +159,7 @@ class MeshConverterKwargs(TypedDict, total=False):
     angle_deg: float
 
 
-def optimize_mesh(top: GmshTopInfo) -> None:
+def optimize_mesh(_top: GmshTopInfo) -> None:
     """Optimize the mesh using Gmsh's built-in optimization algorithms.
 
     Parameters
