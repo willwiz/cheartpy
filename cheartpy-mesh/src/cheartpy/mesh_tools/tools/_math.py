@@ -15,6 +15,6 @@ def normalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]:
 def orthonormalize_by_row[F: np.floating](vals: A2[F]) -> A2[F]:
     """Orthonormalize a set of vectors by row using the Gram-Schmidt process."""
     # Create an empty array to hold the orthonormalized vectors
-    vals = vals.reshape(-1, 3, 3)
-    q, _ = np.linalg.qr(vals.mT)
+    tensor_arr = vals.reshape(-1, 3, 3)
+    q, _ = np.linalg.qr(tensor_arr.mT)
     return q.mT.reshape(-1, 9)

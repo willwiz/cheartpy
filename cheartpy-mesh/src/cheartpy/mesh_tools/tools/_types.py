@@ -8,12 +8,17 @@ from cheartpy.io import chwrite_d_utf
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A2, ToIndex, ToInt
+    from pytools.arrays import A1, A2, ToIndex
 
     from cheartpy.mesh import CheartMesh
 
 type ElemSearchMap = Mapping[ToIndex, set[int]]
-type IndexUpdateMap = Mapping[ToInt, int]
+
+
+@dc.dataclass(slots=True)
+class IndexPermutation[I: np.integer]:
+    fwd: A1[I]
+    inv: A1[I]
 
 
 @dc.dataclass(slots=True)
