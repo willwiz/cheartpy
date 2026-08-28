@@ -350,10 +350,33 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
     ftype: DType[F] = np.float64,
     dtype: DType[I] = np.intp,
 ) -> tuple[CheartMesh[F, I], A1[I] | None]:
+    """Return a CheartMesh and a mask from GMSH entities if given.\
+
+    Parameters
+    ----------
+    dim : int
+        The dimension of the main volume mesh (2 or 3).
+    domains: Mapping[int, Entity]
+        A mapping of subdomain IDs to GMSH entity tags for the volume mesh. If only one subdomain
+        is present, this can be just {1: Entity}.
+    boundaries: Mapping[int, tuple[int, Entity]]
+        A mapping of domain IDs to a mapping of the desired boundary tag(int) to the GMSH entity.
+        mesh.
+    ftype : DType[F], optional
+        The floating point data type for the mesh coordinates, by default np.float64.
+    dtype : DType[I], optional
+        The integer data type for the mesh indices, by default np.intp.
+
+    Returns
+    -------
+    tuple[CheartMesh[F, I], A1[I] | None]
+        A tuple containing the CheartMesh and an optional mask array indicating subdomain
+        membership.
+
+    """
     gmsh_space = get_gmsh_space(dim, ftype=ftype, dtype=dtype)
     subdomains = {k: get_gmsh_entity(dim, [v], dtype=dtype) for k, v in domains.items()}
     gmsh_top = merge_elements(list(subdomains.values()))
-    # gmsh_top = get_gmsh_entity_by_physical_group(["Volume1"], dim, dtype=dtype)
     gmsh_bnd = {
         k: get_gmsh_boundaries(dim - 1, v, subdomains[d], k) for k, (d, v) in boundaries.items()
     }
