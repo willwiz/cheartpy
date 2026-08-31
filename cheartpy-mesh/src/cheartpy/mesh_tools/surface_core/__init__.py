@@ -15,5 +15,4 @@ __all__ = [
     "create_new_surface_in_mesh",
     "create_new_surface_in_surf",
     "make_cutplane_topology",
-    "normalize_by_row",
 ]

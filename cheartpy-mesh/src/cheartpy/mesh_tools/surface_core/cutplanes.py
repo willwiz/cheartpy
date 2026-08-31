@@ -4,7 +4,7 @@ import numpy as np
 from cheartpy.elem_interfaces import get_vtk_boundary_element
 from pytools.logging import get_logger
 from pytools.math import householder_orthogonal_basis
-from pytools.result import Err, Result
+from pytools.result import Err, Ok, Result, all_ok
 
 from cheartpy.mesh import import_cheart_mesh
 from cheartpy.mesh_tools import MergedMesh, merge_meshes, normalize_by_row
@@ -46,16 +46,18 @@ def compute_householder_basis[F: np.floating](normals: A2[F]) -> A2[F]:
     return np.full((normals.shape[0], 9), basis.flatten())
 
 
-def compute_zrc_basis[F: np.floating](space: A2[F], normals: A2[F]) -> A2[F]:
+def compute_zrc_basis[F: np.floating](space: A2[F], normals: A2[F]) -> Result[A2[F]]:
     centroid = space.mean(axis=0)
     mean_normal = normals.mean(axis=0)
     mean_normal = mean_normal / np.linalg.norm(mean_normal)
     z = np.full((normals.shape[0], 3), mean_normal)
     r = space - centroid
     r = r - np.einsum("ij,j,k->ik", r, mean_normal, mean_normal)
-    r = normalize_by_row(r)
+    match normalize_by_row(r):
+        case Ok(r): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     c = np.cross(z, r)
-    return np.concatenate((z, r, c), axis=1).astype(space.dtype)
+    return Ok(np.concatenate((z, r, c), axis=1).astype(space.dtype))
 
 
 def make_cutplane_topology[T](
@@ -91,7 +93,9 @@ def make_cutplane_topology[T](
         k: compute_surface_normal(master_mesh, pln["bnd"]).unwrap() for k, pln in cutplanes.items()
     }
     bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
-    bnd_zrc_bases = {k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}
+    match all_ok({k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}):
+        case Ok(bnd_zrc_bases): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     ids = {k: pln["bnd"] * np.ones((bnd_meshes[k].space.n, 1)) for k, pln in cutplanes.items()}
     return merge_meshes(
         list(bnd_meshes.values()),
