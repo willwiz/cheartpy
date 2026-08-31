@@ -7,5 +7,7 @@ if TYPE_CHECKING:
 
 
 def make_square_cli(args: SquareArgs, **kwargs: Unpack[SquareKwargs]) -> None:
+    print(args)
+    print(kwargs)
     mesh = create_square_mesh((args["xn"], args["yn"]), **kwargs)
     mesh.save(args["prefix"])

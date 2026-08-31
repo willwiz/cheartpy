@@ -27,6 +27,14 @@ __all__ = [
     "run_exports_in_series",
 ]
 
+_2D = 2
+
+
+def convert_3d[F: np.floating](arr: A2[F]) -> A2[F]:
+    if arr.shape[1] == _2D:
+        return np.hstack((arr, np.zeros((arr.shape[0], 1), dtype=arr.dtype)))
+    return arr
+
 
 def create_xml_for_boundary[I: np.integer, F: np.floating](
     prefix: str,
@@ -48,6 +56,7 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
     dataarr = piece.create_elem(XMLElement("Points")).create_elem(
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
+    fx = convert_3d(fx)
     dataarr.add_data(fx)
     cell = piece.create_elem(XMLElement("CellData", Scalars="scalars"))
     dataarr = cell.create_elem(
@@ -112,6 +121,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
     dataarr = points.create_elem(
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
+    x = convert_3d(x)
     dataarr.add_data(x.astype(np.float64))
 
     cell = piece.create_elem(XMLElement("Cells"))

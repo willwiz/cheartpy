@@ -1,6 +1,8 @@
 import enum
+from collections.abc import Mapping
 from typing import Literal, NamedTuple
 
+type NodeOrder = Mapping[int, tuple[int, ...]]
 type VtkElemShape = Literal["Line", "Triangle", "Quadrilateral", "Tetrahedron", "Hexahedron"]
 
 

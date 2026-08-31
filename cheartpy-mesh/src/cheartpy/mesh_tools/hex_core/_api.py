@@ -4,9 +4,9 @@ from cheartpy.mesh import CheartMesh
 
 from ._core import (
     create_boundary,
+    create_cube_element_index,
+    create_cube_nodal_index,
     create_space,
-    create_square_element_index,
-    create_square_nodal_index,
     create_topology,
 )
 
@@ -24,8 +24,8 @@ def create_hex_mesh(
     shape: T3[ToFloat] = (1.0, 1.0, 1.0),
     offset: T3[ToFloat] = (0.0, 0.0, 0.0),
 ) -> CheartMesh[np.float64, np.intc]:
-    node_index = create_square_nodal_index(*dim)
-    elem_index = create_square_element_index(*dim)
+    node_index = create_cube_nodal_index(*dim)
+    elem_index = create_cube_element_index(*dim)
     return CheartMesh(
         create_space(shape, offset, dim, node_index),
         create_topology(*dim, node_index, elem_index),

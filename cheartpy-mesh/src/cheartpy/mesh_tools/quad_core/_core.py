@@ -40,11 +40,12 @@ def create_square_element_index(nx: ToInt, ny: ToInt) -> A2[np.intc]:
 
 
 def create_space[I: np.integer](
-    shift: tuple[ToFloat, ToFloat],
     shape: tuple[ToFloat, ToFloat],
+    shift: tuple[ToFloat, ToFloat],
     dim: tuple[ToInt, ToInt],
     index: A2[I],
 ) -> CheartMeshSpace[np.float64]:
+    print(f"{shift=}, {shape=}, {dim=}, {index=}")
     nx, ny = dim
     lx, ly = shape
     x0, y0 = shift
@@ -54,6 +55,7 @@ def create_space[I: np.integer](
     for i, x in enumerate(x_nodes):
         for j, y in enumerate(y_nodes):
             nodes[index[i, j]] = [x, y]
+    print(nodes)
     return CheartMeshSpace(len(nodes), nodes)
 
 

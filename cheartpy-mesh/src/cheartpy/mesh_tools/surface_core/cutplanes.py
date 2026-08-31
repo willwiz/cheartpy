@@ -7,9 +7,9 @@ from pytools.math import householder_orthogonal_basis
 from pytools.result import Err, Ok, Result, all_ok
 
 from cheartpy.mesh import import_cheart_mesh
-from cheartpy.mesh_tools import MergedMesh, merge_meshes, normalize_by_row
+from cheartpy.mesh_tools.tools import MergedMesh, merge_meshes, normalize_by_row
 
-from .normals import compute_surface_normal, create_mesh_from_surface
+from .normals import create_mesh_from_surface
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -77,7 +77,9 @@ def make_cutplane_topology[T](
         if is_cutplane(t)
     }
     master = find_cutplane_master(*cutplanes.values())
-    master_mesh = import_cheart_mesh(defn[master]["mesh"], ftype=np.float64, itype=np.intp).unwrap()
+    match import_cheart_mesh(defn[master]["mesh"], ftype=np.float64, itype=np.intp):
+        case Ok(master_mesh): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     if master_mesh.bnd is None:
         msg = f"Master mesh {master} has no boundary"
         return Err(ValueError(msg))
@@ -85,24 +87,27 @@ def make_cutplane_topology[T](
     if bnd_type is None:
         msg = f"Unsupported boundary type {master_mesh.bnd.TYPE}"
         return Err(ValueError(msg))
-    bnd_meshes = {
-        k: create_mesh_from_surface(master_mesh, pln["bnd"]).unwrap()
-        for k, pln in cutplanes.items()
-    }
-    bnd_normals = {
-        k: compute_surface_normal(master_mesh, pln["bnd"]).unwrap() for k, pln in cutplanes.items()
-    }
-    bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
-    match all_ok({k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}):
-        case Ok(bnd_zrc_bases): ...  # fmt: skip
+    match all_ok(
+        {k: create_mesh_from_surface(master_mesh, pln["bnd"]) for k, pln in cutplanes.items()}
+    ):
+        case Ok(bnd_meshes): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
+    # match all_ok(
+    #     {k: compute_surface_normal(master_mesh, pln["bnd"]) for k, pln in cutplanes.items()}
+    # ):
+    #     case Ok(bnd_normals): ...  # fmt: skip
+    #     case Err(e): return Err(e)  # fmt: skip
+    # bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
+    # match all_ok({k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}):
+    #     case Ok(bnd_zrc_bases): ...  # fmt: skip
+    #     case Err(e): return Err(e)  # fmt: skip
     ids = {k: pln["bnd"] * np.ones((bnd_meshes[k].space.n, 1)) for k, pln in cutplanes.items()}
     return merge_meshes(
         list(bnd_meshes.values()),
         {
-            "Normal": list(bnd_normals.values()),
-            "Basis": list(bnd_bases.values()),
+            # "Normal": list(bnd_normals.values()),
+            # "Basis": list(bnd_bases.values()),
             "IDs": list(ids.values()),
-            "ZRC": list(bnd_zrc_bases.values()),
+            # "ZRC": list(bnd_zrc_bases.values()),
         },
     ).next()

@@ -8,7 +8,7 @@ from numpy.linalg import lstsq
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result, all_ok
 
-from cheartpy.mesh_tools import normalize_by_row
+from cheartpy.mesh_tools.tools import normalize_by_row
 
 from .meshing import create_mesh_from_surface
 
@@ -106,6 +106,10 @@ def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     return normalize_by_row(normals).next()
 
 
+def is_nonzero[F: np.floating](vec: A1[F]) -> bool:
+    return np.linalg.norm(vec) > 0.0
+
+
 def orient_normals_as_outward[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int, normals: Mapping[I, Mapping[I, A1[F]]]
 ) -> Result[Mapping[I, Mapping[I, A1[F]]]]:
@@ -125,10 +129,25 @@ def orient_normals_as_outward[F: np.floating, I: np.integer](
         k: {b: mesh.space.v[b] - bnd_elem_centroids[k] for b in bnd}
         for k, bnd in zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
     }
+    for k, v in bnd_elem_centroids.items():
+        if not is_nonzero(v):
+            msg_0 = f"Boundary patch {k} centroid is degenerate."
+            raise ValueError(msg_0)
+    for k, v in bnd_patch_outer.items():
+        for b, n in v.items():
+            if not is_nonzero(n):
+                msg_0 = f"Boundary patch {k} {b} = {n} is degenerate."
+                print(msg_0)
+
     fix_direction = {
         k: {b: np.sign(n.dot(bnd_patch_outer[k][b])) * n for b, n in surf.items()}
         for k, surf in normals.items()
     }
+    for k, v in fix_direction.items():
+        for b, n in v.items():
+            if not is_nonzero(n):
+                msg_0 = f"Boundary patch {k} {b} reoriented normal = {n} is degenerate."
+                raise ValueError(msg_0)
     return Ok(fix_direction)
 
 
@@ -137,8 +156,7 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
 ) -> Result[A2[F]]:
     match create_mesh_from_surface(mesh, in_surf):
         case Ok(surf_mesh): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
+        case Err(e): return Err(e)  # fmt: skip
     mesh_bnd = mesh.bnd
     if mesh_bnd is None:
         msg = "Mesh has no boundary"
@@ -149,6 +167,8 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
         for i, j in zip(old, new, strict=True)
     }
     normal_array = np.zeros_like(surf_mesh.space.v)
+    print(f"{len(normal_array)=}")
+    print(f"{len(np.unique(list(node_map.keys())))=}")
     for ns in dct_values.values():
         for b, n in ns.items():
             normal_array[node_map[b]] += n
@@ -182,10 +202,8 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     }
     match orient_normals_as_outward(mesh, in_surf, normals):
         case Ok(normals): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
+        case Err(e): return Err(e)  # fmt: skip
     match pack_array_to_surface_topology(mesh, in_surf, normals):
         case Ok(normal_array): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
+        case Err(e): return Err(e)  # fmt: skip
     return normalize_by_row(normal_array).next()

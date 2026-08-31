@@ -9,7 +9,7 @@ from pytools.arrays import A2
 from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
-from cheartpy.mesh_tools import MergedMesh
+from cheartpy.mesh_tools.tools import MergedMesh
 
 type _COMPONENT = Literal["X", "Y", "Z"]
 type _BOUND = (

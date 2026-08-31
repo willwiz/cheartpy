@@ -16,14 +16,14 @@ if TYPE_CHECKING:
 
 __all__ = [
     "create_boundary",
+    "create_cube_element_index",
+    "create_cube_nodal_index",
     "create_space",
-    "create_square_element_index",
-    "create_square_nodal_index",
     "create_topology",
 ]
 
 
-def create_square_nodal_index(nx: ToInt, ny: ToInt, nz: ToInt) -> A3[np.intc]:
+def create_cube_nodal_index(nx: ToInt, ny: ToInt, nz: ToInt) -> A3[np.intc]:
     index = np.zeros((nx + 1, ny + 1, nz + 1), dtype=np.intc)
     nn = 0
     for k in range(nz + 1):
@@ -34,7 +34,7 @@ def create_square_nodal_index(nx: ToInt, ny: ToInt, nz: ToInt) -> A3[np.intc]:
     return index
 
 
-def create_square_element_index(nx: ToInt, ny: ToInt, nz: ToInt) -> A3[np.intc]:
+def create_cube_element_index(nx: ToInt, ny: ToInt, nz: ToInt) -> A3[np.intc]:
     index = np.zeros((nx, ny, nz), dtype=np.intc)
     ne = 0
     for k in range(nz):
