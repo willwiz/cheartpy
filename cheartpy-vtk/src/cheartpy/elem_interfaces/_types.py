@@ -78,7 +78,7 @@ class AbaqusEnum(enum.StrEnum):
     TETRAHEDRON1 = "C3D4"  # 4-node linear 3D tetrahedral element
     TETRAHEDRON2 = "C3D10"  # 10-node quadratic 3D tetrahedral element
     HEXAHEDRON1 = "C3D8"  # 8-node linear 3D hexahedral element
-    HEXAHEDRON2 = "C3D20"  # 20-node quadratic 3D hexahedral element
+    HEXAHEDRON2 = "C3D27"  # 20-node quadratic 3D hexahedral element
 
 
 class GmshEnum(enum.IntEnum):

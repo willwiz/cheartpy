@@ -1,6 +1,6 @@
 from pytools.result import Err, Ok, Result
 
-from ._types import CheartEnum, VtkElemShape, VtkEnum
+from ._types import CheartEnum, NodeOrder, VtkElemShape, VtkEnum
 
 _Vtk2Cheart = {
     VtkEnum.LINE1: CheartEnum.LINE1,
@@ -204,3 +204,21 @@ HEX2 = {
     25: (1, 1, 2),
     26: (1, 1, 1),
 }
+
+
+VTK_ELEMENT_NODES: dict[VtkEnum, dict[int, tuple[int, int, int]]] = {
+    VtkEnum.LINE1: LINE1,
+    VtkEnum.LINE2: LINE2,
+    VtkEnum.TRIANGLE1: TRI1,
+    VtkEnum.TRIANGLE2: TRI2,
+    VtkEnum.QUADRILATERAL1: QUAD1,
+    VtkEnum.QUADRILATERAL2: QUAD2,
+    VtkEnum.TETRAHEDRON1: TET1,
+    VtkEnum.TETRAHEDRON2: TET2,
+    VtkEnum.HEXAHEDRON1: HEX1,
+    VtkEnum.HEXAHEDRON2: HEX2,
+}
+
+
+def get_vtk_elem_nodes(elem: VtkEnum) -> NodeOrder:
+    return VTK_ELEMENT_NODES[elem]

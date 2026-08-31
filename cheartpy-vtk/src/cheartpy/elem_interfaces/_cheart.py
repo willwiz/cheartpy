@@ -1,4 +1,4 @@
-from ._types import CheartEnum, VtkEnum
+from ._types import CheartEnum, NodeOrder, VtkEnum
 
 Vtk2Cheart = {
     VtkEnum.LINE1: CheartEnum.LINE1,
@@ -115,3 +115,27 @@ HEX2 = {
     25: (2, 1, 2),
     26: (1, 2, 2),
 }
+
+NODE_DEFAULT = {0: (0, 0, 0)}
+
+ELEMEMT_ORDER = {
+    CheartEnum.LINE0: NODE_DEFAULT,
+    CheartEnum.TRIANGLE0: NODE_DEFAULT,
+    CheartEnum.QUADRILATERAL0: NODE_DEFAULT,
+    CheartEnum.TETRAHEDRON0: NODE_DEFAULT,
+    CheartEnum.HEXAHEDRON0: NODE_DEFAULT,
+    CheartEnum.LINE1: LINE1,
+    CheartEnum.LINE2: LINE2,
+    CheartEnum.TRIANGLE1: TRI1,
+    CheartEnum.TRIANGLE2: TRI2,
+    CheartEnum.QUADRILATERAL1: QUAD1,
+    CheartEnum.QUADRILATERAL2: QUAD2,
+    CheartEnum.TETRAHEDRON1: TET1,
+    CheartEnum.TETRAHEDRON2: TET2,
+    CheartEnum.HEXAHEDRON1: HEX1,
+    CheartEnum.HEXAHEDRON2: HEX2,
+}
+
+
+def get_cheart_elem_nodes(elem: CheartEnum) -> NodeOrder:
+    return ELEMEMT_ORDER[elem]
