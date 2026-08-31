@@ -29,6 +29,17 @@ _REGRESS_TOL = 0.01
 _DBL_TOL = 1.0e-14
 
 
+def compute_patch_normal[F: np.floating, I: np.integer](
+    basis: A2[np.floating],
+    space: A2[F],
+    elem: A1[I],
+    _ref_space: A2[np.floating],
+) -> A1[F]:
+    v1 = np.asarray([space[elem][:, i] @ basis[0] for i in range(3)])
+    v2 = np.asarray([space[elem][:, i] @ basis[1] for i in range(3)])
+    return np.cross(v1, v2).astype(space.dtype)
+
+
 def compute_normal_patch[F: np.floating, I: np.integer](
     basis: A2[np.floating],
     space: A2[F],
@@ -39,10 +50,14 @@ def compute_normal_patch[F: np.floating, I: np.integer](
     nodes = space[elem] - ref_space
     u = np.array([[nodes[:, i] @ b for b in basis] for i in range(3)])
     f = u + np.identity(3)
+    print(basis)
+    print(nodes)
+    print(f)
     if np.linalg.det(f) < _REGRESS_TOL:
         _g_log = get_logger()
         _g_log.debug("Element node order is inverted.")
         f = u - np.identity(3)
+        print(f)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=basis.dtype))
     return res.astype(space.dtype)
 
@@ -167,8 +182,6 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
         for i, j in zip(old, new, strict=True)
     }
     normal_array = np.zeros_like(surf_mesh.space.v)
-    print(f"{len(normal_array)=}")
-    print(f"{len(np.unique(list(node_map.keys())))=}")
     for ns in dct_values.values():
         for b, n in ns.items():
             normal_array[node_map[b]] += n
@@ -195,7 +208,7 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     )
     normals = {
         k: {
-            b: compute_normal_patch(basis, mesh.space.v, patch, vtkelem.ref)
+            b: compute_patch_normal(basis, mesh.space.v, patch, vtkelem.ref)
             for b, basis in zip(patch, interp_basis_at_refnodes, strict=True)
         }
         for k, patch in bnd_patches.items()

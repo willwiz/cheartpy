@@ -9,7 +9,7 @@ from pytools.result import Err, Ok, Result, all_ok
 from cheartpy.mesh import import_cheart_mesh
 from cheartpy.mesh_tools.tools import MergedMesh, merge_meshes, normalize_by_row
 
-from .normals import create_mesh_from_surface
+from .normals import compute_surface_normal, create_mesh_from_surface
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -42,6 +42,7 @@ def find_cutplane_master[T](*tops: EmbbededTopologyDef[T]) -> T:
 
 def compute_householder_basis[F: np.floating](normals: A2[F]) -> A2[F]:
     mean_normal = normals.mean(axis=0)
+    print(f"{mean_normal=}")
     basis = householder_orthogonal_basis(mean_normal)
     return np.full((normals.shape[0], 9), basis.flatten())
 
@@ -92,22 +93,22 @@ def make_cutplane_topology[T](
     ):
         case Ok(bnd_meshes): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
-    # match all_ok(
-    #     {k: compute_surface_normal(master_mesh, pln["bnd"]) for k, pln in cutplanes.items()}
-    # ):
-    #     case Ok(bnd_normals): ...  # fmt: skip
-    #     case Err(e): return Err(e)  # fmt: skip
-    # bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
-    # match all_ok({k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}):
-    #     case Ok(bnd_zrc_bases): ...  # fmt: skip
-    #     case Err(e): return Err(e)  # fmt: skip
+    match all_ok(
+        {k: compute_surface_normal(master_mesh, pln["bnd"]) for k, pln in cutplanes.items()}
+    ):
+        case Ok(bnd_normals): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
+    match all_ok({k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}):
+        case Ok(bnd_zrc_bases): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     ids = {k: pln["bnd"] * np.ones((bnd_meshes[k].space.n, 1)) for k, pln in cutplanes.items()}
     return merge_meshes(
         list(bnd_meshes.values()),
         {
-            # "Normal": list(bnd_normals.values()),
-            # "Basis": list(bnd_bases.values()),
+            "Normal": list(bnd_normals.values()),
+            "Basis": list(bnd_bases.values()),
             "IDs": list(ids.values()),
-            # "ZRC": list(bnd_zrc_bases.values()),
+            "ZRC": list(bnd_zrc_bases.values()),
         },
     ).next()
