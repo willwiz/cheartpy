@@ -369,9 +369,14 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
 
     Returns
     -------
-    tuple[CheartMesh[F, I], A1[I] | None]
+    mesh: CheartMesh[F, I]
         A tuple containing the CheartMesh and an optional mask array indicating subdomain
         membership.
+
+    mask: A1[I] | None
+        An array of length equal to the number of elements in the mesh, containing integer IDs
+        that indicate which subdomain each element belongs to. If only one subdomain is present,
+        this will be None.
 
     """
     gmsh_space = get_gmsh_space(dim, ftype=ftype, dtype=dtype)
