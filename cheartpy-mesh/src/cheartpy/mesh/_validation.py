@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from warnings import deprecated
 
 import numpy as np
 
@@ -36,6 +37,7 @@ def _create_new_bnd[T: np.integer](
     return CheartMeshPatch(p.tag, p.n, p.k, new_v, p.TYPE)
 
 
+@deprecated("Use cheartpy.mesh_tools.recompile_cheartmesh instead.")
 def remove_dangling_nodes[F: np.floating, I: np.integer](g: CheartMesh[F, I]) -> CheartMesh[F, I]:
     node_map = create_node_map(g.top.v)
     new_x = g.space.v[list(node_map.keys())]

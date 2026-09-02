@@ -5,7 +5,9 @@ from cheartpy.mesh import CheartMesh
 
 from ._types import IndexPermutation
 
-def create_index_permutation[I: np.integer](index: A1[I] | A2[I]) -> IndexPermutation[I]: ...
+def create_index_permutation[I: np.integer](
+    index: A1[I] | A2[I], first: int = 0
+) -> IndexPermutation[I]: ...
 def recompile_cheart_mesh[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
 ) -> CheartMesh[F, I]: ...

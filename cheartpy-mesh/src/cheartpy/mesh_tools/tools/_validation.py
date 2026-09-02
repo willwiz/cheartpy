@@ -1,6 +1,8 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeIs
 
 import numpy as np
+from pytools.result import Err, Result
 
 from cheartpy.mesh import (
     CheartMesh,
@@ -20,7 +22,9 @@ def _id_1d[I: np.integer](arr: np.ndarray[Any, np.dtype[I]]) -> TypeIs[A1[I]]:
     return arr.ndim == 1
 
 
-def create_index_permutation[I: np.integer](index: A1[I] | A2[I]) -> IndexPermutation[I]:
+def create_index_permutation[I: np.integer](
+    index: A1[I] | A2[I], first: int = 0
+) -> IndexPermutation[I]:
     """Create a permutation mapping from an index array.
 
     If the input is a 1D array, it is assumed to be built from node index.
@@ -36,6 +40,9 @@ def create_index_permutation[I: np.integer](index: A1[I] | A2[I]) -> IndexPermut
         Can be a 1D array of the index of the nodes
         or a 2D array containing the topological connectivity.
 
+    first : int, default=0
+        The starting index for the forward permutation.
+
     Returns
     -------
     IndexPermutation[I]
@@ -44,8 +51,42 @@ def create_index_permutation[I: np.integer](index: A1[I] | A2[I]) -> IndexPermut
     """
     perm_inv = index if _id_1d(index) else np.unique(index.flatten())
     perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
-    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
+    perm_fwd[perm_inv] = np.arange(first, len(perm_inv) + first, dtype=perm_inv.dtype)
     return IndexPermutation(fwd=perm_fwd, inv=perm_inv)
+
+
+def _is_disjoint[I: np.integer](perms: Sequence[A1[I]]) -> bool:
+    """Check if a list of index permutations are disjoint."""
+    all_indices = np.concatenate(perms)
+    return len(all_indices) == len(np.unique(all_indices))
+
+
+def merge_index_permutations[I: np.integer](
+    perms: Sequence[IndexPermutation[I]],
+) -> Result[IndexPermutation[I]]:
+    """Merge a list of index permutations into a single permutation.
+
+    Parameters
+    ----------
+    perms : Iterable[IndexPermutation[I]]
+        A list of index permutations to merge.
+
+    Returns
+    -------
+    IndexPermutation[I]
+        A dataclass containing the forward and inverse permutation arrays.
+
+    """
+    # Placeholder for the actual implementation
+    permutation_size = {len(p.fwd) for p in perms}
+    if len(permutation_size) != 1:
+        return Err(ValueError("All permutations must have the same size to merge."))
+    fwd = np.full_like(perms[0].fwd, -1)
+    for p in perms:
+        fwd[p.inv] = p.fwd
+    if not _is_disjoint([p.inv for p in perms]):
+        return Err(ValueError("Permutations are not disjoint and cannot be merged."))
+    raise NotImplementedError
 
 
 def recompile_cheart_mesh[F: np.floating, I: np.integer](
