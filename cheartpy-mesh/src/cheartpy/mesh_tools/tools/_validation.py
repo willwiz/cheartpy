@@ -1,8 +1,6 @@
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeIs
 
 import numpy as np
-from pytools.result import Err, Result
 
 from cheartpy.mesh import (
     CheartMesh,
@@ -49,44 +47,11 @@ def create_index_permutation[I: np.integer](
         A dataclass containing the forward and inverse permutation arrays.
 
     """
-    perm_inv = index if _id_1d(index) else np.unique(index.flatten())
-    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
-    perm_fwd[perm_inv] = np.arange(first, len(perm_inv) + first, dtype=perm_inv.dtype)
-    return IndexPermutation(fwd=perm_fwd, inv=perm_inv)
-
-
-def _is_disjoint[I: np.integer](perms: Sequence[A1[I]]) -> bool:
-    """Check if a list of index permutations are disjoint."""
-    all_indices = np.concatenate(perms)
-    return len(all_indices) == len(np.unique(all_indices))
-
-
-def merge_index_permutations[I: np.integer](
-    perms: Sequence[IndexPermutation[I]],
-) -> Result[IndexPermutation[I]]:
-    """Merge a list of index permutations into a single permutation.
-
-    Parameters
-    ----------
-    perms : Iterable[IndexPermutation[I]]
-        A list of index permutations to merge.
-
-    Returns
-    -------
-    IndexPermutation[I]
-        A dataclass containing the forward and inverse permutation arrays.
-
-    """
-    # Placeholder for the actual implementation
-    permutation_size = {len(p.fwd) for p in perms}
-    if len(permutation_size) != 1:
-        return Err(ValueError("All permutations must have the same size to merge."))
-    fwd = np.full_like(perms[0].fwd, -1)
-    for p in perms:
-        fwd[p.inv] = p.fwd
-    if not _is_disjoint([p.inv for p in perms]):
-        return Err(ValueError("Permutations are not disjoint and cannot be merged."))
-    raise NotImplementedError
+    new = np.arange(first, len(np.unique(index.flatten())) + first, dtype=index.dtype)
+    old = index if _id_1d(index) else np.unique(index.flatten())
+    perm_fwd = np.full(np.max(old) + 1, -1, dtype=old.dtype)
+    perm_fwd[old] = new
+    return IndexPermutation(idx=old, fwd=perm_fwd)
 
 
 def recompile_cheart_mesh[F: np.floating, I: np.integer](
@@ -106,7 +71,7 @@ def recompile_cheart_mesh[F: np.floating, I: np.integer](
 
     """
     perm = create_index_permutation(mesh.top.v)
-    new_x = mesh.space.v[perm.inv]
+    new_x = mesh.space.v[perm.idx]
     new_t = perm.fwd[mesh.top.v]
     boundary = (
         CheartMeshBoundary(
