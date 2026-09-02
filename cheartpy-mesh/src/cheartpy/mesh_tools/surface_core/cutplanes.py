@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, TypeGuard
 import numpy as np
 from cheartpy.elem_interfaces import get_vtk_boundary_element
 from pytools.logging import get_logger
-from pytools.math import householder_orthogonal_basis
+from pytools.math import householder_orthogonal_basis, r_basis
 from pytools.result import Err, Ok, Result, all_ok
 
 from cheartpy.mesh import import_cheart_mesh
@@ -61,7 +61,7 @@ def compute_zrc_basis[F: np.floating](space: A2[F], normals: A2[F]) -> Result[A2
     return Ok(np.concatenate((z, r, c), axis=1).astype(space.dtype))
 
 
-def make_cutplane_topology[T](
+def make_cutplane_topology[T](  # noqa: C901, PLR0911
     defn: Mapping[T, TopologyDef[T]],
     planes: Sequence[T],
     new_home: Path,
@@ -98,7 +98,9 @@ def make_cutplane_topology[T](
     ):
         case Ok(bnd_normals): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
-    bnd_bases = {k: compute_householder_basis(normals) for k, normals in bnd_normals.items()}
+    match all_ok({k: r_basis(normals, flatten=True) for k, normals in bnd_normals.items()}):
+        case Ok(bnd_bases): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     match all_ok({k: compute_zrc_basis(bnd_meshes[k].space.v, bnd_normals[k]) for k in cutplanes}):
         case Ok(bnd_zrc_bases): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip

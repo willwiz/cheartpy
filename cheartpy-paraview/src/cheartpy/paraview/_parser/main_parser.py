@@ -117,7 +117,7 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
         thread=kwargs.get("thread"),
         interpreter=kwargs.get("interpreter"),
         cell_var=kwargs.get("cell_var", []),
-        point_var=kwargs.get("var", []),
+        point_var=kwargs.get("point_var", []),
     )
 
 

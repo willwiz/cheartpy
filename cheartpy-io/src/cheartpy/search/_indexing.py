@@ -83,10 +83,11 @@ def get_file_name_indexer(
     *,
     root: Path | str | None = None,
 ) -> Ok[IIndexIterator] | Err:
+    log = get_logger()
+    log.debug("Indexer arguments:", index=index, subindex=subindex, variables=variables, root=root)
     if not variables:
         return Ok(ZeroIndexer())
     if isinstance(index, SearchMode) or isinstance(subindex, SearchMode):
-        log = get_logger()
         log.info(
             f"Variable index will be determined from the first variable: {variables[0]}",
         )
