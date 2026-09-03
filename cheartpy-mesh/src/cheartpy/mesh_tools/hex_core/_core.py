@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum
-from cheartpy.vtk._struct import VTKHEXAHEDRON1, VTKQUADRILATERAL1
+from cheartpy.vtk import get_vtk_elem
 
 from cheartpy.mesh import (
     CheartMeshBoundary,
@@ -21,6 +21,9 @@ __all__ = [
     "create_space",
     "create_topology",
 ]
+
+VTKQUADRILATERAL1 = get_vtk_elem(CheartEnum.QUADRILATERAL1)
+VTKHEXAHEDRON1 = get_vtk_elem(CheartEnum.HEXAHEDRON1)
 
 
 def create_cube_nodal_index(nx: ToInt, ny: ToInt, nz: ToInt) -> A3[np.intc]:

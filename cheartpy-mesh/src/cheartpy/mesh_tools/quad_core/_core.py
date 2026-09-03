@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum
-from cheartpy.vtk._struct import VTKLINE1, VTKQUADRILATERAL1
+from cheartpy.vtk import get_vtk_elem
 
 from cheartpy.mesh import (
     CheartMesh,
@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 
 
 __all__ = ["create_square_mesh"]
+
+VTKLINE1 = get_vtk_elem(CheartEnum.LINE1)
+VTKQUADRILATERAL1 = get_vtk_elem(CheartEnum.QUADRILATERAL1)
 
 
 def create_square_nodal_index(nx: ToInt, ny: ToInt) -> A2[np.intc]:

@@ -4,7 +4,7 @@ from typing import Literal
 
 import numpy as np
 from cheartpy.fe.aliases import TopologyDef
-from cheartpy.vtk.types import VtkElem
+from cheartpy.vtk import VtkElem
 from pytools.arrays import A2
 from pytools.result import Result
 
