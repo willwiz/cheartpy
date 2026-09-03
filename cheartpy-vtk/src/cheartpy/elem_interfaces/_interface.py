@@ -1,12 +1,16 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, TypedDict, overload
 
-from ._types import AbaqusEnum, CheartEnum, GmshEnum, VtkEnum
+from ._abaqus import get_abaqus_elem_nodes
+from ._cheart import get_cheart_elem_nodes
+from ._types import AbaqusEnum, CheartEnum, ElemEnum, ElemType, GmshEnum, NodeOrder, VtkEnum
+from ._vtk import get_vtk_elem_nodes
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-type SumType = CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
-CHEART_2_VTK: Mapping[SumType, SumType] = {
+
+CHEART_2_VTK = {
+    CheartEnum.VERTEX: VtkEnum.VERTEX,
     CheartEnum.LINE1: VtkEnum.LINE1,
     CheartEnum.TRIANGLE1: VtkEnum.TRIANGLE1,
     CheartEnum.QUADRILATERAL1: VtkEnum.QUADRILATERAL1,
@@ -18,9 +22,10 @@ CHEART_2_VTK: Mapping[SumType, SumType] = {
     CheartEnum.TETRAHEDRON2: VtkEnum.TETRAHEDRON2,
     CheartEnum.HEXAHEDRON2: VtkEnum.HEXAHEDRON2,
 }
-VTK_2_CHEART: Mapping[SumType, SumType] = {v: k for k, v in CHEART_2_VTK.items()}
+VTK_2_CHEART = {v: k for k, v in CHEART_2_VTK.items()}
 
-ABAQUS_2_VTK: Mapping[SumType, SumType] = {
+ABAQUS_2_VTK = {
+    AbaqusEnum.VERTEX: VtkEnum.VERTEX,
     AbaqusEnum.S3R: VtkEnum.TRIANGLE1,
     AbaqusEnum.CPEG6: VtkEnum.TRIANGLE2,
     AbaqusEnum.LINE1: VtkEnum.LINE1,
@@ -34,8 +39,9 @@ ABAQUS_2_VTK: Mapping[SumType, SumType] = {
     AbaqusEnum.HEXAHEDRON1: VtkEnum.HEXAHEDRON1,
     AbaqusEnum.HEXAHEDRON2: VtkEnum.HEXAHEDRON2,
 }
-VTK_2_ABAQUS: Mapping[SumType, SumType] = {v: k for k, v in ABAQUS_2_VTK.items()}
-GMSH_2_VTK: Mapping[SumType, SumType] = {
+VTK_2_ABAQUS = {v: k for k, v in ABAQUS_2_VTK.items()}
+GMSH_2_VTK = {
+    GmshEnum.VERTEX: VtkEnum.VERTEX,
     GmshEnum.LINE1: VtkEnum.LINE1,
     GmshEnum.LINE2: VtkEnum.LINE2,
     GmshEnum.TRIANGLE1: VtkEnum.TRIANGLE1,
@@ -47,39 +53,196 @@ GMSH_2_VTK: Mapping[SumType, SumType] = {
     GmshEnum.HEXAHEDRON1: VtkEnum.HEXAHEDRON1,
     GmshEnum.HEXAHEDRON2: VtkEnum.HEXAHEDRON2,
 }
-VTK_2_GMSH: Mapping[SumType, SumType] = {v: k for k, v in GMSH_2_VTK.items()}
+VTK_2_GMSH = {v: k for k, v in GMSH_2_VTK.items()}
 
-ABAQUS_2_CHEART: Mapping[SumType, SumType] = {k: VTK_2_CHEART[v] for k, v in ABAQUS_2_VTK.items()}
-CHEART_2_ABAQUS: Mapping[SumType, SumType] = {v: k for k, v in ABAQUS_2_CHEART.items()}
-GMSH_2_CHEART: Mapping[SumType, SumType] = {k: VTK_2_CHEART[v] for k, v in GMSH_2_VTK.items()}
-CHEART_2_GMSH: Mapping[SumType, SumType] = {v: k for k, v in GMSH_2_CHEART.items()}
-ABAQUS_2_GMSH: Mapping[SumType, SumType] = {k: VTK_2_GMSH[v] for k, v in ABAQUS_2_VTK.items()}
-GMSH_2_ABAQUS: Mapping[SumType, SumType] = {v: k for k, v in ABAQUS_2_GMSH.items()}
+ABAQUS_2_CHEART = {k: VTK_2_CHEART[v] for k, v in ABAQUS_2_VTK.items()}
+CHEART_2_ABAQUS = {v: k for k, v in ABAQUS_2_CHEART.items()}
+GMSH_2_CHEART = {k: VTK_2_CHEART[v] for k, v in GMSH_2_VTK.items()}
+CHEART_2_GMSH = {v: k for k, v in GMSH_2_CHEART.items()}
+ABAQUS_2_GMSH = {k: VTK_2_GMSH[v] for k, v in ABAQUS_2_VTK.items()}
+GMSH_2_ABAQUS = {v: k for k, v in ABAQUS_2_GMSH.items()}
 
 
-TYPE_MAP: Mapping[type[SumType], Mapping[type[SumType], Mapping[SumType, SumType]]] = {
-    CheartEnum: {
-        VtkEnum: CHEART_2_VTK,
-        AbaqusEnum: CHEART_2_ABAQUS,
-        GmshEnum: CHEART_2_GMSH,
-    },
-    VtkEnum: {
-        CheartEnum: VTK_2_CHEART,
-        AbaqusEnum: VTK_2_ABAQUS,
-        GmshEnum: VTK_2_GMSH,
-    },
-    AbaqusEnum: {
-        CheartEnum: ABAQUS_2_CHEART,
-        VtkEnum: ABAQUS_2_VTK,
-        GmshEnum: ABAQUS_2_GMSH,
-    },
-    GmshEnum: {
-        CheartEnum: GMSH_2_CHEART,
-        VtkEnum: GMSH_2_VTK,
-        AbaqusEnum: GMSH_2_ABAQUS,
-    },
+class __CheartConverter(TypedDict, total=True):
+    Cheart: Mapping[CheartEnum, CheartEnum]
+    Vtk: Mapping[CheartEnum, VtkEnum]
+    Abaqus: Mapping[CheartEnum, AbaqusEnum]
+    Gmsh: Mapping[CheartEnum, GmshEnum]
+
+
+class __VtkConverter(TypedDict, total=True):
+    Cheart: Mapping[VtkEnum, CheartEnum]
+    Vtk: Mapping[VtkEnum, VtkEnum]
+    Abaqus: Mapping[VtkEnum, AbaqusEnum]
+    Gmsh: Mapping[VtkEnum, GmshEnum]
+
+
+class __AbaqusConverter(TypedDict, total=True):
+    Cheart: Mapping[AbaqusEnum, CheartEnum]
+    Vtk: Mapping[AbaqusEnum, VtkEnum]
+    Abaqus: Mapping[AbaqusEnum, AbaqusEnum]
+    Gmsh: Mapping[AbaqusEnum, GmshEnum]
+
+
+class __GmshConverter(TypedDict, total=True):
+    Cheart: Mapping[GmshEnum, CheartEnum]
+    Vtk: Mapping[GmshEnum, VtkEnum]
+    Abaqus: Mapping[GmshEnum, AbaqusEnum]
+    Gmsh: Mapping[GmshEnum, GmshEnum]
+
+
+class _NullConverter[T](dict[T, T]):
+    def __getitem__(self, key: T) -> T:
+        return key
+
+
+_CheartConvert: __CheartConverter = {
+    "Cheart": _NullConverter[CheartEnum](),
+    "Vtk": CHEART_2_VTK,
+    "Abaqus": CHEART_2_ABAQUS,
+    "Gmsh": CHEART_2_GMSH,
+}
+_VtkConvert: __VtkConverter = {
+    "Cheart": VTK_2_CHEART,
+    "Vtk": _NullConverter[VtkEnum](),
+    "Abaqus": VTK_2_ABAQUS,
+    "Gmsh": VTK_2_GMSH,
+}
+_AbaqusConvert: __AbaqusConverter = {
+    "Cheart": ABAQUS_2_CHEART,
+    "Vtk": ABAQUS_2_VTK,
+    "Abaqus": _NullConverter[AbaqusEnum](),
+    "Gmsh": ABAQUS_2_GMSH,
+}
+_GmshConvert: __GmshConverter = {
+    "Cheart": GMSH_2_CHEART,
+    "Vtk": GMSH_2_VTK,
+    "Abaqus": GMSH_2_ABAQUS,
+    "Gmsh": _NullConverter[GmshEnum](),
+}
+
+_Enum: Mapping[ElemType, type[ElemEnum]] = {
+    "Cheart": CheartEnum,
+    "Vtk": VtkEnum,
+    "Abaqus": AbaqusEnum,
+    "Gmsh": GmshEnum,
 }
 
 
-def convert_element_type(input_type: SumType, target: type[SumType]) -> SumType:
-    return TYPE_MAP[type(input_type)][target][input_type]
+@overload
+def convert_element_type(input_type: ElemEnum, target: Literal["Cheart"]) -> CheartEnum: ...
+@overload
+def convert_element_type(input_type: ElemEnum, target: Literal["Vtk"]) -> VtkEnum: ...
+@overload
+def convert_element_type(input_type: ElemEnum, target: Literal["Abaqus"]) -> AbaqusEnum: ...
+@overload
+def convert_element_type(input_type: ElemEnum, target: Literal["Gmsh"]) -> GmshEnum: ...
+def convert_element_type(input_type: ElemEnum, target: ElemType) -> ElemEnum:
+    """Convert an element type from one enum to another.
+
+    Parameters
+    ----------
+    input_type : CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The input element enum.
+    target : Literal["Cheart", "Vtk", "Abaqus", "Gmsh"]
+        The target element class string.
+
+    Returns
+    -------
+    CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The target enum corresponding to the target string.
+
+    """
+    match input_type:
+        case CheartEnum():
+            return _CheartConvert[target][input_type]
+        case VtkEnum():
+            return _VtkConvert[target][input_type]
+        case AbaqusEnum():
+            return _AbaqusConvert[target][input_type]
+        case GmshEnum():
+            return _GmshConvert[target][input_type]
+
+
+def get_node_order(elem: ElemEnum) -> NodeOrder:
+    """Return the node order mapping for the given element type.
+
+    Parameters
+    ----------
+    elem : CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The element type enum.
+
+    Returns
+    -------
+    Mapping[int, tuple[int, int, int]]
+        The node order mapping for the given element type.
+
+    """
+    match elem:
+        case VtkEnum():
+            return get_vtk_elem_nodes(elem)
+        case CheartEnum():
+            return get_cheart_elem_nodes(elem)
+        case AbaqusEnum():
+            return get_abaqus_elem_nodes(elem)
+        case GmshEnum():
+            return get_vtk_elem_nodes(GMSH_2_VTK[elem])
+
+
+_VtkBoundaryElement: dict[VtkEnum, VtkEnum] = {
+    VtkEnum.LINE1: VtkEnum.VERTEX,
+    VtkEnum.LINE2: VtkEnum.VERTEX,
+    VtkEnum.TRIANGLE1: VtkEnum.LINE1,
+    VtkEnum.TRIANGLE2: VtkEnum.LINE2,
+    VtkEnum.QUADRILATERAL1: VtkEnum.LINE1,
+    VtkEnum.QUADRILATERAL2: VtkEnum.LINE2,
+    VtkEnum.TETRAHEDRON1: VtkEnum.TRIANGLE1,
+    VtkEnum.TETRAHEDRON2: VtkEnum.TRIANGLE2,
+    VtkEnum.HEXAHEDRON1: VtkEnum.QUADRILATERAL1,
+    VtkEnum.HEXAHEDRON2: VtkEnum.QUADRILATERAL2,
+}
+
+
+def _get_vtk_boundary_element(elem: VtkEnum) -> VtkEnum:
+    match _VtkBoundaryElement.get(elem):
+        case None:
+            msg = f"{elem} cannot have a boundary element."
+            raise ValueError(msg)
+        case boundary_elem:
+            return boundary_elem
+
+
+def get_boundary_element[T: ElemEnum](elem: T) -> T:
+    """Return the boundary element type for the given element type.
+
+    Parameters
+    ----------
+    elem : CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The element type enum.
+
+    Returns
+    -------
+    CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The boundary element type enum.
+
+    Raises
+    ------
+    ValueError
+        If the element type does not have a boundary element.
+
+    """
+    match elem:
+        case VtkEnum():
+            return _get_vtk_boundary_element(elem)
+        case CheartEnum():
+            vtk_elem = CHEART_2_VTK[elem]
+            vtk_boundary_elem = _get_vtk_boundary_element(vtk_elem)
+            return VTK_2_CHEART[vtk_boundary_elem]
+        case AbaqusEnum():
+            vtk_elem = ABAQUS_2_VTK[elem]
+            vtk_boundary_elem = _get_vtk_boundary_element(vtk_elem)
+            return VTK_2_ABAQUS[vtk_boundary_elem]
+        case GmshEnum():
+            vtk_elem = GMSH_2_VTK[elem]
+            vtk_boundary_elem = _get_vtk_boundary_element(vtk_elem)
+            return VTK_2_GMSH[vtk_boundary_elem]

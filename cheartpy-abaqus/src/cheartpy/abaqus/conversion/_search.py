@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import get_abaqus_boundary_element
+from cheartpy.elem_interfaces import get_boundary_element
 from pytools.result import Err, Ok, Result, all_ok
 
 from ._types import ElemIntermediate, ElemSearchMap, Mask
@@ -20,9 +20,6 @@ def _compile_boundary_patch[F: np.floating, I: np.integer](
     search_map: ElemSearchMap,
     selections: Iterable[str],
 ) -> Result[ElemIntermediate[I]]:
-    if (surf_type := get_abaqus_boundary_element(top.type)) is None:
-        msg = f"Element type '{top.type}' is not supported as a boundary element."
-        return Err(ValueError(msg))
     match compile_abaqus_elements(mesh, selections):
         case Ok(elements): ...  # fmt: skip
         case Err(e):
@@ -32,7 +29,10 @@ def _compile_boundary_patch[F: np.floating, I: np.integer](
         case Err(e):
             return Err(e)
     return Ok(
-        ElemIntermediate(type=surf_type, v=dict(zip(top_id, elements.v.values(), strict=True)))
+        ElemIntermediate(
+            type=get_boundary_element(top.type),
+            v=dict(zip(top_id, elements.v.values(), strict=True)),
+        )
     )
 
 

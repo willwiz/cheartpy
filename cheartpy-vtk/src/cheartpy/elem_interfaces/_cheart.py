@@ -1,52 +1,11 @@
-from ._types import CheartEnum, NodeOrder, VtkEnum
+from ._types import CheartEnum, NodeOrder
 
-Vtk2Cheart = {
-    VtkEnum.LINE1: CheartEnum.LINE1,
-    VtkEnum.TRIANGLE1: CheartEnum.TRIANGLE1,
-    VtkEnum.QUADRILATERAL1: CheartEnum.QUADRILATERAL1,
-    VtkEnum.TETRAHEDRON1: CheartEnum.TETRAHEDRON1,
-    VtkEnum.HEXAHEDRON1: CheartEnum.HEXAHEDRON1,
-    VtkEnum.LINE2: CheartEnum.LINE2,
-    VtkEnum.TRIANGLE2: CheartEnum.TRIANGLE2,
-    VtkEnum.QUADRILATERAL2: CheartEnum.QUADRILATERAL2,
-    VtkEnum.TETRAHEDRON2: CheartEnum.TETRAHEDRON2,
-    VtkEnum.HEXAHEDRON2: CheartEnum.HEXAHEDRON2,
-}
-Cheart2Vtk = {v: k for k, v in Vtk2Cheart.items()}
-
-
-def get_cheart_elem_from_vtk(elem: VtkEnum) -> CheartEnum | None:
-    return Vtk2Cheart.get(elem)
-
-
-LINE1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-}
-LINE2 = {
-    0: (0, 0, 0),
-    1: (2, 0, 0),
-    2: (1, 0, 0),
-}
-TRI1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-    2: (0, 1, 0),
-}
-TRI2 = {
-    0: (0, 0, 0),
-    1: (2, 0, 0),
-    2: (0, 2, 0),
-    3: (1, 0, 0),
-    4: (0, 1, 0),
-    5: (1, 1, 0),
-}
-QUAD1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-    2: (0, 1, 0),
-    3: (1, 1, 0),
-}
+VERTEX = {0: (0, 0, 0)}
+LINE1 = {0: (0, 0, 0), 1: (1, 0, 0)}
+LINE2 = {0: (0, 0, 0), 1: (2, 0, 0), 2: (1, 0, 0)}
+TRI1 = {0: (0, 0, 0), 1: (1, 0, 0), 2: (0, 1, 0)}
+TRI2 = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (1, 0, 0), 4: (0, 1, 0), 5: (1, 1, 0)}
+QUAD1 = {0: (0, 0, 0), 1: (1, 0, 0), 2: (0, 1, 0), 3: (1, 1, 0)}
 QUAD2 = {
     0: (0, 0, 0),
     1: (2, 0, 0),
@@ -58,12 +17,7 @@ QUAD2 = {
     7: (2, 1, 0),
     8: (1, 2, 0),
 }
-TET1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-    2: (0, 1, 0),
-    3: (0, 0, 1),
-}
+TET1 = {0: (0, 0, 0), 1: (1, 0, 0), 2: (0, 1, 0), 3: (0, 0, 1)}
 TET2 = {
     0: (0, 0, 0),
     1: (2, 0, 0),
@@ -116,14 +70,8 @@ HEX2 = {
     26: (1, 2, 2),
 }
 
-NODE_DEFAULT = {0: (0, 0, 0)}
-
 ELEMEMT_ORDER = {
-    CheartEnum.LINE0: NODE_DEFAULT,
-    CheartEnum.TRIANGLE0: NODE_DEFAULT,
-    CheartEnum.QUADRILATERAL0: NODE_DEFAULT,
-    CheartEnum.TETRAHEDRON0: NODE_DEFAULT,
-    CheartEnum.HEXAHEDRON0: NODE_DEFAULT,
+    CheartEnum.VERTEX: VERTEX,
     CheartEnum.LINE1: LINE1,
     CheartEnum.LINE2: LINE2,
     CheartEnum.TRIANGLE1: TRI1,

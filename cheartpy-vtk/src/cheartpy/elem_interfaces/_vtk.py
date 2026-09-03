@@ -3,6 +3,7 @@ from pytools.result import Err, Ok, Result
 from ._types import CheartEnum, NodeOrder, VtkElemShape, VtkEnum
 
 _Vtk2Cheart = {
+    VtkEnum.VERTEX: CheartEnum.VERTEX,
     VtkEnum.LINE1: CheartEnum.LINE1,
     VtkEnum.TRIANGLE1: CheartEnum.TRIANGLE1,
     VtkEnum.QUADRILATERAL1: CheartEnum.QUADRILATERAL1,
@@ -107,34 +108,12 @@ def get_vtkelem_with_polyorder(elem: VtkEnum, order: int) -> VtkEnum | None:
     return _VtkEnumCategory.get((elem.value.shape, order))
 
 
-LINE1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-}
-LINE2 = {
-    0: (0, 0, 0),
-    1: (2, 0, 0),
-    2: (1, 0, 0),
-}
-TRI1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-    2: (0, 1, 0),
-}
-TRI2 = {
-    0: (0, 0, 0),
-    1: (2, 0, 0),
-    2: (0, 2, 0),
-    3: (1, 0, 0),
-    4: (1, 1, 0),
-    5: (0, 1, 0),
-}
-QUAD1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-    2: (1, 1, 0),
-    3: (0, 1, 0),
-}
+VERTEX = {0: (0, 0, 0)}
+LINE1 = {0: (0, 0, 0), 1: (1, 0, 0)}
+LINE2 = {0: (0, 0, 0), 1: (2, 0, 0), 2: (1, 0, 0)}
+TRI1 = {0: (0, 0, 0), 1: (1, 0, 0), 2: (0, 1, 0)}
+TRI2 = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (1, 0, 0), 4: (1, 1, 0), 5: (0, 1, 0)}
+QUAD1 = {0: (0, 0, 0), 1: (1, 0, 0), 2: (1, 1, 0), 3: (0, 1, 0)}
 QUAD2 = {
     0: (0, 0, 0),
     1: (2, 0, 0),
@@ -146,12 +125,7 @@ QUAD2 = {
     7: (0, 1, 0),
     8: (1, 1, 0),
 }
-TET1 = {
-    0: (0, 0, 0),
-    1: (1, 0, 0),
-    2: (0, 1, 0),
-    3: (0, 0, 1),
-}
+TET1 = {0: (0, 0, 0), 1: (1, 0, 0), 2: (0, 1, 0), 3: (0, 0, 1)}
 TET2 = {
     0: (0, 0, 0),
     1: (2, 0, 0),
@@ -206,7 +180,8 @@ HEX2 = {
 }
 
 
-VTK_ELEMENT_NODES: dict[VtkEnum, dict[int, tuple[int, int, int]]] = {
+VTK_ELEMENT_NODES = {
+    VtkEnum.VERTEX: VERTEX,
     VtkEnum.LINE1: LINE1,
     VtkEnum.LINE2: LINE2,
     VtkEnum.TRIANGLE1: TRI1,

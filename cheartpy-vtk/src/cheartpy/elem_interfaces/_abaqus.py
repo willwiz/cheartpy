@@ -84,6 +84,7 @@ def get_cheart_order_for_abaqus(elem: AbaqusEnum) -> tuple[int, ...]:
     return _Abaqus2CheartNodeOrder[elem]
 
 
+VERTEX = {0: (0, 0, 0)}
 S3R = {0: (0, 0, 0), 1: (1, 0, 0), 2: (0, 1, 0)}
 CPEG6 = {0: (0, 0, 0), 1: (2, 0, 0), 2: (0, 2, 0), 3: (1, 0, 0), 4: (1, 1, 0), 5: (0, 1, 0)}
 T3D2 = {0: (0, 0, 0), 1: (1, 0, 0)}
@@ -156,6 +157,7 @@ C3D27 = {
 }
 
 ELEMENT_ORDER = {
+    AbaqusEnum.VERTEX: VERTEX,
     AbaqusEnum.S3R: S3R,
     AbaqusEnum.CPEG6: CPEG6,
     AbaqusEnum.LINE1: T3D2,
@@ -171,5 +173,5 @@ ELEMENT_ORDER = {
 }
 
 
-def get_abaqus_element_order(elem: AbaqusEnum) -> NodeOrder:
+def get_abaqus_elem_nodes(elem: AbaqusEnum) -> NodeOrder:
     return ELEMENT_ORDER[elem]

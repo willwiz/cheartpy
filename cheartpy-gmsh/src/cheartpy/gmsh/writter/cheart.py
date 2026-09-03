@@ -4,7 +4,11 @@ from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
-from cheartpy.elem_interfaces import Gmsh2Vtk, GmshEnum, Vtk2CheartNodeOrder
+from cheartpy.elem_interfaces import (
+    GmshEnum,
+    convert_element_type,
+    get_node_permutation,
+)
 from cheartpy.gmsh.tools import (
     build_element_searchmap,
     find_elem_for_boundary,
@@ -148,12 +152,12 @@ def convert_gmsh_space_to_cheart[F: np.floating = np.float64, I: np.integer = np
 def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
     top: GmshElements[I], *, dtype: DType[I] = np.intp
 ) -> CheartMeshTopology[I]:
-    vtk_type = Gmsh2Vtk[top.type]
-    reorder = Vtk2CheartNodeOrder[vtk_type]
-    print(f"Vtk type: {vtk_type}, reorder: {reorder}")
+    vtk_type = convert_element_type(top.type, "Vtk")
+    perm = get_node_permutation(top.type, "Cheart")
+    print(f"Vtk type: {vtk_type}, reorder: {perm}")
     return CheartMeshTopology(
         n=len(top.conn),
-        v=np.ascontiguousarray(top.conn[:, reorder] - 1, dtype=dtype),
+        v=np.ascontiguousarray(top.conn[:, perm] - 1, dtype=dtype),
         TYPE=vtk_type,
     )
 
@@ -161,12 +165,12 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
 def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
     bnd: GmshBoundaries[I], tag: int, vtk_type: VtkEnum, *, dtype: DType[I] = np.intp
 ) -> CheartMeshPatch[I]:
-    reorder = Vtk2CheartNodeOrder[vtk_type]
+    perm = get_node_permutation(bnd.type, "Cheart")
     return CheartMeshPatch(
         tag=tag,
         n=len(bnd.e),
         k=bnd.e - 1,
-        v=np.ascontiguousarray(bnd.conn[:, reorder] - 1, dtype=dtype),
+        v=np.ascontiguousarray(bnd.conn[:, perm] - 1, dtype=dtype),
         TYPE=vtk_type,
     )
 
@@ -174,7 +178,7 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
 def convert_gmsh_bnd_to_cheart[I: np.integer = np.intp](
     boundary: Mapping[int, GmshBoundaries[I]], dtype: DType[I] = np.intp
 ) -> CheartMeshBoundary[I]:
-    vtk_types = {Gmsh2Vtk[b.type] for b in boundary.values()}
+    vtk_types = {convert_element_type(b.type, "Vtk") for b in boundary.values()}
     if len(vtk_types) != 1:
         msg = f"All boundaries must have the same type, found: {vtk_types}."
         raise ValueError(msg)

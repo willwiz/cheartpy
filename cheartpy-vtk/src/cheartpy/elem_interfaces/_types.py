@@ -2,12 +2,16 @@ import enum
 from collections.abc import Mapping
 from typing import Literal, NamedTuple
 
-type NodeOrder = Mapping[int, tuple[int, ...]]
-type VtkElemShape = Literal["Line", "Triangle", "Quadrilateral", "Tetrahedron", "Hexahedron"]
+type NodeOrder = Mapping[int, tuple[int, int, int]]
+type VtkElemShape = Literal[
+    "Vertex", "Line", "Triangle", "Quadrilateral", "Tetrahedron", "Hexahedron"
+]
+
+type ElemType = Literal["Cheart", "Vtk", "Abaqus", "Gmsh"]
+type ElemEnum = CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
 
 
 class _VtkElem(NamedTuple):
-    name: str
     enum: str
     shape: VtkElemShape
     order: int
@@ -33,27 +37,22 @@ type VtkElemType = Literal[
 ]
 
 
-class VtkEnum(enum.Enum):
-    LINE1 = _VtkElem("vtkLine", "VTK_LINE", "Line", 1, 3)
-    TRIANGLE1 = _VtkElem("vtkTriangle", "VTK_TRIANGLE", "Triangle", 1, 5)
-    QUADRILATERAL1 = _VtkElem("vtkQuad", "VTK_QUAD", "Quadrilateral", 1, 9)
-    TETRAHEDRON1 = _VtkElem("vtkTetra", "VTK_TETRA", "Tetrahedron", 1, 10)
-    HEXAHEDRON1 = _VtkElem("vtkHexahedron", "VTK_HEXAHEDRON", "Hexahedron", 1, 12)
-    LINE2 = _VtkElem("vtkQuadraticEdge", "VTK_QUADRATIC_EDGE", "Line", 2, 21)
-    TRIANGLE2 = _VtkElem("VtkQuadraticTriangle", "VTK_QUADRATIC_TRIANGLE", "Triangle", 2, 22)
-    QUADRILATERAL2 = _VtkElem("VtkBiquadraticQuad", "VTK_BIQUADRATIC_QUAD", "Quadrilateral", 2, 28)
-    TETRAHEDRON2 = _VtkElem("VtkQuadraticTetra", "VTK_QUADRATIC_TETRA", "Tetrahedron", 2, 24)
-    HEXAHEDRON2 = _VtkElem(
-        "VtkQuadraticHexahedron", "VTK_QUADRATIC_HEXAHEDRON", "Hexahedron", 2, 29
-    )
+class VtkEnum(_VtkElem, enum.Enum):
+    VERTEX = ("VTK_VERTEX", "Vertex", 0, 1)
+    LINE1 = ("VTK_LINE", "Line", 1, 3)
+    TRIANGLE1 = ("VTK_TRIANGLE", "Triangle", 1, 5)
+    QUADRILATERAL1 = ("VTK_QUAD", "Quadrilateral", 1, 9)
+    TETRAHEDRON1 = ("VTK_TETRA", "Tetrahedron", 1, 10)
+    HEXAHEDRON1 = ("VTK_HEXAHEDRON", "Hexahedron", 1, 12)
+    LINE2 = ("VTK_QUADRATIC_EDGE", "Line", 2, 21)
+    TRIANGLE2 = ("VTK_QUADRATIC_TRIANGLE", "Triangle", 2, 22)
+    QUADRILATERAL2 = ("VTK_BIQUADRATIC_QUAD", "Quadrilateral", 2, 28)
+    TETRAHEDRON2 = ("VTK_QUADRATIC_TETRA", "Tetrahedron", 2, 24)
+    HEXAHEDRON2 = ("VTK_QUADRATIC_HEXAHEDRON", "Hexahedron", 2, 29)
 
 
 class CheartEnum(enum.Enum):
-    LINE0 = enum.auto()
-    TRIANGLE0 = enum.auto()
-    QUADRILATERAL0 = enum.auto()
-    TETRAHEDRON0 = enum.auto()
-    HEXAHEDRON0 = enum.auto()
+    VERTEX = enum.auto()
     LINE1 = enum.auto()
     TRIANGLE1 = enum.auto()
     QUADRILATERAL1 = enum.auto()
@@ -67,6 +66,7 @@ class CheartEnum(enum.Enum):
 
 
 class AbaqusEnum(enum.StrEnum):
+    VERTEX = "NODE"  # 1-node point element
     S3R = "S3R"  # 3-node linear shell element with reduced integration
     CPEG6 = "CPEG6"  # 6-node quadratic plane strain element
     LINE1 = "T3D2"  # 2-node linear 3D truss element
@@ -82,6 +82,7 @@ class AbaqusEnum(enum.StrEnum):
 
 
 class GmshEnum(enum.IntEnum):
+    VERTEX = 15
     LINE1 = 1
     TRIANGLE1 = 2
     QUADRILATERAL1 = 3

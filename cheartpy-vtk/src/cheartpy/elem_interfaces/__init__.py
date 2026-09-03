@@ -5,19 +5,20 @@ from ._abaqus import (
     get_cheart_order_for_abaqus,
     get_vtk_element_for_abaqus,
 )
-from ._cheart import get_cheart_elem_from_vtk, get_cheart_elem_nodes
-from ._gmsh import Gmsh2Vtk, Vtk2Gmsh, get_gmsh_elem_from_vtk, get_vtk_elem_from_gmsh
-from ._interface import convert_element_type
-from ._remapping import Cheart2VtkNodeOrder, Vtk2CheartNodeOrder
+from ._interface import convert_element_type, get_boundary_element, get_node_order
+from ._remapping import get_node_permutation
 from ._types import (
     AbaqusEnum,
     CheartEnum,
+    ElemEnum,
+    ElemType,
     GmshEnum,
+    NodeOrder,
+    VtkElemShape,
     VtkElemType,
     VtkEnum,
 )
 from ._vtk import (
-    get_cheart_order_for_vtk,
     get_vtk_boundary_element,
     get_vtk_elem_nodes,
     get_vtkelem_with_polyorder,
@@ -26,28 +27,23 @@ from ._vtk import (
 
 __all__ = [
     "AbaqusEnum",
-    "Cheart2VtkNodeOrder",
     "CheartEnum",
-    "Gmsh2Vtk",
+    "ElemEnum",
+    "ElemType",
     "GmshEnum",
-    "Vtk2CheartNodeOrder",
-    "Vtk2Gmsh",
+    "NodeOrder",
+    "VtkElemShape",
     "VtkElemType",
     "VtkEnum",
     "convert_element_type",
     "get_abaqus_boundary_element",
     "get_abaqus_elem_from_vtk",
-    "get_cheart_elem_from_vtk",
-    "get_cheart_elem_nodes",
+    "get_boundary_element",
     "get_cheart_element_for_abaqus",
     "get_cheart_order_for_abaqus",
-    "get_cheart_order_for_vtk",
-    "get_cheart_order_for_vtk",
-    "get_gmsh_elem_from_vtk",
-    "get_gmsh_elem_from_vtk",
+    "get_node_order",
+    "get_node_permutation",
     "get_vtk_boundary_element",
-    "get_vtk_elem_from_gmsh",
-    "get_vtk_elem_from_gmsh",
     "get_vtk_elem_nodes",
     "get_vtk_element_for_abaqus",
     "get_vtkelem_with_polyorder",
