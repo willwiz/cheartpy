@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import get_cheart_order_for_abaqus, get_vtk_element_for_abaqus
+from cheartpy.elem_interfaces import convert_element_type, get_node_permutation
 from cheartpy.mesh import (
     CheartMeshBoundary,
     CheartMeshPatch,
@@ -35,15 +35,10 @@ def create_mesh_topology[I: np.integer](
     nmap: IndexUpdateMap,
 ) -> Result[CheartMeshTopology[I]]:
     dtype = next(iter(top.v.values())).dtype
-    if (kind := get_vtk_element_for_abaqus(top.type)) is None:
-        msg = f"Element type '{top.type}' is not supported."
-        return Err(ValueError(msg))
-    order = get_cheart_order_for_abaqus(top.type)
-    if len(order) != len(next(iter(top.v.values()))):
-        msg = f"Element type '{top.type}' has an unexpected number of nodes."
-        return Err(ValueError(msg))
-    data = np.array([[nmap[e[n]] for n in order] for e in top.v.values()], dtype=dtype)
-    return Ok(CheartMeshTopology(n=len(data), v=np.ascontiguousarray(data), TYPE=kind))
+    kind = convert_element_type(top.type, "Vtk")
+    perm = get_node_permutation(top.type, "Cheart")
+    data = np.ascontiguousarray([[nmap[i] for i in e] for e in top.v.values()], dtype=dtype)
+    return Ok(CheartMeshTopology(n=len(data), v=data[:, perm], TYPE=kind))
 
 
 def create_mesh_boundary_patch[I: np.integer](
@@ -54,15 +49,10 @@ def create_mesh_boundary_patch[I: np.integer](
 ) -> Result[CheartMeshPatch[I]]:
     dtype = next(iter(top.v.values())).dtype
     elems = np.ascontiguousarray(list(bc_patch.v.keys()), dtype=dtype)
-    if (kind := get_vtk_element_for_abaqus(bc_patch.type)) is None:
-        msg = f"Boundary type '{top.type}' is not supported."
-        return Err(ValueError(msg))
-    order = get_cheart_order_for_abaqus(bc_patch.type)
-    if len(order) != len(next(iter(bc_patch.v.values()))):
-        msg = f"Boundary type '{top.type}' has an unexpected number of nodes."
-        return Err(ValueError(msg))
-    data = np.array([[nmap[p[n]] for n in order] for p in bc_patch.v.values()], dtype=dtype)
-    return Ok(CheartMeshPatch(tag=tag, n=len(data), k=elems, v=data, TYPE=kind))
+    kind = convert_element_type(bc_patch.type, "Vtk")
+    perm = get_node_permutation(bc_patch.type, "Cheart")
+    data = np.array([[nmap[i] for i in p] for p in bc_patch.v.values()], dtype=dtype)
+    return Ok(CheartMeshPatch(tag=tag, n=len(data), k=elems, v=data[:, perm], TYPE=kind))
 
 
 def create_mesh_boundary[I: np.integer](

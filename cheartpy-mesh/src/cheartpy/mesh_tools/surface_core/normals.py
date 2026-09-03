@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import get_vtk_boundary_element
+from cheartpy.elem_interfaces import get_boundary_element
 from cheartpy.vtk.api import get_vtk_elem
 from numpy.linalg import lstsq
 from pytools.logging import get_logger
@@ -122,7 +122,7 @@ def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
 
 
 def is_nonzero[F: np.floating](vec: A1[F]) -> bool:
-    return np.linalg.norm(vec) > 0.0
+    return bool(np.linalg.norm(vec) > 0.0)
 
 
 def orient_normals_as_outward[F: np.floating, I: np.integer](
@@ -134,35 +134,29 @@ def orient_normals_as_outward[F: np.floating, I: np.integer](
     if in_surf not in mesh.bnd.v:
         msg = f"Surface {in_surf} not found"
         return Err(ValueError(msg))
-    surf_elem = get_vtk_boundary_element(mesh.top.TYPE)
-    if surf_elem is None:
-        msg = f"Unsupported mesh type: {mesh.top.TYPE}"
-        return Err(ValueError(msg))
     bnd_elem = {k: mesh.top.v[k] for k in mesh.bnd.v[in_surf].k}
     bnd_elem_centroids = {k: mesh.space.v[elem].mean(axis=0) for k, elem in bnd_elem.items()}
     bnd_patch_outer = {
         k: {b: mesh.space.v[b] - bnd_elem_centroids[k] for b in bnd}
         for k, bnd in zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
     }
-    for k, v in bnd_elem_centroids.items():
-        if not is_nonzero(v):
-            msg_0 = f"Boundary patch {k} centroid is degenerate."
-            raise ValueError(msg_0)
     for k, v in bnd_patch_outer.items():
         for b, n in v.items():
             if not is_nonzero(n):
                 msg_0 = f"Boundary patch {k} {b} = {n} is degenerate."
-                print(msg_0)
-
+                return Err(ValueError(msg_0))
+    degenerate_normals = {
+        k: {b: n for b, n in v.items() if not is_nonzero(n)} for k, v in bnd_patch_outer.items()
+    }
+    if any(degenerate_normals.values()):
+        log = get_logger()
+        log.error(degenerate_normals)
+        msg_1 = f"Boundary patches have {len(degenerate_normals)} degenerate normals"
+        return Err(ValueError(msg_1))
     fix_direction = {
         k: {b: np.sign(n.dot(bnd_patch_outer[k][b])) * n for b, n in surf.items()}
         for k, surf in normals.items()
     }
-    for k, v in fix_direction.items():
-        for b, n in v.items():
-            if not is_nonzero(n):
-                msg_0 = f"Boundary patch {k} {b} reoriented normal = {n} is degenerate."
-                raise ValueError(msg_0)
     return Ok(fix_direction)
 
 
@@ -197,10 +191,7 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     if in_surf not in mesh.bnd.v:
         msg = f"Surface {in_surf} not found"
         return Err(ValueError(msg))
-    surf_elem = get_vtk_boundary_element(mesh.top.TYPE)
-    if surf_elem is None:
-        msg = f"Unsupported mesh type: {mesh.top.TYPE}"
-        return Err(ValueError(msg))
+    surf_elem = get_boundary_element(mesh.top.TYPE)
     vtkelem = get_vtk_elem(surf_elem)
     interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
     bnd_patches: dict[I, A1[I]] = dict(

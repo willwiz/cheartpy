@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from cheartpy.elem_interfaces import (
     VtkEnum,
-    get_vtk_boundary_element,
-    guess_vtk_elem_from_dim,
+    get_boundary_element,
+    guess_element_from_dim,
 )
 from cheartpy.io import fix_ch_sfx
 from pytools.result import Err, Ok, Result
@@ -48,11 +48,11 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
     el_dim = top.shape[1]
     b_dim = None if bnd is None else bnd.shape[1] - 2
     if elem is None:
-        match guess_vtk_elem_from_dim(el_dim, b_dim):
+        match guess_element_from_dim(el_dim, b_dim, "Vtk"):
             case Ok(elem): ...  # fmt: skip
             case Err(e):
                 return Err(e)
-    boundary_type = get_vtk_boundary_element(elem)
+    boundary_type = get_boundary_element(elem)
     topology = CheartMeshTopology(len(top), top - 1, elem)
     boundary = _create_cheart_mesh_surf_from_raw(bnd, boundary_type)
     return Ok(CheartMesh(CheartMeshSpace(len(space), space), topology, boundary))

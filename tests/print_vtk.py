@@ -1,12 +1,6 @@
 from pprint import pprint
 
-from cheartpy.elem_interfaces import (
-    CheartEnum,
-    VtkEnum,
-    get_cheart_elem_nodes,
-    get_node_permutation,
-    get_vtk_elem_nodes,
-)
+from cheartpy.elem_interfaces import CheartEnum, VtkEnum, get_node_order, get_node_permutation
 
 
 def compute_node_mapping(vtk_elem: VtkEnum, cheart_elem: CheartEnum) -> dict[int, int]:
@@ -17,11 +11,12 @@ def compute_node_mapping(vtk_elem: VtkEnum, cheart_elem: CheartEnum) -> dict[int
         cheart_elem (CheartEnum): The Cheart element type.
 
     Returns:
-        list[int]: A list of indices representing the mapping from VTK node order to Cheart node order.
+        list[int]: A list of indices representing the mapping from VTK node order to Cheart node
+        order.
 
     """
-    vtk_nodes = get_vtk_elem_nodes(vtk_elem)
-    cheart_nodes = get_cheart_elem_nodes(cheart_elem)
+    vtk_nodes = get_node_order(vtk_elem)
+    cheart_nodes = get_node_order(cheart_elem)
 
     if len(vtk_nodes) != len(cheart_nodes):
         msg = "VTK and Cheart elements must have the same number of nodes."

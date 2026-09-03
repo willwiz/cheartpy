@@ -1,8 +1,19 @@
+from collections.abc import Mapping
 from typing import TYPE_CHECKING, Literal, TypedDict, overload
+
+from pytools.result import Err, Ok, Result
 
 from ._abaqus import get_abaqus_elem_nodes
 from ._cheart import get_cheart_elem_nodes
-from ._types import AbaqusEnum, CheartEnum, ElemEnum, ElemType, GmshEnum, NodeOrder, VtkEnum
+from ._types import (
+    AbaqusEnum,
+    CheartEnum,
+    ElemEnum,
+    ElemType,
+    GmshEnum,
+    NodeOrder,
+    VtkEnum,
+)
 from ._vtk import get_vtk_elem_nodes
 
 if TYPE_CHECKING:
@@ -246,3 +257,60 @@ def get_boundary_element[T: ElemEnum](elem: T) -> T:
             vtk_elem = GMSH_2_VTK[elem]
             vtk_boundary_elem = _get_vtk_boundary_element(vtk_elem)
             return VTK_2_GMSH[vtk_boundary_elem]
+
+
+_DIM_TO_VTK_ELEM: Mapping[tuple[int, int | None], VtkEnum | None] = {
+    (3, 2): VtkEnum.TRIANGLE1,
+    (3, None): VtkEnum.TRIANGLE1,
+    (6, 3): VtkEnum.TRIANGLE2,
+    (6, None): VtkEnum.TRIANGLE2,
+    (4, 2): VtkEnum.QUADRILATERAL1,
+    (4, None): None,
+    (9, 3): VtkEnum.QUADRILATERAL2,
+    (9, None): VtkEnum.QUADRILATERAL2,
+    (4, 3): VtkEnum.TETRAHEDRON1,
+    (10, 6): VtkEnum.TETRAHEDRON2,
+    (10, None): VtkEnum.TETRAHEDRON2,
+    (8, 4): VtkEnum.HEXAHEDRON1,
+    (8, None): VtkEnum.HEXAHEDRON1,
+    (27, 9): VtkEnum.HEXAHEDRON2,
+    (27, None): VtkEnum.HEXAHEDRON2,
+}
+
+_ERR_MSG = {
+    4: "(size = 4) Cannot distinguish linear quadrilateral and linear tets, need boundary dim",
+}
+
+
+@overload
+def guess_element_from_dim(
+    edim: int, bdim: int | None, target: Literal["Gmsh"]
+) -> Result[GmshEnum]: ...
+@overload
+def guess_element_from_dim(
+    edim: int, bdim: int | None, target: Literal["Abaqus"]
+) -> Result[AbaqusEnum]: ...
+@overload
+def guess_element_from_dim(
+    edim: int, bdim: int | None, target: Literal["Vtk"]
+) -> Result[VtkEnum]: ...
+@overload
+def guess_element_from_dim(
+    edim: int, bdim: int | None, target: Literal["Cheart"]
+) -> Result[CheartEnum]: ...
+def guess_element_from_dim(edim: int, bdim: int | None, target: ElemType) -> Result[ElemEnum]:
+    match _DIM_TO_VTK_ELEM.get((edim, bdim)):
+        case VtkEnum() as vtk_type:
+            ...
+        case None:
+            msg = _ERR_MSG.get(edim, f"Unsupported element dimensions: edim={edim}, bdim={bdim}")
+            return Err(ValueError(msg))
+    match target:
+        case "Abaqus":
+            return Ok(convert_element_type(vtk_type, "Abaqus"))
+        case "Cheart":
+            return Ok(convert_element_type(vtk_type, "Cheart"))
+        case "Gmsh":
+            return Ok(convert_element_type(vtk_type, "Gmsh"))
+        case "Vtk":
+            return Ok(vtk_type)

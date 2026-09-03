@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, TypeGuard
 
 import numpy as np
-from cheartpy.elem_interfaces import get_vtk_boundary_element
 from pytools.logging import get_logger
 from pytools.math import householder_orthogonal_basis, r_basis
 from pytools.result import Err, Ok, Result, all_ok
@@ -83,10 +82,6 @@ def make_cutplane_topology[T](  # noqa: C901, PLR0911
         case Err(e): return Err(e)  # fmt: skip
     if master_mesh.bnd is None:
         msg = f"Master mesh {master} has no boundary"
-        return Err(ValueError(msg))
-    bnd_type = get_vtk_boundary_element(master_mesh.bnd.TYPE)
-    if bnd_type is None:
-        msg = f"Unsupported boundary type {master_mesh.bnd.TYPE}"
         return Err(ValueError(msg))
     match all_ok(
         {k: create_mesh_from_surface(master_mesh, pln["bnd"]) for k, pln in cutplanes.items()}
