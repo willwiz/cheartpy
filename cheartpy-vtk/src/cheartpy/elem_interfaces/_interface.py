@@ -12,6 +12,7 @@ from ._types import (
     ElemType,
     GmshEnum,
     NodeOrder,
+    VtkElemShape,
     VtkEnum,
 )
 from ._vtk import get_vtk_elem_nodes
@@ -314,3 +315,103 @@ def guess_element_from_dim(edim: int, bdim: int | None, target: ElemType) -> Res
             return Ok(convert_element_type(vtk_type, "Gmsh"))
         case "Vtk":
             return Ok(vtk_type)
+
+
+_VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
+    ("Line", 1): VtkEnum.LINE1,
+    ("Triangle", 1): VtkEnum.TRIANGLE1,
+    ("Quadrilateral", 1): VtkEnum.QUADRILATERAL1,
+    ("Tetrahedron", 1): VtkEnum.TETRAHEDRON1,
+    ("Hexahedron", 1): VtkEnum.HEXAHEDRON1,
+    ("Line", 2): VtkEnum.LINE2,
+    ("Triangle", 2): VtkEnum.TRIANGLE2,
+    ("Quadrilateral", 2): VtkEnum.QUADRILATERAL2,
+    ("Tetrahedron", 2): VtkEnum.TETRAHEDRON2,
+    ("Hexahedron", 2): VtkEnum.HEXAHEDRON2,
+}
+
+
+def get_element_enum_from_polyorder(
+    elem: VtkElemShape, order: int, target: ElemType
+) -> Result[ElemEnum]:
+    """Get the element enum from the element shape and polynomial order.
+
+    Parameters
+    ----------
+    elem : VtkElemShape
+        The element shape.
+    order : int
+        The polynomial order.
+    target : Literal["Cheart", "Vtk", "Abaqus", "Gmsh"]
+        The target element class string.
+
+    Returns
+    -------
+    Result[CheartEnum] | Result[VtkEnum] | Result[AbaqusEnum] | Result[GmshEnum]
+        The element enum corresponding to the target string.
+
+    """
+    match _VtkEnumCategory.get((elem, order)):
+        case VtkEnum() as vtk_elem: ...  # fmt: skip
+        case None:
+            msg = f"Unsupported element shape and polynomial order: elem={elem}, order={order}"
+            return Err(ValueError(msg))
+    match target:
+        case "Cheart":
+            return Ok(convert_element_type(vtk_elem, "Cheart"))
+        case "Vtk":
+            return Ok(vtk_elem)
+        case "Abaqus":
+            return Ok(convert_element_type(vtk_elem, "Abaqus"))
+        case "Gmsh":
+            return Ok(convert_element_type(vtk_elem, "Gmsh"))
+
+
+def get_element_shape(elem: ElemEnum) -> VtkElemShape:
+    """Get the element shape from the element enum.
+
+    Parameters
+    ----------
+    elem : CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The element type enum.
+
+    Returns
+    -------
+    VtkElemShape
+        The element shape.
+
+    """
+    match elem:
+        case VtkEnum():
+            return elem.shape
+        case CheartEnum():
+            return CHEART_2_VTK[elem].shape
+        case AbaqusEnum():
+            return ABAQUS_2_VTK[elem].shape
+        case GmshEnum():
+            return GMSH_2_VTK[elem].shape
+
+
+def get_element_order(elem: ElemEnum) -> int:
+    """Get the polynomial order from the element enum.
+
+    Parameters
+    ----------
+    elem : CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+        The element type enum.
+
+    Returns
+    -------
+    int
+        The polynomial order.
+
+    """
+    match elem:
+        case VtkEnum():
+            return elem.order
+        case CheartEnum():
+            return CHEART_2_VTK[elem].order
+        case AbaqusEnum():
+            return ABAQUS_2_VTK[elem].order
+        case GmshEnum():
+            return GMSH_2_VTK[elem].order

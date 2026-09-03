@@ -1,26 +1,4 @@
-from ._types import (
-    NodeOrder,
-    VtkElemShape,
-    VtkEnum,
-)
-
-_VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
-    ("Line", 1): VtkEnum.LINE1,
-    ("Triangle", 1): VtkEnum.TRIANGLE1,
-    ("Quadrilateral", 1): VtkEnum.QUADRILATERAL1,
-    ("Tetrahedron", 1): VtkEnum.TETRAHEDRON1,
-    ("Hexahedron", 1): VtkEnum.HEXAHEDRON1,
-    ("Line", 2): VtkEnum.LINE2,
-    ("Triangle", 2): VtkEnum.TRIANGLE2,
-    ("Quadrilateral", 2): VtkEnum.QUADRILATERAL2,
-    ("Tetrahedron", 2): VtkEnum.TETRAHEDRON2,
-    ("Hexahedron", 2): VtkEnum.HEXAHEDRON2,
-}
-
-
-def get_vtkelem_with_polyorder(elem: VtkEnum, order: int) -> VtkEnum | None:
-    return _VtkEnumCategory.get((elem.value.shape, order))
-
+from ._types import NodeOrder, VtkEnum
 
 _VERTEX = {0: (0, 0, 0)}
 _LINE1 = {0: (0, 0, 0), 1: (1, 0, 0)}
