@@ -7,10 +7,9 @@ from typing import TYPE_CHECKING, Protocol, Unpack
 
 import numpy as np
 from cheartpy.elem_interfaces import (
-    Cheart2VtkNodeOrder,
     GmshEnum,
-    Vtk2Gmsh,
-    get_cheart_elem_from_vtk,
+    convert_element_type,
+    get_node_permutation,
 )
 from cheartpy.gmsh.tools import GmshBoundaryType
 from cheartpy.gmsh.types import Entity, GmshMeshTags, Tag
@@ -56,27 +55,19 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
     gmsh.model.mesh.add_nodes(
         dim=dim, tag=tag, nodeTags=node_tags, coord=mesh.volume.space.v.flatten()
     )
-    vol_elem = Vtk2Gmsh[mesh.volume.top.TYPE]
-    cheart_elem = get_cheart_elem_from_vtk(mesh.volume.top.TYPE)
-    if cheart_elem is None:
-        msg = f"Unsupported element type: {mesh.volume.top.TYPE}"
-        raise ValueError(msg)
-    element_reorder = Cheart2VtkNodeOrder[cheart_elem]
-    print("Reordering element nodes for Gmsh compatibility with : ", element_reorder)
-    connectivity = np.ascontiguousarray(mesh.volume.top.v[:, element_reorder] + 1)
+    vol_elem = convert_element_type(mesh.volume.top.TYPE, "Gmsh")
+    perm = get_node_permutation(mesh.volume.top.TYPE, "Gmsh")
+    print("Reordering element nodes for Gmsh compatibility with : ", perm)
+    connectivity = np.ascontiguousarray(mesh.volume.top.v[:, perm] + 1)
     return GmshTopInfo(tag, node_tags, elem_tags, connectivity, vol_elem.value, dim)
 
 
 def add_boundary_to_gmsh[F: np.floating, I: np.integer](
     top: GmshTopInfo, bnd: CheartMeshPatch[I], current_elem: int = 1
 ) -> tuple[int, Entity]:
-    cheart_elem = get_cheart_elem_from_vtk(bnd.TYPE)
-    if cheart_elem is None:
-        msg = f"Unsupported boundary element type: {bnd.TYPE}"
-        raise ValueError(msg)
-    bnd_reorder = Cheart2VtkNodeOrder[cheart_elem]
-    bnd_type_id = Vtk2Gmsh[bnd.TYPE].value
-    bnd_data = bnd.v[:, bnd_reorder] + 1
+    bnd_type_id = convert_element_type(bnd.TYPE, "Gmsh").value
+    perm = get_node_permutation(bnd.TYPE, "Gmsh")
+    bnd_data = bnd.v[:, perm] + 1
     num_bnd_elems = len(bnd_data)
     bnd_tags = np.arange(current_elem, current_elem + num_bnd_elems)
     tag = gmsh.model.add_discrete_entity(dim=top.dim - 1)

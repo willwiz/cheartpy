@@ -8,6 +8,7 @@ from ._lagrange_shape_funcs import (
     tri_lagrange_1,
     tri_lagrange_2,
 )
+from ._structs import get_vtk_elem
 from ._types import VtkElem
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "dlagrange_2",
     "dtri_lagrange_1",
     "dtri_lagrange_2",
+    "get_vtk_elem",
     "lagrange_1",
     "lagrange_2",
     "tri_lagrange_1",

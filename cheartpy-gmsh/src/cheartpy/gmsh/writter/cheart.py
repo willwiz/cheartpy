@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from cheartpy.elem_interfaces import (
+    CheartEnum,
     GmshEnum,
     convert_element_type,
     get_node_permutation,
@@ -25,7 +26,6 @@ from pytools.result import Err, Ok, all_ok
 import gmsh
 
 if TYPE_CHECKING:
-    from cheartpy.elem_interfaces._types import VtkEnum
     from cheartpy.gmsh.types import Entity, Tag
     from pytools.arrays import A1, A2, DType
 
@@ -152,7 +152,7 @@ def convert_gmsh_space_to_cheart[F: np.floating = np.float64, I: np.integer = np
 def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
     top: GmshElements[I], *, dtype: DType[I] = np.intp
 ) -> CheartMeshTopology[I]:
-    vtk_type = convert_element_type(top.type, "Vtk")
+    vtk_type = convert_element_type(top.type, "Cheart")
     perm = get_node_permutation(top.type, "Cheart")
     print(f"Vtk type: {vtk_type}, reorder: {perm}")
     return CheartMeshTopology(
@@ -163,7 +163,7 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
 
 
 def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
-    bnd: GmshBoundaries[I], tag: int, vtk_type: VtkEnum, *, dtype: DType[I] = np.intp
+    bnd: GmshBoundaries[I], tag: int, vtk_type: CheartEnum, *, dtype: DType[I] = np.intp
 ) -> CheartMeshPatch[I]:
     perm = get_node_permutation(bnd.type, "Cheart")
     return CheartMeshPatch(
@@ -178,7 +178,7 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
 def convert_gmsh_bnd_to_cheart[I: np.integer = np.intp](
     boundary: Mapping[int, GmshBoundaries[I]], dtype: DType[I] = np.intp
 ) -> CheartMeshBoundary[I]:
-    vtk_types = {convert_element_type(b.type, "Vtk") for b in boundary.values()}
+    vtk_types = {convert_element_type(b.type, "Cheart") for b in boundary.values()}
     if len(vtk_types) != 1:
         msg = f"All boundaries must have the same type, found: {vtk_types}."
         raise ValueError(msg)

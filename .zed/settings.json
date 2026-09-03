@@ -44,8 +44,10 @@
     },
     "basedpyright": {
       "settings": {
-        "basedpyright.analysis": {
-          "diagnosticMode": "workspace",
+        "basedpyright": {
+          "analysis": {
+            "diagnosticMode": "workspace",
+          },
         },
       },
     },

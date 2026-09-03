@@ -13,9 +13,7 @@
     "**/*.vtu",
     "**/*.log",
   ],
-  "ignore": [
-    ".deps"
-  ],
+  "ignore": [".deps"],
   "typeCheckingMode": "strict",
   "deprecateTypingAliases": true,
   "strictDictionaryInference": true,

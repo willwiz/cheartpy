@@ -331,6 +331,22 @@ _VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
 }
 
 
+@overload
+def get_element_enum_from_polyorder(
+    elem: VtkElemShape, order: int, target: Literal["Cheart"]
+) -> Result[CheartEnum]: ...
+@overload
+def get_element_enum_from_polyorder(
+    elem: VtkElemShape, order: int, target: Literal["Vtk"]
+) -> Result[VtkEnum]: ...
+@overload
+def get_element_enum_from_polyorder(
+    elem: VtkElemShape, order: int, target: Literal["Abaqus"]
+) -> Result[AbaqusEnum]: ...
+@overload
+def get_element_enum_from_polyorder(
+    elem: VtkElemShape, order: int, target: Literal["Gmsh"]
+) -> Result[GmshEnum]: ...
 def get_element_enum_from_polyorder(
     elem: VtkElemShape, order: int, target: ElemType
 ) -> Result[ElemEnum]:

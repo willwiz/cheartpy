@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     import numpy as np
-    from cheartpy.elem_interfaces import VtkEnum
+    from cheartpy.elem_interfaces import CheartEnum
     from pytools.arrays import A1, A2
 
 
@@ -17,8 +17,8 @@ class _ShapeFuncDeriv(Protocol):
 
 @dc.dataclass(slots=True, frozen=True)
 class VtkElem:
-    body: VtkEnum
-    surf: VtkEnum | None
+    body: CheartEnum
+    surf: CheartEnum | None
     connectivity: tuple[int, ...]
     nodes: A2[np.intc]
     ref: A2[np.float64]

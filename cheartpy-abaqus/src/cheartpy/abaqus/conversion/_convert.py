@@ -35,7 +35,7 @@ def create_mesh_topology[I: np.integer](
     nmap: IndexUpdateMap,
 ) -> Result[CheartMeshTopology[I]]:
     dtype = next(iter(top.v.values())).dtype
-    kind = convert_element_type(top.type, "Vtk")
+    kind = convert_element_type(top.type, "Cheart")
     perm = get_node_permutation(top.type, "Cheart")
     data = np.ascontiguousarray([[nmap[i] for i in e] for e in top.v.values()], dtype=dtype)
     return Ok(CheartMeshTopology(n=len(data), v=data[:, perm], TYPE=kind))
@@ -49,7 +49,7 @@ def create_mesh_boundary_patch[I: np.integer](
 ) -> Result[CheartMeshPatch[I]]:
     dtype = next(iter(top.v.values())).dtype
     elems = np.ascontiguousarray(list(bc_patch.v.keys()), dtype=dtype)
-    kind = convert_element_type(bc_patch.type, "Vtk")
+    kind = convert_element_type(bc_patch.type, "Cheart")
     perm = get_node_permutation(bc_patch.type, "Cheart")
     data = np.array([[nmap[i] for i in p] for p in bc_patch.v.values()], dtype=dtype)
     return Ok(CheartMeshPatch(tag=tag, n=len(data), k=elems, v=data[:, perm], TYPE=kind))

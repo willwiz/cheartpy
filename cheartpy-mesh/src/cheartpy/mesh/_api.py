@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import (
-    VtkEnum,
+    CheartEnum,
     get_boundary_element,
     guess_element_from_dim,
 )
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 __all__ = ["import_cheart_mesh"]
 
 
-def _create_bnd_surf[T: np.integer](v: A2[T], tag: ToInt, kind: VtkEnum) -> CheartMeshPatch[T]:
+def _create_bnd_surf[T: np.integer](v: A2[T], tag: ToInt, kind: CheartEnum) -> CheartMeshPatch[T]:
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1
@@ -33,7 +33,7 @@ def _create_bnd_surf[T: np.integer](v: A2[T], tag: ToInt, kind: VtkEnum) -> Chea
 
 def _create_cheart_mesh_surf_from_raw[T: np.integer](
     raw_bnd: A2[T] | None,
-    surf_type: VtkEnum | None,
+    surf_type: CheartEnum | None,
 ) -> CheartMeshBoundary[T] | None:
     if raw_bnd is None or surf_type is None:
         return None
@@ -43,12 +43,12 @@ def _create_cheart_mesh_surf_from_raw[T: np.integer](
 
 
 def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
-    space: A2[F], top: A2[I], bnd: A2[I] | None = None, *, elem: VtkEnum | None = None
+    space: A2[F], top: A2[I], bnd: A2[I] | None = None, *, elem: CheartEnum | None = None
 ) -> Result[CheartMesh[F, I]]:
     el_dim = top.shape[1]
     b_dim = None if bnd is None else bnd.shape[1] - 2
     if elem is None:
-        match guess_element_from_dim(el_dim, b_dim, "Vtk"):
+        match guess_element_from_dim(el_dim, b_dim, "Cheart"):
             case Ok(elem): ...  # fmt: skip
             case Err(e):
                 return Err(e)
@@ -60,7 +60,7 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
 
 def import_cheart_mesh[F: np.floating, I: np.integer](
     name: Path | str,
-    forced_type: VtkEnum | None = None,
+    forced_type: CheartEnum | None = None,
     *,
     ftype: DType[F] = np.float64,
     itype: DType[I] = np.intp,

@@ -1,10 +1,19 @@
+# 1. Triggers static analysis and IDE warnings (Python 3.13+)
+# type: ignore
+__deprecated__ = "This module is deprecated; use 'new_module' instead."
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import VtkElemType, VtkEnum
+from cheartpy.elem_interfaces import (
+    ElemEnum,
+    VtkElemShape,
+    VtkEnum,
+    convert_element_type,
+    get_element_enum_from_polyorder,
+)
 
-from ._lagrange_shape_funcs import dlagrange_2, lagrange_2
-from ._types import VtkElem
+from ._elements import dlagrange_2, lagrange_2
+from .types import VtkElem
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2
@@ -506,19 +515,40 @@ VTKHEXAHEDRON2 = VtkElem(
 )  # fmt: skip
 
 
-def get_vtk_elem(elem_type: VtkElemType | VtkEnum) -> VtkElem:
-    if not isinstance(elem_type, VtkEnum):
-        elem_type = VtkEnum[elem_type]
-    elements = {
-        VtkEnum.LINE1: VTKLINE1,
-        VtkEnum.TRIANGLE1: VTKTRIANGLE1,
-        VtkEnum.QUADRILATERAL1: VTKQUADRILATERAL1,
-        VtkEnum.TETRAHEDRON1: VTKTETRAHEDRON1,
-        VtkEnum.HEXAHEDRON1: VTKHEXAHEDRON1,
-        VtkEnum.LINE2: VTKLINE2,
-        VtkEnum.TRIANGLE2: VTKTRIANGLE2,
-        VtkEnum.QUADRILATERAL2: VTKQUADRILATERAL2,
-        VtkEnum.TETRAHEDRON2: VTKTETRAHEDRON2,
-        VtkEnum.HEXAHEDRON2: VTKHEXAHEDRON2,
-    }
-    return elements[elem_type]
+_ALL_ELEMENTS = {
+    VtkEnum.LINE1: VTKLINE1,
+    VtkEnum.TRIANGLE1: VTKTRIANGLE1,
+    VtkEnum.QUADRILATERAL1: VTKQUADRILATERAL1,
+    VtkEnum.TETRAHEDRON1: VTKTETRAHEDRON1,
+    VtkEnum.HEXAHEDRON1: VTKHEXAHEDRON1,
+    VtkEnum.LINE2: VTKLINE2,
+    VtkEnum.TRIANGLE2: VTKTRIANGLE2,
+    VtkEnum.QUADRILATERAL2: VTKQUADRILATERAL2,
+    VtkEnum.TETRAHEDRON2: VTKTETRAHEDRON2,
+    VtkEnum.HEXAHEDRON2: VTKHEXAHEDRON2,
+}
+
+
+def get_vtk_elem(elem_type: ElemEnum | tuple[VtkElemShape, int]) -> VtkElem:
+    """Return the VtkElem corresponding to the given element type.
+
+    Parameters
+    ----------
+    elem_type : ElemEnum | tuple[VtkElemShape, int]
+        The element type, which can be a CheartEnum, VtkEnum, AbaqusEnum, GmshEnum, or a tuple of
+        (VtkElemShape, order).
+
+    Returns
+    -------
+    VtkElem
+        The corresponding VtkElem.
+
+    """
+    match elem_type:
+        case str(), int():
+            elem = get_element_enum_from_polyorder(elem_type[0], elem_type[1], "Vtk").unwrap()
+        case VtkEnum():
+            elem = elem_type
+        case _:
+            elem = convert_element_type(elem_type, "Vtk")
+    return _ALL_ELEMENTS[elem]

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import get_boundary_element
-from cheartpy.vtk.api import get_vtk_elem
+from cheartpy.vtk import get_vtk_elem
 from numpy.linalg import lstsq
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result, all_ok
@@ -15,7 +15,7 @@ from .meshing import create_mesh_from_surface
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.vtk.struct import VtkElem
+    from cheartpy.vtk import VtkElem
     from pytools.arrays import A1, A2
 
     from cheartpy.mesh import CheartMesh

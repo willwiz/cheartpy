@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import VtkEnum
+from cheartpy.elem_interfaces import CheartEnum
 from pytools.result import Err, Ok, Result
 
 from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch, CheartMeshTopology
@@ -149,7 +149,7 @@ def fix_tetra_mesh[F: np.floating, I: np.integer](
 
     """
     print("Trying to fix tetrahedral mesh.")
-    if mesh.top.TYPE is not VtkEnum.TETRAHEDRON1:
+    if mesh.top.TYPE is not CheartEnum.TETRAHEDRON1:
         msg = f"Unsupported element type: {mesh.top.TYPE}. Only TETRAHEDRON1 is supported."
         return Err(ValueError(msg))
     new_connectivity = fix_negative_volume(mesh.space.v, mesh.top.v)

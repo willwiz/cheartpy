@@ -1,12 +1,10 @@
 import abc
-from typing import TYPE_CHECKING, Literal, TextIO, TypedDict, Unpack
+from collections.abc import Sequence
+from typing import Literal, TextIO, TypedDict, Unpack
 
 import numpy as np
 from pytools.arrays import A1, A2, Arr, SAny
 from pytools.result import Err, Ok
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
 
 _NUM_FMT = Literal[".16f", "d", "20.16f", "24.16e"]
 
@@ -34,16 +32,17 @@ def create_xml_data[S: SAny, T: np.number](
     else:
         msg = f"Only floating and integer arrays are supported, got {data.dtype}."
         return Err(TypeError(msg))
-    match data.shape, order := kwargs.get("order"):
+    order = kwargs.get("order")
+    match data.shape, order:
         case (int(col),), None:
             _order = [0]
         case (int(), int(col)), None:
             _order = list(range(col))
-        case (int(), int(col)), tuple():
+        case (int(), int(col)), Sequence() | np.ndarray():
             if len(order) != col:
                 msg = "order must match the number of columns in the data array. "
                 return Err(ValueError(msg))
-            _order = list(order)
+            _order = order
         case _:
             msg = f"Data must be 1D or 2D array, got {data.shape} with order {order}."
             return Err(ValueError(msg))
@@ -59,26 +58,28 @@ class XMLDataTrait(abc.ABC):
     def fmt(self) -> _NUM_FMT: ...
     @property
     @abc.abstractmethod
-    def order(self) -> list[int]: ...
+    def order(self) -> A1[np.integer]: ...
     @abc.abstractmethod
     def write(self, fout: TextIO, level: int = 0) -> None: ...
 
 
 class _XMLKwargs(TypedDict, total=False):
     fmt: _NUM_FMT
-    order: Sequence[int]
+    order: Sequence[int] | A1[np.integer]
 
 
 class XMLData[S: SAny, T: np.number](XMLDataTrait):
-    __slots__ = ("_data", "_fmt", "_order")
+    __slots__ = ("_data", "_fmt", "_perm")
     _data: Arr[S, T]
     _fmt: _NUM_FMT
-    _order: list[int]
+    _perm: A1[np.integer]
 
-    def __init__(self, data: Arr[S, T], order: Sequence[int], fmt: _NUM_FMT) -> None:
+    def __init__(
+        self, data: Arr[S, T], order: Sequence[int] | A1[np.integer], fmt: _NUM_FMT
+    ) -> None:
         self._data = data
         self._fmt = fmt
-        self._order = list(order)
+        self._perm = np.asarray(order, dtype=np.intp)
 
     @property
     def data(self) -> Arr[SAny, np.number]:
@@ -89,8 +90,8 @@ class XMLData[S: SAny, T: np.number](XMLDataTrait):
         return self._fmt
 
     @property
-    def order(self) -> list[int]:
-        return self._order
+    def order(self) -> A1[np.integer]:
+        return self._perm
 
     def write(self, fout: TextIO, level: int = 0) -> None:
         if self._data.ndim == 1:
@@ -98,7 +99,7 @@ class XMLData[S: SAny, T: np.number](XMLDataTrait):
             return
         for arr in self._data:
             fout.write(" " * (level + 2))
-            fout.write("  ".join([f"{p:<{self._fmt}}" for p in arr[self._order]]))
+            fout.write("  ".join([f"{p:<{self._fmt}}" for p in arr[self._perm]]))
             fout.write("\n")
 
 

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import VtkEnum
+from cheartpy.elem_interfaces import CheartEnum
 
 from cheartpy.mesh import (
     CheartMesh,
@@ -9,8 +9,8 @@ from cheartpy.mesh import (
     CheartMeshPatch,
     CheartMeshSpace,
     CheartMeshTopology,
-    remove_dangling_nodes,
 )
+from cheartpy.mesh_tools import recompile_cheart_mesh
 
 from ._types import CartesianDirection
 
@@ -76,10 +76,10 @@ def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> Ch
     }
     mesh = CheartMesh(
         cube.space,
-        CheartMeshTopology(len(new_t), new_t, VtkEnum.HEXAHEDRON1),
-        CheartMeshBoundary(len(new_b), new_b, VtkEnum.QUADRILATERAL1),
+        CheartMeshTopology(len(new_t), new_t, CheartEnum.HEXAHEDRON1),
+        CheartMeshBoundary(len(new_b), new_b, CheartEnum.QUADRILATERAL1),
     )
-    return remove_dangling_nodes(mesh)
+    return recompile_cheart_mesh(mesh)
 
 
 def convert_cartesian_space_to_cylindrical[F: np.floating](

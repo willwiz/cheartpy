@@ -15,7 +15,7 @@ from ._basis import create_basis, create_boundary_basis
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from cheartpy.fe.aliases._topology import EmbbededTopologyDef, TopologyDef, VolumeTopologyDef
+    from cheartpy.fe.aliases import EmbbededTopologyDef, TopologyDef, VolumeTopologyDef
     from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 
 

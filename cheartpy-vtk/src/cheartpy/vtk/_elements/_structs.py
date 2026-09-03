@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 import numpy as np
-from cheartpy.elem_interfaces import VtkElemType, VtkEnum
+from cheartpy.elem_interfaces import CheartEnum, VtkElemType
 
-from ._elements import dlagrange_2, lagrange_2
-from .types import VtkElem
+from ._lagrange_shape_funcs import dlagrange_2, lagrange_2
+from ._types import VtkElem
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2
@@ -35,8 +35,8 @@ def _shape_line_1_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
     return np.array([[-1, 0, 0], [1, 0, 0]], dtype=pos.dtype).T
 
 
-VTKLINE1 = VtkElem(
-    VtkEnum.LINE1,
+VTKLINE1: Final = VtkElem(
+    CheartEnum.LINE1,
     None,
     (0, 1),
     np.array([[0, 0, 0], [1, 0, 0]], dtype=np.intc),
@@ -72,8 +72,8 @@ def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
     )
 
 
-VTKLINE2 = VtkElem(
-    VtkEnum.LINE2,
+VTKLINE2: Final = VtkElem(
+    CheartEnum.LINE2,
     None,
     (0, 1, 2),
     np.array([[0, 0, 0], [2, 0, 0], [1, 0, 0]], dtype=np.intc),
@@ -105,9 +105,9 @@ def _shape_triangle_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
     ).T
 
 
-VTKTRIANGLE1 = VtkElem(
-    VtkEnum.TRIANGLE1,
-    VtkEnum.LINE1,
+VTKTRIANGLE1: Final = VtkElem(
+    CheartEnum.TRIANGLE1,
+    CheartEnum.LINE1,
     (0, 1, 2),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0]], dtype=np.float64),
@@ -149,8 +149,8 @@ def _shape_triangle_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTRIANGLE2 = VtkElem(
-    VtkEnum.TRIANGLE2,
-    VtkEnum.LINE2,
+    CheartEnum.TRIANGLE2,
+    CheartEnum.LINE2,
     (0, 1, 2, 3, 5, 4),
     np.array([[0, 0, 0], [2, 0, 0], [0, 2, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.intc),
     np.array(
@@ -191,8 +191,8 @@ def _shape_quad_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKQUADRILATERAL1 = VtkElem(
-    VtkEnum.QUADRILATERAL1,
-    VtkEnum.LINE1,
+    CheartEnum.QUADRILATERAL1,
+    CheartEnum.LINE1,
     (0, 1, 3, 2),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]], dtype=np.float64),
@@ -260,8 +260,8 @@ def _shape_quad_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 
 
 VTKQUADRILATERAL2 = VtkElem(
-    VtkEnum.QUADRILATERAL2,
-    VtkEnum.LINE2,
+    CheartEnum.QUADRILATERAL2,
+    CheartEnum.LINE2,
     (0, 1, 3, 2, 4, 7, 8, 5, 6),
     np.array(
         [
@@ -309,8 +309,8 @@ def _shape_tetrahedron_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTETRAHEDRON1 = VtkElem(
-    VtkEnum.TETRAHEDRON1,
-    VtkEnum.TRIANGLE1,
+    CheartEnum.TETRAHEDRON1,
+    CheartEnum.TRIANGLE1,
     (0, 1, 2, 3),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.intc),
     np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float64),
@@ -332,8 +332,8 @@ def _shape_tetrahedron_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKTETRAHEDRON2 = VtkElem(
-    VtkEnum.TETRAHEDRON2,
-    VtkEnum.TRIANGLE2,
+    CheartEnum.TETRAHEDRON2,
+    CheartEnum.TRIANGLE2,
     (0, 1, 2, 3, 4, 6, 5, 7, 8, 9),
     np.array(
         [
@@ -383,8 +383,8 @@ def _shape_hexahedron_1_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKHEXAHEDRON1 = VtkElem(
-    VtkEnum.HEXAHEDRON1,
-    VtkEnum.QUADRILATERAL1,
+    CheartEnum.HEXAHEDRON1,
+    CheartEnum.QUADRILATERAL1,
     (0, 1, 3, 2, 4, 5, 7, 6),
     np.array(
         [
@@ -430,8 +430,8 @@ def _shape_hexahedron_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
 
 
 VTKHEXAHEDRON2 = VtkElem(
-    VtkEnum.HEXAHEDRON2,
-    VtkEnum.QUADRILATERAL2,
+    CheartEnum.HEXAHEDRON2,
+    CheartEnum.QUADRILATERAL2,
     (
         0,   1,  3,  2,  4,  5,  7,  6,  8, 11,
         12,  9, 22, 25, 26, 23, 13, 15, 21, 19,
@@ -506,19 +506,19 @@ VTKHEXAHEDRON2 = VtkElem(
 )  # fmt: skip
 
 
-def get_vtk_elem(elem_type: VtkElemType | VtkEnum) -> VtkElem:
-    if not isinstance(elem_type, VtkEnum):
-        elem_type = VtkEnum[elem_type]
+def get_vtk_elem(elem_type: VtkElemType | CheartEnum) -> VtkElem:
+    if not isinstance(elem_type, CheartEnum):
+        elem_type = CheartEnum[elem_type]
     elements = {
-        VtkEnum.LINE1: VTKLINE1,
-        VtkEnum.TRIANGLE1: VTKTRIANGLE1,
-        VtkEnum.QUADRILATERAL1: VTKQUADRILATERAL1,
-        VtkEnum.TETRAHEDRON1: VTKTETRAHEDRON1,
-        VtkEnum.HEXAHEDRON1: VTKHEXAHEDRON1,
-        VtkEnum.LINE2: VTKLINE2,
-        VtkEnum.TRIANGLE2: VTKTRIANGLE2,
-        VtkEnum.QUADRILATERAL2: VTKQUADRILATERAL2,
-        VtkEnum.TETRAHEDRON2: VTKTETRAHEDRON2,
-        VtkEnum.HEXAHEDRON2: VTKHEXAHEDRON2,
+        CheartEnum.LINE1: VTKLINE1,
+        CheartEnum.TRIANGLE1: VTKTRIANGLE1,
+        CheartEnum.QUADRILATERAL1: VTKQUADRILATERAL1,
+        CheartEnum.TETRAHEDRON1: VTKTETRAHEDRON1,
+        CheartEnum.HEXAHEDRON1: VTKHEXAHEDRON1,
+        CheartEnum.LINE2: VTKLINE2,
+        CheartEnum.TRIANGLE2: VTKTRIANGLE2,
+        CheartEnum.QUADRILATERAL2: VTKQUADRILATERAL2,
+        CheartEnum.TETRAHEDRON2: VTKTETRAHEDRON2,
+        CheartEnum.HEXAHEDRON2: VTKHEXAHEDRON2,
     }
     return elements[elem_type]

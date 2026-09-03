@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from ._types import VtkElem, VtkEnum
+from ._types import CheartEnum, VtkElem
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2
@@ -21,7 +21,7 @@ def _shape_line_1_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 
 
 VTKLINE1 = VtkElem(
-    VtkEnum.LINE1,
+    CheartEnum.LINE1,
     None,
     (0, 1),
     np.array([[0, 0, 0], [1, 0, 0]], dtype=np.intc),
@@ -58,7 +58,7 @@ def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
 
 
 VTKLINE2 = VtkElem(
-    VtkEnum.LINE2,
+    CheartEnum.LINE2,
     None,
     (0, 1, 2),
     np.array([[0, 0, 0], [2, 0, 0], [1, 0, 0]], dtype=np.intc),

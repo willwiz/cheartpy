@@ -10,14 +10,8 @@ __all__ = [
 from collections.abc import Collection, Sequence
 from typing import Final
 
-from cheartpy.elem_interfaces import VtkEnum
-from cheartpy.vtk.struct import (
-    VTKHEXAHEDRON2,
-    VTKLINE2,
-    VTKQUADRILATERAL2,
-    VTKTETRAHEDRON2,
-    VTKTRIANGLE2,
-)
+from cheartpy.elem_interfaces import CheartEnum
+from cheartpy.vtk import get_vtk_elem
 
 type L2QMAP = Sequence[Collection[int]]
 
@@ -89,16 +83,16 @@ _HEX_L2QMAP: Final[L2QMAP] = [
 
 
 L2QMAPDICT = {
-    VtkEnum.LINE1: _LIN_L2QMAP,
-    VtkEnum.TRIANGLE1: _TRI_L2QMAP,
-    VtkEnum.QUADRILATERAL1: _QUA_L2QMAP,
-    VtkEnum.TETRAHEDRON1: _TET_L2QMAP,
-    VtkEnum.HEXAHEDRON1: _HEX_L2QMAP,
+    CheartEnum.LINE1: _LIN_L2QMAP,
+    CheartEnum.TRIANGLE1: _TRI_L2QMAP,
+    CheartEnum.QUADRILATERAL1: _QUA_L2QMAP,
+    CheartEnum.TETRAHEDRON1: _TET_L2QMAP,
+    CheartEnum.HEXAHEDRON1: _HEX_L2QMAP,
 }
 L2QTYPEDICT = {
-    VtkEnum.LINE1: VTKLINE2,
-    VtkEnum.TRIANGLE1: VTKTRIANGLE2,
-    VtkEnum.QUADRILATERAL1: VTKQUADRILATERAL2,
-    VtkEnum.TETRAHEDRON1: VTKTETRAHEDRON2,
-    VtkEnum.HEXAHEDRON1: VTKHEXAHEDRON2,
+    CheartEnum.LINE1: get_vtk_elem(CheartEnum.LINE2),
+    CheartEnum.TRIANGLE1: get_vtk_elem(CheartEnum.TRIANGLE2),
+    CheartEnum.QUADRILATERAL1: get_vtk_elem(CheartEnum.QUADRILATERAL2),
+    CheartEnum.TETRAHEDRON1: get_vtk_elem(CheartEnum.TETRAHEDRON2),
+    CheartEnum.HEXAHEDRON1: get_vtk_elem(CheartEnum.HEXAHEDRON2),
 }

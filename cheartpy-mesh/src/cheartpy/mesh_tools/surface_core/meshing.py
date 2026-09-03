@@ -1,5 +1,5 @@
 import numpy as np
-from cheartpy.vtk.api import get_vtk_elem
+from cheartpy.vtk import get_vtk_elem
 from pytools.result import Err, Ok
 
 from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology

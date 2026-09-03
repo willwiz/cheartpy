@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import CheartEnum, convert_element_type, get_node_permutation
 from cheartpy.io import chread_b_utf
-from cheartpy.vtk.api import get_vtk_elem
 from cheartpy.xml import XMLElement
 from pytools.logging import ILogger, get_logger
 from pytools.parallel import ThreadedRunner, ThreadMethods
@@ -15,7 +15,6 @@ from ._third_party import compress_vtu
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.elem_interfaces import VtkEnum
     from cheartpy.search import IIndexIterator
     from pytools.arrays import A1, A2
 
@@ -39,7 +38,7 @@ def convert_3d[F: np.floating](arr: A2[F]) -> A2[F]:
 def create_xml_for_boundary[I: np.integer, F: np.floating](
     prefix: str,
     fx: A2[F],
-    vtk_id: VtkEnum,
+    elem_type: CheartEnum,
     fb: A2[I],
     fbid: A1[I],
 ) -> XMLElement:
@@ -57,25 +56,27 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
     fx = convert_3d(fx)
-    dataarr.add_data(fx)
+    dataarr.add_data(fx).unwrap()
     cell = piece.create_elem(XMLElement("CellData", Scalars="scalars"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii"),
     )
-    dataarr.add_data(fbid.astype(np.int8))
+    dataarr.add_data(fbid.astype(np.int8)).unwrap()
     cell = piece.create_elem(XMLElement("Cells", Scalars="scalars"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(fb.astype(np.int64), order=get_vtk_elem(vtk_id).connectivity)
+    dataarr.add_data(fb.astype(np.int64), order=get_node_permutation(elem_type, "Vtk")).unwrap()
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
-    dataarr.add_data(np.arange(fb.shape[1], fb.size + 1, fb.shape[1], dtype=np.int64))
+    dataarr.add_data(np.arange(fb.shape[1], fb.size + 1, fb.shape[1], dtype=np.int64)).unwrap()
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
-    dataarr.add_data(np.full((fb.shape[0],), vtk_id.value.idx, dtype=np.int8))
+    dataarr.add_data(
+        np.full((fb.shape[0],), convert_element_type(elem_type, "Vtk").value.idx, dtype=np.int8)
+    ).unwrap()
     return vtkfile
 
 
@@ -85,13 +86,13 @@ def export_boundary[F: np.floating, I: np.integer](
     log: ILogger,
 ) -> None:
     log.debug("<<< Working on", inp.bfile)
-    if inp.bfile is None or top.vtksurfacetype is None:
+    if inp.bfile is None or top.surfacetype is None:
         log.info(">>> NOTICE: No boundary file given, export is skipped")
         return
     raw = chread_b_utf(inp.bfile)
     db = raw[:, 1:-1] - 1
     dbid = raw[:, -1]
-    vtk_xml = create_xml_for_boundary(inp.prefix, top.x, top.vtksurfacetype, db, dbid)
+    vtk_xml = create_xml_for_boundary(inp.prefix, top.x, top.surfacetype, db, dbid)
     foutfile = inp.output_dir / f"{inp.prefix}_boundary.vtu"
     with Path(foutfile).open("w") as fout:
         vtk_xml.write(fout)
@@ -122,21 +123,25 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
     x = convert_3d(x)
-    dataarr.add_data(x.astype(np.float64))
+    dataarr.add_data(x.astype(np.float64)).unwrap()
 
     cell = piece.create_elem(XMLElement("Cells"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(top.t.astype(np.int64), order=get_vtk_elem(top.vtkelementtype).connectivity)
+    dataarr.add_data(
+        top.t.astype(np.int64), order=get_node_permutation(top.elementtype, "Vtk")
+    ).unwrap()
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
-    dataarr.add_data(np.arange(top.nc, top.nc * (top.ne + 1), top.nc, dtype=np.int64))
+    dataarr.add_data(np.arange(top.nc, top.nc * (top.ne + 1), top.nc, dtype=np.int64)).unwrap()
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="types", Format="ascii"),
     )
-    dataarr.add_data(np.full((top.ne,), top.vtkelementtype.value.idx, dtype=np.int8))
+    dataarr.add_data(
+        np.full((top.ne,), convert_element_type(top.elementtype, "Vtk").value.idx, dtype=np.int8)
+    ).unwrap()
     points = piece.create_elem(XMLElement("PointData", Scalars="scalars"))
     for v, dv in point_var.items():
         dataarr = points.create_elem(
@@ -148,7 +153,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
                 Format="ascii",
             ),
         )
-        dataarr.add_data(dv.astype(np.float64))
+        dataarr.add_data(dv.astype(np.float64)).unwrap()
     if not cell_var:
         return vtkfile
     cells = piece.create_elem(XMLElement("CellData", Scalars="scalars"))
@@ -162,7 +167,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
                 Format="ascii",
             ),
         )
-        dataarr.add_data(dv.astype(np.float64))
+        dataarr.add_data(dv.astype(np.float64)).unwrap()
     return vtkfile
 
 

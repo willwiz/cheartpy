@@ -6,7 +6,6 @@ from ._struct import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from ._validation import remove_dangling_nodes
 
 __all__ = [
     "CheartMesh",
@@ -16,5 +15,4 @@ __all__ = [
     "CheartMeshTopology",
     "cheart_mesh_from_arrays",
     "import_cheart_mesh",
-    "remove_dangling_nodes",
 ]

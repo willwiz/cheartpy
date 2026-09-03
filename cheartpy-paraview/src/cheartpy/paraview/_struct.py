@@ -5,12 +5,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
 import numpy as np
-from cheartpy.vtk.api import guess_elem_type_from_dim
+from cheartpy.elem_interfaces import CheartEnum, get_boundary_element, guess_element_from_dim
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.elem_interfaces import VtkEnum
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
 
@@ -47,14 +46,14 @@ class ExportArgs:
 
 
 class ParaviewTopology[F: np.floating, I: np.integer]:
-    __slots__ = ["_ft", "_fx", "nc", "ne", "vtkelementtype", "vtksurfacetype"]
+    __slots__ = ["_ft", "_fx", "elementtype", "nc", "ne", "surfacetype"]
 
     _ft: Final[A2[I]]
     _fx: Final[A2[F]]
     ne: Final[int]
     nc: Final[int]
-    vtkelementtype: Final[VtkEnum]
-    vtksurfacetype: Final[VtkEnum | None]
+    elementtype: Final[CheartEnum]
+    surfacetype: Final[CheartEnum | None]
 
     def __init__(
         self, x: A2[F], tfile: Path | str, bfile: Path | None, *, dtype: DType[I] = np.intc
@@ -75,8 +74,8 @@ class ParaviewTopology[F: np.floating, I: np.integer]:
                     bdim = len(next(f).strip().split()) - 2
             case None:
                 bdim = None
-        vtk = guess_elem_type_from_dim(self.nc, bdim).unwrap()
-        self.vtkelementtype, self.vtksurfacetype = vtk.body, vtk.surf
+        self.elementtype = guess_element_from_dim(self.nc, bdim, "Cheart").unwrap()
+        self.surfacetype = get_boundary_element(self.elementtype)
 
     # def __setitem__(self, index: int, data: A1[I]) -> None:
     #     self._ft[index] = data

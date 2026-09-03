@@ -21,9 +21,9 @@ from .conversion import (
 from .reader import AbaqusMesh, import_abaqus_files
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from pathlib import Path
 
-    from cheartpy.paraview._parser.time_parser import Sequence
     from pytools.arrays import DType
 
     from .parsing import AbaqusAPIKwargs

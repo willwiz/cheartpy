@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.elem_interfaces import VtkEnum
-from cheartpy.vtk.struct import VTKLINE1, VTKQUADRILATERAL1
+from cheartpy.elem_interfaces import CheartEnum
+from cheartpy.vtk._struct import VTKLINE1, VTKQUADRILATERAL1
 
 from cheartpy.mesh import (
     CheartMesh,
@@ -71,7 +71,7 @@ def create_topology[I: np.integer](
             elems[elem_index[i, j]] = [
                 node_index[i + m, j + n] for m, n, _ in VTKQUADRILATERAL1.nodes
             ]
-    return CheartMeshTopology(len(elems), elems, VtkEnum.QUADRILATERAL1)
+    return CheartMeshTopology(len(elems), elems, CheartEnum.QUADRILATERAL1)
 
 
 def create_boundary_side_x_cw[I: np.integer](
@@ -87,7 +87,7 @@ def create_boundary_side_x_cw[I: np.integer](
     for j in iy:
         patch[j] = [node_index[ix + 1, j + m] for m, *_ in VTKLINE1.nodes]
         elems[j] = elem_index[ix, j]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LINE1)
+    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary_side_x_ccw[I: np.integer](
@@ -102,7 +102,7 @@ def create_boundary_side_x_ccw[I: np.integer](
     for j in iy:
         patch[j] = [node_index[ix, j + m] for m, *_ in reversed(VTKLINE1.nodes)]
         elems[j] = elem_index[ix, j]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LINE1)
+    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary_side_y_cw[I: np.integer](
@@ -117,7 +117,7 @@ def create_boundary_side_y_cw[I: np.integer](
     for i in ix:
         patch[i] = [node_index[i + m, iy + 1] for m, *_ in VTKLINE1.nodes]
         elems[i] = elem_index[i, iy]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LINE1)
+    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary_side_y_ccw[I: np.integer](
@@ -132,7 +132,7 @@ def create_boundary_side_y_ccw[I: np.integer](
     for i in ix:
         patch[i] = [node_index[i + m, iy] for m, *_ in reversed(VTKLINE1.nodes)]
         elems[i] = elem_index[i, iy]
-    return CheartMeshPatch(tag, len(patch), elems, patch, VtkEnum.LINE1)
+    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary[I: np.integer](
@@ -149,7 +149,7 @@ def create_boundary[I: np.integer](
         3: create_boundary_side_y_ccw(3, ix, 0, node_index, elem_index),
         4: create_boundary_side_y_cw(4, ix, ny - 1, node_index, elem_index),
     }
-    return CheartMeshBoundary(len(bnds), bnds, VtkEnum.LINE1)
+    return CheartMeshBoundary(len(bnds), bnds, CheartEnum.LINE1)
 
 
 def create_square_mesh(
