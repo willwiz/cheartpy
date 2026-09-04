@@ -1,9 +1,10 @@
 import argparse
 from typing import TYPE_CHECKING
 
+from cheartpy.mesh_tools.interpolation import interp_parser, make_interp_cli, parser_interp_args
+
 from .cylinder_core import cylinder_parser, make_cylinder_cli, parse_cylinder_args
 from .hex_core import block_parser, make_block_cli, parse_block_args
-from .interpolation import interp_parser, make_interp_cli, parser_interp_args
 from .quad_core import make_square_cli, parse_square_args, square_parser
 
 if TYPE_CHECKING:

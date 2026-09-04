@@ -17,8 +17,8 @@ classifiers = [
 dependencies = ["pytools>=1.2.0a", "numpy", "meshio", "cheartpy-io", "cheartpy-vtk", 'pydantic']
 
 [tool.uv.build-backend]
-module-name = ["cheartpy.mesh", "cheartpy.meshio", "cheartpy.mesh_tools"]
+module-name = ["cheartpy.mesh", "cheartpy.meshing", "cheartpy.meshio", "cheartpy.mesh_tools"]
 namespace = true
 
 [project.scripts]
-makemesh = "cheartpy.mesh_tools.__main__:main_cli"
+makemesh = "cheartpy.meshing.__main__:main_cli"

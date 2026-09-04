@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Literal, Unpack, overload
 
-from cheartpy.mesh_tools.hex_core import create_hex_mesh
 from cheartpy.mesh_tools.interpolation import create_quad_mesh_from_lin_cylindrical
+from cheartpy.meshing.hex_core import create_hex_mesh
 
 from ._core import (
     convert_to_cylindrical,
