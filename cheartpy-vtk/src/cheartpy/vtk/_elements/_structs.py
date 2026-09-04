@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Final
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum, VtkElemType
 
-from ._lagrange_shape_funcs import dlagrange_2, lagrange_2
+from ._lagrange_shape_funcs import dlagrange_1, dlagrange_2, lagrange_1, lagrange_2
 from ._types import VtkElem
 
 if TYPE_CHECKING:
@@ -26,13 +26,14 @@ __all__ = [
 def _shape_line_1[T: np.floating](pos: A1[T]) -> A1[T]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((2,), dtype=pos.dtype)
-    return np.array([1.0 - pos[0], pos[0]], dtype=pos.dtype)
+    return lagrange_1(pos[0], dtype=pos.dtype)
 
 
 def _shape_line_1_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((2, 3), dtype=pos.dtype)
-    return np.array([[-1, 0, 0], [1, 0, 0]], dtype=pos.dtype).T
+    dxdt = dlagrange_1(pos[0], dtype=pos.dtype)
+    return np.array([[dxdt[0], dxdt[1]], [0] * 2, [0] * 2], dtype=pos.dtype)
 
 
 VTKLINE1: Final = VtkElem(
@@ -49,25 +50,16 @@ VTKLINE1: Final = VtkElem(
 def _shape_line_2[T: np.floating](pos: A1[T]) -> A1[T]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((3,), dtype=pos.dtype)
-    return np.array(
-        [
-            (1.0 - pos[0]) * (1.0 - 0.5 * pos[0]),
-            pos[0] * (2.0 * pos[0] - 1.0),
-            4.0 * pos[0] * (1.0 - pos[0]),
-        ],
-        dtype=pos.dtype,
-    )
+    x = lagrange_2(pos[0])
+    return np.array([x[0], x[2], x[1]], dtype=pos.dtype)
 
 
 def _shape_line_2_deriv[T: np.floating](pos: A1[T]) -> A2[T]:
     if pos[0] < 0.0 or pos[0] > 1.0:
         return np.zeros((3, 3), dtype=pos.dtype)
+    dxdt = dlagrange_2(pos[0])
     return np.array(
-        [
-            [-3.0 + 4.0 * pos[0], 0.0, 0.0],
-            [4.0 * pos[0] - 1.0, 0.0, 0.0],
-            [4.0 - 8.0 * pos[0], 0.0, 0.0],
-        ],
+        [[dxdt[0], dxdt[2], dxdt[1]], [0.0] * 3, [0.0] * 3],
         dtype=pos.dtype,
     )
 
@@ -148,7 +140,7 @@ def _shape_triangle_2_deriv[F: np.floating](pos: A1[F]) -> A2[F]:
     )
 
 
-VTKTRIANGLE2 = VtkElem(
+VTKTRIANGLE2: Final = VtkElem(
     CheartEnum.TRIANGLE2,
     CheartEnum.LINE2,
     (0, 1, 2, 3, 5, 4),
