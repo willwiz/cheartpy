@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from pytools.result import Err, Ok, Result
 
-from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
+from cheartpy.mesh import CheartMesh, CheartMeshPatch, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools.tools import IndexPermutation, create_index_permutation
 
 if TYPE_CHECKING:
@@ -75,3 +75,97 @@ def split_subdomains[F: np.floating, I: np.integer](
     if np.any(top.v == -1):
         return Err(ValueError("Some elements were not assigned to any subdomain."))
     return Ok(CheartMesh(space=CheartMeshSpace(n=len(x), v=x), top=top, bnd=None))
+
+
+def create_mesh_from_surface[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], surf_id: int
+) -> Result[CheartMesh[F, I]]:
+    """Create a new cheart mesh from a surface mesh.
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The input mesh to create a surface mesh from.
+    surf_id : int
+        The ID of the surface in the boundary of the mesh.
+
+    Returns
+    -------
+    CheartMesh[F, I]
+        A new mesh containing only the surface defined by the boundary.
+
+    """
+    if mesh.bnd is None:
+        msg = "Mesh has no boundary, cannot create surface mesh"
+        return Err(ValueError(msg))
+    if (surface := mesh.bnd.v.get(surf_id)) is None:
+        return Err(ValueError(f"Boundary {surf_id} not found in mesh"))
+    perm = create_index_permutation(surface.v)
+    space = CheartMeshSpace(n=len(perm.idx), v=mesh.space.v[perm.idx])
+    top = CheartMeshTopology(n=surface.n, v=perm.fwd[surface.v], TYPE=surface.TYPE)
+    return Ok(CheartMesh(space=space, top=top, bnd=None))
+
+
+def filter_boundary_by_elements[F: np.floating, I: np.integer](
+    patch: CheartMeshPatch[I], elements: A1[I]
+) -> CheartMeshPatch[I] | None:
+    """Filter a boundary patch to only include elements that are in the provided list of elements.
+
+    Parameters
+    ----------
+    patch : CheartMeshPatch[I]
+        The boundary patch to filter.
+    elements : A1[I]
+        The list of elements to include in the filtered patch.
+
+    Returns
+    -------
+    CheartMeshPatch[I] | None
+        A new boundary patch containing only the elements in the provided list, or None if no
+        elements in the patch are in the provided list.
+
+    """
+    subset = np.isin(patch.v, elements)
+    if not np.any(subset):
+        return None
+    perm = create_index_permutation(elements)
+    return CheartMeshPatch(
+        tag=patch.tag, n=np.sum(subset), k=perm.fwd[patch.k], v=patch.v[subset], TYPE=patch.TYPE
+    )
+
+
+def create_mesh_from_region[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], mask: A1[I], region_id: int
+) -> Result[CheartMesh[F, I]]:
+    """Create a new cheart mesh from a region in the input mesh.
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The input mesh to create a region mesh from.
+    mask : A1[I]
+        An array of length equal to the number of elements in the mesh, containing integer IDs
+        that indicate which region each element belongs to.
+    region_id : int
+        The ID of the region in the input mesh.
+
+    Returns
+    -------
+    Result[CheartMesh[F, I]]
+        A new mesh containing only the region defined by the region ID.
+
+    """
+    e_index = get_subdomain_index(mask, [region_id])
+    elements = mesh.top.v[e_index]
+    perm = create_index_permutation(elements)
+    space = CheartMeshSpace(n=len(perm.idx), v=mesh.space.v[perm.idx])
+    top = CheartMeshTopology(n=perm.fwd.shape[0], v=perm.fwd[elements], TYPE=mesh.top.TYPE)
+    if mesh.bnd is None:
+        return Ok(CheartMesh(space=space, top=top, bnd=None))
+    bnd_patches = {k: filter_boundary_by_elements(v, e_index) for k, v in mesh.bnd.v.items()}
+    bnd_patches = {
+        k: CheartMeshPatch(tag=v.tag, n=v.n, k=v.k, v=perm.fwd[v.v], TYPE=v.TYPE)
+        for k, v in bnd_patches.items()
+        if v is not None
+    }
+    return Ok(CheartMesh(space=space, top=top, bnd=None))
