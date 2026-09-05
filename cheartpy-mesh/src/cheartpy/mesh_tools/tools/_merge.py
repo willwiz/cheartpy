@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -12,15 +13,18 @@ from cheartpy.mesh import (
 from ._types import MergedMesh
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
-
     from pytools.arrays import A1, A2
 
 
 def merge_meshes[F: np.floating, I: np.integer](
-    meshes: Sequence[CheartMesh[F, I]], vs: Mapping[str, Sequence[A2[F]]]
+    meshes: Sequence[CheartMesh[F, I]] | Mapping[int, CheartMesh[F, I]],
+    vs: Mapping[str, Sequence[A2[F]]],
 ) -> Result[MergedMesh[F, I]]:
     """Merge Cheart meshes into one, and combine variable field if given.
+
+    The interface mesh is a 1D CheartMesh object whose space contains the index of the original mesh
+    for each element in the merged mesh. The interface mesh is one-to-one to the merged mesh, where
+    the topology of the interface mesh maps to the index of the mesh being merged (i.e., the space).
 
     Parameters
     ----------
@@ -31,14 +35,21 @@ def merge_meshes[F: np.floating, I: np.integer](
 
     Returns [Result object]
     -----------------------
-    CheartMesh[F, I]
+    merged_mesh : CheartMesh[F, I]
         Merged Volume Mesh
-    CheartMesh[F, I]
+    interface_mesh : CheartMesh[F, I]
         Interface to identify original meshes
-    Mapping[str, A2[F]]]]
+    variable_fields : Mapping[str, A2[F]]]
         Merged variable fields, if given. The shape of each field is (n_nodes, n_components).
 
     """
+    match meshes:
+        case Mapping():
+            index = np.asarray(list(meshes.keys()), dtype=meshes[0].space.v.dtype)
+            meshes = list(meshes.values())
+        case Sequence():
+            index = np.arange(len(meshes), dtype=meshes[0].space.v.dtype)
+            meshes = list(meshes)
     ftype = meshes[0].space.v.dtype
     dtype = meshes[0].top.v.dtype
     mesh_sizes = [0] + [int(m.space.n) for m in meshes]
@@ -59,7 +70,7 @@ def merge_meshes[F: np.floating, I: np.integer](
     interface_space = CheartMeshSpace(
         n=len(meshes), v=np.arange(len(meshes), dtype=ftype).reshape(-1, 1)
     )
-    elem_map = [np.ones((m.top.n, 1), dtype=dtype) * i for i, m in enumerate(meshes)]
+    elem_map = [np.ones((m.top.n, 1), dtype=dtype) * i for i, m in zip(index, meshes, strict=True)]
     interface_mesh = CheartMesh(
         space=interface_space,
         top=CheartMeshTopology(
