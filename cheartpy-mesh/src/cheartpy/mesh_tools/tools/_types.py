@@ -17,7 +17,8 @@ type ElemSearchMap = Mapping[ToIndex, set[int]]
 
 @dc.dataclass(slots=True)
 class IndexPermutation[I: np.integer]:
-    idx: A1[I]
+    old: A1[I]
+    new: A1[I]
     fwd: A1[I]
 
 

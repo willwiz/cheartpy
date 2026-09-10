@@ -127,8 +127,8 @@ def find_elements[I: np.integer](
 ) -> (
     Result[int]
     | Result[Collection[int]]
-    | Result[Sequence[int]]
-    | Result[Sequence[Collection[int]]]
+    | Sequence[Result[int]]
+    | Sequence[Result[Collection[int]]]
 ):
     match _get_search_map(top, keys=keys):
         case Ok(search_map): ...  # fmt: skip
@@ -137,7 +137,7 @@ def find_elements[I: np.integer](
         case np.ndarray() if _is_1d(nodes):
             return _find_element(search_map, nodes, unique=unique)
         case np.ndarray() if _is_2d(nodes):
-            return _find_elements(search_map, nodes, unique=unique)
+            return [_find_element(search_map, e, unique=unique) for e in nodes]
         case _:
             msg = f"Nodes array must be 1D or 2D, got {nodes.ndim}D."
             return Err(ValueError(msg))

@@ -51,7 +51,7 @@ def create_index_permutation[I: np.integer](
     old = index if _id_1d(index) else np.unique(index.flatten())
     perm_fwd = np.full(np.max(old) + 1, -1, dtype=old.dtype)
     perm_fwd[old] = new
-    return IndexPermutation(idx=old, fwd=perm_fwd)
+    return IndexPermutation(old=old, new=new, fwd=perm_fwd)
 
 
 def recompile_cheart_mesh[F: np.floating, I: np.integer](
@@ -71,7 +71,7 @@ def recompile_cheart_mesh[F: np.floating, I: np.integer](
 
     """
     perm = create_index_permutation(mesh.top.v)
-    new_x = mesh.space.v[perm.idx]
+    new_x = mesh.space.v[perm.old]
     new_t = perm.fwd[mesh.top.v]
     boundary = (
         CheartMeshBoundary(

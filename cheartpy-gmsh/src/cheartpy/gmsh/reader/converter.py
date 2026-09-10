@@ -354,7 +354,7 @@ def get_gmsh_entity[I: np.integer = np.intp](
 
 def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
-    regions: Mapping[int, A1[np.integer]] | None = None,
+    mask: A1[np.integer] | None = None,
     **kwargs: Unpack[MeshConverterKwargs],
 ) -> GmshMeshTags:
     """Convert 3D Volumetric arrays (Tetrahedral or Hexahedral) to Gmsh MSH format.
@@ -363,14 +363,19 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     ----------
     mesh : CheartMesh[F, I]
         The 3D volumetric mesh to convert.
-    regions : Mapping[str, A1[I]] | None
-        Optional mapping of region names to element indices for defining physical groups.
+    mask : A1[np.integer] | None
+        Optional array of element indices to include in the conversion.
     optimize : bool, default=False
         Whether to optimize the mesh using Gmsh's built-in optimization algorithms.
     angle_deg : float, default=40.0
         The angle threshold in degrees for classifying surfaces during optimization.
 
     """
+    regions = (
+        None
+        if mask is None
+        else {k: np.nonzero(mask == k)[0].astype(np.intp) for k in np.unique(mask)}
+    )
     domain_mesh = split_subdomain(mesh, regions).unwrap()
     if not gmsh.is_initialized():
         gmsh.initialize()

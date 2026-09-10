@@ -3,12 +3,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.io import chwrite_d_utf
+from cheartpy.io import chread_d, chwrite_d_utf
 from cheartpy.mesh import import_cheart_mesh
 
 import gmsh
 
-from .reader import import_region_mask, read_cheartmesh_into_gmsh_api
+from .reader import read_cheartmesh_into_gmsh_api
 from .writter import build_cheart_mesh_from_gmsh
 
 if TYPE_CHECKING:
@@ -52,9 +52,9 @@ def import_to_gmsh[I: np.integer](
 ) -> None:
     mesh = import_cheart_mesh(file).unwrap()
     # mesh = fix_tetra_mesh(mesh).unwrap()
-    regions = import_region_mask(domains) if domains else None
+    mask = chread_d(domains).flatten() if domains else None
     gmsh.initialize()
-    tags = read_cheartmesh_into_gmsh_api(mesh, regions=regions, optimize=optimize)
+    tags = read_cheartmesh_into_gmsh_api(mesh, mask=mask, optimize=optimize)
     if save:
         print("trying to export")
         export_mesh(tags, save)

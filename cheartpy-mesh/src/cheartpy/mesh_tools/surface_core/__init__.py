@@ -1,3 +1,4 @@
+from ._relabel import relabel_cheart_surface
 from .cutplanes import make_cutplane_topology
 from .meshing import create_mesh_from_surface
 from .normals import (
@@ -15,4 +16,5 @@ __all__ = [
     "create_new_surface_in_mesh",
     "create_new_surface_in_surf",
     "make_cutplane_topology",
+    "relabel_cheart_surface",
 ]
