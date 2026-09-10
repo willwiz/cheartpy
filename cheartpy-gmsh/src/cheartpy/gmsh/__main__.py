@@ -52,7 +52,7 @@ def import_to_gmsh[I: np.integer](
 ) -> None:
     mesh = import_cheart_mesh(file).unwrap()
     # mesh = fix_tetra_mesh(mesh).unwrap()
-    mask = chread_d(domains).flatten() if domains else None
+    mask = chread_d(domains, dtype=mesh.top.v.dtype).flatten() if domains else None
     gmsh.initialize()
     tags = read_cheartmesh_into_gmsh_api(mesh, mask=mask, optimize=optimize)
     if save:

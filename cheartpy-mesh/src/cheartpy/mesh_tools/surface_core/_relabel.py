@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-from pytools.result import Ok, Result
+from pytools.result import Err, Ok, Result
 
 from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
 
@@ -28,7 +28,10 @@ def relabel_cheart_surface[F: np.floating, I: np.integer](
 
     """
     if mesh.bnd is None:
-        return mesh
+        return Ok(mesh)
+    if not all(k in mesh.bnd.v for k in swap):
+        msg = "key in swap is not found in mesh.bnd.v."
+        return Err(ValueError(msg))
     new_v = {
         swap.get(k, k): CheartMeshPatch(tag=swap.get(k, k), n=v.n, k=v.k, v=v.v, TYPE=v.TYPE)
         for k, v in mesh.bnd.v.items()

@@ -6,9 +6,14 @@ from pytools.math import householder_orthogonal_basis, r_basis
 from pytools.result import Err, Ok, Result, all_ok
 
 from cheartpy.mesh import import_cheart_mesh
-from cheartpy.mesh_tools.tools import MergedMesh, merge_meshes, normalize_by_row
+from cheartpy.mesh_tools.tools import (
+    MergedMesh,
+    create_mesh_from_surface,
+    merge_meshes,
+    normalize_by_row,
+)
 
-from .normals import compute_surface_normal, create_mesh_from_surface
+from .normals import compute_surface_normal
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

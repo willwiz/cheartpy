@@ -3,7 +3,7 @@ from collections.abc import Iterable, Mapping
 from typing import TYPE_CHECKING, Any, Literal, TypeIs, overload
 
 import numpy as np
-from pytools.result import Err, Ok, Result, all_ok
+from pytools.result import Err, Ok, Result
 
 if TYPE_CHECKING:
     from collections.abc import Collection, Sequence
@@ -96,28 +96,6 @@ def _find_element[I: np.integer](
     return Ok(possible_elems.pop())
 
 
-@overload
-def _find_elements[I: np.integer](
-    top: ElemSearchMap, nodes: A2[I], *, unique: Literal[False]
-) -> Result[Sequence[Collection[int]]]: ...
-@overload
-def _find_elements[I: np.integer](
-    top: ElemSearchMap, nodes: A2[I], *, unique: Literal[True]
-) -> Result[Sequence[int]]: ...
-def _find_elements[I: np.integer](
-    top: ElemSearchMap, nodes: A2[I], *, unique: bool
-) -> Result[Sequence[int]] | Result[Sequence[Collection[int]]]:
-    match all_ok([search_element(top, n) for n in nodes]):
-        case Ok(possible_elems): ...  # fmt: skip
-        case Err(e): return Err(e)  # fmt: skip
-    if not unique:
-        return Ok(possible_elems)
-    if any(len(elems) > 1 for elems in possible_elems):
-        msg = f"Multiple elements contain all nodes in one of the rows of {nodes}."
-        return Err(ValueError(msg))
-    return Ok([elems.pop() for elems in possible_elems])
-
-
 def find_elements[I: np.integer](
     top: ElemSearchMap | A2[I],
     nodes: np.ndarray[tuple[int], np.dtype[I]] | np.ndarray[tuple[int, int], np.dtype[I]],
@@ -136,7 +114,9 @@ def find_elements[I: np.integer](
     match nodes:
         case np.ndarray() if _is_1d(nodes):
             return _find_element(search_map, nodes, unique=unique)
-        case np.ndarray() if _is_2d(nodes):
+        case np.ndarray() if _is_2d(nodes) and unique:
+            return [_find_element(search_map, e, unique=unique) for e in nodes]
+        case np.ndarray() if _is_2d(nodes) and not unique:
             return [_find_element(search_map, e, unique=unique) for e in nodes]
         case _:
             msg = f"Nodes array must be 1D or 2D, got {nodes.ndim}D."
