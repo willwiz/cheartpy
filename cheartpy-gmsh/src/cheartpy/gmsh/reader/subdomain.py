@@ -107,6 +107,6 @@ def split_subdomain[F: np.floating, I: np.integer](
     )
     return Ok(
         MultiDomainMesh(
-            mesh, {k: v.astype(mesh.top.v.dtype) for k, v in regions.items()}, region_bnds
+            mesh, {k: np.asarray(v, mesh.top.v.dtype) for k, v in regions.items()}, region_bnds
         )
     )

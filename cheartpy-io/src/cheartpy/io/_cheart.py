@@ -211,7 +211,7 @@ def chwrite_list_utf[T: np.number](
     nn = data.shape[0]
     np.savetxt(
         file,
-        data[:, np.newaxis].astype(dtype),
+        np.asarray(data[:, np.newaxis], dtype),
         fmt="%16d" if np.issubdtype(dtype, np.integer) else "%24.16e",
         delimiter=" ",
         newline="\n",

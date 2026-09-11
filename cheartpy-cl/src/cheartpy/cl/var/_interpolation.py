@@ -20,7 +20,7 @@ def create_elem_basis_on_cl[F: np.floating](
 def interpolate_v_on_elem[F: np.floating](
     v: tuple[A1[F], A1[F]], basis: tuple[A1[F], A1[F]]
 ) -> A2[F]:
-    return (v[0] * basis[0][:, None] + v[1] * basis[1][:, None]).astype(v[0].dtype)
+    return np.asarray(v[0] * basis[0][:, None] + v[1] * basis[1][:, None], v[0].dtype)
 
 
 def _interp_v[F: np.floating, I: np.integer](a_z: A1[F], part: CLPartition[F], v: A2[F]) -> A2[F]:

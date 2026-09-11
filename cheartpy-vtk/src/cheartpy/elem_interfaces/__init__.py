@@ -15,9 +15,9 @@ from ._types import (
     ElemType,
     GmshEnum,
     NodeOrder,
-    VtkElemShape,
     VtkElemType,
     VtkEnum,
+    VtkShape,
 )
 
 __all__ = [
@@ -27,9 +27,9 @@ __all__ = [
     "ElemType",
     "GmshEnum",
     "NodeOrder",
-    "VtkElemShape",
     "VtkElemType",
     "VtkEnum",
+    "VtkShape",
     "convert_element_type",
     "get_boundary_element",
     "get_element_enum_from_polyorder",

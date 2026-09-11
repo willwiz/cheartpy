@@ -17,7 +17,7 @@ def moving_average[T: np.floating](x: A2[T], w: int) -> A2[T]:
     _, *offaxis = x.shape
     window = np.ones((w * 2 + 1, *offaxis), dtype=x.dtype)
     w_mean = convolve(x, window, mode="same") / convolve(np.ones_like(x), window, mode="same")
-    return w_mean.astype(x.dtype)
+    return np.asarray(w_mean, x.dtype)
 
 
 def compute_stats[T: np.floating](data1: A2[T] | float, data2: A2[T] | float) -> Result[VarStats]:

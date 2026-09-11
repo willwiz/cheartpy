@@ -37,7 +37,7 @@ def compute_patch_normal[F: np.floating, I: np.integer](
 ) -> A1[F]:
     v1 = np.asarray([space[elem][:, i] @ basis[0] for i in range(3)])
     v2 = np.asarray([space[elem][:, i] @ basis[1] for i in range(3)])
-    return np.cross(v1, v2).astype(space.dtype)
+    return np.asarray(np.cross(v1, v2), space.dtype)
 
 
 def compute_normal_patch[F: np.floating, I: np.integer](
@@ -59,7 +59,7 @@ def compute_normal_patch[F: np.floating, I: np.integer](
         f = u - np.identity(3)
         print(f)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=basis.dtype))
-    return res.astype(space.dtype)
+    return np.asarray(res, space.dtype)
 
 
 def compute_surface_normal_at_center[F: np.floating, I: np.integer](

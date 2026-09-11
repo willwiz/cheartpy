@@ -67,8 +67,8 @@ class CLPartition[F: np.floating]:
         return CLPartition(
             prefix=self.prefix,
             in_surf=self.in_surf,
-            node=self.node.astype(dtype),
-            domain=self.domain.astype(dtype),
+            node=np.asarray(self.node, dtype),
+            domain=np.asarray(self.domain, dtype),
         )
 
     @property

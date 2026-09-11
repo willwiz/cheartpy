@@ -297,7 +297,7 @@ def write_specific(fname, nodes, values, fmt=None):
 
 def read_specific(fname):
     data = np.loadtxt(fname, skiprows=1)
-    nodes = data[:,0].astype(int) - 1
+    nodes = np.asarray(data[:,0], np.intp) - 1
     values = data[:,1:]
     return nodes, values
 

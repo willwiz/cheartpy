@@ -34,7 +34,7 @@ def get_subdomain_index[F: np.floating, I: np.integer](
 ) -> A1[I]:
     """Return element indices for subdomain elements."""
     index, *_ = np.where(np.isin(mask, domains))
-    return index.astype(mask.dtype)
+    return np.asarray(index, mask.dtype)
 
 
 def split_subdomains[F: np.floating, I: np.integer](

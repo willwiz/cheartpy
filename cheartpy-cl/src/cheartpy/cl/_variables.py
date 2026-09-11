@@ -70,7 +70,7 @@ def ll_basis[F: np.floating](
     x: A1[F],
 ) -> tuple[A1[np.bool_], A2[F]]:
     basis = {i: np.zeros_like(x) for i in range(2)}
-    domain = (nodes[0] <= x) & (x <= nodes[1]).astype(np.bool_)
+    domain = (nodes[0] <= x) & (x <= nodes[1]).astype(np.bool_, copy=False)
     basis[0][domain] = 1 - (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
     basis[1][domain] = (x[domain] - nodes[0]) / (nodes[1] - nodes[0])
     return (domain, var[0] * basis[0][domain, None] + var[1] * basis[1][domain, None])

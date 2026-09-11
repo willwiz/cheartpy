@@ -33,7 +33,7 @@ def _compute_total_expected_ramp_time(left: ToFloat, factor: ToFloat, nt: ToInt)
 def _define_ramp_steps[F: np.floating](
     left: ToFloat, factor: ToFloat, nt: ToInt, *, dtype: DType[F] = np.float64
 ) -> A1[F]:
-    return (left * np.power(factor, np.arange(nt, dtype=dtype))).astype(dtype)
+    return np.asarray(left * np.power(factor, np.arange(nt, dtype=dtype)), dtype)
 
 
 def _power_smooth_left[F: np.floating](

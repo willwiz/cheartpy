@@ -113,13 +113,11 @@ def get_xml_variables[F: np.floating, I: np.integer](
     dtype = xml.ftype
     fx_data = chread_d(xml.x, dtype=dtype) if isinstance(xml.x, Path) else xml.top.x
     if xml.u is not None:
-        fx_data = (fx_data + chread_d(xml.u, dtype=dtype)).astype(dtype)
+        fx_data = np.asarray(fx_data + chread_d(xml.u, dtype=dtype), dtype)
     fv_data = {
-        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v.astype(dtype)
-        for k, v in xml.point_var.items()
+        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v for k, v in xml.point_var.items()
     }
     fc_data = {
-        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v.astype(dtype)
-        for k, v in xml.cell_var.items()
+        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v for k, v in xml.cell_var.items()
     }
     return _TExportVariable(x=fx_data, v=fv_data, c=fc_data)

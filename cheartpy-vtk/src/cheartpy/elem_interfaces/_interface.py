@@ -12,8 +12,8 @@ from ._types import (
     ElemType,
     GmshEnum,
     NodeOrder,
-    VtkElemShape,
     VtkEnum,
+    VtkShape,
 )
 from ._vtk import get_vtk_elem_nodes
 
@@ -317,7 +317,7 @@ def guess_element_from_dim(edim: int, bdim: int | None, target: ElemType) -> Res
             return Ok(vtk_type)
 
 
-_VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
+_VtkEnumCategory: dict[tuple[VtkShape, int], VtkEnum] = {
     ("Line", 1): VtkEnum.LINE1,
     ("Triangle", 1): VtkEnum.TRIANGLE1,
     ("Quadrilateral", 1): VtkEnum.QUADRILATERAL1,
@@ -333,22 +333,22 @@ _VtkEnumCategory: dict[tuple[VtkElemShape, int], VtkEnum] = {
 
 @overload
 def get_element_enum_from_polyorder(
-    elem: VtkElemShape, order: int, target: Literal["Cheart"]
+    elem: VtkShape, order: int, target: Literal["Cheart"]
 ) -> Result[CheartEnum]: ...
 @overload
 def get_element_enum_from_polyorder(
-    elem: VtkElemShape, order: int, target: Literal["Vtk"]
+    elem: VtkShape, order: int, target: Literal["Vtk"]
 ) -> Result[VtkEnum]: ...
 @overload
 def get_element_enum_from_polyorder(
-    elem: VtkElemShape, order: int, target: Literal["Abaqus"]
+    elem: VtkShape, order: int, target: Literal["Abaqus"]
 ) -> Result[AbaqusEnum]: ...
 @overload
 def get_element_enum_from_polyorder(
-    elem: VtkElemShape, order: int, target: Literal["Gmsh"]
+    elem: VtkShape, order: int, target: Literal["Gmsh"]
 ) -> Result[GmshEnum]: ...
 def get_element_enum_from_polyorder(
-    elem: VtkElemShape, order: int, target: ElemType
+    elem: VtkShape, order: int, target: ElemType
 ) -> Result[ElemEnum]:
     """Get the element enum from the element shape and polynomial order.
 
@@ -383,7 +383,7 @@ def get_element_enum_from_polyorder(
             return Ok(convert_element_type(vtk_elem, "Gmsh"))
 
 
-def get_element_shape(elem: ElemEnum) -> VtkElemShape:
+def get_element_shape(elem: ElemEnum) -> VtkShape:
     """Get the element shape from the element enum.
 
     Parameters

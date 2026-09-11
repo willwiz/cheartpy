@@ -61,7 +61,7 @@ def compute_zrc_basis[F: np.floating](space: A2[F], normals: A2[F]) -> Result[A2
         case Ok(r): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     c = np.cross(z, r)
-    return Ok(np.concatenate((z, r, c), axis=1).astype(space.dtype))
+    return Ok(np.concatenate((z, r, c), axis=1, dtype=space.dtype))
 
 
 def make_cutplane_topology[T](  # noqa: C901, PLR0911

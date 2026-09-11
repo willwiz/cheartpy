@@ -36,8 +36,8 @@ def _compute_centroid_at_z[F: np.floating, I: np.integer](
     **kwargs: Unpack[CentroidAPIKwargs[F]],
 ) -> A1[F]:
     domain, basis = _construct_basis_at_z(z, **kwargs)
-    return ((mesh.space.v[domain] * basis[:, None]).sum(axis=0) / basis.sum() - centroid).astype(
-        centroid.dtype
+    return np.asarray(
+        (mesh.space.v[domain] * basis[:, None]).sum(axis=0) / basis.sum() - centroid, centroid.dtype
     )
 
 
@@ -49,7 +49,7 @@ def _compute_a_c_coordinate_at_z[F: np.floating](v_z: A1[F], v_r: A1[F], v_ref: 
     quat, *_ = Rotation.align_vectors(v_0, v_p)
     rot = quat.as_rotvec()
     q = np.linalg.norm(rot)
-    axis = (rot / q).astype(v_z.dtype) if q > 0 else v_z
+    axis = np.asarray(rot / q, v_z.dtype) if q > 0 else v_z
     q = q * np.sign(np.dot(axis, v_z))
     return q % (2 * np.pi)
 

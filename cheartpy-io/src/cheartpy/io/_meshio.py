@@ -19,5 +19,5 @@ def import_meshio[F: np.floating, I: np.integer](
         mesh = cast("MeshioMesh[S2D, F, I]", meshio.read(file))  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
     except meshio.ReadError as e:
         return Err(e)
-    mesh.points = mesh.points.astype(ftype)
+    mesh.points = np.asarray(mesh.points, ftype)
     return Ok(mesh)

@@ -51,9 +51,9 @@ def _import_matrix_core[F: np.floating, I: np.integer](
         CheartMatrix(
             n_rows=n_rows,
             n_entries=n_entries,
-            row_ptr=row_ptr.astype(dtype),
-            res=res_data["res"].astype(ftype),
-            res2=res_data["res2"].astype(ftype),
+            row_ptr=np.asarray(row_ptr, dtype),
+            res=np.asarray(res_data["res"], ftype),
+            res2=np.asarray(res_data["res2"], ftype),
             matrix=matrix,
         )
     )

@@ -42,7 +42,7 @@ def permute_reverse_cuthill_mckee[I: np.integer](connectivity: A2[I]) -> A1[I]:
     )
     data = np.ones_like(rows, dtype=rows.dtype)
     adj_matrix = csr_matrix((data, (rows, cols)), shape=(nnodes, nnodes))
-    return reverse_cuthill_mckee(adj_matrix, symmetric_mode=True).astype(connectivity.dtype)
+    return np.asarray(reverse_cuthill_mckee(adj_matrix, symmetric_mode=True), connectivity.dtype)
 
 
 def reorder_cheartmesh[F: np.floating, I: np.integer](

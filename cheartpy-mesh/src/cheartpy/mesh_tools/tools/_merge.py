@@ -58,7 +58,7 @@ def merge_meshes[F: np.floating, I: np.integer](
     for m, offset in zip(meshes, node_offset, strict=False):
         merged_space[offset : offset + m.space.n] = m.space.v
     tops: list[A2[I]] = [
-        (m.top.v + offset).astype(dtype) for m, offset in zip(meshes, node_offset, strict=False)
+        np.asarray(m.top.v + offset, dtype) for m, offset in zip(meshes, node_offset, strict=False)
     ]
     merged_top = np.concatenate(tops, axis=0)
     merged_mesh = CheartMesh(
@@ -75,7 +75,7 @@ def merge_meshes[F: np.floating, I: np.integer](
         space=interface_space,
         top=CheartMeshTopology(
             n=sum(m.top.n for m in meshes),
-            v=np.concatenate(elem_map, axis=0).astype(dtype),
+            v=np.concatenate(elem_map, axis=0, dtype=dtype),
             TYPE=meshes[0].top.TYPE,
         ),
         bnd=None,

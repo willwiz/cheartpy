@@ -42,11 +42,11 @@ def create_noise[F: np.floating](
 ) -> A2[F]:
     (x, xp), yp = generate_noise_data(mag, *spatial_freq)
 
-    y: A2[F] = interpn((x, xp), yp, cl, method="cubic").astype(cl.dtype)
+    y: A2[F] = np.asarray(interpn((x, xp), yp, cl, method="cubic"), cl.dtype)
     noise = unbias(y)
     if bc_w is not None:
-        noise: A2[F] = (bc_w[:, None] * noise).astype(bc_w.dtype)
-    return (noise[:, None] * normal).astype(normal.dtype)
+        noise = bc_w[:, None] * noise
+    return np.asarray(noise[:, None] * normal, normal.dtype)
 
 
 def update_disp_w_noise[F: np.floating](
@@ -99,7 +99,7 @@ def compute_bc_w[F: np.floating, I: np.integer](
         current = current | new_nodes
         new_nodes = new_nodes.union(*[neighbors[n] for n in current]) - current
     bc_w[bc_w > 1] = 1
-    return Ok((1 - bc_w).astype(bc_w.dtype))
+    return Ok(np.asarray(1.0 - bc_w, bc_w.dtype))
 
 
 def diffuse_bc_w[F: np.floating, I: np.integer](
@@ -126,4 +126,4 @@ def diffuse_bc_w[F: np.floating, I: np.integer](
             nw = list(neighbors[k])
             bc_w[k] = mult * snap_shot[nw].mean()
         bc_w[bc_nodes] = 1.0
-    return Ok((1.0 - bc_w).astype(bc_w.dtype))
+    return Ok(np.asarray(1.0 - bc_w, bc_w.dtype))

@@ -219,7 +219,7 @@ def search_unique[I: np.integer](
         The positions of each array b in a.
 
     """
-    sorter = np.argsort(a).astype(a.dtype)
+    sorter = np.asarray(np.argsort(a), a.dtype)
     match b:
         case Mapping():
             return {k: sorter[np.searchsorted(a, v, sorter=sorter)] for k, v in b.items()}
@@ -289,7 +289,7 @@ def reset_node_index[F: np.floating, I: np.integer](
     top = GmshElements(
         type=top.type,
         e=top.e,
-        conn=perm.fwd[top.conn].astype(top.conn.dtype),
+        conn=perm.fwd[top.conn],
     )
     bnd = {
         k: GmshBoundaries(
@@ -297,7 +297,7 @@ def reset_node_index[F: np.floating, I: np.integer](
             entity=v.entity,
             type=v.type,
             e=v.e,
-            conn=perm.fwd[v.conn].astype(v.conn.dtype),
+            conn=perm.fwd[v.conn],
         )
         for k, v in bnd.items()
     }
@@ -318,7 +318,7 @@ def reset_index_elem[I: np.integer](
     if isinstance(item, GmshElements):
         return GmshElements(
             type=item.type,
-            e=perm.fwd[item.e].astype(item.e.dtype),
+            e=perm.fwd[item.e],
             conn=item.conn,
         )
     return {k: reset_index_elem(perm, v) for k, v in item.items()}
@@ -340,7 +340,7 @@ def reset_index_boundary[I: np.integer](
             dim=item.dim,
             entity=item.entity,
             type=item.type,
-            e=perm.fwd[item.e].astype(item.e.dtype),
+            e=perm.fwd[item.e],
             conn=item.conn,
         )
     return {k: reset_index_boundary(perm, v) for k, v in item.items()}

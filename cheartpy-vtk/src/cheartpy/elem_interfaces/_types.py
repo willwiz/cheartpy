@@ -3,9 +3,7 @@ from collections.abc import Mapping
 from typing import Literal, NamedTuple
 
 type NodeOrder = Mapping[int, tuple[int, int, int]]
-type VtkElemShape = Literal[
-    "Vertex", "Line", "Triangle", "Quadrilateral", "Tetrahedron", "Hexahedron"
-]
+type VtkShape = Literal["Vertex", "Line", "Triangle", "Quadrilateral", "Tetrahedron", "Hexahedron"]
 
 type ElemType = Literal["Cheart", "Vtk", "Abaqus", "Gmsh"]
 type ElemEnum = CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
@@ -13,7 +11,7 @@ type ElemEnum = CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
 
 class _VtkElem(NamedTuple):
     enum: str
-    shape: VtkElemShape
+    shape: VtkShape
     order: int
     idx: int
 

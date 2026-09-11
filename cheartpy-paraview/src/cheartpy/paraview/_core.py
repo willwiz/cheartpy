@@ -61,12 +61,14 @@ def create_xml_for_boundary[I: np.integer, F: np.floating](
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int8", Name="PatchIDs", Format="ascii"),
     )
-    dataarr.add_data(fbid.astype(np.int8)).unwrap()
+    dataarr.add_data(np.asarray(fbid, np.int8)).unwrap()
     cell = piece.create_elem(XMLElement("Cells", Scalars="scalars"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
-    dataarr.add_data(fb.astype(np.int64), order=get_node_permutation(elem_type, "Vtk")).unwrap()
+    dataarr.add_data(
+        np.asarray(fb, np.int64), order=get_node_permutation(elem_type, "Vtk")
+    ).unwrap()
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
     )
@@ -123,14 +125,14 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
         XMLElement("DataArray", type="Float64", NumberOfComponents="3", Format="ascii"),
     )
     x = convert_3d(x)
-    dataarr.add_data(x.astype(np.float64)).unwrap()
+    dataarr.add_data(np.asarray(x, np.float64)).unwrap()
 
     cell = piece.create_elem(XMLElement("Cells"))
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="connectivity", Format="ascii"),
     )
     dataarr.add_data(
-        top.t.astype(np.int64), order=get_node_permutation(top.elementtype, "Vtk")
+        np.asarray(top.t, np.int64), order=get_node_permutation(top.elementtype, "Vtk")
     ).unwrap()
     dataarr = cell.create_elem(
         XMLElement("DataArray", type="Int64", Name="offsets", Format="ascii"),
@@ -153,7 +155,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
                 Format="ascii",
             ),
         )
-        dataarr.add_data(dv.astype(np.float64)).unwrap()
+        dataarr.add_data(np.asarray(dv, np.float64)).unwrap()
     if not cell_var:
         return vtkfile
     cells = piece.create_elem(XMLElement("CellData", Scalars="scalars"))
@@ -167,7 +169,7 @@ def create_xml_for_mesh[F: np.floating, I: np.integer](
                 Format="ascii",
             ),
         )
-        dataarr.add_data(dv.astype(np.float64)).unwrap()
+        dataarr.add_data(np.asarray(dv, np.float64)).unwrap()
     return vtkfile
 
 

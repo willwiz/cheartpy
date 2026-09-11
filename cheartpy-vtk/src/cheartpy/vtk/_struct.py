@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 from cheartpy.elem_interfaces import (
     ElemEnum,
-    VtkElemShape,
     VtkEnum,
+    VtkShape,
     convert_element_type,
     get_element_enum_from_polyorder,
 )
@@ -529,7 +529,7 @@ _ALL_ELEMENTS = {
 }
 
 
-def get_vtk_elem(elem_type: ElemEnum | tuple[VtkElemShape, int]) -> VtkElem:
+def get_vtk_elem(elem_type: ElemEnum | tuple[VtkShape, int]) -> VtkElem:
     """Return the VtkElem corresponding to the given element type.
 
     Parameters

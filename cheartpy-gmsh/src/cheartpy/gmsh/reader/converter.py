@@ -374,7 +374,7 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     regions = (
         None
         if mask is None
-        else {k: np.nonzero(mask == k)[0].astype(np.intp) for k in np.unique(mask)}
+        else {k: np.nonzero(mask == k)[0].astype(np.intp, copy=False) for k in np.unique(mask)}
     )
     domain_mesh = split_subdomain(mesh, regions).unwrap()
     if not gmsh.is_initialized():
