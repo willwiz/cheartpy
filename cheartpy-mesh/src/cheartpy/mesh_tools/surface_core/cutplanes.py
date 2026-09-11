@@ -46,7 +46,6 @@ def find_cutplane_master[T](*tops: EmbbededTopologyDef[T]) -> T:
 
 def compute_householder_basis[F: np.floating](normals: A2[F]) -> A2[F]:
     mean_normal = normals.mean(axis=0)
-    print(f"{mean_normal=}")
     basis = householder_orthogonal_basis(mean_normal)
     return np.full((normals.shape[0], 9), basis.flatten())
 

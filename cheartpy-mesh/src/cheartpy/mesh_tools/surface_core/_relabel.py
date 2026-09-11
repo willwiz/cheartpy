@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-def relabel_cheart_surface[F: np.floating, I: np.integer](
+def relabel_cheart_surfaces[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], swap: Mapping[int, int]
 ) -> Result[CheartMesh[F, I]]:
     """Swap the label integer from new to old.
