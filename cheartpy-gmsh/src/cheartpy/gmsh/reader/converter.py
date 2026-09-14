@@ -394,8 +394,8 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     # Run the plugin safely
     before = get_mesh_quality(top, None)
     print_mesh_quality(before, None)
-    old_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
-    old_volume = get_gmsh_entity(top.dim, list(domains.values()))
+    # old_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
+    # old_volume = get_gmsh_entity(top.dim, list(domains.values()))
     if kwargs.get("optimize", False):
         optimize_mesh(top)
         after = get_mesh_quality(top, None)
@@ -409,24 +409,24 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     gmsh.model.mesh.remove_duplicate_nodes()
     gmsh.model.occ.remove_all_duplicates()
     print_physical_groups()
-    new_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
-    new_volume = get_gmsh_entity(top.dim, list(domains.values()))
-    for k in boundary_map:
-        old_bnd = old_boundaries[k]
-        new_bnd = new_boundaries[k]
-        if not np.array_equal(old_bnd.conn, new_bnd.conn):
-            print(f"Boundary {k} has changed after optimization.")
-            print(f"Old boundary nodes:\n{old_bnd.conn}")
-            print(f"New boundary nodes:\n{new_bnd.conn}")
-        else:
-            print(f"Boundary {k} remains unchanged after optimization.")
+    # new_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
+    # new_volume = get_gmsh_entity(top.dim, list(domains.values()))
+    # for k in boundary_map:
+    #     old_bnd = old_boundaries[k]
+    #     new_bnd = new_boundaries[k]
+    #     if not np.array_equal(old_bnd.conn, new_bnd.conn):
+    #         print(f"Boundary {k} has changed after optimization.")
+    #         print(f"Old boundary nodes:\n{old_bnd.conn}")
+    #         print(f"New boundary nodes:\n{new_bnd.conn}")
+    #     else:
+    #         print(f"Boundary {k} remains unchanged after optimization.")
 
-    if not np.array_equal(old_volume.conn, new_volume.conn):
-        print("Volume has changed after optimization.")
-        print(f"Old volume nodes:\n{old_volume.conn}")
-        print(f"New volume nodes:\n{new_volume.conn}")
-    else:
-        print("Volume remains unchanged after optimization.")
+    # if not np.array_equal(old_volume.conn, new_volume.conn):
+    #     print("Volume has changed after optimization.")
+    #     print(f"Old volume nodes:\n{old_volume.conn}")
+    #     print(f"New volume nodes:\n{new_volume.conn}")
+    # else:
+    #     print("Volume remains unchanged after optimization.")
     # gmsh.plugin.run("AnalyseMeshQuality")
     # 5. EXPORT AND FINALIZE
     gmsh.option.set_number("Mesh.SaveGroupsOfNodes", 1)
