@@ -431,3 +431,23 @@ def get_element_order(elem: ElemEnum) -> int:
             return ABAQUS_2_VTK[elem].order
         case GmshEnum():
             return GMSH_2_VTK[elem].order
+
+
+_ELEMENT_SIZE = {
+    VtkEnum.VERTEX: 1,
+    VtkEnum.LINE1: 2,
+    VtkEnum.LINE2: 3,
+    VtkEnum.TRIANGLE1: 3,
+    VtkEnum.TRIANGLE2: 6,
+    VtkEnum.QUADRILATERAL1: 4,
+    VtkEnum.QUADRILATERAL2: 9,
+    VtkEnum.TETRAHEDRON1: 4,
+    VtkEnum.TETRAHEDRON2: 10,
+    VtkEnum.HEXAHEDRON1: 8,
+    VtkEnum.HEXAHEDRON2: 27,
+}
+
+
+def get_element_size(elem: ElemEnum) -> int:
+    vtk_enum = convert_element_type(elem, "Vtk")
+    return _ELEMENT_SIZE[vtk_enum]

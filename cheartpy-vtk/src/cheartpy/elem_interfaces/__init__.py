@@ -4,6 +4,7 @@ from ._interface import (
     get_element_enum_from_polyorder,
     get_element_order,
     get_element_shape,
+    get_element_size,
     get_node_order,
     guess_element_from_dim,
 )
@@ -35,6 +36,7 @@ __all__ = [
     "get_element_enum_from_polyorder",
     "get_element_order",
     "get_element_shape",
+    "get_element_size",
     "get_node_order",
     "get_node_permutation",
     "guess_element_from_dim",
