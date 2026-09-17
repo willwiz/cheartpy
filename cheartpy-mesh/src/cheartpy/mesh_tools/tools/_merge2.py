@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum, get_element_size
+from pytools.arrays import Arr, SAny
 from pytools.result import Err, Ok, Result
 
 from cheartpy.mesh import (
@@ -165,3 +166,63 @@ def merge_cheart_meshes[F: np.floating, I: np.integer](
         case Err(e): return Err(e)  # fmt: skip
     new_mesh = _create_new_mesh(meshes, perms, data)
     return Ok(MergedMesh(mesh=new_mesh, iface=iface, node_perm=perms.node, elem_perm=perms.elem))
+
+
+def merge_point_variables[F: np.floating, I: np.integer, V: np.floating](
+    mesh: MergedMesh[F, I],
+    variables: Mapping[int, Mapping[str, Arr[SAny, V]]],
+) -> Result[Mapping[str, Arr[SAny, V]]]:
+    """Merge variable fields on points from multiple meshes.
+
+    Parameters
+    ----------
+    mesh : MergedMesh[F, I]
+        The merged mesh containing the index permutations for each original mesh.
+    variables : Mapping[int, Mapping[str, Arr[SAny, V]]]
+        A mapping of mesh names to variable fields, where each variable field is a mapping of variable
+        names to arrays.
+
+    Returns
+    -------
+    Result[Mapping[str, Arr[SAny, V]]]
+        A Result object containing the merged variable fields.
+
+    """
+    vs = {v: (val.shape[1], val.dtype) for k in variables.values() for v, val in k.items()}
+    inverted_dict = {v: {k: items[v] for k, items in variables.items() if v in items} for v in vs}
+    merged_vars = {v: np.zeros((mesh.mesh.space.n, n), dtype=t) for v, (n, t) in vs.items()}
+    for v, items in inverted_dict.items():
+        for k, val in items.items():
+            perm = mesh.node_perm[k]
+            merged_vars[v][perm.new] = val[perm.old]
+    return Ok(merged_vars)
+
+
+def merge_cell_variables[F: np.floating, I: np.integer, V: np.floating](
+    mesh: MergedMesh[F, I],
+    variables: Mapping[int, Mapping[str, Arr[SAny, V]]],
+) -> Result[Mapping[str, Arr[SAny, V]]]:
+    """Merge variable fields on cells from multiple meshes.
+
+    Parameters
+    ----------
+    mesh : MergedMesh[F, I]
+        The merged mesh containing the index permutations for each original mesh.
+    variables : Mapping[int, Mapping[str, Arr[SAny, V]]]
+        A mapping of mesh names to variable fields, where each variable field is a mapping of variable
+        names to arrays.
+
+    Returns
+    -------
+    Result[Mapping[str, Arr[SAny, V]]]
+        A Result object containing the merged variable fields.
+
+    """
+    vs = {v: (val.shape[1], val.dtype) for k in variables.values() for v, val in k.items()}
+    inverted_dict = {v: {k: items[v] for k, items in variables.items() if v in items} for v in vs}
+    merged_vars = {v: np.zeros((mesh.mesh.top.n, n), dtype=t) for v, (n, t) in vs.items()}
+    for v, items in inverted_dict.items():
+        for k, val in items.items():
+            perm = mesh.elem_perm[k]
+            merged_vars[v][perm.new] = val[perm.old]
+    return Ok(merged_vars)
