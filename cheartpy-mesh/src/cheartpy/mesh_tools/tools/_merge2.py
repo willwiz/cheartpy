@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, NamedTuple
 
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum, get_element_size
-from pytools.arrays import Arr, SAny
 from pytools.result import Err, Ok, Result
 
 from cheartpy.mesh import (
@@ -19,7 +18,7 @@ from cheartpy.mesh_tools.tools import IndexPermutation, create_index_permutation
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from pytools.arrays import DType
+    from pytools.arrays import Arr, DType, SAny
 
 
 @dc.dataclass(slots=True)
@@ -168,6 +167,23 @@ def merge_cheart_meshes[F: np.floating, I: np.integer](
     return Ok(MergedMesh(mesh=new_mesh, iface=iface, node_perm=perms.node, elem_perm=perms.elem))
 
 
+def _check_variable_shape_type[V: np.floating](
+    variables: Mapping[int, Mapping[str, Arr[SAny, V]]],
+) -> Result[Mapping[str, tuple[int, np.dtype]]]:
+    vs = {v for k in variables.values() for v in k}
+    dtypes = {v: {k[v].dtype for k in variables.values() if v in k} for v in vs}
+    shapes = {v: {k[v].shape[1] for k in variables.values() if v in k} for v in vs}
+    for v, d in dtypes.items():
+        if len(d) != 1:
+            msg = f"Variable {v} has different dtypes: {d}"
+            return Err(ValueError(msg))
+    for v, s in shapes.items():
+        if len(s) != 1:
+            msg = f"Variable {v} has different shapes: {s}"
+            return Err(ValueError(msg))
+    return Ok({v: (shapes[v].pop(), dtypes[v].pop()) for v in vs})
+
+
 def merge_point_variables[F: np.floating, I: np.integer, V: np.floating](
     mesh: MergedMesh[F, I],
     variables: Mapping[int, Mapping[str, Arr[SAny, V]]],
@@ -179,8 +195,8 @@ def merge_point_variables[F: np.floating, I: np.integer, V: np.floating](
     mesh : MergedMesh[F, I]
         The merged mesh containing the index permutations for each original mesh.
     variables : Mapping[int, Mapping[str, Arr[SAny, V]]]
-        A mapping of mesh names to variable fields, where each variable field is a mapping of variable
-        names to arrays.
+        A mapping of mesh names to variable fields, where each variable field is a mapping of
+        variable names to arrays.
 
     Returns
     -------
@@ -188,7 +204,9 @@ def merge_point_variables[F: np.floating, I: np.integer, V: np.floating](
         A Result object containing the merged variable fields.
 
     """
-    vs = {v: (val.shape[1], val.dtype) for k in variables.values() for v, val in k.items()}
+    match _check_variable_shape_type(variables):
+        case Ok(vs): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     inverted_dict = {v: {k: items[v] for k, items in variables.items() if v in items} for v in vs}
     merged_vars = {v: np.zeros((mesh.mesh.space.n, n), dtype=t) for v, (n, t) in vs.items()}
     for v, items in inverted_dict.items():
@@ -209,8 +227,8 @@ def merge_cell_variables[F: np.floating, I: np.integer, V: np.floating](
     mesh : MergedMesh[F, I]
         The merged mesh containing the index permutations for each original mesh.
     variables : Mapping[int, Mapping[str, Arr[SAny, V]]]
-        A mapping of mesh names to variable fields, where each variable field is a mapping of variable
-        names to arrays.
+        A mapping of mesh names to variable fields, where each variable field is a mapping of
+        variable names to arrays.
 
     Returns
     -------
@@ -218,7 +236,9 @@ def merge_cell_variables[F: np.floating, I: np.integer, V: np.floating](
         A Result object containing the merged variable fields.
 
     """
-    vs = {v: (val.shape[1], val.dtype) for k in variables.values() for v, val in k.items()}
+    match _check_variable_shape_type(variables):
+        case Ok(vs): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     inverted_dict = {v: {k: items[v] for k, items in variables.items() if v in items} for v in vs}
     merged_vars = {v: np.zeros((mesh.mesh.top.n, n), dtype=t) for v, (n, t) in vs.items()}
     for v, items in inverted_dict.items():
