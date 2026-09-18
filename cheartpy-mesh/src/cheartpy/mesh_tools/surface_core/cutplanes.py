@@ -9,7 +9,8 @@ from cheartpy.mesh import import_cheart_mesh
 from cheartpy.mesh_tools.tools import (
     MergedMesh,
     create_mesh_from_surface,
-    merge_meshes,
+    merge_cheart_meshes,
+    merge_point_variables,
     normalize_by_row,
 )
 
@@ -64,11 +65,11 @@ def compute_zrc_basis[F: np.floating](space: A2[F], normals: A2[F]) -> Result[A2
     return Ok(np.concatenate((z, r, c), axis=1, dtype=space.dtype))
 
 
-def make_cutplane_topology[T](  # noqa: C901, PLR0911
-    defn: Mapping[T, TopologyDef[T]],
-    planes: Sequence[T],
+def make_cutplane_topology[T](  # noqa: C901, PLR0911, PLR0912
+    defn: Mapping[int, TopologyDef[int]],
+    planes: Sequence[int],
     new_home: Path,
-) -> Result[MergedMesh[np.float64, np.intp]]:
+) -> Result[tuple[MergedMesh[np.float64, np.intp], Mapping[str, A2[np.floating]]]]:
     get_logger(level="INFO")
     new_home.mkdir(parents=True, exist_ok=True)
     cutplanes = {
@@ -104,12 +105,13 @@ def make_cutplane_topology[T](  # noqa: C901, PLR0911
         case Ok(bnd_zrc_bases): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     ids = {k: pln["bnd"] * np.ones((bnd_meshes[k].space.n, 1)) for k, pln in cutplanes.items()}
-    return merge_meshes(
-        list(bnd_meshes.values()),
-        {
-            "Normal": list(bnd_normals.values()),
-            "Basis": list(bnd_bases.values()),
-            "IDs": list(ids.values()),
-            "ZRC": list(bnd_zrc_bases.values()),
-        },
-    ).next()
+    match merge_cheart_meshes(bnd_meshes):
+        case Ok(cutplane_mesh): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    match merge_point_variables(
+        cutplane_mesh,
+        {"Normal": bnd_normals, "Basis": bnd_bases, "IDs": ids, "ZRC": bnd_zrc_bases},
+    ):
+        case Ok(merged_variables): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    return Ok((cutplane_mesh, merged_variables))

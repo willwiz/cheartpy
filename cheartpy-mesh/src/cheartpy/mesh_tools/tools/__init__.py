@@ -1,5 +1,5 @@
 from ._math import normalize_by_row, orthonormalize_by_row
-from ._merge import merge_meshes
+from ._merge import merge_cell_variables, merge_cheart_meshes, merge_point_variables
 from ._search import build_element_searchmap, find_elements
 from ._split import create_mesh_from_region, create_mesh_from_surface, split_subdomains
 from ._types import ElemSearchMap, IndexPermutation, MergedMesh
@@ -14,7 +14,10 @@ __all__ = [
     "create_mesh_from_region",
     "create_mesh_from_surface",
     "find_elements",
+    "merge_cell_variables",
+    "merge_cheart_meshes",
     "merge_meshes",
+    "merge_point_variables",
     "normalize_by_row",
     "orthonormalize_by_row",
     "recompile_cheart_mesh",

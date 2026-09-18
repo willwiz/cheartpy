@@ -1,14 +1,12 @@
 import dataclasses as dc
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.io import chwrite_d_utf
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A1, A2, ToIndex
+    from pytools.arrays import A1, ToIndex
 
     from cheartpy.mesh import CheartMesh
 
@@ -24,13 +22,7 @@ class IndexPermutation[I: np.integer]:
 
 @dc.dataclass(slots=True)
 class MergedMesh[F: np.floating, I: np.integer]:
-    vol: CheartMesh[F, I]
+    mesh: CheartMesh[F, I]
     iface: CheartMesh[F, I]
-    var: Mapping[str, A2[F]]
-
-    def save(self, prefix: str, root: Path | None = None) -> None:
-        root = root or Path.cwd()
-        self.vol.save(root / f"{prefix}Planes")
-        self.iface.save(root / f"{prefix}Interface")
-        for k, v in self.var.items():
-            chwrite_d_utf(root / f"{prefix}Planes{k}-0.D", v)
+    node_perm: Mapping[int, IndexPermutation[I]]
+    elem_perm: Mapping[int, IndexPermutation[I]]

@@ -1,4 +1,4 @@
-from collections.abc import Collection, Mapping, Sequence
+from collections.abc import Collection, Sequence
 from typing import Literal, overload
 
 import numpy as np
@@ -7,7 +7,9 @@ from pytools.result import Result
 
 from ._types import ElemSearchMap
 
-def build_element_searchmap[I: np.integer](elements: Mapping[int, A1[I]]) -> ElemSearchMap: ...
+def build_element_searchmap[I: np.integer](
+    connectivity: A2[I], *, keys: A1[I] | None = None
+) -> Result[ElemSearchMap]: ...
 @overload
 def find_elements[I: np.integer](top: ElemSearchMap, nodes: A1[I]) -> Result[int]: ...
 @overload
