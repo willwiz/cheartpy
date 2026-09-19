@@ -1,7 +1,8 @@
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.cl.mesh import CLDef, CLPartition, create_cl_partition
+from cheartpy.cl.mesh import CLDef, CLPartition, create_centerline_partition
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2
@@ -15,6 +16,11 @@ def create_elem_basis_on_cl[F: np.floating](
     right_basis = (a_z[domain_nodes] - left[1]) / domain[1]
     left_basis = 1.0 - right_basis
     return domain_nodes, (left_basis, right_basis)
+
+
+def create_centerline_basis_func_by_elem[F: np.floating](
+    a_z: A1[F], part: CLPartition[F]
+) -> tuple[Sequence[A1[np.bool_]], Sequence[Sequence[A1[F]]]]: ...
 
 
 def interpolate_v_on_elem[F: np.floating](
@@ -58,7 +64,7 @@ def interp_cl_var_to_volume[F: np.floating, I: np.integer](
     match part:
         case CLPartition(): ...  # fmt: skip
         case _:
-            part = create_cl_partition(part)
+            part = create_centerline_partition(part)
     return [_interp_v(a_z, part, vi) for vi in v]
 
 

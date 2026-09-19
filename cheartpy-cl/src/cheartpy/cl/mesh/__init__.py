@@ -1,12 +1,6 @@
 from ._centroid import compute_a_c_coordinate
-from ._meshing import (
-    create_centerline_topology_in_surf,
-    create_centerline_topology_in_vol,
-    create_cl_partition,
-    export_cl_mesh,
-)
+from ._partitioning import create_centerline_mesh, create_centerline_partition
 from ._types import APIKwargs, CLDef, CLMesh, CLPartition, CLSegmentDef, CLVectorDef
-from ._utils import get_cl_ftype
 
 __all__ = [
     "APIKwargs",
@@ -16,9 +10,6 @@ __all__ = [
     "CLSegmentDef",
     "CLVectorDef",
     "compute_a_c_coordinate",
-    "create_centerline_topology_in_surf",
-    "create_centerline_topology_in_vol",
-    "create_cl_partition",
-    "export_cl_mesh",
-    "get_cl_ftype",
+    "create_centerline_mesh",
+    "create_centerline_partition",
 ]

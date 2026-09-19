@@ -50,30 +50,32 @@ class CLSegmentDef[F: np.floating = np.float64](TypedDict, total=False):
 type CLDef[F: np.floating = np.float64] = CLVectorDef[F] | CLSegmentDef[F]
 
 
-@dc.dataclass(slots=True)
-class CLPartition[F: np.floating]:
-    prefix: str
-    in_surf: int | None
-    node: A1[F]
+@dc.dataclass(slots=True, frozen=True)
+class CLPartition[F: np.floating = np.float64, I: np.integer = np.intp]:
+    nodes: A1[F]
+    top: A2[I]
     domain: A2[F]
 
-    def __repr__(self) -> str:
-        return self.prefix
-
-    def __str__(self) -> str:
-        return self.prefix
-
-    def astype[T: np.floating](self, dtype: DType[T]) -> CLPartition[T]:
-        return CLPartition(
-            prefix=self.prefix,
-            in_surf=self.in_surf,
-            node=np.asarray(self.node, dtype),
-            domain=np.asarray(self.domain, dtype),
-        )
+    @property
+    def n(self) -> int:
+        return len(self.nodes)
 
     @property
-    def dtype(self) -> DType[F]:
-        return self.node.dtype
+    def dtype(self) -> np.dtype[I]:
+        return self.top.dtype
+
+    @property
+    def ftype(self) -> np.dtype[F]:
+        return self.nodes.dtype
+
+    def astype[V: np.floating, T: np.integer](
+        self, ftype: DType[V], dtype: DType[T]
+    ) -> CLPartition[V, T]:
+        return CLPartition(
+            nodes=np.astype(self.nodes, ftype),
+            top=np.astype(self.top, dtype),
+            domain=np.astype(self.domain, ftype),
+        )
 
 
 class CLMesh[F: np.floating, I: np.integer](NamedTuple):

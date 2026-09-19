@@ -1,4 +1,3 @@
-import dataclasses as dc
 from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
@@ -13,49 +12,41 @@ from cheartpy.mesh_tools.tools import (
 )
 from pytools.result import Err, Ok
 
+from ._types import CLPartition
+
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from pytools.arrays import A1, A2, DType
+    from pytools.arrays import A1, DType
     from pytools.result import Result
 
 
-@dc.dataclass(slots=True, frozen=True)
-class CLPartition[F: np.floating = np.float64]:
-    n: int
-    nodes: A1[F]
-    domain: A2[F]
-
-    @property
-    def dtype(self) -> np.dtype[F]:
-        return self.nodes.dtype
-
-    def astype[T: np.floating](self, dtype: np.dtype[T]) -> CLPartition[T]:
-        return CLPartition(
-            n=self.n,
-            nodes=np.asarray(self.nodes, dtype=dtype),
-            domain=np.asarray(self.domain, dtype=dtype),
-        )
-
-
-def private_create_centerline_partition[F: np.floating](
-    param: int | A1[F] | CLPartition[F], /, dtype: DType[F] = np.float64
-) -> CLPartition[F]:
+def private_create_centerline_partition[F: np.floating = np.float64, I: np.integer = np.intp](
+    param: int | A1[np.floating] | CLPartition[np.floating, np.integer],
+    /,
+    ftype: DType[F] = np.float64,
+    dtype: DType[I] = np.intp,
+) -> CLPartition[F, I]:
     match param:
         case CLPartition():
-            return param
+            return param.astype(ftype, dtype)
         case int() as n:
-            nodes = np.linspace(0, 1, n, dtype=dtype)
-        case np.ndarray() as nodes: ...  # fmt: skip
+            nodes = np.linspace(0, 1, n, dtype=ftype)
+        case np.ndarray() as nodes:
+            nodes = np.asarray(nodes, ftype)
     elem_size = np.pad(np.diff(nodes), (1, 1), mode="edge")
-    domain = np.stack([nodes - elem_size[:-1] / 2, nodes + elem_size[1:] / 2], axis=1, dtype=dtype)
-    return CLPartition(n=len(nodes), nodes=nodes, domain=domain)
+    domain = np.stack([nodes - elem_size[:-1] / 2, nodes + elem_size[1:] / 2], axis=1, dtype=ftype)
+    top = np.hstack((np.arange(len(nodes) - 1, dtype=dtype), np.arange(1, len(nodes), dtype=dtype)))
+    return CLPartition(nodes=nodes, top=top, domain=domain)
 
 
-def create_centerline_partition[F: np.floating](
-    param: int | A1[F], /, dtype: DType[F] = np.float64
-) -> CLPartition[F]:
-    return private_create_centerline_partition(param, dtype=dtype)
+def create_centerline_partition[F: np.floating = np.float64, I: np.integer = np.intp](
+    param: int | A1[F],
+    /,
+    ftype: DType[F] = np.float64,
+    dtype: DType[I] = np.intp,
+) -> CLPartition[F, I]:
+    return private_create_centerline_partition(param, ftype=ftype, dtype=dtype)
 
 
 class CLTopologyKwargs(TypedDict, total=False):
@@ -78,21 +69,23 @@ def create_mesh_for_cl_node[F: np.floating, I: np.integer](
 def create_centerline_nodal_meshes[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     a_z: A1[F],
-    partition: int | A1[F] | CLPartition[F],
+    partition: int | A1[np.floating] | CLPartition[np.floating, np.integer],
     **kwargs: Unpack[CLTopologyKwargs],
 ) -> Mapping[int, CheartMesh[F, I]]:
     search_map = kwargs.get("search_map") or build_element_searchmap(mesh.top.v).unwrap()
-    partition = private_create_centerline_partition(partition, dtype=a_z.dtype)
+    _partition = private_create_centerline_partition(
+        partition, ftype=a_z.dtype, dtype=mesh.top.v.dtype
+    )
     return {
         i: create_mesh_for_cl_node(mesh, a_z, domain, search_map=search_map)
-        for i, domain in enumerate(partition.domain)
+        for i, domain in enumerate(_partition.domain)
     }
 
 
 def create_centerline_mesh_in_volume[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     a_z: A1[F],
-    partition: int | A1[F] | CLPartition[F],
+    partition: int | A1[np.floating] | CLPartition[np.floating, np.integer],
     **kwargs: Unpack[CLTopologyKwargs],
 ) -> Result[MergedMesh[F, I]]:
     nodal_meshes = create_centerline_nodal_meshes(mesh, a_z, partition, **kwargs)
@@ -103,7 +96,7 @@ def create_centerline_mesh_in_surface[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     in_surf: int,
     a_z: A1[F],
-    partition: int | A1[F] | CLPartition[F],
+    partition: int | A1[np.floating] | CLPartition[np.floating, np.integer],
     **kwargs: Unpack[CLTopologyKwargs],
 ) -> Result[MergedMesh[F, I]]:
     if not mesh.bnd:
@@ -123,7 +116,7 @@ def create_centerline_mesh_in_surface[F: np.floating, I: np.integer](
 def create_centerline_mesh[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     a_z: A1[F],
-    partition: int | A1[F] | CLPartition[F],
+    partition: int | A1[np.floating] | CLPartition[np.floating, np.integer],
     *,
     in_surf: int | None = None,
 ) -> Result[MergedMesh[F, I]]:
