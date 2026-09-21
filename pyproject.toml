@@ -38,6 +38,8 @@ vtu = ["cheartpy-mesh", "cheartpy-paraview"]
 abaqus = ["cheartpy-abaqus"]
 fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
 
+[tool.uv]
+package=false
 
 [tool.uv.sources]
 cheartpy = { path = ".", package = false }
