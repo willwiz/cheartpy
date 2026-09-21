@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 def relabel_cheart_surfaces[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], swap: Mapping[int, int]
+    mesh: CheartMesh[F, I], swap: Mapping[int, int], *, closed: bool = False
 ) -> Result[CheartMesh[F, I]]:
     """Swap the label integer from new to old.
 
@@ -20,6 +20,8 @@ def relabel_cheart_surfaces[F: np.floating, I: np.integer](
         The mesh to relabel.
     swap : Mapping[Old: int, New: int]
         A mapping from old labels to new labels.
+    closed : bool, default=False
+        If True, new mesh will only contain the new labels in swap.
 
     Returns
     -------
@@ -29,12 +31,20 @@ def relabel_cheart_surfaces[F: np.floating, I: np.integer](
     """
     if mesh.bnd is None:
         return Ok(mesh)
-    if not all(k in mesh.bnd.v for k in swap):
+    if not all(b in mesh.bnd.v for b in swap):
         msg = "key in swap is not found in mesh.bnd.v."
         return Err(ValueError(msg))
-    new_v = {
-        swap.get(k, k): CheartMeshPatch(tag=swap.get(k, k), n=v.n, k=v.k, v=v.v, TYPE=v.TYPE)
-        for k, v in mesh.bnd.v.items()
-    }
+    if closed:
+        new_v = {
+            new: CheartMeshPatch(tag=new, n=b.n, k=b.k, v=b.v, TYPE=b.TYPE)
+            for old, new in swap.items()
+            if (b := mesh.bnd.v[old])
+        }
+    else:
+        new_v = {
+            new: CheartMeshPatch(tag=new, n=v.n, k=v.k, v=v.v, TYPE=v.TYPE)
+            for k, v in mesh.bnd.v.items()
+            if (new := swap.get(k, k))
+        }
     mesh.bnd = CheartMeshBoundary(n=mesh.bnd.n, v=new_v, TYPE=mesh.bnd.TYPE)
     return Ok(mesh)

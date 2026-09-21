@@ -16,7 +16,6 @@ __all__ = [
     "find_elements",
     "merge_cell_variables",
     "merge_cheart_meshes",
-    "merge_meshes",
     "merge_point_variables",
     "normalize_by_row",
     "orthonormalize_by_row",

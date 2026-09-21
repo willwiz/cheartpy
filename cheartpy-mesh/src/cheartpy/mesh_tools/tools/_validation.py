@@ -47,8 +47,8 @@ def create_index_permutation[I: np.integer](
         A dataclass containing the forward and inverse permutation arrays.
 
     """
-    new = np.arange(first, len(np.unique(index.flatten())) + first, dtype=index.dtype)
-    old = index if _id_1d(index) else np.unique(index.flatten())
+    old = index if _id_1d(index) else np.unique(index.flatten(), sorted=True)
+    new = np.arange(first, len(old) + first, dtype=index.dtype)
     perm_fwd = np.full(np.max(old) + 1, -1, dtype=old.dtype)
     perm_fwd[old] = new
     return IndexPermutation(old=old, new=new, fwd=perm_fwd)

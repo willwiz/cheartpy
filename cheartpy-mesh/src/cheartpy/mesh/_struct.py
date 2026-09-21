@@ -29,7 +29,7 @@ __all__ = [
 
 @dc.dataclass(slots=True)
 class CheartMeshSpace[T: np.floating]:
-    n: ToInt
+    n: int
     v: A2[T]
 
     def save(self, name: Path | str) -> None:

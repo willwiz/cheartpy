@@ -4,9 +4,9 @@ from cheartpy.mesh_tools.interpolation import create_quad_mesh_from_lin_cylindri
 from cheartpy.meshing.hex_core import create_hex_mesh
 
 from ._core import (
-    convert_to_cylindrical,
     cylindrical_to_cartesian,
     merge_circ_ends,
+    reference_to_cylindrical,
     rotate_axis,
 )
 from ._types import CartesianDirection
@@ -63,7 +63,7 @@ def create_cylinder_mesh(
     """
     r_in, r_out, length, base = shape
     cube = create_hex_mesh(dim)
-    cylinder = convert_to_cylindrical(cube, r_in, r_out, length, base)
+    cylinder = reference_to_cylindrical(cube, r_in, r_out, length, base)
     cylinder = merge_circ_ends(cylinder)
     g = cylindrical_to_cartesian(cylinder)
     g = rotate_axis(g, CartesianDirection[axis])

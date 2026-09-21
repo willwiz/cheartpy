@@ -6,5 +6,5 @@ from pytools.result import Result
 from cheartpy.mesh import CheartMesh
 
 def relabel_cheart_surfaces[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], swap: Mapping[int, int]
+    mesh: CheartMesh[F, I], swap: Mapping[int, int], closed: bool = False
 ) -> Result[CheartMesh[F, I]]: ...
