@@ -29,22 +29,19 @@ def relabel_cheart_surfaces[F: np.floating, I: np.integer](
         The relabeled mesh.
 
     """
-    if mesh.bnd is None:
-        return Ok(mesh)
-    if not all(b in mesh.bnd.v for b in swap):
+    if not all(b in mesh.bnd for b in swap):
         msg = "key in swap is not found in mesh.bnd.v."
         return Err(ValueError(msg))
     if closed:
         new_v = {
-            new: CheartMeshPatch(tag=new, n=b.n, k=b.k, v=b.v, TYPE=b.TYPE)
+            new: CheartMeshPatch(tag=new, k=b.k, v=b.v, type=b.type)
             for old, new in swap.items()
             if (b := mesh.bnd.v[old])
         }
     else:
         new_v = {
-            new: CheartMeshPatch(tag=new, n=v.n, k=v.k, v=v.v, TYPE=v.TYPE)
+            new: CheartMeshPatch(tag=new, k=v.k, v=v.v, type=v.type)
             for k, v in mesh.bnd.v.items()
             if (new := swap.get(k, k))
         }
-    mesh.bnd = CheartMeshBoundary(n=mesh.bnd.n, v=new_v, TYPE=mesh.bnd.TYPE)
-    return Ok(mesh)
+    return Ok(CheartMesh(space=mesh.space, top=mesh.top, bnd=CheartMeshBoundary(v=new_v)))

@@ -25,7 +25,6 @@ def create_mesh_space[F: np.floating, I: np.integer](
 ) -> CheartMeshSpace[F]:
     dtype = next(iter(mesh.nodes.v.values())).dtype
     return CheartMeshSpace(
-        n=len(nmap),
         v=np.ascontiguousarray([mesh.nodes.v[k] for k in nmap], dtype=dtype),
     )
 
@@ -38,7 +37,7 @@ def create_mesh_topology[I: np.integer](
     kind = convert_element_type(top.type, "Cheart")
     perm = get_node_permutation(top.type, "Cheart")
     data = np.ascontiguousarray([[nmap[i] for i in e] for e in top.v.values()], dtype=dtype)
-    return Ok(CheartMeshTopology(n=len(data), v=data[:, perm], TYPE=kind))
+    return Ok(CheartMeshTopology(v=data[:, perm], type=kind))
 
 
 def create_mesh_boundary_patch[I: np.integer](
@@ -52,25 +51,25 @@ def create_mesh_boundary_patch[I: np.integer](
     kind = convert_element_type(bc_patch.type, "Cheart")
     perm = get_node_permutation(bc_patch.type, "Cheart")
     data = np.array([[nmap[i] for i in p] for p in bc_patch.v.values()], dtype=dtype)
-    return Ok(CheartMeshPatch(tag=tag, n=len(data), k=elems, v=data[:, perm], TYPE=kind))
+    return Ok(CheartMeshPatch(tag=tag, k=elems, v=data[:, perm], type=kind))
 
 
 def create_mesh_boundary[I: np.integer](
     top: ElemIntermediate[I],
     nmap: IndexUpdateMap,
     boundary: Mapping[int, ElemIntermediate[I]],
-) -> Ok[CheartMeshBoundary[I]] | Ok[None] | Err:
+) -> Result[CheartMeshBoundary[I]]:
     if not boundary:
-        return Ok(None)
+        return Ok(CheartMeshBoundary[I]({}))
     match all_ok({k: create_mesh_boundary_patch(top, nmap, k, v) for k, v in boundary.items()}):
         case Ok(patches): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    types = {p.TYPE for p in patches.values()}
+    types = {p.type for p in patches.values()}
     if len(types) != 1:
         msg = f"Boundary patches have different types, cannot merge them: {types}"
         return Err(ValueError(msg))
-    return Ok(CheartMeshBoundary(len(patches), v=patches, TYPE=types.pop()))
+    return Ok(CheartMeshBoundary(patches))
 
 
 def create_mesh_masks[F: np.floating, I: np.integer](

@@ -146,7 +146,7 @@ def get_gmsh_boundaries[I: np.integer](
 def convert_gmsh_space_to_cheart[F: np.floating = np.float64, I: np.integer = np.intp](
     space: GmshNodes[F, I],
 ) -> CheartMeshSpace[F]:
-    return CheartMeshSpace(len(space.coord), space.coord)
+    return CheartMeshSpace(space.coord)
 
 
 def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
@@ -156,9 +156,8 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
     perm = get_node_permutation(top.type, "Cheart")
     print(f"Vtk type: {vtk_type}, reorder: {perm}")
     return CheartMeshTopology(
-        n=len(top.conn),
         v=np.ascontiguousarray(top.conn[:, perm] - 1, dtype=dtype),
-        TYPE=vtk_type,
+        type=vtk_type,
     )
 
 
@@ -168,10 +167,9 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
     perm = get_node_permutation(bnd.type, "Cheart")
     return CheartMeshPatch(
         tag=tag,
-        n=len(bnd.e),
         k=bnd.e - 1,
         v=np.ascontiguousarray(bnd.conn[:, perm] - 1, dtype=dtype),
-        TYPE=vtk_type,
+        type=vtk_type,
     )
 
 
@@ -184,12 +182,10 @@ def convert_gmsh_bnd_to_cheart[I: np.integer = np.intp](
         raise ValueError(msg)
     vtk_type = vtk_types.pop()
     return CheartMeshBoundary(
-        n=len(boundary),
         v={
             k: convert_gmsh_bnd_to_cheart_patch(b, tag=k, vtk_type=vtk_type, dtype=dtype)
             for k, b in boundary.items()
-        },
-        TYPE=vtk_type,
+        }
     )
 
 

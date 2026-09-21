@@ -28,18 +28,18 @@ def _create_bnd_surf[T: np.integer](v: A2[T], tag: ToInt, kind: CheartEnum) -> C
     bnd = v[v[:, -1] == tag, :-1]
     elems = bnd[:, 0] - 1
     nodes = bnd[:, 1:] - 1
-    return CheartMeshPatch(tag, len(bnd), elems, nodes, kind)
+    return CheartMeshPatch(int(tag), elems, nodes, kind)
 
 
 def _create_cheart_mesh_surf_from_raw[T: np.integer](
     raw_bnd: A2[T] | None,
     surf_type: CheartEnum | None,
-) -> CheartMeshBoundary[T] | None:
+) -> CheartMeshBoundary[T]:
     if raw_bnd is None or surf_type is None:
-        return None
+        return CheartMeshBoundary[T]({})
     bnd_tags = np.unique(raw_bnd[:, -1])
     bnd = {int(tag): _create_bnd_surf(raw_bnd, int(tag), surf_type) for tag in bnd_tags}
-    return CheartMeshBoundary(len(raw_bnd), bnd, surf_type)
+    return CheartMeshBoundary(bnd)
 
 
 def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
@@ -53,9 +53,9 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
             case Err(e):
                 return Err(e)
     boundary_type = get_boundary_element(elem)
-    topology = CheartMeshTopology(len(top), top - 1, elem)
+    topology = CheartMeshTopology(top - 1, elem)
     boundary = _create_cheart_mesh_surf_from_raw(bnd, boundary_type)
-    return Ok(CheartMesh(CheartMeshSpace(len(space), space), topology, boundary))
+    return Ok(CheartMesh(CheartMeshSpace(space), topology, boundary))
 
 
 def import_cheart_mesh[F: np.floating, I: np.integer](

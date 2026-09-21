@@ -59,7 +59,7 @@ def create_space[I: np.integer](
         for j, y in enumerate(y_nodes):
             nodes[index[i, j]] = [x, y]
     print(nodes)
-    return CheartMeshSpace(len(nodes), nodes)
+    return CheartMeshSpace(nodes)
 
 
 def create_topology[I: np.integer](
@@ -74,7 +74,7 @@ def create_topology[I: np.integer](
             elems[elem_index[i, j]] = [
                 node_index[i + m, j + n] for m, n, _ in VTKQUADRILATERAL1.nodes
             ]
-    return CheartMeshTopology(len(elems), elems, CheartEnum.QUADRILATERAL1)
+    return CheartMeshTopology(elems, CheartEnum.QUADRILATERAL1)
 
 
 def create_boundary_side_x_cw[I: np.integer](
@@ -90,7 +90,7 @@ def create_boundary_side_x_cw[I: np.integer](
     for j in iy:
         patch[j] = [node_index[ix + 1, j + m] for m, *_ in VTKLINE1.nodes]
         elems[j] = elem_index[ix, j]
-    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
+    return CheartMeshPatch(int(tag), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary_side_x_ccw[I: np.integer](
@@ -105,7 +105,7 @@ def create_boundary_side_x_ccw[I: np.integer](
     for j in iy:
         patch[j] = [node_index[ix, j + m] for m, *_ in reversed(VTKLINE1.nodes)]
         elems[j] = elem_index[ix, j]
-    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
+    return CheartMeshPatch(int(tag), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary_side_y_cw[I: np.integer](
@@ -120,7 +120,7 @@ def create_boundary_side_y_cw[I: np.integer](
     for i in ix:
         patch[i] = [node_index[i + m, iy + 1] for m, *_ in VTKLINE1.nodes]
         elems[i] = elem_index[i, iy]
-    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
+    return CheartMeshPatch(int(tag), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary_side_y_ccw[I: np.integer](
@@ -135,7 +135,7 @@ def create_boundary_side_y_ccw[I: np.integer](
     for i in ix:
         patch[i] = [node_index[i + m, iy] for m, *_ in reversed(VTKLINE1.nodes)]
         elems[i] = elem_index[i, iy]
-    return CheartMeshPatch(tag, len(patch), elems, patch, CheartEnum.LINE1)
+    return CheartMeshPatch(int(tag), elems, patch, CheartEnum.LINE1)
 
 
 def create_boundary[I: np.integer](
@@ -152,7 +152,7 @@ def create_boundary[I: np.integer](
         3: create_boundary_side_y_ccw(3, ix, 0, node_index, elem_index),
         4: create_boundary_side_y_cw(4, ix, ny - 1, node_index, elem_index),
     }
-    return CheartMeshBoundary(len(bnds), bnds, CheartEnum.LINE1)
+    return CheartMeshBoundary(bnds)
 
 
 def create_square_mesh(

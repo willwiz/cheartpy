@@ -96,30 +96,23 @@ def update_boundary[I: np.integer](
         for j, v in enumerate(row):
             if v in end_map:
                 surf[i, j] = end_map[int(v)]
-    return CheartMeshPatch(tag, patch.n, patch.k, surf, patch.TYPE)
+    return CheartMeshPatch(tag, patch.k, surf, patch.type)
 
 
 def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> CheartMesh[F, I]:
-    if cube.bnd is None:
+    if not cube.bnd:
         msg = "Mesh must have a boundary to merge circular ends."
         raise ValueError(msg)
     perm = create_end_wrap_permulation(cube.bnd.v[3], cube.bnd.v[4], cube.space.n)
-    # node_map = gen_end_node_mapping(cube.bnd.v[3], cube.bnd.v[4])
-    # new_t = update_elems(cube.top.v, node_map)
-    # new_b = {
-    #     n: update_boundary(cube.bnd.v[k], node_map, n) for n, k in {3: 1, 4: 2, 1: 5, 2: 6}.items()
-    # }
     cube = relabel_cheart_surfaces(cube, {1: 3, 2: 4, 5: 1, 6: 2}, closed=True).unwrap()
     mesh = CheartMesh(
         cube.space,
-        CheartMeshTopology(cube.top.n, perm.fwd[cube.top.v], cube.top.TYPE),
+        CheartMeshTopology(perm.fwd[cube.top.v], cube.top.type),
         CheartMeshBoundary(
-            cube.bnd.n,
             {
-                tag: CheartMeshPatch(tag, b.n, b.k, perm.fwd[b.v], b.TYPE)
+                tag: CheartMeshPatch(tag, b.k, perm.fwd[b.v], b.type)
                 for tag, b in cube.bnd.v.items()
             },
-            cube.bnd.TYPE,
         ),
     )
     return recompile_cheart_mesh(mesh)
@@ -139,7 +132,7 @@ def reference_to_cylindrical[F: np.floating, I: np.integer](
     cube: CheartMesh[F, I], r_in: ToFloat, r_out: ToFloat, length: ToFloat, base: ToFloat
 ) -> CheartMesh[F, I]:
     new_x = _convert_reference_space_to_cylindrical(cube.space.v, r_in, r_out, length, base)
-    return CheartMesh(CheartMeshSpace(len(new_x), new_x), cube.top, cube.bnd)
+    return CheartMesh(CheartMeshSpace(new_x), cube.top, cube.bnd)
 
 
 def cylindrical_to_cartesian[F: np.floating, I: np.integer](
@@ -151,7 +144,7 @@ def cylindrical_to_cartesian[F: np.floating, I: np.integer](
     cart_space[:, 0] = radius * np.cos(theta)
     cart_space[:, 1] = radius * np.sin(theta)
     cart_space[:, 2] = g.space.v[:, 2]
-    return CheartMesh(CheartMeshSpace(g.space.n, cart_space), g.top, g.bnd)
+    return CheartMesh(CheartMeshSpace(cart_space), g.top, g.bnd)
 
 
 def _get_rotation_matrix(orientation: CartesianDirection) -> A2[np.intp]:
@@ -176,7 +169,7 @@ def _rotate_axis_mesh[F: np.floating, I: np.integer](
     g: CheartMesh[F, I], orientation: CartesianDirection
 ) -> CheartMesh[F, I]:
     return CheartMesh(
-        CheartMeshSpace(g.space.n, _rotate_axis_space(g.space.v, orientation)),
+        CheartMeshSpace(_rotate_axis_space(g.space.v, orientation)),
         g.top,
         g.bnd,
     )

@@ -78,7 +78,7 @@ def compute_bc_w[F: np.floating, I: np.integer](
     mult: float = 0.5,
     nest: int = 3,
 ) -> Ok[A1[F]] | Err:
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "No boundary vertices found"
         return Err(ValueError(msg))
     bc_w = np.zeros(mesh.space.n, dtype=mesh.space.v.dtype)
@@ -108,7 +108,7 @@ def diffuse_bc_w[F: np.floating, I: np.integer](
     mult: float = 1.0,
     nest: int = 20,
 ) -> Ok[A1[F]] | Err:
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "No boundary vertices found"
         return Err(ValueError(msg))
     bc_w: A1[F] = np.zeros(mesh.space.n, dtype=mesh.space.v.dtype)

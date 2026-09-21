@@ -46,13 +46,13 @@ def create_quad_space_cylinder[F: np.floating](
         dtype=np.dtype((x.v.dtype, 3)),
     )
     new_space = cast("A2[F]", new_space)
-    return CheartMeshSpace(len(new_space), new_space)
+    return CheartMeshSpace(new_space)
 
 
 def create_quad_mesh_from_lin_cylindrical[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
 ) -> CheartMesh[F, I]:
     top, quad_map = create_quad_top_and_map(mesh.top, mesh.space.n)
-    boundary = create_quad_boundary(quad_map, mesh.bnd) if mesh.bnd else None
+    boundary = create_quad_boundary(quad_map, mesh.bnd)
     space = create_quad_space_cylinder(quad_map, mesh.space)
     return CheartMesh(space, top, boundary)

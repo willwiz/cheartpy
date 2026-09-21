@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 import numpy as np
 from cheartpy.io import (
@@ -11,11 +11,11 @@ from cheartpy.io import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
+    from collections.abc import ItemsView, Mapping, ValuesView
     from pathlib import Path
 
     from cheartpy.elem_interfaces import CheartEnum
-    from pytools.arrays import A1, A2, ToInt
+    from pytools.arrays import A1, A2
 
 
 __all__ = [
@@ -27,27 +27,33 @@ __all__ = [
 ]
 
 
-@dc.dataclass(slots=True)
-class CheartMeshSpace[T: np.floating]:
-    n: int
-    v: A2[T]
+@dc.dataclass(slots=True, frozen=True)
+class CheartMeshSpace[F: np.floating = np.floating]:
+    v: A2[F]
+
+    @property
+    def n(self) -> int:
+        return len(self.v)
 
     def save(self, name: Path | str) -> None:
         chwrite_d_utf(name, self.v)
 
 
-@dc.dataclass(slots=True)
-class CheartMeshTopology[T: np.integer]:
-    n: ToInt
-    v: A2[T]
-    TYPE: CheartEnum
+@dc.dataclass(slots=True, frozen=True)
+class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]:
+    v: A2[I]
+    type: T
+
+    @property
+    def n(self) -> int:
+        return len(self.v)
 
     def save(self, name: Path | str) -> None:
         chwrite_t_utf(name, self.v + 1, self.v.max() + 1)
 
 
-@dc.dataclass(slots=True)
-class CheartMeshPatch[T: np.integer]:
+@dc.dataclass(slots=True, frozen=True)
+class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     """Cheart Mesh Data for one face.
 
     tag: ToInt
@@ -63,36 +69,62 @@ class CheartMeshPatch[T: np.integer]:
 
     """
 
-    tag: ToInt
-    n: ToInt
-    k: A1[T]
-    v: A2[T]
-    TYPE: CheartEnum
+    tag: int
+    k: A1[I]
+    v: A2[I]
+    type: B
 
-    def to_array(self) -> A2[T]:
+    @property
+    def n(self) -> int:
+        return len(self.v)
+
+    def to_array(self) -> A2[I]:
         res = np.pad(self.v + 1, ((0, 0), (1, 1)))
         res[:, 0] = self.k + 1
         res[:, -1] = self.tag
         return res
 
 
-@dc.dataclass(slots=True)
-class CheartMeshBoundary[T: np.integer]:
-    n: ToInt
-    v: Mapping[int, CheartMeshPatch[T]]
-    TYPE: CheartEnum
+@final
+@dc.dataclass(slots=True, frozen=True)
+class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
+    v: Mapping[int, CheartMeshPatch[I, B]]
 
-    def add_patch(self, patch: CheartMeshPatch[T]) -> None:
-        self.n += patch.n
-        self.v = {**self.v, int(patch.tag): patch}
+    def __bool__(self) -> bool:
+        return bool(self.v)
+
+    def __contains__(self, key: int) -> bool:
+        return key in self.v
+
+    @property
+    def type(self) -> B | None:
+        if not self.v:
+            return None
+        return next(iter(self.v.values())).type
+
+    @property
+    def n(self) -> int:
+        return len(self.v)
+
+    def items(self) -> ItemsView[int, CheartMeshPatch[I, B]]:
+        return self.v.items()
+
+    def values(self) -> ValuesView[CheartMeshPatch[I, B]]:
+        return self.v.values()
 
     def save(self, name: Path | str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)
         chwrite_iarr_utf(name, data)
 
 
-@dc.dataclass(slots=True)
-class CheartMesh[F: np.floating, I: np.integer]:
+@final
+@dc.dataclass(slots=True, frozen=True)
+class CheartMesh[
+    F: np.floating,
+    I: np.integer,
+    T: CheartEnum = CheartEnum,
+    B: CheartEnum = CheartEnum,
+]:
     """Cheart Mesh Data.
 
     Attributes
@@ -107,8 +139,8 @@ class CheartMesh[F: np.floating, I: np.integer]:
     """
 
     space: CheartMeshSpace[F]
-    top: CheartMeshTopology[I]
-    bnd: CheartMeshBoundary[I] | None
+    top: CheartMeshTopology[I, T]
+    bnd: CheartMeshBoundary[I, B]
 
     def save(self, prefix: Path | str, *, forced: bool = False) -> None:
         """Save the Cheart mesh data to files with the given prefix.
@@ -126,5 +158,5 @@ class CheartMesh[F: np.floating, I: np.integer]:
         prefix = fix_ch_sfx(prefix)
         self.space.save(f"{prefix}X")
         self.top.save(f"{prefix}T")
-        if self.bnd is not None:
+        if self.bnd:
             self.bnd.save(f"{prefix}B")

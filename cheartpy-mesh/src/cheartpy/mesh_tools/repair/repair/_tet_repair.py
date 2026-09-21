@@ -99,9 +99,9 @@ def fix_boundary_orientation[F: np.floating, I: np.integer](
     return patch
 
 
-def reorient_tetra_boundary[F: np.floating, I: np.integer](
-    nodes: A2[F], connectivity: A2[I], bnd: CheartMeshBoundary[I] | None
-) -> CheartMeshBoundary[I] | None:
+def reorient_tetra_boundary[F: np.floating, I: np.integer, B: CheartEnum](
+    nodes: A2[F], connectivity: A2[I], bnd: CheartMeshBoundary[I, B]
+) -> CheartMeshBoundary[I, B]:
     """Reorient the boundary faces of a tetrahedral mesh to ensure consistent outward normals.
 
     Parameters
@@ -119,16 +119,11 @@ def reorient_tetra_boundary[F: np.floating, I: np.integer](
         The corrected boundary information with consistent orientation.
 
     """
-    if bnd is None:
-        return None
-
     new_patches: Mapping[int, A2[I]] = {
         k: fix_boundary_orientation(nodes, connectivity, (v.k, v.v)) for k, v in bnd.v.items()
     }
     return CheartMeshBoundary(
-        bnd.n,
-        {k: CheartMeshPatch(v.tag, v.n, v.k, new_patches[k], v.TYPE) for k, v in bnd.v.items()},
-        bnd.TYPE,
+        {k: CheartMeshPatch(v.tag, v.k, new_patches[k], v.type) for k, v in bnd.v.items()},
     )
 
 
@@ -149,14 +144,10 @@ def fix_tetra_mesh[F: np.floating, I: np.integer](
 
     """
     print("Trying to fix tetrahedral mesh.")
-    if mesh.top.TYPE is not CheartEnum.TETRAHEDRON1:
-        msg = f"Unsupported element type: {mesh.top.TYPE}. Only TETRAHEDRON1 is supported."
+    if mesh.top.type is not CheartEnum.TETRAHEDRON1:
+        msg = f"Unsupported element type: {mesh.top.type}. Only TETRAHEDRON1 is supported."
         return Err(ValueError(msg))
     new_connectivity = fix_negative_volume(mesh.space.v, mesh.top.v)
-    new_top = CheartMeshTopology(mesh.top.n, new_connectivity, mesh.top.TYPE)
-    new_bnd = (
-        mesh.bnd
-        if mesh.bnd is None
-        else reorient_tetra_boundary(mesh.space.v, new_connectivity, mesh.bnd)
-    )
+    new_top = CheartMeshTopology(new_connectivity, mesh.top.type)
+    new_bnd = reorient_tetra_boundary(mesh.space.v, new_connectivity, mesh.bnd)
     return Ok(CheartMesh(mesh.space, new_top, new_bnd))

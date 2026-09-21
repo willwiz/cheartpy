@@ -2,7 +2,7 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
-from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
+from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools import create_index_permutation
 from cheartpy.mesh_tools.tools import (
     ElemSearchMap,
@@ -70,9 +70,9 @@ def create_mesh_for_cl_node[F: np.floating, I: np.integer](
     elements = np.unique([i for n in index for i in search_map[n]], sorted=True)
     connectivity = mesh.top.v[elements]
     perm = create_index_permutation(connectivity)
-    new_x = CheartMeshSpace(len(perm.old), mesh.space.v[perm.old])
-    new_top = CheartMeshTopology(len(connectivity), v=perm.fwd[connectivity], TYPE=mesh.top.TYPE)
-    return CheartMesh(space=new_x, top=new_top, bnd=None)
+    new_x = CheartMeshSpace(mesh.space.v[perm.old])
+    new_top = CheartMeshTopology(v=perm.fwd[connectivity], type=mesh.top.type)
+    return CheartMesh(space=new_x, top=new_top, bnd=CheartMeshBoundary[I]({}))
 
 
 def create_centerline_nodal_meshes[F: np.floating, I: np.integer](
@@ -106,7 +106,7 @@ def create_centerline_mesh_in_surface[F: np.floating, I: np.integer](
     partition: int | A1[F] | CLPartition[F],
     **kwargs: Unpack[CLTopologyKwargs],
 ) -> Result[MergedMesh[F, I]]:
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh has no boundary surfaces."
         return Err(ValueError(msg))
     if in_surf not in mesh.bnd.v:

@@ -101,7 +101,7 @@ def split_subdomain[F: np.floating, I: np.integer](
     region_bnds = {k: find_subdomain_boundary(mesh, mesh.bnd, v, k) for k, v in regions.items()}
     pprint(
         {
-            k: {t: (v["patch"].tag, v["patch"].TYPE.name) for t, v in b.items()}
+            k: {t: (v["patch"].tag, v["patch"].type.name) for t, v in b.items()}
             for k, b in region_bnds.items()
         }
     )

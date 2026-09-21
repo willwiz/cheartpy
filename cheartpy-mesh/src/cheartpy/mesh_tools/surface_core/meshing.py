@@ -2,7 +2,7 @@ import numpy as np
 from cheartpy.vtk import get_vtk_elem
 from pytools.result import Err, Ok
 
-from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
+from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshSpace, CheartMeshTopology
 
 
 def create_mesh_from_surface[F: np.floating, I: np.integer](
@@ -25,11 +25,11 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         A new mesh containing only the surface defined by the boundary.
 
     """
-    body_elem = get_vtk_elem(body.top.TYPE)
+    body_elem = get_vtk_elem(body.top.type)
     if body_elem.surf is None:
         msg = "Mesh is 1D, normal not defined"
         return Err(ValueError(msg))
-    if body.bnd is None:
+    if not body.bnd:
         msg = "Mesh has no boundary, cannot create surface mesh"
         return Err(ValueError(msg))
     surf = body.bnd.v.get(surf_id)
@@ -37,10 +37,9 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         msg = f"Boundary {surf_id} not found in mesh"
         return Err(ValueError(msg))
     nodes = {k: v for v, k in enumerate(np.unique(surf.v))}
-    space = CheartMeshSpace(len(nodes), body.space.v[list(nodes.keys())])
+    space = CheartMeshSpace(body.space.v[list(nodes.keys())])
     top = CheartMeshTopology(
-        surf.n,
         np.array([[nodes[i] for i in v] for v in surf.v], dtype=body.top.v.dtype),
         body_elem.surf,
     )
-    return Ok(CheartMesh(space, top, None))
+    return Ok(CheartMesh(space, top, CheartMeshBoundary({})))

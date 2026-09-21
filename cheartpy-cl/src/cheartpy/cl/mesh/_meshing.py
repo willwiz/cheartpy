@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Unpack
 
 import numpy as np
 from cheartpy.io import chread_d, chwrite_d_utf
-from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
+from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools.surface_core import create_mesh_from_surface
 from pytools.result import Err, Ok, Result
 from typing_extensions import TypedDict
@@ -110,9 +110,9 @@ def create_node_mesh[F: np.floating, I: np.integer](
     nodex = {int(n): i for i, n in enumerate(expanded_nodelist)}
     elems = np.array([[nodex[int(v)] for v in vs] for vs in elems], dtype=mesh.top.v.dtype)
     return CheartMesh(
-        space=CheartMeshSpace(len(expanded_nodelist), mesh.space.v[expanded_nodelist]),
-        top=CheartMeshTopology(len(elems), elems, TYPE=mesh.top.TYPE),
-        bnd=None,
+        space=CheartMeshSpace(mesh.space.v[expanded_nodelist]),
+        top=CheartMeshTopology(elems, type=mesh.top.type),
+        bnd=CheartMeshBoundary[I]({}),
     )
 
 
@@ -129,15 +129,15 @@ def assemble_cl_node_meshes[F: np.floating, I: np.integer](
         [x.top.v + i for x, i in zip(nodal_meshes.values(), node_offset, strict=False)],
         dtype=itype,
     )
-    elem_types = {m.top.TYPE for m in nodal_meshes.values()}
+    elem_types = {m.top.type for m in nodal_meshes.values()}
     if len(elem_types) != 1:
         msg = f"Nodal meshes do not have the same type. cannot be combined: \n{elem_types}"
         return Err(ValueError(msg))
     return Ok(
         CheartMesh(
-            CheartMeshSpace(len(cl_1_x), cl_1_x),
-            CheartMeshTopology(len(cl_1_t), cl_1_t, elem_types.pop()),
-            None,
+            CheartMeshSpace(cl_1_x),
+            CheartMeshTopology(cl_1_t, elem_types.pop()),
+            CheartMeshBoundary[I]({}),
         )
     )
 
@@ -162,15 +162,15 @@ def assemble_interface_mesh[F: np.floating, I: np.integer](
         [np.full((x.top.n, 1), i) for i, x in enumerate(nodal_meshes.values())],
         dtype=dtypes.pop(),
     )
-    elem_types = {m.top.TYPE for m in nodal_meshes.values()}
+    elem_types = {m.top.type for m in nodal_meshes.values()}
     if len(elem_types) != 1:
         msg = f"Nodal meshes do not have the same type. cannot be combined: \n{elem_types}"
         return Err(ValueError(msg))
     return Ok(
         CheartMesh(
-            CheartMeshSpace(len(cl_i_x), cl_i_x),
-            CheartMeshTopology(len(cl_i_t), cl_i_t, elem_types.pop()),
-            None,
+            CheartMeshSpace(cl_i_x),
+            CheartMeshTopology(cl_i_t, elem_types.pop()),
+            CheartMeshBoundary[I]({}),
         )
     )
 
@@ -205,7 +205,7 @@ def create_centerline_topology_in_vol[F: np.floating, I: np.integer](
 def create_centerline_topology_in_surf[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int, defn: CLDef[F], **kwargs: Unpack[APIKwargs]
 ) -> Result[CLMesh[F, I]]:
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh does not have boundary."
         return Err(ValueError(msg))
     surf_nodes = np.unique(mesh.bnd.v[in_surf].v)

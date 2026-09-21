@@ -71,22 +71,9 @@ def recompile_cheart_mesh[F: np.floating, I: np.integer](
 
     """
     perm = create_index_permutation(mesh.top.v)
-    new_x = mesh.space.v[perm.old]
-    new_t = perm.fwd[mesh.top.v]
-    boundary = (
-        CheartMeshBoundary(
-            mesh.bnd.n,
-            {
-                k: CheartMeshPatch(v.tag, v.n, v.k, perm.fwd[v.v], v.TYPE)
-                for k, v in mesh.bnd.v.items()
-            },
-            mesh.bnd.TYPE,
-        )
-        if mesh.bnd
-        else None
+    new_x = CheartMeshSpace(mesh.space.v[perm.old])
+    new_t = CheartMeshTopology(perm.fwd[mesh.top.v], mesh.top.type)
+    boundary = CheartMeshBoundary(
+        {k: CheartMeshPatch(v.tag, v.k, perm.fwd[v.v], v.type) for k, v in mesh.bnd.v.items()},
     )
-    return CheartMesh(
-        CheartMeshSpace(len(new_x), new_x),
-        CheartMeshTopology(len(new_t), new_t, mesh.top.TYPE),
-        boundary,
-    )
+    return CheartMesh(new_x, new_t, boundary)

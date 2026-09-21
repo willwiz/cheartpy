@@ -28,7 +28,7 @@ def calculate_volume_tetrahedron_mesh[F: np.floating, I: np.integer](
         The volume of the tetrahedron mesh.
 
     """
-    if mesh.top.TYPE is not CheartEnum.TETRAHEDRON1:
+    if mesh.top.type is not CheartEnum.TETRAHEDRON1:
         return Err(ValueError("Mesh is not a tetrahedron mesh"))
     v = mesh.space.v[mesh.top.v]
     v0 = v[:, 0, :]
@@ -58,9 +58,9 @@ def calculate_tetrahedron_volume_by_surface[F: np.floating, I: np.integer](
         The volume of the tetrahedron mesh.
 
     """
-    if mesh.top.TYPE is not CheartEnum.TETRAHEDRON1:
+    if mesh.top.type is not CheartEnum.TETRAHEDRON1:
         return Err(ValueError("Mesh is not a tetrahedron mesh"))
-    if mesh.bnd is None:
+    if not mesh.bnd:
         return Err(ValueError("Mesh has no boundary"))
     bnd = mesh.bnd.v
     if not all(s in bnd for s in surfaces):

@@ -85,7 +85,7 @@ def make_cutplane_topology[T](  # noqa: C901, PLR0911, PLR0912
     match import_cheart_mesh(defn[master]["mesh"], ftype=np.float64, itype=np.intp):
         case Ok(master_mesh): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
-    if master_mesh.bnd is None:
+    if not master_mesh.bnd:
         msg = f"Master mesh {master} has no boundary"
         return Err(ValueError(msg))
     match all_ok(

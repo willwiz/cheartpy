@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 from warnings import deprecated
 
 import numpy as np
+from cheartpy.elem_interfaces import CheartEnum
 
 from ._struct import (
     CheartMesh,
@@ -29,30 +30,26 @@ def create_node_map[T: np.integer](elems: A2[T]) -> Mapping[T, ToInt]:
     return node_map
 
 
-def _create_new_bnd[T: np.integer](
-    p: CheartMeshPatch[T],
+def _create_new_bnd[T: np.integer, B: CheartEnum](
+    p: CheartMeshPatch[T, B],
     node_map: Mapping[T, ToInt],
-) -> CheartMeshPatch[T]:
+) -> CheartMeshPatch[T, B]:
     new_v = np.array([[node_map[i] for i in patch] for patch in p.v], dtype=int)
-    return CheartMeshPatch(p.tag, p.n, p.k, new_v, p.TYPE)
+    return CheartMeshPatch(p.tag, p.k, new_v, p.type)
 
 
 @deprecated("Use cheartpy.mesh_tools.recompile_cheartmesh instead.")
-def remove_dangling_nodes[F: np.floating, I: np.integer](g: CheartMesh[F, I]) -> CheartMesh[F, I]:
+def remove_dangling_nodes[F: np.floating, I: np.integer, T: CheartEnum, B: CheartEnum](
+    g: CheartMesh[F, I, T, B],
+) -> CheartMesh[F, I, T, B]:
     node_map = create_node_map(g.top.v)
     new_x = g.space.v[list(node_map.keys())]
     new_t = np.ascontiguousarray([[node_map[i] for i in elem] for elem in g.top.v], dtype=int)
-    boundary = (
-        CheartMeshBoundary(
-            g.bnd.n,
-            {k: _create_new_bnd(v, node_map) for k, v in g.bnd.v.items()},
-            g.bnd.TYPE,
-        )
-        if g.bnd
-        else None
+    boundary = CheartMeshBoundary(
+        {k: _create_new_bnd(v, node_map) for k, v in g.bnd.v.items()},
     )
     return CheartMesh(
-        CheartMeshSpace(len(new_x), new_x),
-        CheartMeshTopology(len(new_t), new_t, g.top.TYPE),
+        CheartMeshSpace(new_x),
+        CheartMeshTopology(new_t, g.top.type),
         boundary,
     )

@@ -55,8 +55,8 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
     gmsh.model.mesh.add_nodes(
         dim=dim, tag=tag, nodeTags=node_tags, coord=mesh.volume.space.v.flatten()
     )
-    vol_elem = convert_element_type(mesh.volume.top.TYPE, "Gmsh")
-    perm = get_node_permutation(mesh.volume.top.TYPE, "Gmsh")
+    vol_elem = convert_element_type(mesh.volume.top.type, "Gmsh")
+    perm = get_node_permutation(mesh.volume.top.type, "Gmsh")
     print("Reordering element nodes for Gmsh compatibility with : ", perm)
     connectivity = np.ascontiguousarray(mesh.volume.top.v[:, perm] + 1)
     return GmshTopInfo(tag, node_tags, elem_tags, connectivity, vol_elem.value, dim)
@@ -65,8 +65,8 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
 def add_boundary_to_gmsh[F: np.floating, I: np.integer](
     top: GmshTopInfo, bnd: CheartMeshPatch[I], current_elem: int = 1
 ) -> tuple[int, Entity]:
-    bnd_type_id = convert_element_type(bnd.TYPE, "Gmsh").value
-    perm = get_node_permutation(bnd.TYPE, "Gmsh")
+    bnd_type_id = convert_element_type(bnd.type, "Gmsh").value
+    perm = get_node_permutation(bnd.type, "Gmsh")
     bnd_data = bnd.v[:, perm] + 1
     num_bnd_elems = len(bnd_data)
     bnd_tags = np.arange(current_elem, current_elem + num_bnd_elems)
@@ -85,7 +85,7 @@ def add_boundary_to_gmsh[F: np.floating, I: np.integer](
 def add_boundaries_to_gmsh[F: np.floating, I: np.integer](
     mesh: MultiDomainMesh[F, I], top: GmshTopInfo, current_elem: int = 1
 ) -> tuple[int, Mapping[Tag, Entity]]:
-    if mesh.volume.bnd is None:
+    if not mesh.volume.bnd:
         return current_elem, {}
     bnd_tags = dict[Tag, Entity]()
     for k, v in mesh.volume.bnd.v.items():
@@ -131,7 +131,7 @@ def add_physical_domain[F: np.floating, I: np.integer](
 def add_physical_domains[F: np.floating, I: np.integer](
     mesh: MultiDomainMesh[F, I], top: GmshTopInfo, boundary_map: Mapping[Tag, Entity]
 ) -> Mapping[Tag, Entity]:
-    if mesh.volume.bnd is None:
+    if not mesh.volume.bnd:
         msg = "Mesh has no boundary information, cannot add physical domains."
         raise ValueError(msg)
     return {

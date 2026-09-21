@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, TypedDict, Unpack
 import numpy as np
 from cheartpy.mesh import (
     CheartMesh,
+    CheartMeshBoundary,
     CheartMeshPatch,
     CheartMeshSpace,
     CheartMeshTopology,
@@ -55,7 +56,7 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
 ) -> Ok[A2[I]] | Err:
     if normal_check is None:
         return Ok(elems)
-    top_body_elem = get_vtk_elem(mesh.top.TYPE)
+    top_body_elem = get_vtk_elem(mesh.top.type)
     if top_body_elem.surf is None:
         msg = "Attempting to compute normal from a 1D mesh, not possible"
         return Err(ValueError(msg))
@@ -148,7 +149,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     log = kwargs.get("log", get_logger())
     normal_check = kwargs.get("normal_check")
     # Main logic
-    body_elem = get_vtk_elem(mesh.top.TYPE)
+    body_elem = get_vtk_elem(mesh.top.type)
     if body_elem.surf is None:
         return Err(ValueError("Mesh is 1D, normal not defined"))
     log.debug(f"{domain=}")
@@ -162,13 +163,12 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     log.debug(f"The number of elements in patch normal filtering is {len(elems)}")
     nodes = np.unique(elems)
     node_map: Mapping[int, int] = {int(v): i for i, v in enumerate(nodes)}
-    space = CheartMeshSpace(len(nodes), mesh.space.v[nodes])
+    space = CheartMeshSpace(mesh.space.v[nodes])
     top = CheartMeshTopology(
-        len(elems),
         np.array([[node_map[int(i)] for i in e] for e in elems], dtype=int),
         body_elem.surf,
     )
-    return Ok(CheartMesh(space, top, None))
+    return Ok(CheartMesh(space, top, CheartMeshBoundary({})))
 
 
 type NodalMeshMap[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I]]
@@ -187,7 +187,7 @@ def create_cheart_cl_nodal_meshes[F: np.floating, I: np.integer](
     log = kwargs.get("log", get_logger())
     normal_check = kwargs.get("normal_check")
     # Main logic
-    if cheart_mesh.bnd is None:
+    if not cheart_mesh.bnd:
         msg = "Mesh has not boundary"
         return Err(ValueError(msg))
     surf = cheart_mesh.bnd.v[surf_id]
@@ -229,9 +229,9 @@ def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
         dtype=int,
     )
     return CheartMesh(
-        CheartMeshSpace(len(cl_1_x), cl_1_x),
-        CheartMeshTopology(len(cl_1_t), cl_1_t, nodal_meshes[0]["mesh"].top.TYPE),
-        None,
+        CheartMeshSpace(cl_1_x),
+        CheartMeshTopology(cl_1_t, nodal_meshes[0]["mesh"].top.type),
+        CheartMeshBoundary({}),
     )
 
 
@@ -246,9 +246,9 @@ def assemble_const_cl_mesh[F: np.floating, I: np.integer](
     )
     cl_0_t = np.arange(0, linear_mesh.top.v.shape[0], dtype=itype).reshape(-1, 1)
     return CheartMesh(
-        CheartMeshSpace(len(cl_0_x), cl_0_x),
-        CheartMeshTopology(len(cl_0_t), cl_0_t, linear_mesh.top.TYPE),
-        None,
+        CheartMeshSpace(cl_0_x),
+        CheartMeshTopology(cl_0_t, linear_mesh.top.type),
+        CheartMeshBoundary({}),
     )
 
 
@@ -266,9 +266,9 @@ def assemble_interface_cl_mesh[F: np.floating, I: np.integer](
         dtype=int,
     )
     return CheartMesh(
-        CheartMeshSpace(len(cl_i_x), cl_i_x),
-        CheartMeshTopology(len(cl_i_t), cl_i_t, const_mesh.top.TYPE),
-        None,
+        CheartMeshSpace(cl_i_x),
+        CheartMeshTopology(cl_i_t, const_mesh.top.type),
+        CheartMeshBoundary({}),
     )
 
 

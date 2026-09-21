@@ -95,7 +95,7 @@ def compute_surface_normal_at_nodes[F: np.floating, I: np.integer](
 def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
 ) -> Result[A2[F]]:
-    vtkelem = get_vtk_elem(mesh.top.TYPE)
+    vtkelem = get_vtk_elem(mesh.top.type)
     interp_basis = {k: vtkelem.shape_dfunc(v) for k, v in enumerate(vtkelem.ref)}
     node_normal: dict[int, list[A1[F]]] = defaultdict(list)
     for elem in mesh.top.v:
@@ -128,7 +128,7 @@ def is_nonzero[F: np.floating](vec: A1[F]) -> bool:
 def orient_normals_as_outward[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int, normals: Mapping[I, Mapping[I, A1[F]]]
 ) -> Result[Mapping[I, Mapping[I, A1[F]]]]:
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh has no boundary"
         return Err(ValueError(msg))
     if in_surf not in mesh.bnd.v:
@@ -167,7 +167,7 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
         case Ok(surf_mesh): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     mesh_bnd = mesh.bnd
-    if mesh_bnd is None:
+    if not mesh_bnd:
         msg = "Mesh has no boundary"
         return Err(ValueError(msg))
     node_map = {
@@ -185,13 +185,13 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
 def compute_surface_normal[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int
 ) -> Result[A2[F]]:
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh has no boundary"
         return Err(ValueError(msg))
     if in_surf not in mesh.bnd.v:
         msg = f"Surface {in_surf} not found"
         return Err(ValueError(msg))
-    surf_elem = get_boundary_element(mesh.top.TYPE)
+    surf_elem = get_boundary_element(mesh.top.type)
     vtkelem = get_vtk_elem(surf_elem)
     interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
     bnd_patches: dict[I, A1[I]] = dict(

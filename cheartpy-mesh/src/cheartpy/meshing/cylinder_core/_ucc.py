@@ -95,9 +95,6 @@ def generate_ucc_for_cylindrical_mesh[F: np.floating](
     v_c = np.zeros_like(base_mesh.space.v)
     v_c[:, 0] = -v_r[:, 1]
     v_c[:, 1] = v_r[:, 0]
-    if base_mesh.bnd is None:
-        msg = "Boundary data is not supported for UCC generation."
-        raise ValueError(msg)
     perm = create_end_wrap_permulation(base_mesh.bnd.v[3], base_mesh.bnd.v[4], base_mesh.space.n)
     return UCC(
         a_r=np.asarray(a_r[perm.old], dtype=dtype),

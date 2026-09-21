@@ -38,7 +38,7 @@ def _check_mesh_information[F: np.floating, I: np.integer](
     if len(itypes) != 1:
         msg = f"Meshes have different integer types: {itypes}"
         return Err(ValueError(msg))
-    top_elems = {m.top.TYPE for m in meshes.values()}
+    top_elems = {m.top.type for m in meshes.values()}
     if len(top_elems) != 1:
         msg = f"Meshes have different topological element types: {top_elems}"
         return Err(ValueError(msg))
@@ -88,11 +88,9 @@ def _create_interface_mesh[F: np.floating, I: np.integer](
     if np.any(mask < 0):
         msg = "Logic error: element missing from mask. Check with developer"
         return Err(ValueError(msg))
-    interface_x = CheartMeshSpace(
-        n=len(perms.elem), v=np.array(list(perms.elem.keys()), dtype=ftype)
-    )
-    interface_t = CheartMeshTopology(n=perms.nelems, v=mask, TYPE=CheartEnum.VERTEX)
-    return Ok(CheartMesh(space=interface_x, top=interface_t, bnd=None))
+    interface_x = CheartMeshSpace(v=np.array(list(perms.elem.keys()), dtype=ftype))
+    interface_t = CheartMeshTopology(v=mask, type=CheartEnum.VERTEX)
+    return Ok(CheartMesh(space=interface_x, top=interface_t, bnd=CheartMeshBoundary[I]({})))
 
 
 def _create_new_mesh[F: np.floating, I: np.integer](
@@ -108,19 +106,15 @@ def _create_new_mesh[F: np.floating, I: np.integer](
         new_t[p.new] = meshes[k].top.v[p.old]
     new_patches = {
         tag: CheartMeshPatch(
-            tag=tag, n=b.n, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], TYPE=b.TYPE
+            tag=tag, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], type=b.type
         )
         for k, m in meshes.items()
-        if m.bnd is not None
         for tag, b in m.bnd.v.items()
     }
-    bnd_type = {b.TYPE for b in new_patches.values()}
     return CheartMesh(
-        space=CheartMeshSpace(v=new_x, n=len(new_x)),
-        top=CheartMeshTopology(v=new_t, n=len(new_t), TYPE=data.elem),
-        bnd=CheartMeshBoundary(n=len(new_patches), v=new_patches, TYPE=bnd_type.pop())
-        if new_patches
-        else None,
+        space=CheartMeshSpace(v=new_x),
+        top=CheartMeshTopology(v=new_t, type=data.elem),
+        bnd=CheartMeshBoundary(v=new_patches),
     )
 
 

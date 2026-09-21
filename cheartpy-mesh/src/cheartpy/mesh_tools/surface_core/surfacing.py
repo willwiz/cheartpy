@@ -147,6 +147,8 @@ def find_surface_in_mesh[F: np.floating, I: np.integer](
         The Cheart Boundary Patch with the given label if it exists, otherwise None.
 
     """
+    if not bnd.type:
+        return None
     nodes_set = set(node_map.idx)
     surf_patches_index = find_unique_surf_patches(bnd)
     dtype = bnd.v[next(iter(bnd.v))].v.dtype
@@ -155,7 +157,7 @@ def find_surface_in_mesh[F: np.floating, I: np.integer](
         return None
     k = np.array(list(patchs.keys()), dtype=dtype)
     v = np.array(list(patchs.values()), dtype=dtype)
-    return CheartMeshPatch(tag=label, n=len(patchs), k=k, v=v, TYPE=bnd.TYPE)
+    return CheartMeshPatch(tag=label, k=k, v=v, type=bnd.type)
 
 
 def create_new_surface_in_mesh[F: np.floating, I: np.integer](
@@ -180,7 +182,7 @@ def create_new_surface_in_mesh[F: np.floating, I: np.integer](
         Result type containing CheartMesh[F, I] if successful, otherwise an error.
 
     """
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh has no boundary."
         return Err(ValueError(msg))
     if label in mesh.bnd.v:
@@ -200,9 +202,7 @@ def create_new_surface_in_mesh[F: np.floating, I: np.integer](
         space=mesh.space,
         top=mesh.top,
         bnd=CheartMeshBoundary(
-            n=mesh.bnd.n + new_bnd.n,
             v={**mesh.bnd.v, label: new_bnd},
-            TYPE=mesh.bnd.TYPE,
         ),
     )
     return Ok(new_mesh)
@@ -233,7 +233,7 @@ def create_new_surface_in_surf[F: np.floating, I: np.integer](
         Result type containing CheartMesh[F, I]).
 
     """
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh has no boundary."
         return Err(ValueError(msg))
     if label in mesh.bnd.v:
@@ -256,10 +256,6 @@ def create_new_surface_in_surf[F: np.floating, I: np.integer](
     new_mesh = CheartMesh(
         space=mesh.space,
         top=mesh.top,
-        bnd=CheartMeshBoundary(
-            n=mesh.bnd.n + new_bnd.n,
-            v={**mesh.bnd.v, label: new_bnd},
-            TYPE=mesh.bnd.TYPE,
-        ),
+        bnd=CheartMeshBoundary(v={**mesh.bnd.v, label: new_bnd}),
     )
     return Ok(new_mesh)

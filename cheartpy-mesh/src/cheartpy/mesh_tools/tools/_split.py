@@ -79,12 +79,12 @@ def split_subdomains[F: np.floating, I: np.integer](
         for k, ix in domain_emap.items()
     }
     x = np.concatenate([mesh.space.v[v.old] for v in domain_nmap.values()], axis=0)
-    top = CheartMeshTopology(n=len(mesh.top.v), v=np.full_like(mesh.top.v, -1), TYPE=mesh.top.TYPE)
+    top = CheartMeshTopology(v=np.full_like(mesh.top.v, -1), type=mesh.top.type)
     for k, ix in domain_emap.items():
         top.v[ix] = domain_nmap[k].fwd[mesh.top.v[ix]]
     if np.any(top.v == -1):
         return Err(ValueError("Some elements were not assigned to any subdomain."))
-    return Ok(CheartMesh(space=CheartMeshSpace(n=len(x), v=x), top=top, bnd=None))
+    return Ok(CheartMesh(space=CheartMeshSpace(x), top=top, bnd=CheartMeshBoundary({})))
 
 
 def create_mesh_from_surface[F: np.floating, I: np.integer](
@@ -105,15 +105,15 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         A new mesh containing only the surface defined by the boundary.
 
     """
-    if mesh.bnd is None:
+    if not mesh.bnd:
         msg = "Mesh has no boundary, cannot create surface mesh"
         return Err(ValueError(msg))
     if (surface := mesh.bnd.v.get(surf_id)) is None:
         return Err(ValueError(f"Boundary {surf_id} not found in mesh"))
     perm = create_index_permutation(surface.v)
-    space = CheartMeshSpace(n=len(perm.old), v=mesh.space.v[perm.old])
-    top = CheartMeshTopology(n=surface.n, v=perm.fwd[surface.v], TYPE=surface.TYPE)
-    return Ok(CheartMesh(space=space, top=top, bnd=None))
+    space = CheartMeshSpace(mesh.space.v[perm.old])
+    top = CheartMeshTopology(v=perm.fwd[surface.v], type=surface.type)
+    return Ok(CheartMesh(space=space, top=top, bnd=CheartMeshBoundary({})))
 
 
 def _filter_boundary_by_elements[F: np.floating, I: np.integer](
@@ -141,10 +141,9 @@ def _filter_boundary_by_elements[F: np.floating, I: np.integer](
     perm = create_index_permutation(elements)
     return CheartMeshPatch(
         tag=patch.tag,
-        n=np.sum(subset),
         k=perm.fwd[patch.k[subset]],
         v=patch.v[subset],
-        TYPE=patch.TYPE,
+        type=patch.type,
     )
 
 
@@ -173,10 +172,9 @@ def _filter_boundary_by_nodes[F: np.floating, I: np.integer](
         return None
     return CheartMeshPatch(
         tag=patch.tag,
-        n=len(patches),
         k=np.array(list(patches.keys()), dtype=patch.k.dtype),
         v=np.array(list(patches.values()), dtype=patch.v.dtype),
-        TYPE=patch.TYPE,
+        type=patch.type,
     )
 
 
@@ -207,23 +205,17 @@ def create_mesh_from_region[F: np.floating, I: np.integer](
     e_index = get_subdomain_index(mask, region_id)
     elements = mesh.top.v[e_index]
     perm = create_index_permutation(elements)
-    space = CheartMeshSpace(n=len(perm.old), v=mesh.space.v[perm.old])
-    top = CheartMeshTopology(n=len(elements), v=perm.fwd[elements], TYPE=mesh.top.TYPE)
-    if mesh.bnd is None:
-        return Ok(CheartMesh(space=space, top=top, bnd=None))
+    space = CheartMeshSpace(v=mesh.space.v[perm.old])
+    top = CheartMeshTopology(v=perm.fwd[elements], type=mesh.top.type)
+    if not mesh.bnd:
+        return Ok(CheartMesh(space=space, top=top, bnd=CheartMeshBoundary({})))
     if recalc:
         bnd_patches = {k: _filter_boundary_by_nodes(v, elements) for k, v in mesh.bnd.v.items()}
     else:
         bnd_patches = {k: _filter_boundary_by_elements(v, e_index) for k, v in mesh.bnd.v.items()}
     bnd_patches = {
-        k: CheartMeshPatch(tag=v.tag, n=v.n, k=v.k, v=perm.fwd[v.v], TYPE=v.TYPE)
+        k: CheartMeshPatch(tag=v.tag, k=v.k, v=perm.fwd[v.v], type=v.type)
         for k, v in bnd_patches.items()
         if v is not None
     }
-    return Ok(
-        CheartMesh(
-            space=space,
-            top=top,
-            bnd=CheartMeshBoundary(n=len(bnd_patches), v=bnd_patches, TYPE=mesh.bnd.TYPE),
-        )
-    )
+    return Ok(CheartMesh(space=space, top=top, bnd=CheartMeshBoundary(v=bnd_patches)))
