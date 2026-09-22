@@ -139,10 +139,10 @@ def warp_vector_about_axis[F: np.floating](
     long = CartesianDirection[long_axis]
     bending = CartesianDirection[bending_axis]
     out = 3 - long - bending
-    theta = 0.5 * np.pi * (1.0 - a_z)
+    theta = 0.5 * np.pi * a_z
     c = np.eye(3)[np.newaxis, :, :].repeat(x.shape[0], axis=0)
     c[:, long, long] = np.cos(theta)
-    c[:, long, out] = -np.sin(theta)
-    c[:, out, long] = np.sin(theta)
+    c[:, long, out] = np.sin(theta)
+    c[:, out, long] = -np.sin(theta)
     c[:, out, out] = np.cos(theta)
     return np.einsum("ijk,ik->ij", c, x)
