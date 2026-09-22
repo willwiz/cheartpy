@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from pytools.arrays import A1, A2, DType
 
 
-class ShapeParameters(TypedDict, total=False):
+class ShapeParameters(TypedDict, total=True):
     n_r: Required[int]
     n_c: Required[int]
     n_z: Required[int]
