@@ -1,5 +1,6 @@
 # ruff: noqa: PYI011
 from pathlib import Path
+from typing import Literal, overload
 
 import numpy as np
 from pytools.arrays import A1, A2, Arr, DType
@@ -41,3 +42,47 @@ def import_cheart_matrix[F: np.floating = np.float64, I: np.integer = np.intp](
 def chwrite_list_utf[T: np.number](
     file: Path | str, data: A1[T], *, dtype: DType[T] = np.intc
 ) -> None: ...
+@overload
+def chread[T: np.floating](
+    file: Path | str, *, fmt: Literal["D"], dtype: DType[T] = np.float64
+) -> A2[T]: ...
+@overload
+def chread[T: np.floating](
+    file: Path | str, *, fmt: Literal["X"], dtype: DType[T] = np.float64
+) -> A2[T]: ...
+@overload
+def chread[T: np.integer](
+    file: Path | str, *, fmt: Literal["T"], dtype: DType[T] = np.intp
+) -> A2[T]: ...
+@overload
+def chread[T: np.integer](
+    file: Path | str, *, fmt: Literal["B"], dtype: DType[T] = np.intp
+) -> A2[T]: ...
+@overload
+def chread[F: np.floating, I: np.integer](
+    file: Path | str,
+    *,
+    fmt: Literal["Time"],
+    dtype: DType[I] = np.intp,
+    ftype: DType[F] = np.float64,
+) -> A2[np.void]: ...
+@overload
+def chread[T: np.number](
+    file: Path | str, *, fmt: Literal["Raw"], dtype: DType[T] = np.float64
+) -> A2[T]: ...
+@overload
+def chwrite[T: np.number](file: Path | str, data: A1[T], *, binary: bool = ...) -> None: ...
+@overload
+def chwrite[T: np.number](
+    file: Path | str, data: A2[T], *, fmt: Literal["D"], binary: bool = ...
+) -> None: ...
+@overload
+def chwrite[T: np.number](file: Path | str, data: A2[T], *, fmt: Literal["X"]) -> None: ...
+@overload
+def chwrite[T: np.integer](file: Path | str, data: A2[T], *, fmt: Literal["T"]) -> None: ...
+@overload
+def chwrite[T: np.integer](file: Path | str, data: A2[T], *, fmt: Literal["B"]) -> None: ...
+@overload
+def chwrite[F: np.floating](file: Path | str, data: A1[F], *, fmt: Literal["Time"]) -> None: ...
+@overload
+def chwrite[T: np.number](file: Path | str, data: A2[T], *, fmt: Literal["Raw"]) -> None: ...

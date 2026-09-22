@@ -1,9 +1,10 @@
 import re
 import struct
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, TypeGuard, TypeIs, overload
 
 import numpy as np
+from pytools.arrays import SupportsDType
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2, Arr, DType
@@ -29,6 +30,26 @@ __all__ = [
     "is_binary",
 ]
 
+type ReadFormat = Literal["D", "X", "T", "B", "Time", "Raw"]
+
+
+def fix_ch_sfx[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
+    _prefix = str(prefix)
+    for i in range(len(suffix), 0, -1):
+        if _prefix.endswith(suffix[:i]):
+            _prefix = _prefix + suffix[i:]
+            break
+    else:
+        _prefix = _prefix + suffix
+    return type(prefix)(_prefix)
+
+
+def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> bool:
+    home = home or Path()
+    sfx = ["X", "T", "B"] if bc else ["X", "T"]
+    meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in sfx]]
+    return all((home / s).is_file() for s in meshes)
+
 
 def is_binary(filename: Path | str) -> bool:
     filename = Path(filename)
@@ -49,24 +70,6 @@ def is_binary(filename: Path | str) -> bool:
             return False
     else:
         return False
-
-
-def fix_ch_sfx[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
-    _prefix = str(prefix)
-    for i in range(len(suffix), 0, -1):
-        if _prefix.endswith(suffix[:i]):
-            _prefix = _prefix + suffix[i:]
-            break
-    else:
-        _prefix = _prefix + suffix
-    return type(prefix)(_prefix)
-
-
-def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> bool:
-    home = home or Path()
-    sfx = ["X", "T", "B"] if bc else ["X", "T"]
-    meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in sfx]]
-    return all((home / s).is_file() for s in meshes)
 
 
 def chread_d_utf[F: np.number](file: Path | str, *, dtype: DType[F] = np.float64) -> A2[F]:
@@ -106,11 +109,11 @@ def chread_data[F: np.floating](file: Path | str, *, dtype: DType[F] = np.float6
     return np.loadtxt(file, dtype=dtype)
 
 
-def chread_t_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
+def chread_t_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intp) -> A2[I]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
-def chread_b_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intc) -> A2[I]:
+def chread_b_utf[I: np.integer](file: Path | str, *, dtype: DType[I] = np.intp) -> A2[I]:
     return np.loadtxt(file, skiprows=1, dtype=dtype, ndmin=2)
 
 
@@ -132,9 +135,121 @@ def chread_header_utf(file: Path | str) -> tuple[int, int]:
     return nelem, nnode
 
 
+def _is_floating_dtype(dtype: DType[np.number]) -> TypeIs[np.dtype[np.floating]]:
+    # 1. Normalize the DType union into a unified type object
+    match dtype:
+        # Case A: Input is already an np.dtype object
+        case np.dtype() as dt if issubclass(dt.type, np.floating):
+            return True
+        # Case C: Input is a duck-typed object carrying a .dtype attribute
+        case SupportsDType():
+            return issubclass(dtype.dtype.type, np.floating)
+        # Case B: Input is a type object itself (e.g., np.float64, float)
+        case type() as t if issubclass(t, np.floating):
+            return True
+        case _:
+            return False
+
+
+def _is_integer_dtype(dtype: DType[np.number]) -> TypeIs[np.dtype[np.integer]]:
+    # 1. Normalize the DType union into a unified type object
+    match dtype:
+        # Case A: Input is already an np.dtype object
+        case np.dtype() as dt if issubclass(dt.type, np.integer):
+            return True
+        # Case C: Input is a duck-typed object carrying a .dtype attribute
+        case SupportsDType():
+            return issubclass(dtype.dtype.type, np.integer)
+        # Case B: Input is a type object itself (e.g., np.int32, int)
+        case type() as t if issubclass(t, np.integer):
+            return True
+        case _:
+            return False
+
+
+@overload
+def chread[T: np.floating](
+    file: Path | str, *, fmt: Literal["D"], dtype: DType[T] = np.float64
+) -> A2[T]: ...
+@overload
+def chread[T: np.floating](
+    file: Path | str, *, fmt: Literal["X"], dtype: DType[T] = np.float64
+) -> A2[T]: ...
+@overload
+def chread[T: np.integer](
+    file: Path | str, *, fmt: Literal["T"], dtype: DType[T] = np.intp
+) -> A2[T]: ...
+@overload
+def chread[T: np.integer](
+    file: Path | str, *, fmt: Literal["B"], dtype: DType[T] = np.intp
+) -> A2[T]: ...
+@overload
+def chread[F: np.floating, I: np.integer](
+    file: Path | str,
+    *,
+    fmt: Literal["Time"],
+    dtype: DType[I] = np.intp,
+    ftype: DType[F] = np.float64,
+) -> A2[np.void]: ...
+@overload
+def chread[T: np.number](
+    file: Path | str, *, fmt: Literal["Raw"], dtype: DType[T] = np.float64
+) -> A2[T]: ...
+def chread(
+    file: Path | str,
+    *,
+    fmt: ReadFormat = "D",
+    dtype: DType[np.number] | None = None,
+    ftype: DType[np.number] | None = None,
+) -> A1[np.number] | A2[np.number] | A2[np.void]:
+    match fmt:
+        case "D" | "X":
+            return chread_d(file, dtype=dtype or np.float64)
+        case "T":
+            t = dtype or np.intp
+            if not _is_integer_dtype(t):
+                msg = f"Please follow chread overload signature. Expect integer dtype, got {t}"
+                raise TypeError(msg)
+            return chread_t_utf(file, dtype=t)
+        case "B":
+            t = dtype or np.intp
+            if not _is_integer_dtype(t):
+                msg = f"Please follow chread overload signature. Expect integer dtype, got {t}"
+                raise TypeError(msg)
+            return chread_b_utf(file, dtype=t)
+        case "Time":
+            f = ftype or np.float64
+            if not _is_floating_dtype(f):
+                msg = f"Please follow chread overload signature. Expect floating dtype, got {f}"
+                raise TypeError(msg)
+            d = dtype or np.intp
+            if not _is_integer_dtype(d):
+                msg = f"Please follow chread overload signature. Expect integer dtype, got {d}"
+                raise TypeError(msg)
+            return chread_time_utf(file, dtype=d, ftype=f)
+        case "Raw":
+            return np.loadtxt(file, dtype=dtype)
+
+
 """
 CHeart Write Array functions
 """
+
+
+def chwrite_d_binary[T: np.number, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None:
+    match data.shape:
+        case (int(size),):
+            dim = 1
+        case int(size), int(dim):
+            ...
+        case _:
+            msg = "Data must be 1D or 2D array"
+            raise ValueError(msg)
+    with Path(file).open("wb") as f:
+        f.write(struct.pack("i", size))
+        f.write(struct.pack("i", dim))
+        for i in data:
+            f.writelines(struct.pack("d", j) for j in i)
 
 
 def chwrite_d_utf[T: np.number, S: tuple[int, ...]](file: Path | str, data: Arr[S, T]) -> None:
@@ -220,15 +335,6 @@ def chwrite_list_utf[T: np.number](
     )
 
 
-def chwrite_d_binary[T: np.floating](file: Path | str, arr: A2[T]) -> None:
-    dim = arr.shape
-    with Path(file).open("wb") as f:
-        f.write(struct.pack("i", dim[0]))
-        f.write(struct.pack("i", dim[1]))
-        for i in arr:
-            f.writelines(struct.pack("d", j) for j in i)
-
-
 def chwrite_t_utf[T: np.integer](file: Path | str, data: A2[T], nn: int | None = None) -> None:
     ne = len(data)
     nn = int(data.max()) if nn is None else nn
@@ -265,3 +371,74 @@ def chwrite_time_utf[F: np.floating](file: Path | str, data: A1[F]) -> None:
     with Path(file).open("w") as f:
         f.write(f"{len(data):>12}\n")
         f.writelines(f"{i:>12}{v:>24.16g}\n" for i, v in enumerate(data, start=1))
+
+
+@overload
+def chwrite[T: np.number](file: Path | str, data: A1[T], *, binary: bool = ...) -> None: ...
+@overload
+def chwrite[T: np.number](
+    file: Path | str, data: A2[T], *, fmt: Literal["D"], binary: bool = ...
+) -> None: ...
+@overload
+def chwrite[T: np.number](file: Path | str, data: A2[T], *, fmt: Literal["X"]) -> None: ...
+@overload
+def chwrite[T: np.integer](file: Path | str, data: A2[T], *, fmt: Literal["T"]) -> None: ...
+@overload
+def chwrite[T: np.integer](file: Path | str, data: A2[T], *, fmt: Literal["B"]) -> None: ...
+@overload
+def chwrite[F: np.floating](file: Path | str, data: A1[F], *, fmt: Literal["Time"]) -> None: ...
+@overload
+def chwrite[T: np.number](file: Path | str, data: A2[T], *, fmt: Literal["Raw"]) -> None: ...
+
+
+def _is_1d_array[T: np.generic](
+    arr: Arr[tuple[int] | tuple[int, int], np.number], dtype: DType[T]
+) -> TypeGuard[A1[T]]:
+    return arr.ndim == 1 and np.issubdtype(arr.dtype, dtype)
+
+
+def _is_2d_array[T: np.generic](
+    arr: Arr[tuple[int] | tuple[int, int], np.number], dtype: DType[T]
+) -> TypeGuard[A2[T]]:
+    return arr.ndim != 1 and np.issubdtype(arr.dtype, dtype)
+
+
+def chwrite(
+    file: Path | str,
+    data: Arr[tuple[int] | tuple[int, int], np.number],
+    *,
+    fmt: ReadFormat = "D",
+    binary: bool = False,
+) -> None:
+    match fmt:
+        case "D" | "X":
+            if binary:
+                chwrite_d_binary(file, data)
+            else:
+                chwrite_d_utf(file, data)
+        case "T":
+            if not _is_2d_array(data, np.integer):
+                msg = (
+                    "Please follow chwrite overload signature. Expected 2D integer array,"
+                    f"got {data.dtype} with shape {data.shape}"
+                )
+                raise ValueError(msg)
+            chwrite_t_utf(file, data)
+        case "B":
+            if not _is_2d_array(data, np.integer):
+                msg = (
+                    "Please follow chwrite overload signature. Expected 2D integer array,"
+                    f"got {data.dtype} with shape {data.shape}"
+                )
+                raise ValueError(msg)
+            chwrite_iarr_utf(file, data)
+        case "Time":
+            if not _is_1d_array(data, np.floating):
+                msg = (
+                    "Please follow chwrite overload signature. Expected 1D floating array,"
+                    f"got {data.dtype} with shape {data.shape}"
+                )
+                raise ValueError(msg)
+            chwrite_time_utf(file, data)
+        case "Raw":
+            np.savetxt(file, data)

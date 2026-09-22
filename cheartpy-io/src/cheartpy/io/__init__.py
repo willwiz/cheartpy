@@ -1,5 +1,6 @@
 from ._cheart import (
     check_for_meshes,
+    chread,
     chread_b_utf,
     chread_d,
     chread_d_bin,
@@ -7,6 +8,7 @@ from ._cheart import (
     chread_header_utf,
     chread_t_utf,
     chread_time_utf,
+    chwrite,
     chwrite_d_binary,
     chwrite_d_utf,
     chwrite_i_utf,
@@ -23,6 +25,7 @@ from ._raw import read_array_float, read_array_int, write_array_float, write_arr
 
 __all__ = [
     "check_for_meshes",
+    "chread",
     "chread_b_utf",
     "chread_d",
     "chread_d_bin",
@@ -30,6 +33,7 @@ __all__ = [
     "chread_header_utf",
     "chread_t_utf",
     "chread_time_utf",
+    "chwrite",
     "chwrite_d_binary",
     "chwrite_d_utf",
     "chwrite_i_utf",
