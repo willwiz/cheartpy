@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 from pytools.result import Err, Ok, Result
@@ -84,12 +84,20 @@ def split_subdomains[F: np.floating, I: np.integer](
         top.v[ix] = domain_nmap[k].fwd[mesh.top.v[ix]]
     if np.any(top.v == -1):
         return Err(ValueError("Some elements were not assigned to any subdomain."))
-    return Ok(CheartMesh(space=CheartMeshSpace(x), top=top, bnd=CheartMeshBoundary({})))
+    return Ok(CheartMesh(space=CheartMeshSpace(x), top=top, bnd={}))
 
 
+@overload
 def create_mesh_from_surface[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], surf_id: int
-) -> Result[CheartMesh[F, I]]:
+) -> Result[CheartMesh[F, I]]: ...
+@overload
+def create_mesh_from_surface[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], surf_id: int, *, return_perm: Literal[True]
+) -> Result[tuple[CheartMesh[F, I], IndexPermutation]]: ...
+def create_mesh_from_surface[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], surf_id: int, *, return_perm: bool = False
+):
     """Create a new cheart mesh from a surface mesh.
 
     Parameters
@@ -98,6 +106,9 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         The input mesh to create a surface mesh from.
     surf_id : int
         The ID of the surface in the boundary of the mesh.
+    return_perm : bool, default=False
+        If True, return the index permutation used to create the new mesh. If False, return just
+        the mesh.
 
     Returns
     -------
@@ -113,7 +124,9 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
     perm = create_index_permutation(surface.v)
     space = CheartMeshSpace(mesh.space.v[perm.old])
     top = CheartMeshTopology(v=perm.fwd[surface.v], type=surface.type)
-    return Ok(CheartMesh(space=space, top=top, bnd=CheartMeshBoundary({})))
+    if return_perm:
+        return Ok((CheartMesh(space=space, top=top, bnd={}), perm))
+    return Ok(CheartMesh(space=space, top=top, bnd={}))
 
 
 def _filter_boundary_by_elements[F: np.floating, I: np.integer](
@@ -208,7 +221,7 @@ def create_mesh_from_region[F: np.floating, I: np.integer](
     space = CheartMeshSpace(v=mesh.space.v[perm.old])
     top = CheartMeshTopology(v=perm.fwd[elements], type=mesh.top.type)
     if not mesh.bnd:
-        return Ok(CheartMesh(space=space, top=top, bnd=CheartMeshBoundary({})))
+        return Ok(CheartMesh(space=space, top=top, bnd={}))
     if recalc:
         bnd_patches = {k: _filter_boundary_by_nodes(v, elements) for k, v in mesh.bnd.v.items()}
     else:

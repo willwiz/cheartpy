@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, TypedDict, Unpack
 import numpy as np
 from cheartpy.mesh import (
     CheartMesh,
-    CheartMeshBoundary,
     CheartMeshPatch,
     CheartMeshSpace,
     CheartMeshTopology,
@@ -168,7 +167,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
         np.array([[node_map[int(i)] for i in e] for e in elems], dtype=int),
         body_elem.surf,
     )
-    return Ok(CheartMesh(space, top, CheartMeshBoundary({})))
+    return Ok(CheartMesh(space, top, {}))
 
 
 type NodalMeshMap[F: np.floating, I: np.integer] = Mapping[int, CLNodalData[F, I]]
@@ -231,7 +230,7 @@ def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
     return CheartMesh(
         CheartMeshSpace(cl_1_x),
         CheartMeshTopology(cl_1_t, nodal_meshes[0]["mesh"].top.type),
-        CheartMeshBoundary({}),
+        {},
     )
 
 
@@ -248,7 +247,7 @@ def assemble_const_cl_mesh[F: np.floating, I: np.integer](
     return CheartMesh(
         CheartMeshSpace(cl_0_x),
         CheartMeshTopology(cl_0_t, linear_mesh.top.type),
-        CheartMeshBoundary({}),
+        {},
     )
 
 
@@ -268,7 +267,7 @@ def assemble_interface_cl_mesh[F: np.floating, I: np.integer](
     return CheartMesh(
         CheartMeshSpace(cl_i_x),
         CheartMeshTopology(cl_i_t, const_mesh.top.type),
-        CheartMeshBoundary({}),
+        {},
     )
 
 

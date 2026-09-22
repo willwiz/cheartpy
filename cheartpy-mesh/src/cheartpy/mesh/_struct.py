@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, final
+from typing import TYPE_CHECKING, Never, final
 
 import numpy as np
 from cheartpy.io import (
@@ -118,10 +118,10 @@ class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]
 
 
 @final
-@dc.dataclass(slots=True, frozen=True)
+@dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMesh[
-    F: np.floating,
-    I: np.integer,
+    F: np.floating = np.floating,
+    I: np.integer = np.integer,
     T: CheartEnum = CheartEnum,
     B: CheartEnum = CheartEnum,
 ]:
@@ -141,6 +141,29 @@ class CheartMesh[
     space: CheartMeshSpace[F]
     top: CheartMeshTopology[I, T]
     bnd: CheartMeshBoundary[I, B]
+
+    def __init__(
+        self,
+        space: CheartMeshSpace[F],
+        top: CheartMeshTopology[I, T],
+        bnd: CheartMeshBoundary[I, B] | Mapping[Never, Never],
+    ) -> None:
+        """Initialize a CheartMesh instance.
+
+        Parameters
+        ----------
+        space : CheartMeshSpace[F]
+            The spatial data of the mesh.
+        top : CheartMeshTopology[I, T]
+            The topological data of the mesh.
+        bnd : CheartMeshBoundary[I, B] | Mapping[Never, Never]
+            The boundary data of the mesh, if it exists. If an empty dict is provided, it will be
+            converted to a CheartMeshBoundary instance with no patches.
+
+        """
+        object.__setattr__(self, "space", space)
+        object.__setattr__(self, "top", top)
+        object.__setattr__(self, "bnd", bnd or CheartMeshBoundary({}))
 
     def save(self, prefix: Path | str, *, forced: bool = False) -> None:
         """Save the Cheart mesh data to files with the given prefix.

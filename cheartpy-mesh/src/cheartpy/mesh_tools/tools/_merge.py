@@ -12,9 +12,9 @@ from cheartpy.mesh import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.mesh_tools.tools import IndexPermutation, create_index_permutation
 
-from ._types import MergedMesh
+from ._types import IndexPermutation, MergedMesh
+from ._validation import create_index_permutation
 
 if TYPE_CHECKING:
     from pytools.arrays import A2, DType
