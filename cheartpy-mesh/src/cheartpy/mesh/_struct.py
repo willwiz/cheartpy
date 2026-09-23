@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Never, final
+from typing import TYPE_CHECKING, Never
 
 import numpy as np
 from cheartpy.io import (
@@ -85,7 +85,6 @@ class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
         return res
 
 
-@final
 @dc.dataclass(slots=True, frozen=True)
 class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     v: Mapping[int, CheartMeshPatch[I, B]]
@@ -117,7 +116,6 @@ class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]
         chwrite_iarr_utf(name, data)
 
 
-@final
 @dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMesh[
     F: np.floating = np.floating,

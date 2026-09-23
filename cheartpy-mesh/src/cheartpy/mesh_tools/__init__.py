@@ -2,7 +2,6 @@ from .surface_core import (
     compute_mesh_outer_normal_at_nodes,
     compute_surface_normal,
     compute_surface_normal_at_center,
-    create_mesh_from_surface,
     make_cutplane_topology,
 )
 from .tools import (
@@ -11,6 +10,8 @@ from .tools import (
     MergedMesh,
     build_element_searchmap,
     create_index_permutation,
+    create_mesh_from_region,
+    create_mesh_from_surface,
     find_elements,
     merge_cell_variables,
     merge_cheart_meshes,
@@ -19,16 +20,24 @@ from .tools import (
     orthonormalize_by_row,
     recompile_cheart_mesh,
 )
+from .validation import check_duplicate_elements, check_duplicate_nodes
+from .volume import calculate_tetrahedron_volume_by_surface, calculate_volume_tetrahedron_mesh
 
 __all__ = [
     "ElemSearchMap",
     "IndexPermutation",
     "MergedMesh",
     "build_element_searchmap",
+    "calculate_tetrahedron_volume_by_surface",
+    "calculate_volume_tetrahedron_mesh",
+    "check_duplicate_elements",
+    "check_duplicate_nodes",
     "compute_mesh_outer_normal_at_nodes",
     "compute_surface_normal",
     "compute_surface_normal_at_center",
     "create_index_permutation",
+    "create_mesh_from_region",
+    "create_mesh_from_surface",
     "create_mesh_from_surface",
     "find_elements",
     "make_cutplane_topology",

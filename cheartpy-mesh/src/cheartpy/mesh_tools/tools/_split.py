@@ -94,7 +94,7 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
 @overload
 def create_mesh_from_surface[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], surf_id: int, *, return_perm: Literal[True]
-) -> Result[tuple[CheartMesh[F, I], IndexPermutation]]: ...
+) -> Result[tuple[CheartMesh[F, I], IndexPermutation[I]]]: ...
 def create_mesh_from_surface[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], surf_id: int, *, return_perm: bool = False
 ):
@@ -191,9 +191,27 @@ def _filter_boundary_by_nodes[F: np.floating, I: np.integer](
     )
 
 
+@overload
 def create_mesh_from_region[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], mask: A1[I], region_id: Sequence[int], *, recalc: bool = False
-) -> Result[CheartMesh[F, I]]:
+) -> Result[CheartMesh[F, I]]: ...
+@overload
+def create_mesh_from_region[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I],
+    mask: A1[I],
+    region_id: Sequence[int],
+    *,
+    recalc: bool = False,
+    return_perm: Literal[True],
+) -> Result[tuple[CheartMesh[F, I], IndexPermutation[I]]]: ...
+def create_mesh_from_region[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I],
+    mask: A1[I],
+    region_id: Sequence[int],
+    *,
+    recalc: bool = False,
+    return_perm: bool = False,
+) -> Result[CheartMesh[F, I]] | Result[tuple[CheartMesh[F, I], IndexPermutation[I]]]:
     """Create a new cheart mesh from a region in the input mesh.
 
     Parameters
@@ -208,6 +226,9 @@ def create_mesh_from_region[F: np.floating, I: np.integer](
     recalc : bool, default=False
         If True, the boundary patches will be recalculated based on the new mesh. If False, the
         boundary patches will be filtered based on the elements in the new mesh.
+    return_perm : bool, default=False
+        If True, return the index permutation used to create the new mesh. If False, return the
+        mesh only.
 
     Returns
     -------
@@ -231,4 +252,7 @@ def create_mesh_from_region[F: np.floating, I: np.integer](
         for k, v in bnd_patches.items()
         if v is not None
     }
-    return Ok(CheartMesh(space=space, top=top, bnd=CheartMeshBoundary(v=bnd_patches)))
+    new_mesh = CheartMesh(space=space, top=top, bnd=CheartMeshBoundary(v=bnd_patches))
+    if return_perm:
+        return Ok((new_mesh, perm))
+    return Ok(new_mesh)
