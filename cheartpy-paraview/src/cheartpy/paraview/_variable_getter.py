@@ -4,7 +4,7 @@ from typing import Final
 from ._trait import IFormattedName
 
 
-class CheartMeshFormat(IFormattedName):
+class CheartFileFormat(IFormattedName):
     __slots__ = ["folder", "var"]
 
     folder: Final[Path]
@@ -56,6 +56,7 @@ class CheartZipFormat(IFormattedName):
     @property
     def name(self) -> str:
         return self.var
+
 
 class CheartResFormat(IFormattedName):
     __slots__ = ["folder", "var"]
