@@ -33,7 +33,7 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
             msg = [
                 *msg,
                 f"{'<<< Running Program with Mode:':<{_H_STR_LEN_}} find",
-                f"{'<<< The mesh prefix is:':<{_H_STR_LEN_}} {fix_ch_sfx(inp.mesh_or_top)}",
+                f"{'<<< The mesh prefix is:':<{_H_STR_LEN_}} {fix_ch_sfx(inp.top)}",
                 f"{'<<< Space file prefix is:':<{_H_STR_LEN_}} {inp.space or 'AUTO'}",
             ]
         case "index":
@@ -41,21 +41,21 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
                 *msg,
                 f"{'<<< Running Program with Mode:':<{_H_STR_LEN_}} index",
                 f"{'<<< The space file to use is:':<{_H_STR_LEN_}} {inp.space}",
-                f"{'<<< The topology file to use is:':<{_H_STR_LEN_}} {inp.mesh_or_top}",
+                f"{'<<< The topology file to use is:':<{_H_STR_LEN_}} {inp.top}",
                 f"{'<<< The boundary file to use is:':<{_H_STR_LEN_}} {inp.boundary}",
                 f"{'<<< The point variables are:':<{_H_STR_LEN_}} ",
             ]
 
     match inp.index:
-        case None:
+        case SearchMode.none:
             msg = [*msg, f"{'<<< No variable will be used for this run.':<{_H_STR_LEN_}}"]
-        case SearchMode():
+        case SearchMode.auto:
             msg = [*msg, f"{'<<< Index search model is:':<{_H_STR_LEN_}} {'auto'}"]
         case (i, j, k):
             msg = [*msg, f"{f'<<< Time step: From {i} to {j} in steps of {k}':<{_H_STR_LEN_}}"]
     match inp.subindex:
-        case None: ...  # fmt: skip
-        case SearchMode():
+        case SearchMode.none: ...  # fmt: skip
+        case SearchMode.auto:
             msg = [*msg, f"{'<<< Automatically finding subiterations.':<{_H_STR_LEN_}}"]
         case (i, j, k):
             msg = [

@@ -18,20 +18,20 @@ if TYPE_CHECKING:
 
 @dc.dataclass(slots=True, frozen=True)
 class ProgramArgs:
-    prefix: Final[str]
-    input_dir: Final[Path]
-    output_dir: Final[Path]
-    prog_bar: Final[bool]
-    binary: Final[bool]
-    compress: Final[bool]
-    mpi: Final[ThreadMethods | None]
-    xfile: Final[Path]
-    tfile: Final[Path]
-    bfile: Final[Path | None]
-    space: Final[IFormattedName | None]
-    disp: Final[IFormattedName | None]
-    cell_var: Final[Mapping[str, IFormattedName]]
-    point_var: Final[Mapping[str, IFormattedName]]
+    prefix: str
+    input_dir: Path
+    output_dir: Path
+    prog_bar: bool
+    binary: bool
+    compress: bool
+    mpi: ThreadMethods | None
+    xfile: Path
+    tfile: Path
+    bfile: Path | None
+    space: IFormattedName | None
+    disp: IFormattedName | None
+    cell_var: Mapping[str, IFormattedName]
+    point_var: Mapping[str, IFormattedName]
 
 
 @dc.dataclass(slots=True, frozen=True)

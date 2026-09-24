@@ -86,11 +86,11 @@ class RangeSubIndexer(IIndexIterator):
             (sub_index[1] - sub_index[0] + inclusive) // sub_index[2] + 2
         )
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[int | tuple[int, int]]:
         for i in range(self.i0, self.it, self.di):
-            yield f"{i}"
+            yield i
             for j in range(self.s0, self.st, self.ds):
-                yield f"{i}.{j}"
+                yield i, j
 
     def __len__(self) -> int:
         return self.size
@@ -100,11 +100,11 @@ class RangeSubIndexer(IIndexIterator):
         return ProgramMode.subindex
 
 
-class ListIndexer[T: (int, str)](IIndexIterator):
+class ListIndexer(IIndexIterator):
     __slots__ = ["indices"]
-    values: Sequence[T]
+    values: Sequence[int]
 
-    def __init__(self, values: Sequence[T]) -> None:
+    def __init__(self, values: Sequence[int]) -> None:
         self.values = values
         if len(values) <= 1:
             return
@@ -125,7 +125,7 @@ class ListIndexer[T: (int, str)](IIndexIterator):
             )
             logger.warn(msg)
 
-    def __iter__(self) -> Iterator[T]:
+    def __iter__(self) -> Iterator[int]:
         yield from self.values
 
     def __len__(self) -> int:
@@ -145,11 +145,11 @@ class ListSubIndexer(IIndexIterator):
         self.values = indices
         self.si = sub_index
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[int | tuple[int, int]]:
         for i in self.values:
-            yield str(i)
+            yield i
             for j in range(*self.si):
-                yield f"{i}.{j}"
+                yield i, j
 
     def __len__(self) -> int:
         return len(self.values) * ((self.si[1] - self.si[0]) // self.si[2] + 2)
@@ -166,11 +166,31 @@ class TupleIndexer(IIndexIterator):
     def __init__(self, values: Mapping[int, Sequence[int]]) -> None:
         self.values = values
 
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[int | tuple[int, int]]:
         for k, vlist in self.values.items():
-            # yield str(k)
+            yield k
             for v in vlist:
-                yield f"{k}.{v}"
+                yield k, v
+
+    def __len__(self) -> int:
+        return sum([len(v) for v in self.values.values()])
+
+    @property
+    def mode(self) -> ProgramMode:
+        return ProgramMode.subauto
+
+
+class TupleSubIndexer(IIndexIterator):
+    __slots__ = ["values"]
+    values: Mapping[int, Sequence[int]]
+
+    def __init__(self, values: Mapping[int, Sequence[int]]) -> None:
+        self.values = values
+
+    def __iter__(self) -> Iterator[tuple[int, int]]:
+        for k, vlist in self.values.items():
+            for v in vlist:
+                yield k, v
 
     def __len__(self) -> int:
         return sum([len(v) for v in self.values.values()])

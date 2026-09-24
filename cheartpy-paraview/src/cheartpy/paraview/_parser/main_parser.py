@@ -1,8 +1,9 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, NamedTuple, Unpack
 
-from cheartpy.search import AUTO
+from cheartpy.io import fix_ch_sfx
+from cheartpy.search import SearchMode
 from pytools.logging import LogEnum
 
 from ._find import find_subparser
@@ -76,9 +77,9 @@ def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArg
     parsed_args = main_parser.parse_args(args)
     match parsed_args.cmd:
         case "find":
-            return VTUProgArgs(**vars(parsed_args))
+            return get_api_args_find(**vars(parsed_args))
         case "index":
-            return VTUProgArgs(**vars(parsed_args))
+            return get_api_args_index(**vars(parsed_args))
         case "time":
             return TimeProgArgs(**vars(parsed_args))
         case _:
@@ -86,29 +87,56 @@ def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArg
             raise SystemExit(0)
 
 
+class _MeshTopologyFiles(NamedTuple):
+    t: Path
+    x: Path | str
+    b: Path | None
+    u: str | None
+
+
+def _to_path(path: str | Path | None) -> Path | None:
+    return Path(path) if path is not None else None
+
+
+def _parse_findmode_mesh(**kwargs: Unpack[APIKwargsFind]) -> _MeshTopologyFiles:
+    mesh = fix_ch_sfx(Path(kwargs.get("mesh", "mesh")))
+    space = kwargs.get("space") or mesh.with_suffix(".X")
+    boundary = kwargs.get("boundary") or mesh.with_suffix(".B")
+    boundary = Path(boundary) if Path(boundary).is_file() else None
+    disp = kwargs.get("disp")
+    return _MeshTopologyFiles(x=space, u=disp, t=mesh.with_suffix(".T"), b=boundary)
+
+
+def _parse_indexmode_mesh(**kwargs: Unpack[APIKwargsIndex]) -> _MeshTopologyFiles:
+    top = kwargs.get("top")
+    space = kwargs.get("space")
+    boundary = kwargs.get("boundary")
+    disp = kwargs.get("disp")
+    return _MeshTopologyFiles(x=space, u=disp, t=Path(top), b=_to_path(boundary))
+
+
 def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
-    mesh_or_top = kwargs.get("mesh", "mesh")
-    index = kwargs.get("index", AUTO)
+    mesh = _parse_findmode_mesh(**kwargs)
+    index = kwargs.get("index", SearchMode.auto)
     match kwargs.get("subindex"):
         case "auto":
-            subindex = AUTO
-        case "none" | None:
-            subindex = None
+            subindex = SearchMode.auto
+        case None:
+            subindex = SearchMode.none
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
-    space = kwargs.get("space") or None
-    boundary = kwargs.get("boundary") or None
     output_dir = kwargs.get("output_dir")
     return VTUProgArgs(
         cmd="find",
         index=index,
         subindex=subindex,
-        mesh_or_top=Path(mesh_or_top),
         prefix=kwargs.get("prefix"),
         input_dir=Path(kwargs.get("input_dir", "")),
-        output_dir=Path(output_dir) if output_dir is not None else None,
-        space=Path(space) if space is not None else None,
-        boundary=Path(boundary) if boundary is not None else None,
+        output_dir=_to_path(output_dir),
+        top=mesh.t,
+        space=mesh.x,
+        disp=mesh.u,
+        boundary=mesh.b,
         prog_bar=kwargs.get("prog_bar", True),
         log=LogEnum[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
@@ -122,28 +150,27 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
 
 
 def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
-    mesh_or_top = kwargs.get("top")
-    index = kwargs.get("index")
+    mesh = _parse_indexmode_mesh(**kwargs)
+    index = kwargs.get("index", SearchMode.none)
     match kwargs.get("subindex"):
         case "auto":
-            subindex = AUTO
-        case "none" | None:
-            subindex = None
+            subindex = SearchMode.auto
+        case None:
+            subindex = SearchMode.none
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
-    space = kwargs.get("space") or None
-    boundary = kwargs.get("boundary") or None
     output_dir = kwargs.get("output_dir")
     return VTUProgArgs(
         cmd="index",
         index=index,
         subindex=subindex,
-        mesh_or_top=Path(mesh_or_top),
         prefix=kwargs.get("prefix"),
         input_dir=Path(kwargs.get("input_dir", "")),
-        output_dir=Path(output_dir) if output_dir is not None else None,
-        space=Path(space) if space is not None else None,
-        boundary=Path(boundary) if boundary is not None else None,
+        output_dir=_to_path(output_dir),
+        top=mesh.t,
+        space=mesh.x,
+        disp=mesh.u,
+        boundary=mesh.b,
         prog_bar=kwargs.get("prog_bar", True),
         log=LogEnum[kwargs.get("log", "INFO")],
         binary=kwargs.get("binary", False),
@@ -152,5 +179,5 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
         thread=kwargs.get("thread"),
         interpreter=kwargs.get("interpreter"),
         cell_var=kwargs.get("cell_var", []),
-        point_var=kwargs.get("var", []),
+        point_var=kwargs.get("point_var", []),
     )

@@ -18,7 +18,19 @@ _topology_group.add_argument(
     action="store",
     type=Path,
     default=None,
-    help="OPTIONAL: supply a prefix for the mesh files",
+    help="OPTIONAL: supply a prefix for the space file(s)",
+)
+_topology_group.add_argument(
+    "--disp",
+    "-u",
+    dest="disp",
+    action="store",
+    type=Path,
+    default=None,
+    help=(
+        "OPTIONAL: supply a prefix for the disp file(s). Only include this if you want the space "
+        "to be updated each time step."
+    ),
 )
 _topology_group.add_argument(
     "--boundary",
@@ -28,8 +40,8 @@ _topology_group.add_argument(
     type=Path,
     default=None,
     help=(
-        "MANDATORY: supply a relative path and file name from the current directory "
-        "to the topology file, the default is mesh_FE.T"
+        "OPTIONAL: supply a relative path and file name from the current directory "
+        "to the boundary file, the default is mesh_FE.B"
     ),
 )
 
@@ -44,6 +56,18 @@ _topology_group.add_argument(
     action="store",
     type=str,
     help="OPTIONAL: supply a prefix for the mesh files",
+)
+_topology_group.add_argument(
+    "--disp",
+    "-u",
+    dest="disp",
+    action="store",
+    type=Path,
+    default=None,
+    help=(
+        "OPTIONAL: supply a prefix for the disp file(s). Only include this if you want the space "
+        "to be updated each time step."
+    ),
 )
 _topology_group.add_argument(
     "--top",
@@ -65,7 +89,7 @@ _topology_group.add_argument(
     type=Path,
     default=None,
     help=(
-        "MANDATORY: supply a relative path and file name from the current directory "
-        "to the topology file, the default is mesh_FE.T"
+        "OPTIONAL: supply a relative path and file name from the current directory "
+        "to the boundary file, the default is mesh_FE.B"
     ),
 )
