@@ -41,7 +41,7 @@ def filter_index(files: Sequence[Path], prefix: str, extension: str) -> set[int]
 
     """
     pattern = re.compile(rf"{prefix}-(?P<index>\d+)\.{extension}")
-    return {int(m.group("prefix")) for f in files if (m := pattern.fullmatch(f.name))}
+    return {int(m.group("index")) for f in files if (m := pattern.fullmatch(f.name))}
 
 
 def filter_subindex(files: Sequence[Path], prefix: str, extension: str) -> set[tuple[int, int]]:
@@ -68,6 +68,27 @@ def filter_subindex(files: Sequence[Path], prefix: str, extension: str) -> set[t
         for f in files
         if (m := pattern.fullmatch(f.name))
     }
+
+
+def _determine_file_type(
+    name: Path, ext: str, index: set[int], subindex: set[tuple[int, int]]
+) -> Result[FileVariable]:
+    if len(index) + len(subindex) == 1:
+        match (index | subindex).pop():
+            case int(i):
+                return Ok(
+                    FileVariable(StaticFile(name.parent / f"{name.stem}-{i}{ext}"), index, subindex)
+                )
+            case (i, j):
+                return Ok(
+                    FileVariable(
+                        StaticFile(name.parent / f"{name.stem}-{i}.{j}{ext}"), index, subindex
+                    )
+                )
+    if not index and not subindex:
+        msg = f"No files found for {name} with extension {ext}"
+        return Err(ValueError(msg))
+    return Ok(FileVariable(DynamicFile(name.parent, name.stem, ext), index, subindex))
 
 
 def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
@@ -107,12 +128,12 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
             if files := sorted(name.parent.glob(f"{name.name}-*{ext}")):
                 index = filter_index(files, name.name, ext.lstrip("."))
                 subindex = filter_subindex(files, name.name, ext.lstrip("."))
-                return Ok(FileVariable(DynamicFile(name.parent, name.name, ext), index, subindex))
+                return _determine_file_type(name, ext, index, subindex).next()
     for ext in [".D", ".D.gz", ".res2"]:
         if files := sorted(root.glob(f"{name.name}-*{ext}")):
             index = filter_index(files, name.name, ext.lstrip("."))
             subindex = filter_subindex(files, name.name, ext.lstrip("."))
-            return Ok(FileVariable(DynamicFile(root, name.name, ext), index, subindex))
+            return _determine_file_type(name, ext, index, subindex).next()
     msg = (
         f"{name} not found as:\n"
         f"    {name}\n"
@@ -197,10 +218,10 @@ def validate_indexer(
     var = {k: v for k, v in var.items() if v.fname.is_dynamic}
     first = next(iter(indexer))
     initial_file_check = {
-        k for k, v in var.items() if (first in v.indices or first in v.subindices)
+        k for k, v in var.items() if not (first in v.indices or first in v.subindices)
     }
     if initial_file_check:
-        msg = f"Variables {initial_file_check} do not have a zero index file."
+        msg = f"Variables {initial_file_check} don't have the inital index file {first}."
         return Err(ValueError(msg))
     file_completion = {
         k: [i for i in indexer if not (i in v.indices or i in v.subindices)] for k, v in var.items()

@@ -68,7 +68,7 @@ class VTUProgArgs:
     cmd: SubparserModes
     index: tuple[int, int, int] | SearchMode
     subindex: tuple[int, int, int] | SearchMode
-    prefix: str | None
+    prefix: str
     input_dir: Path
     output_dir: Path
     top: Path

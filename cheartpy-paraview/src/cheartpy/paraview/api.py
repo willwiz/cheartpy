@@ -44,7 +44,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
     log.disp("", header_guard())
     cache = init_variable_cache(inp, indexer).unwrap()
-    log.debug("Initialized variable cache:", cache=cache)
+    log.debug("Initialized variable cache", cache=cache)
     export_boundary(inp, cache.top, log)
     log.disp("", header_guard())
     if inp.mpi is None:
@@ -55,8 +55,8 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
             log.info(f"Processing vtus with {v!s} {k!s}.")
             break
         run_exports_in_parallel(inp.mpi, inp, indexer, cache, log)
-    log.info("Processing complete.")
     log.disp("", header_guard())
+    log.info("Program has completed.")
 
 
 def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:

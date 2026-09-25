@@ -22,10 +22,6 @@ if TYPE_CHECKING:
     from ._parser import VTUProgArgs
 
 
-def _get_prefix(args: VTUProgArgs) -> str:
-    return args.prefix or args.output_dir.name.replace("_vtu", "") or "paraview"
-
-
 def _file_check(file: Path | None) -> Result[None]:
     if file is None or file.is_file():
         return Ok(None)
@@ -113,7 +109,7 @@ def process_cmdline_args(
     mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
     progress_bar = (log.level != LogEnum.DEBUG) and args.prog_bar
     options = ProgramArgs(
-        prefix=_get_prefix(args),
+        prefix=args.prefix,
         input_dir=args.input_dir,
         output_dir=args.output_dir,
         prog_bar=progress_bar,
