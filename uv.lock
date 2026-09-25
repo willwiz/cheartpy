@@ -13,7 +13,7 @@ wheels = [
 
 [[package]]
 name = "cheartpy"
-version = "1.2.0b0"
+version = "1.2.1a0"
 source = { virtual = "." }
 dependencies = [
     { name = "cheartpy-io" },
@@ -233,7 +233,7 @@ requires-dist = [
 
 [[package]]
 name = "cheartpy-paraview"
-version = "0.0.1"
+version = "1.2.1a0"
 source = { editable = "cheartpy-paraview" }
 dependencies = [
     { name = "cheartpy-io" },
@@ -833,7 +833,7 @@ wheels = [
 [[package]]
 name = "pytools"
 version = "1.2.4a0"
-source = { git = "https://github.com/willwiz/pytools#1963561fe48ace6ce65383e6cfc89b9dc7ad2945" }
+source = { git = "https://github.com/willwiz/pytools#63678ec3c0021327c7f215d772c47d3daf00407c" }
 dependencies = [
     { name = "matplotlib" },
     { name = "numpy" },

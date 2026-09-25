@@ -44,7 +44,7 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
         case SearchMode.auto:
             msg = [*msg, f"{'<<< Index search model is:':<{_H_LEN_}} {'auto'}"]
         case (i, j, k):
-            msg = [*msg, f"{f'<<< Time step: From {i} to {j} in steps of {k}':<{_H_LEN_}}"]
+            msg = [*msg, f"{'<<< Time step:':<{_H_LEN_}} {f'From {i} to {j} in steps of {k}'}"]
     match inp.subindex:
         case SearchMode.none: ...  # fmt: skip
         case SearchMode.auto:

@@ -33,17 +33,6 @@ class ProgramArgs:
     point_var: Mapping[str, FileType]
 
 
-@dc.dataclass(slots=True, frozen=True)
-class ExportArgs:
-    time: Final[str | int]
-    space: Final[Path]
-    disp: Final[Path | None]
-    var: Final[Mapping[str, Path]]
-    output_prefix: Final[str]
-    binary: Final[bool]
-    compress: Final[bool]
-
-
 class ParaviewTopology[F: np.floating, I: np.integer]:
     __slots__ = ["_ft", "_fx", "elementtype", "nc", "ne", "surfacetype"]
 
