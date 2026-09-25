@@ -44,7 +44,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
     log.disp("", header_guard())
     cache = init_variable_cache(inp, indexer).unwrap()
-    log.debug(cache)
+    log.debug("Initialized variable cache:", cache=cache)
     export_boundary(inp, cache.top, log)
     log.disp("", header_guard())
     if inp.mpi is None:

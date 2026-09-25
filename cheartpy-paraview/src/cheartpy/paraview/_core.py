@@ -87,7 +87,7 @@ def export_boundary[F: np.floating, I: np.integer](
     top: ParaviewTopology[F, I],
     log: ILogger,
 ) -> None:
-    log.debug("<<< Working on", inp.bfile)
+    log.debug("Working on boundary", bfile=inp.bfile)
     if inp.bfile is None or top.surfacetype is None:
         log.info(">>> NOTICE: No boundary file given, export is skipped")
         return
@@ -193,7 +193,6 @@ def run_exports_in_series[F: np.floating, I: np.integer](
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
     for arg in get_arguments(inp, cache, indexer, log=log):
-        log.debug("<<< Working on", arg.path.name)
         export_mesh_iter(arg, log)
         bart.next() if bart else log.disp(f"<<< Completed {arg.path}")
 
