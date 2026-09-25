@@ -16,7 +16,6 @@ class _Kwargs(TypedDict, total=False):
 def compress_vtu(name: Path | str, **kwargs: Unpack[_Kwargs]) -> None:
     """Read the name of a file and compresses it in vtu format."""
     log = kwargs.get("log", get_logger())
-    log.debug(f"File size before: {Path(name).stat().st_size / 1024**2:.2f} MB")
     mesh = meshio.read(name, file_format="vtu")
     meshio.vtu.write(name, mesh, binary=True, compression="zlib")
-    log.debug(f"File size after: {Path(name).stat().st_size / 1024**2:.2f} MB")
+    log.debug("Compressed File", size=f"(after): {Path(name).stat().st_size / 1024**2:.2f} MB")

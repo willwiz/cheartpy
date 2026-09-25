@@ -7,6 +7,7 @@ from cheartpy.search import (
     create_indexer,
     get_file_type,
 )
+from pytools.logging import LogEnum
 from pytools.parallel import ThreadMethods
 from pytools.result import Err, Ok, Result, all_ok
 
@@ -110,11 +111,12 @@ def process_cmdline_args(
     log.disp(compose_index_info(indexer))
     space = mesh.x.fname if mesh.x.fname.is_dynamic else None
     mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
+    progress_bar = (log.level != LogEnum.DEBUG) and args.prog_bar
     options = ProgramArgs(
         prefix=_get_prefix(args),
         input_dir=args.input_dir,
         output_dir=args.output_dir,
-        prog_bar=args.prog_bar,
+        prog_bar=progress_bar,
         binary=args.binary,
         compress=args.compress,
         mpi=mpi_mode,
