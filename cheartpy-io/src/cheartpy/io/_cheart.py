@@ -168,7 +168,9 @@ def _is_integer_dtype(dtype: DType[np.number]) -> TypeIs[np.dtype[np.integer]]:
 
 
 @overload
-def chread[T: np.floating](
+def chread[T: np.number](file: Path | str, *, dtype: DType[T] = np.float64) -> A2[T]: ...
+@overload
+def chread[T: np.number](
     file: Path | str, *, fmt: Literal["D"], dtype: DType[T] = np.float64
 ) -> A2[T]: ...
 @overload

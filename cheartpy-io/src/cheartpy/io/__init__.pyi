@@ -43,7 +43,9 @@ def chwrite_list_utf[T: np.number](
     file: Path | str, data: A1[T], *, dtype: DType[T] = np.intc
 ) -> None: ...
 @overload
-def chread[T: np.floating](
+def chread[T: np.number](file: Path | str, *, dtype: DType[T] = np.float64) -> A2[T]: ...
+@overload
+def chread[T: np.number](
     file: Path | str, *, fmt: Literal["D"], dtype: DType[T] = np.float64
 ) -> A2[T]: ...
 @overload

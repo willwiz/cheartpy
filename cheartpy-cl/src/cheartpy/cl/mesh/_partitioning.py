@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, cast
 
 import numpy as np
 from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshSpace, CheartMeshTopology
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
 
 def create_centerline_partition[F: np.floating = np.float64, I: np.integer = np.intp](
     param: int | A1[F] | CLPartition[F, I],
+    boundary: Literal["all", "left", "right", "none"] = "all",
 ) -> CLPartition[F, I]:
     match param:
         case CLPartition():
@@ -38,6 +39,15 @@ def create_centerline_partition[F: np.floating = np.float64, I: np.integer = np.
     top = np.hstack(
         (np.arange(len(nodes) - 1, dtype=np.intp), np.arange(1, len(nodes), dtype=np.intp))
     )
+    match boundary:
+        case "all":
+            pass
+        case "left":
+            domain = domain[:-1]
+        case "right":
+            domain = domain[1:]
+        case "none":
+            domain = domain[1:-1]
     return cast("CLPartition[F, I]", CLPartition(nodes=nodes, top=top, domain=domain))
 
 
