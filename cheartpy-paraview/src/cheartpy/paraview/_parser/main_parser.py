@@ -27,7 +27,7 @@ main_parser = argparse.ArgumentParser()
 _subparsers = main_parser.add_subparsers(dest="cmd")
 find = _subparsers.add_parser(
     "find",
-    help="determine settings automatically",
+    help="Automated VTU file generation using file discovery approaches",
     parents=[
         find_subparser,
         find_topology_parser,
@@ -40,7 +40,7 @@ find.add_argument("--cell-var", nargs="+", type=str, default=[], help="Optional:
 find.add_argument("point_var", nargs="*", type=str, help="Optional: point variables")
 index = _subparsers.add_parser(
     "index",
-    help="determine settings automatically",
+    help="Provide index information and file names explicitly for VTU file generation",
     parents=[
         index_subparser,
         index_topology_parser,

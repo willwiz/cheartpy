@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
@@ -18,7 +16,7 @@ if TYPE_CHECKING:
     from pytools.arrays import A1, DType
 
     from ._parser import TimeProgArgs
-    from ._trait import TIME_SERIES
+    from ._trait import TimeSerie
 
 __all__ = ["_create_time_series_file", "_create_time_series_range"]
 
@@ -47,9 +45,7 @@ def format_input_info(prefix: str, root: Path) -> Sequence[str]:
     )
 
 
-def create_time_series_json[F: np.floating](
-    vtus: Iterable[Path | str], times: A1[F]
-) -> TIME_SERIES:
+def create_time_series_json(vtus: Iterable[Path | str], times: A1) -> TimeSerie:
     return {
         "file-series-version": CURRENT_VERSION,
         "files": [{"name": str(n), "time": float(t)} for n, t in zip(vtus, times, strict=False)],

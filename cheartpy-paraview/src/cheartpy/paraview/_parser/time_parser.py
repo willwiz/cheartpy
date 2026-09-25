@@ -17,9 +17,9 @@ time_parser.add_argument(
     "-f",
     dest="folder",
     action="store",
-    default="",
+    default=Path.cwd(),
     type=Path,
-    help="supply a name for the folder to store the vtu outputs",
+    help="The directory (Path) with the vtu outputs",
 )
 time_group = time_parser.add_mutually_exclusive_group(required=True)
 time_group.add_argument(
@@ -46,7 +46,7 @@ time_parser.add_argument(
     action="store",
     type=str,
     metavar=("prefix"),
-    help="supply the name of the vtu outputs",
+    help="The prefix of the vtu files to be processed,",
 )
 
 
