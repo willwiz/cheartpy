@@ -1,12 +1,10 @@
 import abc
 import re
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, override
 
 from cheartpy.search import SearchMode
-from pytools.arrays import T3
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result
 
@@ -20,10 +18,14 @@ from ._impl_indexers import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from pytools.arrays import T3
+
     from .trait import IIndexIterator
 
 
-class VariableType(abc.ABC):
+class _VariableType(abc.ABC):
     @abc.abstractmethod
     def __getitem__(self, time: int | tuple[int, int]) -> Path: ...
 
@@ -35,7 +37,7 @@ class VariableType(abc.ABC):
     def ext(self) -> str: ...
 
 
-class SingleFile(VariableType):
+class SingleFile(_VariableType):
     __slots__ = ["_file"]
 
     _file: Path
@@ -57,7 +59,7 @@ class SingleFile(VariableType):
         return self._file.suffix
 
 
-class TimeSeriesFile(VariableType):
+class TimeSeriesFile(_VariableType):
     __slots__ = ["_ext", "_folder", "_var"]
 
     _folder: Path
@@ -79,12 +81,15 @@ class TimeSeriesFile(VariableType):
 
     @override
     def __str__(self) -> str:
-        return f"{self._var}-*{self._ext}"
+        return f"{self._var}"
 
     @property
     @override
     def ext(self) -> str:
         return self._ext
+
+
+VariableType = SingleFile | TimeSeriesFile
 
 
 class VarType(NamedTuple):
