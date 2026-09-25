@@ -70,7 +70,7 @@ class VTUProgArgs:
     subindex: tuple[int, int, int] | SearchMode
     prefix: str | None
     input_dir: Path
-    output_dir: Path | None
+    output_dir: Path
     top: Path
     space: Path | str
     disp: str | None

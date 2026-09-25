@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack
 
 from cheartpy.search._varible_index import (
@@ -15,6 +14,8 @@ from ._headers import compose_index_info, format_input_info
 from ._struct import ProgramArgs
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from cheartpy.search import IIndexIterator
     from pytools.logging import ILogger
 
@@ -27,15 +28,6 @@ def _get_prefix(args: VTUProgArgs) -> str:
     return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
 
 
-def _check_dirs_inputs(args: VTUProgArgs) -> Ok[tuple[Path, Path]] | Err:
-    if not args.input_dir.is_dir():
-        msg = f"Input folder = {args.input_dir} does not exist"
-        return Err(ValueError(msg))
-    output_dir = Path(args.output_dir) if args.output_dir else Path()
-    output_dir.mkdir(exist_ok=True)
-    return Ok((args.input_dir, output_dir))
-
-
 class _TopFileState(NamedTuple):
     x: VarType
     u: VarType | None
@@ -43,24 +35,26 @@ class _TopFileState(NamedTuple):
     b: Path | None
 
 
+def _file_check(file: Path | None) -> Result[None]:
+    if file is None or file.is_file():
+        return Ok(None)
+    msg = f"Topology file = {file} does not exist"
+    return Err(ValueError(msg))
+
+
 def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
-    if not args.top.is_file():
-        msg = f"Topology file = {args.top} does not exist"
-        return Err(ValueError(msg))
-    if args.boundary and not args.boundary.is_file():
-        msg = f"Boundary file = {args.boundary} does not exist"
-        return Err(ValueError(msg))
+    match all_ok([_file_check(f) for f in [args.top, args.boundary]]):
+        case Ok(): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
     if "+" in str(args.space):
         msg = "The space+disp input style is deprecated. Please use -x space -u disp instead."
         return Err(ValueError(msg))
     match get_file_type(args.space, args.input_dir):
-        case Ok(space):
-            ...
+        case Ok(space): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     if args.disp:
         match get_file_type(args.disp, args.input_dir):
-            case Ok(disp):
-                ...
+            case Ok(disp): ...  # fmt: skip
             case Err(e): return Err(e)  # fmt: skip
     else:
         disp = None
@@ -91,11 +85,7 @@ def process_cmdline_args(
 ) -> Ok[tuple[ProgramArgs, IIndexIterator]] | Err:
     """Process command line arguments raw into program structs."""
     log.info("Current Run Information:", *format_input_info(args))
-    prefix = _get_prefix(args)
-    match _check_dirs_inputs(args):
-        case Ok((input_dir, output_dir)): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     """x: space, t: topology, b: boundary, u: displacement"""
     match _check_topology_files(args):
         case Ok(mesh): ...  # fmt: skip
@@ -109,38 +99,34 @@ def process_cmdline_args(
         case Ok(cell_variables): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    match create_indexer({**point_variables, **cell_variables}, args.index, args.subindex):
+    match create_indexer(
+        {k: v for k, v in {"_X": mesh.x, "_U": mesh.u}.items() if v is not None}
+        | dict(point_variables)
+        | dict(cell_variables),
+        args.index,
+        args.subindex,
+    ):
         case Ok(indexer):
             ifirst = next(iter(indexer))
         case Err(e):
             return Err(e)
     log.disp(compose_index_info(indexer))
-    match mesh.x.fname:
-        case SingleFile():
-            xfile = mesh.x.fname[ifirst]
-            space = None
-        case TimeSeriesFile():
-            xfile = mesh.x.fname[ifirst]
-            space = mesh.x.fname
+    space = mesh.x.fname if isinstance(mesh.x.fname, SingleFile) else None
     mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
-    return Ok(
-        (
-            ProgramArgs(
-                prefix=prefix,
-                input_dir=input_dir,
-                output_dir=output_dir,
-                prog_bar=args.prog_bar,
-                binary=args.binary,
-                compress=args.compress,
-                mpi=mpi_mode,
-                tfile=mesh.t,
-                bfile=mesh.b,
-                xfile=xfile,
-                space=space,
-                disp=mesh.u.fname if mesh.u else None,
-                cell_var={str(v): v.fname for v in cell_variables.values()},
-                point_var={str(v): v.fname for v in point_variables.values()},
-            ),
-            indexer,
-        )
+    options = ProgramArgs(
+        prefix=_get_prefix(args),
+        input_dir=args.input_dir,
+        output_dir=args.output_dir,
+        prog_bar=args.prog_bar,
+        binary=args.binary,
+        compress=args.compress,
+        mpi=mpi_mode,
+        tfile=mesh.t,
+        bfile=mesh.b,
+        xfile=mesh.x.fname[ifirst],
+        space=space,
+        disp=mesh.u.fname if mesh.u else None,
+        cell_var={str(v): v.fname for v in cell_variables.values()},
+        point_var={str(v): v.fname for v in point_variables.values()},
     )
+    return Ok((options, indexer))
