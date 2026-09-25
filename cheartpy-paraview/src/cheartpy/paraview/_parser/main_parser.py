@@ -125,14 +125,15 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
             subindex = SearchMode.none
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
-    output_dir = kwargs.get("output_dir")
+    input_dir = Path(kwargs.get("input_dir") or Path.cwd())
+    output_dir = _to_path(kwargs.get("output_dir")) or input_dir
     return VTUProgArgs(
         cmd="find",
         index=index,
         subindex=subindex,
         prefix=kwargs.get("prefix"),
-        input_dir=Path(kwargs.get("input_dir", "")),
-        output_dir=_to_path(output_dir),
+        input_dir=input_dir,
+        output_dir=output_dir,
         top=mesh.t,
         space=mesh.x,
         disp=mesh.u,
@@ -159,14 +160,15 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
             subindex = SearchMode.none
         case (int(i), int(j), int(k)):
             subindex = (i, j, k)
-    output_dir = kwargs.get("output_dir")
+    input_dir = Path(kwargs.get("input_dir") or Path.cwd())
+    output_dir = _to_path(kwargs.get("output_dir")) or input_dir
     return VTUProgArgs(
         cmd="index",
         index=index,
         subindex=subindex,
         prefix=kwargs.get("prefix"),
-        input_dir=Path(kwargs.get("input_dir", "")),
-        output_dir=_to_path(output_dir),
+        input_dir=input_dir,
+        output_dir=output_dir,
         top=mesh.t,
         space=mesh.x,
         disp=mesh.u,
