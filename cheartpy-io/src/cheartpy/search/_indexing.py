@@ -14,7 +14,7 @@ from ._impl_indexers import (
     TupleSubIndexer,
     ZeroIndexer,
 )
-from .trait import FileVariable, IIndexIterator, SearchMode, StaticFile, TemporalFile
+from .trait import DynamicFile, FileVariable, IIndexIterator, SearchMode, StaticFile
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
@@ -107,12 +107,12 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
             if files := sorted(name.parent.glob(f"{name.name}-*{ext}")):
                 index = filter_index(files, name.name, ext.lstrip("."))
                 subindex = filter_subindex(files, name.name, ext.lstrip("."))
-                return Ok(FileVariable(TemporalFile(name.parent, name.name, ext), index, subindex))
+                return Ok(FileVariable(DynamicFile(name.parent, name.name, ext), index, subindex))
     for ext in [".D", ".D.gz", ".res2"]:
         if files := sorted(root.glob(f"{name.name}-*{ext}")):
             index = filter_index(files, name.name, ext.lstrip("."))
             subindex = filter_subindex(files, name.name, ext.lstrip("."))
-            return Ok(FileVariable(TemporalFile(root, name.name, ext), index, subindex))
+            return Ok(FileVariable(DynamicFile(root, name.name, ext), index, subindex))
     msg = (
         f"{name} not found as:\n"
         f"    {name}\n"
@@ -122,7 +122,9 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
     return Err(ValueError(msg))
 
 
-def build_subindex_mapping(var: Mapping[str, FileVariable]) -> Mapping[int, Sequence[int]]:
+def build_subindex_mapping(
+    var: Mapping[str, FileVariable],
+) -> Mapping[int, Sequence[int]]:
     subindex_mapping: dict[int, set[int]] = defaultdict(set)
     for v in var.values():
         for idx, subidx in v.subindices:
@@ -131,7 +133,9 @@ def build_subindex_mapping(var: Mapping[str, FileVariable]) -> Mapping[int, Sequ
 
 
 def create_range_indexer(
-    var: Mapping[str, FileVariable], index: T3[int], subindexer: T3[int] | SearchMode
+    var: Mapping[str, FileVariable],
+    index: T3[int],
+    subindexer: T3[int] | SearchMode,
 ) -> Result[IIndexIterator]:
     if not var:
         return Ok(ZeroIndexer())
@@ -147,7 +151,8 @@ def create_range_indexer(
 
 
 def create_null_indexer(
-    var: Mapping[str, FileVariable], subindex: T3[int] | SearchMode
+    var: Mapping[str, FileVariable],
+    subindex: T3[int] | SearchMode,
 ) -> Result[IIndexIterator]:
     """Create an indexer assuming no index should be generated."""
     if not var:
@@ -170,7 +175,8 @@ def create_null_indexer(
 
 
 def create_auto_indexer(
-    var: Mapping[str, FileVariable], sub_index: T3[int] | SearchMode
+    var: Mapping[str, FileVariable],
+    sub_index: T3[int] | SearchMode,
 ) -> Result[IIndexIterator]:
     if not var:
         return Ok(ZeroIndexer())
@@ -188,7 +194,7 @@ def create_auto_indexer(
 def validate_indexer(
     var: Mapping[str, FileVariable], indexer: IIndexIterator
 ) -> Result[IIndexIterator]:
-    var = {k: v for k, v in var.items() if isinstance(v.fname, TemporalFile)}
+    var = {k: v for k, v in var.items() if v.fname.is_dynamic}
     first = next(iter(indexer))
     initial_file_check = {
         k for k, v in var.items() if (first in v.indices or first in v.subindices)
@@ -209,8 +215,11 @@ def validate_indexer(
 
 
 def create_indexer(
-    var: Mapping[str, FileVariable], index: T3[int] | SearchMode, sub_index: T3[int] | SearchMode
+    var: Mapping[str, FileVariable],
+    index: T3[int] | SearchMode,
+    sub_index: T3[int] | SearchMode,
 ) -> Result[IIndexIterator]:
+    var = {k: v for k, v in var.items() if v.fname.is_dynamic}
     match index:
         case tuple():
             indexer = create_range_indexer(var, index, sub_index)

@@ -1,7 +1,9 @@
 import abc
+import dataclasses as dc
 import enum
+import re
 from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, override
+from typing import TYPE_CHECKING, Literal, override
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -63,15 +65,19 @@ class StaticFile(_VariableType):
 
     @override
     def __str__(self) -> str:
-        return self._file.name
+        return re.split(r"[-.]", self._file.stem)[0]
 
     @property
     @override
     def ext(self) -> str:
         return self._file.suffix
 
+    @property
+    def is_dynamic(self) -> Literal[False]:
+        return False
 
-class TemporalFile(_VariableType):
+
+class DynamicFile(_VariableType):
     __slots__ = ["_ext", "_folder", "_var"]
 
     _folder: Path
@@ -100,11 +106,19 @@ class TemporalFile(_VariableType):
     def ext(self) -> str:
         return self._ext
 
+    @property
+    def is_dynamic(self) -> Literal[True]:
+        return True
 
-type FileType = StaticFile | TemporalFile
+
+type FileType = StaticFile | DynamicFile
 
 
-class FileVariable(NamedTuple):
+@dc.dataclass(slots=True, frozen=True)
+class FileVariable:
     fname: FileType
     indices: set[int]
     subindices: set[tuple[int, int]]
+
+    def __str__(self) -> str:
+        return str(self.fname)

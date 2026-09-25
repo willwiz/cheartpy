@@ -37,7 +37,7 @@ time_group.add_argument(
 )
 time_parser.add_argument(
     "--log",
-    type=LogLevel.__value__,
+    type=str.upper,
     choices=get_args(LogLevel.__value__),
     default="INFO",
 )

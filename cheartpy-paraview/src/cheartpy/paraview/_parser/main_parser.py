@@ -30,8 +30,8 @@ find = _subparsers.add_parser(
     help="determine settings automatically",
     parents=[
         find_subparser,
-        io_parser,
         find_topology_parser,
+        io_parser,
         setting_parser,
         multiprocessing_parser,
     ],
@@ -43,8 +43,8 @@ index = _subparsers.add_parser(
     help="determine settings automatically",
     parents=[
         index_subparser,
-        io_parser,
         index_topology_parser,
+        io_parser,
         setting_parser,
         multiprocessing_parser,
     ],

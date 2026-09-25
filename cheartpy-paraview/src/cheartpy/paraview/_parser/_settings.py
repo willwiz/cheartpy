@@ -7,7 +7,7 @@ setting_parser = argparse.ArgumentParser(add_help=False)
 _settinggroup = setting_parser.add_argument_group(title="Settings")
 _settinggroup.add_argument(
     "--log",
-    type=LogLevel.__value__,
+    type=str.upper,
     choices=get_args(LogLevel.__value__),
     default="INFO",
 )

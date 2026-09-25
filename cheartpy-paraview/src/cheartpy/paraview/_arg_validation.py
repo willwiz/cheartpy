@@ -1,10 +1,9 @@
 from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack
 
 from cheartpy.search import (
+    DynamicFile,
     FileVariable,
     IIndexIterator,
-    StaticFile,
-    TemporalFile,
     create_indexer,
     get_file_type,
 )
@@ -23,9 +22,7 @@ if TYPE_CHECKING:
 
 
 def _get_prefix(args: VTUProgArgs) -> str:
-    if args.prefix:
-        return args.prefix
-    return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
+    return args.prefix or args.output_dir.name.replace("_vtu", "") or "paraview"
 
 
 def _file_check(file: Path | None) -> Result[None]:
@@ -58,7 +55,7 @@ def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
             case Err(e): return Err(e)  # fmt: skip
     else:
         disp = None
-    if not (disp is None or isinstance(disp.fname, TemporalFile)):
+    if not (disp is None or isinstance(disp.fname, DynamicFile)):
         msg = "Displacement must be none or changing with time."
         return Err(ValueError(msg))
     return Ok(_TopFileState(space, disp, args.top, args.boundary))
@@ -111,7 +108,7 @@ def process_cmdline_args(
         case Err(e):
             return Err(e)
     log.disp(compose_index_info(indexer))
-    space = mesh.x.fname if isinstance(mesh.x.fname, StaticFile) else None
+    space = mesh.x.fname if mesh.x.fname.is_dynamic else None
     mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
     options = ProgramArgs(
         prefix=_get_prefix(args),
@@ -129,4 +126,5 @@ def process_cmdline_args(
         cell_var={str(v): v.fname for v in cell_variables.values()},
         point_var={str(v): v.fname for v in point_variables.values()},
     )
+    log.debug("Final Arguments:", options=options)
     return Ok((options, indexer))
