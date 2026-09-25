@@ -5,11 +5,12 @@ find_topology_parser = argparse.ArgumentParser(add_help=False)
 _topology_group = find_topology_parser.add_argument_group(title="Topology")
 _topology_group.add_argument(
     "--mesh",
+    "-m",
     required=True,
     dest="mesh",
     action="store",
     type=Path,
-    help="OPTIONAL: supply a prefix for the mesh files",
+    help="Path with a prefix for the mesh files, e.g., mesh/mesh_FE.",
 )
 _topology_group.add_argument(
     "--space",
@@ -18,7 +19,12 @@ _topology_group.add_argument(
     action="store",
     type=Path,
     default=None,
-    help="OPTIONAL: supply a prefix for the space file(s)",
+    help=(
+        "Override automatically discovered space file prefix.\n"
+        "- File: all vtu will use"
+        "- Path with prefix: vtu will look for files of the form parent/name-{i}.D to import"
+        "- prefix: vtu will look for files of the form prefix-{i}.D in the input directory"
+    ),
 )
 _topology_group.add_argument(
     "--disp",
@@ -27,10 +33,7 @@ _topology_group.add_argument(
     action="store",
     type=Path,
     default=None,
-    help=(
-        "OPTIONAL: supply a prefix for the disp file(s). Only include this if you want the space "
-        "to be updated each time step."
-    ),
+    help=("Prefix for files to update the space each time step."),
 )
 _topology_group.add_argument(
     "--boundary",
@@ -39,10 +42,7 @@ _topology_group.add_argument(
     action="store",
     type=Path,
     default=None,
-    help=(
-        "OPTIONAL: supply a relative path and file name from the current directory "
-        "to the boundary file, the default is mesh_FE.B"
-    ),
+    help=("Override automatically discovered boundary file prefix."),
 )
 
 
@@ -55,7 +55,7 @@ _topology_group.add_argument(
     dest="space",
     action="store",
     type=str,
-    help="OPTIONAL: supply a prefix for the mesh files",
+    help="Path to the space file, e.g., mesh_FE.X or a prefix to import prefix-{i}.D",
 )
 _topology_group.add_argument(
     "--disp",
@@ -64,10 +64,7 @@ _topology_group.add_argument(
     action="store",
     type=Path,
     default=None,
-    help=(
-        "OPTIONAL: supply a prefix for the disp file(s). Only include this if you want the space "
-        "to be updated each time step."
-    ),
+    help=("Prefix for files to update the space each time step, e.g., disp-{i}.D. "),
 )
 _topology_group.add_argument(
     "--top",
@@ -76,10 +73,7 @@ _topology_group.add_argument(
     dest="top",
     action="store",
     type=Path,
-    help=(
-        "MANDATORY: supply a relative path and file name from the current directory "
-        "to the topology file, the default is mesh_FE.T"
-    ),
+    help=("Path to the topology file, e.g., mesh_FE.T."),
 )
 _topology_group.add_argument(
     "--boundary",
@@ -89,7 +83,6 @@ _topology_group.add_argument(
     type=Path,
     default=None,
     help=(
-        "OPTIONAL: supply a relative path and file name from the current directory "
-        "to the boundary file, the default is mesh_FE.B"
+        "Path to the boundary file, e.g., mesh_FE.B. If not given boundary will not be exported."
     ),
 )

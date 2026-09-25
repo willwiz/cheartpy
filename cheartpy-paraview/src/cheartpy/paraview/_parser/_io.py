@@ -34,6 +34,6 @@ _iogroup.add_argument(
     default=None,
     help=(
         "OPTIONAL: supply the path to the folder where the vtu outputs should be saved to."
-        " If -f is not supplied, then the path is assumed to be the current folder."
+        " Output folder fallback is .output_dir > .input_dir > current working directory."
     ),
 )

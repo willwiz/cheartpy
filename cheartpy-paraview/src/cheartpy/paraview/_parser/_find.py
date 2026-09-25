@@ -14,8 +14,8 @@ _index_group.add_argument(
     type=int,
     metavar=("start", "end", "step"),
     help=(
-        "MANDATORY: specify the start, end, and step for the range of data files. "
-        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+        "Specify the start, end, and step for the range of data files. "
+        "Will overwrite automated discovery."
     ),
 )
 _index_group_sub = _index_group.add_mutually_exclusive_group()
@@ -28,10 +28,7 @@ _index_group_sub.add_argument(
     type=int,
     metavar=("start", "end", "step"),
     default=None,
-    help=(
-        "OPTIONAL: specify the start, end, and step for the range of data files. "
-        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
-    ),
+    help=("Specify the start, end, and step for the range of subindex in the data files. "),
 )
 _index_group_sub.add_argument(
     "--subindex-auto",
@@ -40,7 +37,6 @@ _index_group_sub.add_argument(
     dest="subindex",
     const=AUTO,
     help=(
-        "OPTIONAL: specify the start, end, and step for the range of data files. "
-        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
+        "Sub indices should be automatically determined based on the data in the input directory."
     ),
 )
