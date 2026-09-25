@@ -10,10 +10,9 @@ from cheartpy.elem_interfaces import CheartEnum, get_boundary_element, guess_ele
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from cheartpy.search._varible_index import VariableType
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
-
-    from ._trait import IFormattedName
 
 
 @dc.dataclass(slots=True, frozen=True)
@@ -28,10 +27,10 @@ class ProgramArgs:
     xfile: Path
     tfile: Path
     bfile: Path | None
-    space: IFormattedName | None
-    disp: IFormattedName | None
-    cell_var: Mapping[str, IFormattedName]
-    point_var: Mapping[str, IFormattedName]
+    space: VariableType | None
+    disp: VariableType | None
+    cell_var: Mapping[str, VariableType]
+    point_var: Mapping[str, VariableType]
 
 
 @dc.dataclass(slots=True, frozen=True)
@@ -95,7 +94,7 @@ class ParaviewTopology[F: np.floating, I: np.integer]:
 @dc.dataclass(slots=True)
 class VariableCache[F: np.floating, I: np.integer]:
     top: Final[ParaviewTopology[F, I]]
-    time: str | int
+    time: int | tuple[int, int]
     fx: Path | None
     fd: Path | None
     fv: dict[str, Path]
@@ -108,7 +107,7 @@ class VariableCache[F: np.floating, I: np.integer]:
 class XMLDataInputs[F: np.floating, I: np.integer]:
     prefix: Final[str]
     path: Final[Path]
-    time: Final[str | int]
+    time: Final[int | tuple[int, int]]
     top: Final[ParaviewTopology[F, I]]
     x: Final[Path | None]
     u: Final[Path | None]
