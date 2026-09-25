@@ -10,7 +10,7 @@ from cheartpy.elem_interfaces import CheartEnum, get_boundary_element, guess_ele
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.search._varible_index import VariableType
+    from cheartpy.search import FileType
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
 
@@ -27,10 +27,10 @@ class ProgramArgs:
     xfile: Path
     tfile: Path
     bfile: Path | None
-    space: VariableType | None
-    disp: VariableType | None
-    cell_var: Mapping[str, VariableType]
-    point_var: Mapping[str, VariableType]
+    space: FileType | None
+    disp: FileType | None
+    cell_var: Mapping[str, FileType]
+    point_var: Mapping[str, FileType]
 
 
 @dc.dataclass(slots=True, frozen=True)

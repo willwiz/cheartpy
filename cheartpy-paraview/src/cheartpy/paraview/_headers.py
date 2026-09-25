@@ -5,7 +5,7 @@ from cheartpy.io import fix_ch_sfx
 from cheartpy.search import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
-    from ._parser.types import VTUProgArgs
+    from ._parser import VTUProgArgs
 
 _H_STR_LEN_ = 30
 

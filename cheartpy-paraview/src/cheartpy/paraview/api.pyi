@@ -6,8 +6,7 @@ import numpy as np
 from pytools.arrays import A1
 from pytools.result import Result
 
-from ._parser.types import APIKwargsFind, APIKwargsIndex
-from ._time_series import TimeSeriesKwargs
+from ._parser import APIKwargsFind, APIKwargsIndex, TimeSeriesKwargs
 from ._trait import TIME_SERIES
 
 def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None: ...

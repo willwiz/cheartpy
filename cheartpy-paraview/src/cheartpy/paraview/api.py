@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Unpack
 
+from meshio.gmsh.common import np
 from pytools.logging import get_logger
 
 from ._arg_validation import process_cmdline_args
@@ -10,27 +11,28 @@ from ._parser import (
     APIKwargsFind,
     APIKwargsIndex,
     TimeProgArgs,
+    TimeSeriesKwargs,
     VTUProgArgs,
     get_api_args_find,
     get_api_args_index,
+    get_api_args_time,
     get_cmd_args,
 )
 from ._time_series import (
     create_time_series,
-    create_time_series_api,
-    create_time_series_cli,
     create_time_series_json,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from pytools.result import Result
+
 
 __all__ = [
     "cheart2vtu_find",
     "cheart2vtu_index",
-    "create_time_series_api",
-    "create_time_series_cli",
+    "create_time_series",
     "create_time_series_json",
 ]
 
@@ -63,6 +65,13 @@ def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:
 def cheart2vtu_index(**kwargs: Unpack[APIKwargsIndex]) -> None:
     args = get_api_args_index(**kwargs)
     cheart2vtu(args)
+
+
+def create_time_series_api(
+    **kwargs: Unpack[TimeSeriesKwargs],
+) -> Result[None]:
+    args = get_api_args_time(**kwargs)
+    return create_time_series(args, dtype=np.float64).next()
 
 
 def main_cli(cmdline: Sequence[str] | None = None) -> None:

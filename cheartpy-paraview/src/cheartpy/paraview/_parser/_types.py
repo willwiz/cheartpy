@@ -91,4 +91,5 @@ class TimeProgArgs:
     cmd: str
     prefix: str
     time: Path | float
+    log: LogEnum
     folder: Path

@@ -17,7 +17,7 @@ from ._types import (
     TimeProgArgs,
     VTUProgArgs,
 )
-from .time_parser import time_parser
+from .time_parser import get_api_args_time, time_parser
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -56,35 +56,6 @@ time = _subparsers.add_parser(
     help="create time series from existing vtu files",
     parents=[time_parser],
 )
-
-
-def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArgs:
-    """Parse command line arguments.
-
-    Parameters
-    ----------
-    args : Sequence[str] | None
-        List of command line arguments to parse. If None, defaults to sys.argv.
-
-    Returns
-    -------
-    CmdLineArgs
-        Parsed command line arguments as a CmdLineArgs object.
-
-    """
-    # Require subparsers to be called, which sets args.cmd
-    # If args.cmd is None, display help message and exit
-    parsed_args = main_parser.parse_args(args)
-    match parsed_args.cmd:
-        case "find":
-            return get_api_args_find(**vars(parsed_args))
-        case "index":
-            return get_api_args_index(**vars(parsed_args))
-        case "time":
-            return TimeProgArgs(**vars(parsed_args))
-        case _:
-            main_parser.print_help()
-            raise SystemExit(0)
 
 
 class _MeshTopologyFiles(NamedTuple):
@@ -183,3 +154,32 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
         cell_var=kwargs.get("cell_var", []),
         point_var=kwargs.get("point_var", []),
     )
+
+
+def get_cmd_args(args: Sequence[str] | None = None) -> VTUProgArgs | TimeProgArgs:
+    """Parse command line arguments.
+
+    Parameters
+    ----------
+    args : Sequence[str] | None
+        List of command line arguments to parse. If None, defaults to sys.argv.
+
+    Returns
+    -------
+    CmdLineArgs
+        Parsed command line arguments as a CmdLineArgs object.
+
+    """
+    # Require subparsers to be called, which sets args.cmd
+    # If args.cmd is None, display help message and exit
+    parsed_args = main_parser.parse_args(args)
+    match parsed_args.cmd:
+        case "find":
+            return get_api_args_find(**vars(parsed_args))
+        case "index":
+            return get_api_args_index(**vars(parsed_args))
+        case "time":
+            return get_api_args_time(**vars(parsed_args))
+        case _:
+            main_parser.print_help()
+            raise SystemExit(0)

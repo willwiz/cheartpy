@@ -1,9 +1,10 @@
 from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack
 
-from cheartpy.search._varible_index import (
-    SingleFile,
-    TimeSeriesFile,
-    VarType,
+from cheartpy.search import (
+    FileVariable,
+    IIndexIterator,
+    StaticFile,
+    TemporalFile,
     create_indexer,
     get_file_type,
 )
@@ -16,10 +17,9 @@ from ._struct import ProgramArgs
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from cheartpy.search import IIndexIterator
     from pytools.logging import ILogger
 
-    from ._parser.types import VTUProgArgs
+    from ._parser import VTUProgArgs
 
 
 def _get_prefix(args: VTUProgArgs) -> str:
@@ -28,18 +28,18 @@ def _get_prefix(args: VTUProgArgs) -> str:
     return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
 
 
-class _TopFileState(NamedTuple):
-    x: VarType
-    u: VarType | None
-    t: Path
-    b: Path | None
-
-
 def _file_check(file: Path | None) -> Result[None]:
     if file is None or file.is_file():
         return Ok(None)
     msg = f"Topology file = {file} does not exist"
     return Err(ValueError(msg))
+
+
+class _TopFileState(NamedTuple):
+    x: FileVariable
+    u: FileVariable | None
+    t: Path
+    b: Path | None
 
 
 def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
@@ -58,7 +58,7 @@ def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
             case Err(e): return Err(e)  # fmt: skip
     else:
         disp = None
-    if not (disp is None or isinstance(disp.fname, TimeSeriesFile)):
+    if not (disp is None or isinstance(disp.fname, TemporalFile)):
         msg = "Displacement must be none or changing with time."
         return Err(ValueError(msg))
     return Ok(_TopFileState(space, disp, args.top, args.boundary))
@@ -111,7 +111,7 @@ def process_cmdline_args(
         case Err(e):
             return Err(e)
     log.disp(compose_index_info(indexer))
-    space = mesh.x.fname if isinstance(mesh.x.fname, SingleFile) else None
+    space = mesh.x.fname if isinstance(mesh.x.fname, StaticFile) else None
     mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
     options = ProgramArgs(
         prefix=_get_prefix(args),
