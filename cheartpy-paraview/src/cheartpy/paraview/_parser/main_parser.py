@@ -98,11 +98,12 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
             subindex = (i, j, k)
     input_dir = Path(kwargs.get("input_dir") or Path.cwd())
     output_dir = _to_path(kwargs.get("output_dir")) or input_dir
+    prefix = kwargs.get("prefix") or output_dir.name.replace("_vtu", "") or "paraview"
     return VTUProgArgs(
         cmd="find",
         index=index,
         subindex=subindex,
-        prefix=kwargs.get("prefix"),
+        prefix=prefix,
         input_dir=input_dir,
         output_dir=output_dir,
         top=mesh.t,
@@ -133,11 +134,12 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
             subindex = (i, j, k)
     input_dir = Path(kwargs.get("input_dir") or Path.cwd())
     output_dir = _to_path(kwargs.get("output_dir")) or input_dir
+    prefix = kwargs.get("prefix") or output_dir.name.replace("_vtu", "") or "paraview"
     return VTUProgArgs(
         cmd="index",
         index=index,
         subindex=subindex,
-        prefix=kwargs.get("prefix"),
+        prefix=prefix,
         input_dir=input_dir,
         output_dir=output_dir,
         top=mesh.t,
