@@ -67,7 +67,7 @@ def update_variable_cache[F: np.floating, I: np.integer](
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> VariableCache[F, I]:
-    if time == cache.time:
+    if time == cache.time and time != 0:
         log.debug(f"time point {time} did not change")
         return cache
     fx = check_validate_v(inp.space, time, cache.fx)
