@@ -181,6 +181,11 @@ def export_mesh_iter[F: np.floating, I: np.integer](
     vtk_xml = create_xml_for_mesh(args.prefix, args.top, x, point_var, cell_var)
     with args.path.open("w") as fout:
         vtk_xml.write(fout)
+    log.debug(
+        "Exported file:",
+        name=args.path,
+        size=f"{args.path.stat().st_size / 1024**2:.2f} MB",
+    )
     if args.compress:
         compress_vtu(args.path, log=log)
 
