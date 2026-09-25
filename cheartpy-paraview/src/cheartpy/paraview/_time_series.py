@@ -2,24 +2,22 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Final, TypedDict, Unpack, cast
+from typing import TYPE_CHECKING, Final, cast
 
 import numpy as np
 from cheartpy.io import chread_time_utf
 from cheartpy.search import get_var_index
-from pytools.logging import ILogger, get_logger
+from pytools.logging import get_logger
 from pytools.result import Err, Ok
 
 from ._headers import header_guard
-from ._parser.time_parser import get_cmdline_args
-from ._parser.types import TimeProgArgs
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
     from pytools.arrays import A1, DType
 
-    from ._parser.types import TimeSeriesKwargs
+    from ._parser import TimeProgArgs
     from ._trait import TIME_SERIES
 
 __all__ = ["_create_time_series_file", "_create_time_series_range"]
@@ -105,17 +103,12 @@ def create_time_series_core[F: np.floating](
             return _create_time_series_range(vtus, idx, args.time, dtype=dtype).next()
 
 
-class _AdditionalKwargs(TypedDict, total=False):
-    log: ILogger
-
-
 def create_time_series[F: np.floating](
     args: TimeProgArgs,
     *,
     dtype: DType[F] = np.float64,
-    **kwargs: Unpack[_AdditionalKwargs],
 ) -> Ok[None] | Err:
-    log = kwargs.get("log", get_logger())
+    log = get_logger(level=args.log)
     log.disp(*compose_time_header())
     log.info(*format_input_info(args.prefix, args.folder))
     log.disp("", header_guard())
@@ -132,22 +125,3 @@ def create_time_series[F: np.floating](
     with (args.folder / (args.prefix + ".vtu.series")).open("w") as f:
         json.dump(time_series, f, indent=4)
     return Ok(None)
-
-
-def create_time_series_api(
-    **kwargs: Unpack[TimeSeriesKwargs],
-) -> Ok[None] | Err:
-    args = TimeProgArgs(
-        cmd="time",
-        prefix=kwargs["prefix"],
-        time=kwargs["time"],
-        folder=kwargs.get("folder", Path()),
-    )
-    dtype = kwargs.get("dtype", np.float64)
-    log = get_logger(level=kwargs.get("log", "INFO"))
-    return create_time_series(args, log=log, dtype=dtype).next()
-
-
-def create_time_series_cli(cmdline: Sequence[str] | None = None) -> None:
-    args = get_cmdline_args(cmdline)
-    create_time_series_core(args).unwrap()

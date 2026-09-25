@@ -3,8 +3,6 @@ from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
 from cheartpy.io import chread_d
-from cheartpy.search._varible_index import VariableType
-from pytools.logging import ILogger
 from pytools.result import Err, Ok
 
 from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
@@ -13,8 +11,9 @@ from ._variable_getter import CheartVTUFormat
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from cheartpy.search import IIndexIterator
+    from cheartpy.search import FileType, IIndexIterator
     from pytools.arrays import A2, DType
+    from pytools.logging import ILogger
 
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
@@ -46,13 +45,13 @@ def init_variable_cache[F: np.floating, I: np.integer](
 @overload
 def check_validate_v(v: None, time: int | tuple[int, int], backup: Path | None) -> None: ...
 @overload
-def check_validate_v(v: VariableType, time: int | tuple[int, int], backup: Path) -> Path: ...
+def check_validate_v(v: FileType, time: int | tuple[int, int], backup: Path) -> Path: ...
 @overload
 def check_validate_v(
-    v: VariableType | None, time: int | tuple[int, int], backup: Path | None
+    v: FileType | None, time: int | tuple[int, int], backup: Path | None
 ) -> Path | None: ...
 def check_validate_v(
-    v: VariableType | None, time: int | tuple[int, int], backup: Path | None
+    v: FileType | None, time: int | tuple[int, int], backup: Path | None
 ) -> Path | None:
     if v is None:
         return v

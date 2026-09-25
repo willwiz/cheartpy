@@ -1,15 +1,15 @@
 import argparse
+from typing import get_args
 
-from pytools.logging import LogEnum
-from pytools.parsing import EnumGetter
+from pytools.logging import LogLevel
 
 setting_parser = argparse.ArgumentParser(add_help=False)
 _settinggroup = setting_parser.add_argument_group(title="Settings")
 _settinggroup.add_argument(
     "--log",
-    type=EnumGetter(LogEnum, upper_case=True),
-    choices=LogEnum._member_names_,
-    default=LogEnum.INFO,
+    type=LogLevel.__value__,
+    choices=get_args(LogLevel.__value__),
+    default="INFO",
 )
 _settinggroup.add_argument("--binary", action="store_true")
 _settinggroup.add_argument("--no-progressbar", action="store_false", dest="prog_bar")

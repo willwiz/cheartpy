@@ -1,14 +1,10 @@
 import argparse
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import Unpack, get_args
 
-from ._types import TimeProgArgs
+from pytools.logging import LogEnum, LogLevel
 
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-
-__all__ = ["get_cmdline_args"]
+from ._types import TimeProgArgs, TimeSeriesKwargs
 
 ################################################################################################
 # The argument parse
@@ -40,6 +36,12 @@ time_group.add_argument(
     help="File (Path). File containing a 1D array of floats",
 )
 time_parser.add_argument(
+    "--log",
+    type=LogLevel.__value__,
+    choices=get_args(LogLevel.__value__),
+    default="INFO",
+)
+time_parser.add_argument(
     "prefix",
     action="store",
     type=str,
@@ -48,5 +50,11 @@ time_parser.add_argument(
 )
 
 
-def get_cmdline_args(cmd_args: Sequence[str] | None = None) -> TimeProgArgs:
-    return time_parser.parse_args(cmd_args, namespace=TimeProgArgs("time", "", 1.0, Path()))
+def get_api_args_time(**kwargs: Unpack[TimeSeriesKwargs]) -> TimeProgArgs:
+    return TimeProgArgs(
+        cmd="time",
+        prefix=kwargs["prefix"],
+        time=kwargs["time"],
+        log=LogEnum[kwargs.get("log", "INFO")],
+        folder=kwargs.get("folder", Path()),
+    )
