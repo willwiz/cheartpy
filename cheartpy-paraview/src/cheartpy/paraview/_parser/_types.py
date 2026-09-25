@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Final, Literal, Required, TypedDict
+from typing import TYPE_CHECKING, Literal, Required, TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -14,41 +14,43 @@ SubparserModes = Literal["index", "find"]
 
 
 class APIKwargsFind(TypedDict, total=False):
-    index: tuple[int, int, int] | None
-    subindex: tuple[int, int, int] | Literal["auto", "none"]
+    index: tuple[int, int, int]
+    subindex: tuple[int, int, int] | Literal["auto"]
     mesh: Required[Path | str]
-    prefix: str | None
+    space: Path | str
+    disp: str
+    boundary: Path | str
+    prefix: str
     input_dir: Path | str
-    output_dir: Path | str | None
-    space: Path | str | None
-    boundary: Path | str | None
+    output_dir: Path | str
     prog_bar: bool
     log: LogLevel
     binary: bool
     compress: bool
-    core: int | None
-    thread: int | None
-    interpreter: int | None
+    core: int
+    thread: int
+    interpreter: int
     cell_var: Sequence[str]
     point_var: Sequence[str]
 
 
 class APIKwargsIndex(TypedDict, total=False):
-    index: tuple[int, int, int] | None
-    subindex: tuple[int, int, int] | Literal["auto", "none"]
+    index: tuple[int, int, int]
+    subindex: tuple[int, int, int] | Literal["auto"]
     top: Required[Path | str]
-    prefix: str | None
-    input_dir: Path | str
-    output_dir: Path | str | None
     space: Required[Path | str]
-    boundary: Path | str | None
+    disp: str
+    boundary: Path | str
+    prefix: str
+    input_dir: Path | str
+    output_dir: Path | str
     prog_bar: bool
     log: LogLevel
     binary: bool
     compress: bool
-    core: int | None
-    thread: int | None
-    interpreter: int | None
+    core: int
+    thread: int
+    interpreter: int
     cell_var: Sequence[str]
     point_var: Sequence[str]
 
@@ -61,31 +63,33 @@ class TimeSeriesKwargs(TypedDict, total=False):
     dtype: DType[np.floating]
 
 
-@dc.dataclass(slots=True)
+@dc.dataclass(slots=True, frozen=True)
 class VTUProgArgs:
-    cmd: Final[SubparserModes]
-    index: tuple[int, int, int] | SearchMode | None
-    subindex: tuple[int, int, int] | SearchMode | None
-    prefix: Final[str | None]
-    input_dir: Final[Path]
-    output_dir: Final[Path | None]
-    mesh_or_top: Final[Path]
-    space: Final[Path | None]
-    boundary: Final[Path | None]
-    prog_bar: Final[bool]
-    log: Final[LogEnum]
-    binary: Final[bool]
-    compress: Final[bool]
-    core: Final[int | None]
-    thread: Final[int | None]
-    interpreter: Final[int | None]
-    cell_var: Final[Sequence[str]]
-    point_var: Final[Sequence[str]]
+    cmd: SubparserModes
+    index: tuple[int, int, int] | SearchMode
+    subindex: tuple[int, int, int] | SearchMode
+    prefix: str
+    input_dir: Path
+    output_dir: Path
+    top: Path
+    space: Path | str
+    disp: str | None
+    boundary: Path | None
+    prog_bar: bool
+    log: LogEnum
+    binary: bool
+    compress: bool
+    core: int | None
+    thread: int | None
+    interpreter: int | None
+    cell_var: Sequence[str]
+    point_var: Sequence[str]
 
 
-@dc.dataclass(slots=True)
+@dc.dataclass(slots=True, frozen=True)
 class TimeProgArgs:
-    cmd: Final[str]
+    cmd: str
     prefix: str
     time: Path | float
+    log: LogEnum
     folder: Path

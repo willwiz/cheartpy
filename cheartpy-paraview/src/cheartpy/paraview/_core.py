@@ -87,9 +87,9 @@ def export_boundary[F: np.floating, I: np.integer](
     top: ParaviewTopology[F, I],
     log: ILogger,
 ) -> None:
-    log.debug("<<< Working on", inp.bfile)
+    log.debug("Working on boundary", bfile=inp.bfile)
     if inp.bfile is None or top.surfacetype is None:
-        log.info(">>> NOTICE: No boundary file given, export is skipped")
+        log.info("NOTICE: No boundary file given, export is skipped")
         return
     raw = chread_b_utf(inp.bfile)
     db = raw[:, 1:-1] - 1
@@ -181,6 +181,11 @@ def export_mesh_iter[F: np.floating, I: np.integer](
     vtk_xml = create_xml_for_mesh(args.prefix, args.top, x, point_var, cell_var)
     with args.path.open("w") as fout:
         vtk_xml.write(fout)
+    log.debug(
+        "Exported file",
+        name=args.path,
+        size=f"{args.path.stat().st_size / 1024**2:.2f} MB",
+    )
     if args.compress:
         compress_vtu(args.path, log=log)
 
@@ -193,7 +198,6 @@ def run_exports_in_series[F: np.floating, I: np.integer](
 ) -> None:
     bart = ProgressBar(len(indexer)) if inp.prog_bar else None
     for arg in get_arguments(inp, cache, indexer, log=log):
-        log.debug("<<< Working on", arg.path.name)
         export_mesh_iter(arg, log)
         bart.next() if bart else log.disp(f"<<< Completed {arg.path}")
 

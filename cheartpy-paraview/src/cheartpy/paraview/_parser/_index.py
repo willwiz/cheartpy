@@ -11,10 +11,8 @@ _index_group.add_argument(
     default=None,
     type=int,
     metavar=("start", "end", "step"),
-    help=(
-        "MANDATORY: specify the start, end, and step for the range of data files. "
-        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
-    ),
+    required=True,
+    help=("Specify the start, end, and step for the range of data files. "),
 )
 _index_group.add_argument(
     "--subindex",
@@ -25,8 +23,5 @@ _index_group.add_argument(
     type=int,
     metavar=("start", "end", "step"),
     default=None,
-    help=(
-        "OPTIONAL: specify the start, end, and step for the range of data files. "
-        "If -i is not used, only step 0 will be processed. For non trivial use, this is mandatory."
-    ),
+    help=("Specify the start, end, and step for the range of data files. "),
 )

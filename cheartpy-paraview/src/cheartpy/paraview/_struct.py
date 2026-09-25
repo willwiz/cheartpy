@@ -10,28 +10,27 @@ from cheartpy.elem_interfaces import CheartEnum, get_boundary_element, guess_ele
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
+    from cheartpy.search import FileType
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
-
-    from ._trait import IFormattedName
 
 
 @dc.dataclass(slots=True, frozen=True)
 class ProgramArgs:
-    prefix: Final[str]
-    input_dir: Final[Path]
-    output_dir: Final[Path]
-    prog_bar: Final[bool]
-    binary: Final[bool]
-    compress: Final[bool]
-    mpi: Final[ThreadMethods | None]
-    xfile: Final[Path]
-    tfile: Final[Path]
-    bfile: Final[Path | None]
-    space: Final[IFormattedName | None]
-    disp: Final[IFormattedName | None]
-    cell_var: Final[Mapping[str, IFormattedName]]
-    point_var: Final[Mapping[str, IFormattedName]]
+    prefix: str
+    input_dir: Path
+    output_dir: Path
+    prog_bar: bool
+    binary: bool
+    compress: bool
+    mpi: ThreadMethods | None
+    xfile: Path
+    tfile: Path
+    bfile: Path | None
+    space: FileType | None
+    disp: FileType | None
+    cell_var: Mapping[str, FileType]
+    point_var: Mapping[str, FileType]
 
 
 @dc.dataclass(slots=True, frozen=True)
@@ -95,7 +94,7 @@ class ParaviewTopology[F: np.floating, I: np.integer]:
 @dc.dataclass(slots=True)
 class VariableCache[F: np.floating, I: np.integer]:
     top: Final[ParaviewTopology[F, I]]
-    time: str | int
+    time: int | tuple[int, int]
     fx: Path | None
     fd: Path | None
     fv: dict[str, Path]
@@ -108,7 +107,7 @@ class VariableCache[F: np.floating, I: np.integer]:
 class XMLDataInputs[F: np.floating, I: np.integer]:
     prefix: Final[str]
     path: Final[Path]
-    time: Final[str | int]
+    time: Final[int | tuple[int, int]]
     top: Final[ParaviewTopology[F, I]]
     x: Final[Path | None]
     u: Final[Path | None]

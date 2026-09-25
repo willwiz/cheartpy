@@ -1,38 +1,38 @@
 from typing import TYPE_CHECKING, Unpack
 
+from meshio.gmsh.common import np
 from pytools.logging import get_logger
 
 from ._arg_validation import process_cmdline_args
 from ._caching import init_variable_cache
 from ._core import export_boundary, run_exports_in_parallel, run_exports_in_series
 from ._headers import compose_header, header_guard
-from ._parser.main_parser import (
-    get_api_args_find,
-    get_api_args_index,
-    get_cmd_args,
-)
-from ._parser.types import (
+from ._parser import (
     APIKwargsFind,
     APIKwargsIndex,
     TimeProgArgs,
+    TimeSeriesKwargs,
     VTUProgArgs,
+    get_api_args_find,
+    get_api_args_index,
+    get_api_args_time,
+    get_cmd_args,
 )
 from ._time_series import (
     create_time_series,
-    create_time_series_api,
-    create_time_series_cli,
     create_time_series_json,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from pytools.result import Result
+
 
 __all__ = [
     "cheart2vtu_find",
     "cheart2vtu_index",
-    "create_time_series_api",
-    "create_time_series_cli",
+    "create_time_series",
     "create_time_series_json",
 ]
 
@@ -40,10 +40,11 @@ __all__ = [
 def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log = get_logger(level=cmd_args.log)
     log.disp(*compose_header())
+    log.debug("Commandline arguments:", args=cmd_args)
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
     log.disp("", header_guard())
     cache = init_variable_cache(inp, indexer).unwrap()
-    log.debug(cache)
+    log.debug("Initialized variable cache", cache=cache)
     export_boundary(inp, cache.top, log)
     log.disp("", header_guard())
     if inp.mpi is None:
@@ -55,6 +56,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
             break
         run_exports_in_parallel(inp.mpi, inp, indexer, cache, log)
     log.disp("", header_guard())
+    log.info("Program has completed.")
 
 
 def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:
@@ -65,6 +67,13 @@ def cheart2vtu_find(**kwargs: Unpack[APIKwargsFind]) -> None:
 def cheart2vtu_index(**kwargs: Unpack[APIKwargsIndex]) -> None:
     args = get_api_args_index(**kwargs)
     cheart2vtu(args)
+
+
+def create_time_series_api(
+    **kwargs: Unpack[TimeSeriesKwargs],
+) -> Result[None]:
+    args = get_api_args_time(**kwargs)
+    return create_time_series(args, dtype=np.float64).next()
 
 
 def main_cli(cmdline: Sequence[str] | None = None) -> None:

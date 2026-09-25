@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
 from cheartpy.io import chread_d
-from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok
 
 from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
@@ -12,10 +11,10 @@ from ._variable_getter import CheartVTUFormat
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from cheartpy.search import IIndexIterator
+    from cheartpy.search import FileType, IIndexIterator
     from pytools.arrays import A2, DType
+    from pytools.logging import ILogger
 
-    from ._trait import IFormattedName
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
 
@@ -44,33 +43,31 @@ def init_variable_cache[F: np.floating, I: np.integer](
 
 
 @overload
-def check_validate_v(v: None, time: int | str, backup: Path | None) -> None: ...
+def check_validate_v(v: None, time: int | tuple[int, int], backup: Path | None) -> None: ...
 @overload
-def check_validate_v(v: IFormattedName, time: int | str, backup: Path) -> Path: ...
+def check_validate_v(v: FileType, time: int | tuple[int, int], backup: Path) -> Path: ...
 @overload
 def check_validate_v(
-    v: IFormattedName | None, time: int | str, backup: Path | None
+    v: FileType | None, time: int | tuple[int, int], backup: Path | None
 ) -> Path | None: ...
-def check_validate_v(v: IFormattedName | None, time: int | str, backup: Path | None) -> Path | None:
+def check_validate_v(
+    v: FileType | None, time: int | tuple[int, int], backup: Path | None
+) -> Path | None:
     if v is None:
         return v
     name = v[time]
     if name.is_file():
         return name
-    log = get_logger()
-    msg = f"disp file (t = {time}) = {name} does not exist.\n"
-    msg += f"using previous step ({backup})"
-    log.warn(msg)
     return backup
 
 
 def update_variable_cache[F: np.floating, I: np.integer](
     inp: ProgramArgs,
-    time: int | str,
+    time: int | tuple[int, int],
     cache: VariableCache[F, I],
     log: ILogger,
 ) -> VariableCache[F, I]:
-    if time == cache.time:
+    if time == cache.time and time != 0:
         log.debug(f"time point {time} did not change")
         return cache
     fx = check_validate_v(inp.space, time, cache.fx)

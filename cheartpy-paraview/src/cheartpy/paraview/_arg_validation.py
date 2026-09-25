@@ -1,189 +1,61 @@
-from pathlib import Path
-from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack, overload
+from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack
 
-from cheartpy.io import fix_ch_sfx
-from cheartpy.search import IIndexIterator, get_file_name_indexer
+from cheartpy.search import (
+    DynamicFile,
+    FileVariable,
+    IIndexIterator,
+    create_indexer,
+    get_file_type,
+)
+from pytools.logging import LogEnum
 from pytools.parallel import ThreadMethods
-from pytools.result import Err, Ok, all_ok
+from pytools.result import Err, Ok, Result, all_ok
 
 from ._headers import compose_index_info, format_input_info
 from ._struct import ProgramArgs
-from ._variable_getter import CheartMeshFormat, CheartResFormat, CheartVarFormat, CheartZipFormat
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from pathlib import Path
 
     from pytools.logging import ILogger
 
-    from ._parser.types import SubparserModes, VTUProgArgs
-    from ._trait import IFormattedName
+    from ._parser import VTUProgArgs
 
 
-class _MeshTopologyFiles(NamedTuple):
-    x: Path
-    t: Path
-    b: Path | None
-    u: Path | None
-
-
-def _get_prefix(args: VTUProgArgs) -> str:
-    if args.prefix:
-        return args.prefix
-    return args.output_dir.name.replace("_vtu", "") if args.output_dir else "paraview"
-
-
-def _check_dirs_inputs(args: VTUProgArgs) -> Ok[tuple[Path, Path]] | Err:
-    if not args.input_dir.is_dir():
-        msg = f"Input folder = {args.input_dir} does not exist"
-        return Err(ValueError(msg))
-    output_dir = Path(args.output_dir) if args.output_dir else Path()
-    output_dir.mkdir(exist_ok=True)
-    return Ok((args.input_dir, output_dir))
-
-
-def _parse_findmode_mesh(
-    mesh: Path, space: Path | None, bnd: Path | None
-) -> Ok[_MeshTopologyFiles] | Err:
-    subs = fix_ch_sfx(mesh)
-    space = space or (subs.with_suffix(".X"))
-    match space.name.split("+"):
-        case (str(),):
-            x, u = space, None
-        case str(_space), str(_disp):
-            x, u = space.parent / _space, space.parent / _disp
-        case _:
-            msg = "Invalid space name format, expected 'name' or 'name+disp'."
-            return Err(ValueError(msg))
-    t = subs.with_suffix(".T")
-    if not t.is_file():
-        msg = f"Mesh topology file = {t} not found."
-        return Err(ValueError(msg))
-    if isinstance(bnd, Path) and not bnd.is_file():
-        msg = f"Boundary file = {bnd} not found."
-        return Err(ValueError(msg))
-    b = bnd or (subs.with_suffix(".B"))
-    b = b if b.is_file() else None
-    return Ok(_MeshTopologyFiles(space or x, t, b, u))
-
-
-def _parse_indexmode_mesh(
-    top: Path, space: Path | None, bnd: Path | None
-) -> Ok[_MeshTopologyFiles] | Err:
-    if space is None:
-        msg = "In index mode, space name must be provided."
-        return Err(ValueError(msg))
-    match space.name.split("+"):
-        case (str(),):
-            x, u = space, None
-        case str(_space), str(_disp):
-            x = space.parent / _space
-            u = space.parent / _disp
-        case _:
-            msg = "Invalid space name format, expected 'name' or 'name+disp'."
-            return Err(ValueError(msg))
-    if not top.is_file():
-        msg = f"Topology file = {top} not found."
-        return Err(ValueError(msg))
-    if bnd and not bnd.is_file():
-        msg = f"Boundary file = {bnd} not found."
-        return Err(ValueError(msg))
-    return Ok(_MeshTopologyFiles(x, top, bnd, u))
-
-
-_MESH_FILE_PARSER: Mapping[
-    SubparserModes, Callable[[Path, Path | None, Path | None], Ok[_MeshTopologyFiles] | Err]
-] = {
-    "find": _parse_findmode_mesh,
-    "index": _parse_indexmode_mesh,
-}
-
-
-def _get_mesh_names(
-    args: VTUProgArgs,
-) -> Ok[_MeshTopologyFiles] | Err:
-    match _MESH_FILE_PARSER[args.cmd](args.mesh_or_top, args.space, args.boundary):
-        case Ok(mesh):
-            return Ok(mesh)
-        case Err(e):
-            return Err(e)
-
-
-@overload
-def _check_variable_format(u: None, first: str | int, root: Path | None = None) -> Ok[None]: ...
-@overload
-def _check_variable_format(
-    u: Path, first: str | int, root: Path | None = None
-) -> Ok[IFormattedName] | Err: ...
-@overload
-def _check_variable_format(
-    u: str, first: str | int, root: Path | None = None
-) -> Ok[IFormattedName] | Err: ...
-def _check_variable_format(
-    u: Path | str | None,
-    first: str | int,
-    root: Path | None = None,
-) -> Ok[IFormattedName] | Ok[None] | Err:
-    match u:
-        case None:
-            return Ok(None)
-        case Path():
-            u = (root / u) if root else u
-        case str():
-            u = (root / u) if root else Path(u)
-    if u.is_file():
-        return Ok(CheartMeshFormat(u.parent, u.name))
-    if (u.parent / f"{u.name}-{first}.D").is_file():
-        return Ok(CheartVarFormat(u.parent, u.name))
-    if (u.parent / f"{u.name}-{first}.D.gz").is_file():
-        return Ok(CheartZipFormat(u.parent, u.name))
-    if (u.parent / f"{u.name}-{first}.res2").is_file():
-        return Ok(CheartResFormat(u.parent, u.name))
-    msg = f"Variable {u} not recognized as one of:"
-    msg += f" Mesh = {u}"
-    msg += f" Var  = {u.parent / f'{u.name}-{first}.D'}"
-    msg += f" Zip  = {u.parent / f'{u.name}-{first}.D.gz'}"
-    msg += f" Res  = {u.parent / f'{u.name}-{first}.res2'}"
+def _file_check(file: Path | None) -> Result[None]:
+    if file is None or file.is_file():
+        return Ok(None)
+    msg = f"Topology file = {file} does not exist"
     return Err(ValueError(msg))
 
 
-def find_variable_formats(
-    space: Path | tuple[Path, Path | None],
-    point_var: Sequence[str],
-    cell_var: Sequence[str],
-    ifirst: str | int,
-    input_dir: Path,
-) -> (
-    Ok[
-        tuple[
-            IFormattedName,
-            IFormattedName | None,
-            Sequence[IFormattedName],
-            Sequence[IFormattedName],
-        ]
-    ]
-    | Err
-):
-    match space:
-        case x, u: ...  # fmt: skip
-        case x:
-            u = None
-    match _check_variable_format(x, ifirst):
-        case Ok(_space): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
-    match _check_variable_format(u, ifirst):
-        case Ok(disp): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
-    match all_ok([_check_variable_format(v, ifirst, input_dir) for v in point_var]):
-        case Ok(p_v): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
-    match all_ok([_check_variable_format(v, ifirst, input_dir) for v in cell_var]):
-        case Ok(c_v): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
-    return Ok((_space, disp, p_v, c_v))
+class _TopFileState(NamedTuple):
+    x: FileVariable
+    u: FileVariable | None
+    t: Path
+    b: Path | None
+
+
+def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
+    match all_ok([_file_check(f) for f in [args.top, args.boundary]]):
+        case Ok(): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    if "+" in str(args.space):
+        msg = "The space+disp input style is deprecated. Please use -x space -u disp instead."
+        return Err(ValueError(msg))
+    match get_file_type(args.space, args.input_dir):
+        case Ok(space): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    if args.disp:
+        match get_file_type(args.disp, args.input_dir):
+            case Ok(disp): ...  # fmt: skip
+            case Err(e): return Err(e)  # fmt: skip
+    else:
+        disp = None
+    if not (disp is None or isinstance(disp.fname, DynamicFile)):
+        msg = "Displacement must be none or changing with time."
+        return Err(ValueError(msg))
+    return Ok(_TopFileState(space, disp, args.top, args.boundary))
 
 
 class _MPITypeModeArgs(TypedDict, total=False):
@@ -207,48 +79,50 @@ def process_cmdline_args(
 ) -> Ok[tuple[ProgramArgs, IIndexIterator]] | Err:
     """Process command line arguments raw into program structs."""
     log.info("Current Run Information:", *format_input_info(args))
-    prefix = _get_prefix(args)
-    match _check_dirs_inputs(args):
-        case Ok((input_dir, output_dir)): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     """x: space, t: topology, b: boundary, u: displacement"""
-    match _get_mesh_names(args):
-        case Ok((x, top, bnd, u)):
-            if bnd is None:
-                log.disp("<<< No boundary file specified/found.")
+    match _check_topology_files(args):
+        case Ok(mesh): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    match get_file_name_indexer(args.index, args.subindex, args.point_var, root=input_dir):
+    match all_ok({v: get_file_type(v, args.input_dir) for v in args.point_var}):
+        case Ok(point_variables): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    match all_ok({v: get_file_type(v, args.input_dir) for v in args.cell_var}):
+        case Ok(cell_variables): ...  # fmt: skip
+        case Err(e):
+            return Err(e)
+    match create_indexer(
+        {k: v for k, v in {"_X": mesh.x, "_U": mesh.u}.items() if v is not None}
+        | dict(point_variables)
+        | dict(cell_variables),
+        args.index,
+        args.subindex,
+    ):
         case Ok(indexer):
             ifirst = next(iter(indexer))
         case Err(e):
             return Err(e)
     log.disp(compose_index_info(indexer))
-    match find_variable_formats((x, u), args.point_var, args.cell_var, ifirst, input_dir):
-        case Ok((xfile, disp, point_v, cell_v)): ...  # fmt: skip
-        case Err(e):
-            return Err(e)
-    space = None if isinstance(xfile, CheartMeshFormat) else xfile
+    space = mesh.x.fname if mesh.x.fname.is_dynamic else None
     mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
-    return Ok(
-        (
-            ProgramArgs(
-                prefix=prefix,
-                input_dir=input_dir,
-                output_dir=output_dir,
-                prog_bar=args.prog_bar,
-                binary=args.binary,
-                compress=args.compress,
-                mpi=mpi_mode,
-                tfile=top,
-                bfile=bnd,
-                xfile=xfile[ifirst],
-                space=space,
-                disp=disp,
-                cell_var={v.name: v for v in cell_v},
-                point_var={v.name: v for v in point_v},
-            ),
-            indexer,
-        )
+    progress_bar = (log.level != LogEnum.DEBUG) and args.prog_bar
+    options = ProgramArgs(
+        prefix=args.prefix,
+        input_dir=args.input_dir,
+        output_dir=args.output_dir,
+        prog_bar=progress_bar,
+        binary=args.binary,
+        compress=args.compress,
+        mpi=mpi_mode,
+        tfile=mesh.t,
+        bfile=mesh.b,
+        xfile=mesh.x.fname[ifirst],
+        space=space,
+        disp=mesh.u.fname if mesh.u else None,
+        cell_var={str(v): v.fname for v in cell_variables.values()},
+        point_var={str(v): v.fname for v in point_variables.values()},
     )
+    log.debug("Final Arguments:", options=options)
+    return Ok((options, indexer))
