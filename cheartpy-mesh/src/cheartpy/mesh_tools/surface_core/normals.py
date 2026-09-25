@@ -50,14 +50,10 @@ def compute_normal_patch[F: np.floating, I: np.integer](
     nodes = space[elem] - ref_space
     u = np.array([[nodes[:, i] @ b for b in basis] for i in range(3)])
     f = u + np.identity(3)
-    print(basis)
-    print(nodes)
-    print(f)
     if np.linalg.det(f) < _REGRESS_TOL:
         _g_log = get_logger()
         _g_log.debug("Element node order is inverted.")
         f = u - np.identity(3)
-        print(f)
     res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=basis.dtype))
     return np.asarray(res, space.dtype)
 

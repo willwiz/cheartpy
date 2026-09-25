@@ -1,7 +1,7 @@
 from ._indexing import (
+    DynamicFile,
     FileVariable,
     StaticFile,
-    TemporalFile,
     create_indexer,
     get_file_type,
 )
@@ -17,12 +17,12 @@ from .trait import AUTO, IIndexIterator, ProgramMode, SearchMode
 
 __all__ = [
     "AUTO",
+    "DynamicFile",
     "FileVariable",
     "IIndexIterator",
     "ProgramMode",
     "SearchMode",
     "StaticFile",
-    "TemporalFile",
     "check_for_var_files",
     "create_indexer",
     "find_var_index",

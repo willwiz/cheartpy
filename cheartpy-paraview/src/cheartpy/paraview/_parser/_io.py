@@ -10,7 +10,7 @@ _iogroup.add_argument(
     default=None,
     help=(
         "OPTIONAL: supply a prefix name to be used for the exported vtu files."
-        'If -p is not supplied, then "paraview" will be uses, e.g., paraview-#.D'
+        ' Prefix fallback is .prefix > .output_dir > .input_dir > "paraview".'
     ),
 )
 _iogroup.add_argument(
@@ -21,8 +21,8 @@ _iogroup.add_argument(
     type=Path,
     default=Path(),
     help=(
-        "OPTIONAL: supply the path to the folder where the .D files are stored. "
-        "If -f is not supplied, then the path is assumed to be the current folder."
+        "OPTIONAL: supply the path to the folder where the .D files are stored."
+        " If -f is not supplied, then the path is assumed to be the current folder."
     ),
 )
 _iogroup.add_argument(
@@ -33,7 +33,7 @@ _iogroup.add_argument(
     type=Path,
     default=None,
     help=(
-        "OPTIONAL: supply the path to the folder where the vtu outputs should be saved to. "
-        "If -f is not supplied, then the path is assumed to be the current folder."
+        "OPTIONAL: supply the path to the folder where the vtu outputs should be saved to."
+        " If -f is not supplied, then the path is assumed to be the current folder."
     ),
 )

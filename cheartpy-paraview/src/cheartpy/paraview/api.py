@@ -40,6 +40,7 @@ __all__ = [
 def cheart2vtu(cmd_args: VTUProgArgs) -> None:
     log = get_logger(level=cmd_args.log)
     log.disp(*compose_header())
+    log.debug("Commandline arguments:", args=cmd_args)
     inp, indexer = process_cmdline_args(cmd_args, log).unwrap()
     log.disp("", header_guard())
     cache = init_variable_cache(inp, indexer).unwrap()
@@ -54,6 +55,7 @@ def cheart2vtu(cmd_args: VTUProgArgs) -> None:
             log.info(f"Processing vtus with {v!s} {k!s}.")
             break
         run_exports_in_parallel(inp.mpi, inp, indexer, cache, log)
+    log.info("Processing complete.")
     log.disp("", header_guard())
 
 

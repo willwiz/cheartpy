@@ -6,7 +6,7 @@ _topology_group = find_topology_parser.add_argument_group(title="Topology")
 _topology_group.add_argument(
     "--mesh",
     required=True,
-    dest="mesh_or_top",
+    dest="mesh",
     action="store",
     type=Path,
     help="OPTIONAL: supply a prefix for the mesh files",
@@ -73,7 +73,7 @@ _topology_group.add_argument(
     "--top",
     "-t",
     required=True,
-    dest="mesh_or_top",
+    dest="top",
     action="store",
     type=Path,
     help=(

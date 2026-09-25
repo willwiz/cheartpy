@@ -7,13 +7,13 @@ from pytools.logging import ILogger
 from pytools.result import Err, Ok, Result
 
 from .trait import AUTO as AUTO
+from .trait import DynamicFile as DynamicFile
 from .trait import FileType as FileType
 from .trait import FileVariable as FileVariable
 from .trait import IIndexIterator as IIndexIterator
 from .trait import ProgramMode as ProgramMode
 from .trait import SearchMode as SearchMode
 from .trait import StaticFile as StaticFile
-from .trait import TemporalFile as TemporalFile
 
 def check_for_var_files(
     idx: IIndexIterator,
@@ -53,6 +53,8 @@ def get_var_subindex(
     suffix: Literal[r"D", r"D\.gz"] = r"D",
 ) -> Ok[dict[int, list[int]]] | Err: ...
 def create_indexer(
-    var: Mapping[str, FileVariable], index: T3[int] | SearchMode, sub_index: T3[int] | SearchMode
+    var: Mapping[str, FileVariable],
+    index: T3[int] | SearchMode,
+    sub_index: T3[int] | SearchMode,
 ) -> Result[IIndexIterator]: ...
 def get_file_type(name: Path | str, root: Path | str | None = None) -> Result[FileVariable]: ...
