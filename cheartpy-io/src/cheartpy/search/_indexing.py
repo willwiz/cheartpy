@@ -71,24 +71,22 @@ def filter_subindex(files: Sequence[Path], prefix: str, extension: str) -> set[t
 
 
 def _determine_file_type(
-    name: Path, ext: str, index: set[int], subindex: set[tuple[int, int]]
+    parent: Path, name: Path, ext: str, index: set[int], subindex: set[tuple[int, int]]
 ) -> Result[FileVariable]:
     if len(index) + len(subindex) == 1:
         match (index | subindex).pop():
             case int(i):
                 return Ok(
-                    FileVariable(StaticFile(name.parent / f"{name.stem}-{i}{ext}"), index, subindex)
+                    FileVariable(StaticFile(parent / f"{name.stem}-{i}{ext}"), index, subindex)
                 )
             case (i, j):
                 return Ok(
-                    FileVariable(
-                        StaticFile(name.parent / f"{name.stem}-{i}.{j}{ext}"), index, subindex
-                    )
+                    FileVariable(StaticFile(parent / f"{name.stem}-{i}.{j}{ext}"), index, subindex)
                 )
     if not index and not subindex:
         msg = f"No files found for {name} with extension {ext}"
         return Err(ValueError(msg))
-    return Ok(FileVariable(DynamicFile(name.parent, name.stem, ext), index, subindex))
+    return Ok(FileVariable(DynamicFile(parent, name.stem, ext), index, subindex))
 
 
 def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
@@ -128,12 +126,12 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
             if files := sorted(name.parent.glob(f"{name.name}-*{ext}")):
                 index = filter_index(files, name.name, ext.lstrip("."))
                 subindex = filter_subindex(files, name.name, ext.lstrip("."))
-                return _determine_file_type(name, ext, index, subindex).next()
+                return _determine_file_type(name.parent, name.name, ext, index, subindex).next()
     for ext in [".D", ".D.gz", ".res2"]:
         if files := sorted(root.glob(f"{name.name}-*{ext}")):
             index = filter_index(files, name.name, ext.lstrip("."))
             subindex = filter_subindex(files, name.name, ext.lstrip("."))
-            return _determine_file_type(name, ext, index, subindex).next()
+            return _determine_file_type(root, name, ext, index, subindex).next()
     msg = (
         f"{name} not found as:\n"
         f"    {name}\n"

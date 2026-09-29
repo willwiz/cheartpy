@@ -56,6 +56,8 @@ def check_validate_v(
     if v is None:
         return v
     name = v[time]
+    if name == backup:
+        return backup
     if name.is_file():
         return name
     return backup

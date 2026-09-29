@@ -214,3 +214,4 @@ def run_exports_in_parallel[F: np.floating, I: np.integer](
     with ThreadedRunner(**mpi, prog_bar=bart) as executor:
         for arg in get_arguments(inp, cache, indexer, log=log):
             executor.submit(export_mesh_iter, arg, log=silent_logger)
+        log.debug("Submitted all tasks, waiting for completion")
