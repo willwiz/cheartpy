@@ -19,8 +19,8 @@ class CartesianDirection(enum.IntEnum):
 
 def warp_space[F: np.floating](
     x: A2[F],
-    long_axis: Literal["X", "Y", "Z"] = "X",
-    bending_axis: Literal["X", "Y", "Z"] = "Y",
+    long_axis: Literal["x", "y", "z"],
+    bending_axis: Literal["x", "y", "z"],
 ) -> A2[F]:
     """Warp a cylinder mesh along a specified axis.
 
@@ -31,9 +31,9 @@ def warp_space[F: np.floating](
     ----------
     x : A2[F]
         The input mesh coordinates.
-    long_axis : Literal["X", "Y", "Z"]
+    long_axis : Literal["x", "y", "z"]
         The longitudinal axis of the cylinder.
-    bending_axis : Literal["X", "Y", "Z"]
+    bending_axis : Literal["x", "y", "z"]
         The axis along which the cylinder is bent.
 
     Returns
@@ -57,24 +57,24 @@ def warp_space[F: np.floating](
 
 @overload
 def warp_about_axis[F: np.floating](
-    x: A2[F], long_axis: Literal["X", "Y", "Z"] = "X", bending_axis: Literal["X", "Y", "Z"] = "Y"
+    x: A2[F], long_axis: Literal["x", "y", "z"], bending_axis: Literal["x", "y", "z"]
 ) -> A2[F]: ...
 @overload
 def warp_about_axis[F: np.floating, I: np.integer](
     x: CheartMeshSpace[F],
-    long_axis: Literal["X", "Y", "Z"] = "X",
-    bending_axis: Literal["X", "Y", "Z"] = "Y",
+    long_axis: Literal["x", "y", "z"],
+    bending_axis: Literal["x", "y", "z"],
 ) -> CheartMeshSpace[F]: ...
 @overload
 def warp_about_axis[F: np.floating, I: np.integer](
     x: CheartMesh[F, I],
-    long_axis: Literal["X", "Y", "Z"] = "X",
-    bending_axis: Literal["X", "Y", "Z"] = "Y",
+    long_axis: Literal["x", "y", "z"],
+    bending_axis: Literal["x", "y", "z"],
 ) -> CheartMesh[F, I]: ...
 def warp_about_axis[F: np.floating, I: np.integer](
     x: A2[F] | CheartMeshSpace[F] | CheartMesh[F, I],
-    long_axis: Literal["X", "Y", "Z"] = "X",
-    bending_axis: Literal["X", "Y", "Z"] = "Y",
+    long_axis: Literal["x", "y", "z"],
+    bending_axis: Literal["x", "y", "z"],
 ):
     """Warp a cylinder mesh along a specified axis.
 
@@ -85,9 +85,9 @@ def warp_about_axis[F: np.floating, I: np.integer](
     ----------
     x : A2[F]
         The input mesh coordinates.
-    long_axis : Literal["X", "Y", "Z"]
+    long_axis : Literal["x", "y", "z"]
         The longitudinal axis of the cylinder.
-    bending_axis : Literal["X", "Y", "Z"]
+    bending_axis : Literal["x", "y", "z"]
         The axis along which the cylinder is bent.
 
     Returns
@@ -114,8 +114,8 @@ def warp_about_axis[F: np.floating, I: np.integer](
 def warp_vector_about_axis[F: np.floating](
     x: A2[F],
     a_z: A1[F],
-    long_axis: Literal["X", "Y", "Z"] = "X",
-    bending_axis: Literal["X", "Y", "Z"] = "Y",
+    long_axis: Literal["x", "y", "z"],
+    bending_axis: Literal["x", "y", "z"],
 ) -> A2[F]:
     """Warp a vector field along a specified axis.
 
@@ -125,9 +125,9 @@ def warp_vector_about_axis[F: np.floating](
         The input vector field.
     a_z : A1[F]
         The axial coordinate of the vector field.
-    long_axis : Literal["X", "Y", "Z"]
+    long_axis : Literal["x", "y", "z"]
         The longitudinal axis of the cylinder.
-    bending_axis : Literal["X", "Y", "Z"]
+    bending_axis : Literal["x", "y", "z"]
         The axis along which the cylinder is bent.
 
     Returns
