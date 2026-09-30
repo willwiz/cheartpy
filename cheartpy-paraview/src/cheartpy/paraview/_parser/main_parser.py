@@ -88,8 +88,8 @@ def _parse_indexmode_mesh(**kwargs: Unpack[APIKwargsIndex]) -> _MeshTopologyFile
     return _MeshTopologyFiles(x=space, u=disp, t=Path(top), b=_to_path(boundary))
 
 
-def _index_mode_parser(k: str, default: SearchMode, **kwargs: object) -> T3[int] | SearchMode:
-    match kwargs.get(k):
+def _index_mode_parser(key: str, default: SearchMode, **kwargs: object) -> T3[int] | SearchMode:
+    match kwargs.get(key):
         case int(i), int(j), int(k):
             return (i, j, k)
         case str() as e:
