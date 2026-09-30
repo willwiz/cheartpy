@@ -22,6 +22,8 @@ from .time_parser import get_api_args_time, time_parser
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from pytools.arrays import T3
+
 
 main_parser = argparse.ArgumentParser()
 _subparsers = main_parser.add_subparsers(dest="cmd")
@@ -86,16 +88,20 @@ def _parse_indexmode_mesh(**kwargs: Unpack[APIKwargsIndex]) -> _MeshTopologyFile
     return _MeshTopologyFiles(x=space, u=disp, t=Path(top), b=_to_path(boundary))
 
 
+def _index_mode_parser(k: str, default: SearchMode, **kwargs: object) -> T3[int] | SearchMode:
+    match kwargs.get(k):
+        case int(i), int(j), int(k):
+            return (i, j, k)
+        case str() as e:
+            return SearchMode(e.lower())
+        case _:
+            return default
+
+
 def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
     mesh = _parse_findmode_mesh(**kwargs)
-    index = kwargs.get("index", SearchMode.auto)
-    match kwargs.get("subindex"):
-        case "auto":
-            subindex = SearchMode.auto
-        case None:
-            subindex = SearchMode.none
-        case (int(i), int(j), int(k)):
-            subindex = (i, j, k)
+    index = _index_mode_parser("index", SearchMode.auto, **kwargs)
+    subindex = _index_mode_parser("subindex", SearchMode.none, **kwargs)
     input_dir = Path(kwargs.get("input_dir") or Path.cwd())
     output_dir = _to_path(kwargs.get("output_dir")) or input_dir
     prefix = kwargs.get("prefix") or output_dir.name.replace("_vtu", "") or "paraview"
@@ -124,14 +130,8 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
 
 def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
     mesh = _parse_indexmode_mesh(**kwargs)
-    index = kwargs.get("index", SearchMode.none)
-    match kwargs.get("subindex"):
-        case "auto":
-            subindex = SearchMode.auto
-        case None:
-            subindex = SearchMode.none
-        case (int(i), int(j), int(k)):
-            subindex = (i, j, k)
+    index = _index_mode_parser("index", SearchMode.none, **kwargs)
+    subindex = _index_mode_parser("subindex", SearchMode.none, **kwargs)
     input_dir = Path(kwargs.get("input_dir") or Path.cwd())
     output_dir = _to_path(kwargs.get("output_dir")) or input_dir
     prefix = kwargs.get("prefix") or output_dir.name.replace("_vtu", "") or "paraview"

@@ -71,22 +71,33 @@ def filter_subindex(files: Sequence[Path], prefix: str, extension: str) -> set[t
 
 
 def _determine_file_type(
-    parent: Path, name: Path, ext: str, index: set[int], subindex: set[tuple[int, int]]
+    parent: Path, name: str, ext: str, index: set[int], subindex: set[tuple[int, int]]
 ) -> Result[FileVariable]:
     if len(index) + len(subindex) == 1:
         match (index | subindex).pop():
             case int(i):
-                return Ok(
-                    FileVariable(StaticFile(parent / f"{name.stem}-{i}{ext}"), index, subindex)
-                )
+                return Ok(FileVariable(StaticFile(parent / f"{name}-{i}{ext}"), index, subindex))
             case (i, j):
                 return Ok(
-                    FileVariable(StaticFile(parent / f"{name.stem}-{i}.{j}{ext}"), index, subindex)
+                    FileVariable(StaticFile(parent / f"{name}-{i}.{j}{ext}"), index, subindex)
                 )
     if not index and not subindex:
         msg = f"No files found for {name} with extension {ext}"
         return Err(ValueError(msg))
-    return Ok(FileVariable(DynamicFile(parent, name.stem, ext), index, subindex))
+    return Ok(FileVariable(DynamicFile(parent, name, ext), index, subindex))
+
+
+def _filter_indices_by_template(
+    root: Path, prefix: str, ext: Sequence[str]
+) -> Result[FileVariable] | None:
+    for e in ext:
+        if not e.startswith("."):
+            return Err(ValueError(f"Extension {e} must start with a dot."))
+        if files := sorted(root.glob(f"{prefix}-*{e}")):
+            index = filter_index(files, prefix, e.lstrip("."))
+            subindex = filter_subindex(files, prefix, e.lstrip("."))
+            return _determine_file_type(root, prefix, e, index, subindex).next()
+    return None
 
 
 def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
@@ -121,22 +132,22 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
     name = Path(name)
     if name.is_file():
         return Ok(FileVariable(StaticFile(name), set(), set()))
+    if (root / name).is_file():
+        return Ok(FileVariable(StaticFile(root / name), set(), set()))
     if str(name) != name.name:
-        for ext in [".D", ".D.gz", ".res2"]:
-            if files := sorted(name.parent.glob(f"{name.name}-*{ext}")):
-                index = filter_index(files, name.name, ext.lstrip("."))
-                subindex = filter_subindex(files, name.name, ext.lstrip("."))
-                return _determine_file_type(name.parent, name.name, ext, index, subindex).next()
-    for ext in [".D", ".D.gz", ".res2"]:
-        if files := sorted(root.glob(f"{name.name}-*{ext}")):
-            index = filter_index(files, name.name, ext.lstrip("."))
-            subindex = filter_subindex(files, name.name, ext.lstrip("."))
-            return _determine_file_type(root, name, ext, index, subindex).next()
+        match _filter_indices_by_template(name.parent, name.stem, [".D", ".D.gz", ".res2"]):
+            case None: ...  # fmt: skip
+            case _ as res:
+                return res.next()
+    match _filter_indices_by_template(root, name.stem, [".D", ".D.gz", ".res2"]):
+        case None: ...  # fmt: skip
+        case _ as res:
+            return res.next()
     msg = (
         f"{name} not found as:\n"
         f"    {name}\n"
-        f"or  {name.parent / f'{name.name}-*{ext}'}\n"
-        f"or  {root / f'{name.name}-*{ext}'}"
+        f"or  {name.parent / f'{name.name}-*.[D,D.gz,res2]'}\n"
+        f"or  {root / f'{name.name}-*.[D,D.gz,res2]'}\n"
     )
     return Err(ValueError(msg))
 
@@ -239,11 +250,28 @@ def create_indexer(
     sub_index: T3[int] | SearchMode,
 ) -> Result[IIndexIterator]:
     var = {k: v for k, v in var.items() if v.fname.is_dynamic}
+    log = get_logger()
+    log.debug("Creating indexer", index=index, variables=list(var.keys()))
     match index:
-        case tuple():
+        case int(), int(), int():
+            log.debug(
+                "Creating range indexer",
+                sub_index=sub_index,
+                variables=list(var.keys()),
+            )
             indexer = create_range_indexer(var, index, sub_index)
         case SearchMode.auto:
+            log.debug(
+                "Creating auto indexer",
+                sub_index=sub_index,
+                variables=list(var.keys()),
+            )
             indexer = create_auto_indexer(var, sub_index)
         case SearchMode.none:
+            log.debug(
+                "Creating null indexer",
+                sub_index=sub_index,
+                variables=list(var.keys()),
+            )
             indexer = create_null_indexer(var, sub_index)
     return indexer.and_then(lambda x: validate_indexer(var, x)).next()

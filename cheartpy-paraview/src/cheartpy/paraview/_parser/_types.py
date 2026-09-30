@@ -14,8 +14,8 @@ SubparserModes = Literal["index", "find"]
 
 
 class APIKwargsFind(TypedDict, total=False):
-    index: tuple[int, int, int]
-    subindex: tuple[int, int, int] | Literal["auto"]
+    index: Literal["AUTO", "NONE"] | tuple[int, int, int]
+    subindex: Literal["AUTO", "NONE"] | tuple[int, int, int]
     mesh: Required[Path | str]
     space: Path | str
     disp: str
@@ -35,8 +35,8 @@ class APIKwargsFind(TypedDict, total=False):
 
 
 class APIKwargsIndex(TypedDict, total=False):
-    index: tuple[int, int, int]
-    subindex: tuple[int, int, int] | Literal["auto"]
+    index: Literal["AUTO", "NONE"] | tuple[int, int, int]
+    subindex: Literal["AUTO", "NONE"] | tuple[int, int, int]
     top: Required[Path | str]
     space: Required[Path | str]
     disp: str
