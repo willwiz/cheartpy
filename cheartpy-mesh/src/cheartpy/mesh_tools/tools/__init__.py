@@ -1,3 +1,4 @@
+from ._masks import change_mask
 from ._math import normalize_by_row, orthonormalize_by_row
 from ._merge import merge_cell_variables, merge_cheart_meshes, merge_point_variables
 from ._search import build_element_searchmap, find_elements
@@ -10,6 +11,7 @@ __all__ = [
     "IndexPermutation",
     "MergedMesh",
     "build_element_searchmap",
+    "change_mask",
     "create_index_permutation",
     "create_mesh_from_region",
     "create_mesh_from_surface",
