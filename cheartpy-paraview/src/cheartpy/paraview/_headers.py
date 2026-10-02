@@ -58,8 +58,8 @@ def format_input_info(inp: VTUProgArgs) -> list[str]:
         f"{'<<< Compress VTU:':<{_H_LEN_}} {inp.compress}",
         f"{'<<< Import data as binary:':<{_H_LEN_}} {inp.binary}",
         f"{'<<< Retrieving data from:':<{_H_LEN_}} {inp.input_dir}",
-        f"{'<<< Nodal variables:':<{_H_LEN_}} {ppfmt(inp.point_var, wrap_limit=100 - _H_LEN_)}",
-        f"{'<<< Cell variables:':<{_H_LEN_}} {ppfmt(inp.cell_var, wrap_limit=100 - _H_LEN_)}",
+        f"{'<<< Nodal variables:':<{_H_LEN_}} {ppfmt(inp.point_var, w_limit=100 - _H_LEN_)}",
+        f"{'<<< Cell variables:':<{_H_LEN_}} {ppfmt(inp.cell_var, w_limit=100 - _H_LEN_)}",
     ]
 
 
