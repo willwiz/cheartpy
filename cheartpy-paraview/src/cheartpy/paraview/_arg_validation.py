@@ -61,15 +61,19 @@ def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
 class _MPITypeModeArgs(TypedDict, total=False):
     core: int | None
     thread: int | None
+    interpreter: int | None
 
 
 def _parse_mpi_mode(**kwargs: Unpack[_MPITypeModeArgs]) -> ThreadMethods | None:
+    print(kwargs)
     if not kwargs:
         return None
-    if (n := kwargs.get("core")) is not None:
+    if n := kwargs.get("core"):
         return ThreadMethods(core=n)
-    if (n := kwargs.get("thread")) is not None:
+    if n := kwargs.get("thread"):
         return ThreadMethods(thread=n)
+    if n := kwargs.get("interpreter"):
+        return ThreadMethods(interpreter=n)
     return None
 
 
@@ -106,7 +110,7 @@ def process_cmdline_args(
             return Err(e)
     log.disp(compose_index_info(indexer))
     space = mesh.x.fname if mesh.x.fname.is_dynamic else None
-    mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread)
+    mpi_mode = _parse_mpi_mode(core=args.core, thread=args.thread, interpreter=args.interpreter)
     progress_bar = (log.level != LogEnum.DEBUG) and args.prog_bar
     options = ProgramArgs(
         prefix=args.prefix,
