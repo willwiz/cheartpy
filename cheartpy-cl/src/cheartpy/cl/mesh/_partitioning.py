@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, cast
 
 import numpy as np
+from cheartpy.io import chwrite
 from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools import create_index_permutation
 from cheartpy.mesh_tools.tools import (
@@ -16,6 +17,7 @@ from ._types import CLPartition
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+    from pathlib import Path
 
     from pytools.arrays import A1
     from pytools.result import Result
@@ -152,3 +154,30 @@ def create_centerline_mesh[F: np.floating, I: np.integer](
     if in_surf is not None:
         return create_centerline_mesh_in_surface(mesh, in_surf, a_z, partition).next()
     return create_centerline_mesh_in_volume(mesh, a_z, partition).next()
+
+
+def export_centerline_mesh[F: np.floating, I: np.integer](
+    prefix: Path,
+    mesh: MergedMesh[F, I],
+    part: CLPartition[np.floating, np.integer] | None = None,
+) -> None:
+    """Export meshes as cheart meshes.
+
+    Parameters
+    ----------
+    prefix: Path
+        The prefix of the output files.
+
+    mesh: MergedMesh[F, I]
+        The merged mesh to export.
+
+    part: CLPartition[np.floating, np.integer]
+        The partition of the centerline.
+
+    """
+    mesh.mesh.save(prefix.parent / f"{prefix.stem}Body")
+    mesh.iface.save(prefix.parent / f"{prefix.stem}Line")
+    if not part:
+        return
+    chwrite(prefix.parent / f"{prefix.stem}Domain-0.D", part.domain)
+    chwrite(prefix.parent / f"{prefix.stem}Map-0.D", np.eye(len(part.domain), dtype=np.intp))

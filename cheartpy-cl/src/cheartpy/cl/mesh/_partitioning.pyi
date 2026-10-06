@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 import numpy as np
@@ -21,3 +22,8 @@ def create_centerline_mesh[F: np.floating, I: np.integer](
     *,
     in_surf: int | None = None,
 ) -> Result[MergedMesh[F, I]]: ...
+def export_centerline_mesh[F: np.floating, I: np.integer](
+    prefix: Path,
+    mesh: MergedMesh[F, I],
+    part: CLPartition[np.floating, np.integer] | None = None,
+) -> None: ...
