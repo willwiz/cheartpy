@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 def change_mask[I: np.integer](
     mask: A1[I], edit: Mapping[int, int], *, force: bool = False
-) -> A1[I]:
+) -> A1[I] | None:
     """Change the values of a mask array according to a mapping.
 
     Parameters
@@ -34,7 +34,7 @@ def change_mask[I: np.integer](
         If force is True and any old values are not found in the mask, None is returned.
 
     """
-    if force and not np.isin(edit.keys(), mask).all():
+    if force and not np.isin(np.asanyarray(edit.keys()), mask).all():
         return None
     new_mask = mask.copy()
     for old_value, new_value in edit.items():

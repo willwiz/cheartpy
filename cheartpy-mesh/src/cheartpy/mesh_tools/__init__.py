@@ -38,7 +38,6 @@ __all__ = [
     "create_index_permutation",
     "create_mesh_from_region",
     "create_mesh_from_surface",
-    "create_mesh_from_surface",
     "find_elements",
     "make_cutplane_topology",
     "merge_cell_variables",
