@@ -50,11 +50,16 @@ class CLSegmentDef[F: np.floating = np.float64](TypedDict, total=False):
 type CLDef[F: np.floating = np.float64] = CLVectorDef[F] | CLSegmentDef[F]
 
 
-@dc.dataclass(slots=True, frozen=True)
+@dc.dataclass(slots=True, frozen=True, init=False)
 class CLPartition[F: np.floating = np.float64, I: np.integer = np.intp]:
     nodes: A1[F]
     top: A2[I]
     domain: A2[F]
+
+    def __init__(self, nodes: A1[F], top: A2[I], domain: A2[F]) -> None:
+        object.__setattr__(self, "nodes", nodes)
+        object.__setattr__(self, "top", top)
+        object.__setattr__(self, "domain", domain)
 
     @property
     def n(self) -> int:

@@ -159,7 +159,7 @@ def create_centerline_mesh[F: np.floating, I: np.integer](
 def export_centerline_mesh[F: np.floating, I: np.integer](
     prefix: Path,
     mesh: MergedMesh[F, I],
-    part: CLPartition[np.floating, np.integer] | None = None,
+    part: CLPartition | None = None,
 ) -> None:
     """Export meshes as cheart meshes.
 

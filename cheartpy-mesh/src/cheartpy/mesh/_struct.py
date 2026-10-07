@@ -2,6 +2,7 @@ import dataclasses as dc
 from typing import TYPE_CHECKING, Never
 
 import numpy as np
+from cheartpy.elem_interfaces import CheartEnum
 from cheartpy.io import (
     check_for_meshes,
     chwrite_d_utf,
@@ -14,7 +15,6 @@ if TYPE_CHECKING:
     from collections.abc import ItemsView, Mapping, ValuesView
     from pathlib import Path
 
-    from cheartpy.elem_interfaces import CheartEnum
     from pytools.arrays import A1, A2
 
 

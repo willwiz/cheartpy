@@ -62,7 +62,11 @@ def create_quad_surf[I: np.integer](
                 msg = f"Boundary node {v} not found in map from topology"
                 raise ValueError(msg)
             new_bnd[i, j] = quad_map[v]
-    return CheartMeshPatch(b.tag, b.k, new_bnd, b.type)
+    quad_elem = L2QTYPEDICT.get(b.type)
+    if quad_elem is None:
+        msg = f"No quad type found for {b.type}. Boundary to be interpolated must be linear"
+        raise ValueError(msg)
+    return CheartMeshPatch(b.tag, b.k, new_bnd, quad_elem.body)
 
 
 def create_quad_boundary[I: np.integer](
