@@ -72,34 +72,30 @@ def filter_subindex(files: Sequence[Path], prefix: str, extension: str) -> set[t
 
 def _determine_file_type(
     parent: Path, name: str, ext: str, index: set[int], subindex: set[tuple[int, int]]
-) -> Result[FileVariable]:
+) -> FileVariable|None:
     if len(index) + len(subindex) == 1:
         match (index | subindex).pop():
             case int(i):
-                return Ok(FileVariable(StaticFile(parent / f"{name}-{i}{ext}"), index, subindex))
+                return FileVariable(StaticFile(parent / f"{name}-{i}{ext}"), index, subindex)
             case (i, j):
-                return Ok(
-                    FileVariable(StaticFile(parent / f"{name}-{i}.{j}{ext}"), index, subindex)
-                )
-    if not index and not subindex:
-        msg = f"No files found for {name} with extension {ext}"
-        return Err(ValueError(msg))
-    return Ok(FileVariable(DynamicFile(parent, name, ext), index, subindex))
+                return FileVariable(StaticFile(parent / f"{name}-{i}.{j}{ext}"), index, subindex)
+    if index or subindex:
+        return FileVariable(DynamicFile(parent, name, ext), index, subindex)
+    return None
 
 
 def _filter_indices_by_template(
     root: Path, prefix: str, ext: Sequence[str]
-) -> Result[FileVariable] | None:
+) -> FileVariable | None:
     for e in ext:
-        if not e.startswith("."):
-            return Err(ValueError(f"Extension {e} must start with a dot."))
+        e = e if e.startswith(".") else f".{e}"
         if files := sorted(root.glob(f"{prefix}-*{e}")):
             index = filter_index(files, prefix, e.lstrip("."))
             subindex = filter_subindex(files, prefix, e.lstrip("."))
-            return _determine_file_type(root, prefix, e, index, subindex).next()
+            return _determine_file_type(root, prefix, e, index, subindex)
     return None
 
-
+def _get_file_type_from_parent(name: Path, root: Path) -> Result[FileVariable] | None:
 def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
     """Return the format of the variables found.
 
