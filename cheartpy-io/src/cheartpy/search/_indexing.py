@@ -77,14 +77,14 @@ def _determine_file_type(
         match (index | subindex).pop():
             case int(i):
                 return FileVariable(
-                    StaticFile(parent / f"{name}-{i}.{ext.lstrip()}"), index, subindex
+                    StaticFile(parent / f"{name}-{i}.{ext.lstrip('.')}"), index, subindex
                 )
             case (i, j):
                 return FileVariable(
-                    StaticFile(parent / f"{name}-{i}.{j}.{ext.lstrip()}"), index, subindex
+                    StaticFile(parent / f"{name}-{i}.{j}.{ext.lstrip('.')}"), index, subindex
                 )
     if index or subindex:
-        return FileVariable(DynamicFile(parent, name, f".{ext.lstrip()}"), index, subindex)
+        return FileVariable(DynamicFile(parent, name, f".{ext.lstrip('.')}"), index, subindex)
     return None
 
 
