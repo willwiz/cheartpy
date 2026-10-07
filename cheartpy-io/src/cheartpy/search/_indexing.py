@@ -72,31 +72,40 @@ def filter_subindex(files: Sequence[Path], prefix: str, extension: str) -> set[t
 
 def _determine_file_type(
     parent: Path, name: str, ext: str, index: set[int], subindex: set[tuple[int, int]]
-) -> FileVariable|None:
+) -> FileVariable | None:
     if len(index) + len(subindex) == 1:
         match (index | subindex).pop():
             case int(i):
-                return FileVariable(StaticFile(parent / f"{name}-{i}{ext}"), index, subindex)
+                return FileVariable(
+                    StaticFile(parent / f"{name}-{i}.{ext.lstrip()}"), index, subindex
+                )
             case (i, j):
-                return FileVariable(StaticFile(parent / f"{name}-{i}.{j}{ext}"), index, subindex)
+                return FileVariable(
+                    StaticFile(parent / f"{name}-{i}.{j}.{ext.lstrip()}"), index, subindex
+                )
     if index or subindex:
-        return FileVariable(DynamicFile(parent, name, ext), index, subindex)
+        return FileVariable(DynamicFile(parent, name, f".{ext.lstrip()}"), index, subindex)
     return None
 
 
-def _filter_indices_by_template(
-    root: Path, prefix: str, ext: Sequence[str]
-) -> FileVariable | None:
+def _filter_indices_by_template(root: Path, prefix: str, ext: Sequence[str]) -> FileVariable | None:
     for e in ext:
-        e = e if e.startswith(".") else f".{e}"
-        if files := sorted(root.glob(f"{prefix}-*{e}")):
+        if files := sorted(root.glob(f"{prefix}-*.{e.lstrip('.')}")):
             index = filter_index(files, prefix, e.lstrip("."))
             subindex = filter_subindex(files, prefix, e.lstrip("."))
             return _determine_file_type(root, prefix, e, index, subindex)
     return None
 
-def _get_file_type_from_parent(name: Path, root: Path) -> Result[FileVariable] | None:
-def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
+
+def _get_file_type_from_parent(name: Path, root: Path) -> FileVariable | None:
+    if (root / name).is_file():
+        return FileVariable(StaticFile(root / name), set(), set())
+    if res := _filter_indices_by_template(root, name.stem, [".D", ".D.gz", ".res2"]):
+        return res
+    return None
+
+
+def get_file_type(name: Path | str, roots: Sequence[Path] | None = None) -> Result[FileVariable]:
     """Return the format of the variables found.
 
     When searching, prefers:
@@ -114,7 +123,7 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
     name : Path | str
         The name of the variable to search for. An existing file or prefix for the variable, i.e.,
         before dash [`-`]
-    root : Path
+    roots : Sequence[Path]
         The backup root directory to search for the variable.
 
     Returns
@@ -128,22 +137,19 @@ def get_file_type(name: Path | str, root: Path) -> Result[FileVariable]:
     name = Path(name)
     if name.is_file():
         return Ok(FileVariable(StaticFile(name), set(), set()))
-    if (root / name).is_file():
-        return Ok(FileVariable(StaticFile(root / name), set(), set()))
-    if str(name) != name.name:
-        match _filter_indices_by_template(name.parent, name.stem, [".D", ".D.gz", ".res2"]):
-            case None: ...  # fmt: skip
-            case _ as res:
-                return res.next()
-    match _filter_indices_by_template(root, name.stem, [".D", ".D.gz", ".res2"]):
-        case None: ...  # fmt: skip
-        case _ as res:
-            return res.next()
+    if res := _filter_indices_by_template(name.parent, name.stem, [".D", ".D.gz", ".res2"]):
+        return Ok(res)
+    if not roots:
+        msg = f"{name} not found."
+        return Err(ValueError(msg))
+    for root in roots:
+        if res := _get_file_type_from_parent(name, root):
+            return Ok(res)
     msg = (
         f"{name} not found as:\n"
         f"    {name}\n"
         f"or  {name.parent / f'{name.name}-*.[D,D.gz,res2]'}\n"
-        f"or  {root / f'{name.name}-*.[D,D.gz,res2]'}\n"
+        f"or  {{{','.join(map(str, roots))}}}/{f'{name.name}-*.[D,D.gz,res2]'}\n"
     )
     return Err(ValueError(msg))
 

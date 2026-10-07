@@ -43,11 +43,11 @@ def _check_topology_files(args: VTUProgArgs) -> Result[_TopFileState]:
     if "+" in str(args.space):
         msg = "The space+disp input style is deprecated. Please use -x space -u disp instead."
         return Err(ValueError(msg))
-    match get_file_type(args.space, args.input_dir):
+    match get_file_type(args.space, [args.input_dir, args.top.parent]):
         case Ok(space): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     if args.disp:
-        match get_file_type(args.disp, args.input_dir):
+        match get_file_type(args.disp, [args.input_dir, args.top.parent]):
             case Ok(disp): ...  # fmt: skip
             case Err(e): return Err(e)  # fmt: skip
     else:
@@ -89,11 +89,11 @@ def process_cmdline_args(
         case Ok(mesh): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    match all_ok({v: get_file_type(v, args.input_dir) for v in args.point_var}):
+    match all_ok({v: get_file_type(v, [args.input_dir, args.top.parent]) for v in args.point_var}):
         case Ok(point_variables): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    match all_ok({v: get_file_type(v, args.input_dir) for v in args.cell_var}):
+    match all_ok({v: get_file_type(v, [args.input_dir, args.top.parent]) for v in args.cell_var}):
         case Ok(cell_variables): ...  # fmt: skip
         case Err(e):
             return Err(e)
