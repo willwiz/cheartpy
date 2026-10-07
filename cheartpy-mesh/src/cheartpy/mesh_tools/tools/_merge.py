@@ -103,7 +103,7 @@ def _create_new_mesh[F: np.floating, I: np.integer](
         new_x[p.new] = meshes[k].space.v[p.old]
     new_t = np.zeros((perms.nelems, get_element_size(data.elem)), dtype=data.itype)
     for k, p in perms.elem.items():
-        new_t[p.new] = meshes[k].top.v[p.old]
+        new_t[p.new] = perms.node[k].fwd[meshes[k].top.v[p.old]]
     new_patches = {
         tag: CheartMeshPatch(
             tag=tag, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], type=b.type

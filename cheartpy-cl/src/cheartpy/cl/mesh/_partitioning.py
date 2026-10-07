@@ -36,9 +36,9 @@ def create_centerline_partition[F: np.floating = np.float64, I: np.integer = np.
             ...
     elem_size = np.pad(np.diff(nodes), (1, 1), mode="edge")
     domain = np.stack(
-        [nodes - elem_size[:-1] / 2, nodes + elem_size[1:] / 2], axis=1, dtype=nodes.dtype
+        [nodes - elem_size[:-1], nodes, nodes + elem_size[1:]], axis=1, dtype=nodes.dtype
     )
-    top = np.hstack(
+    top = np.column_stack(
         (np.arange(len(nodes) - 1, dtype=np.intp), np.arange(1, len(nodes), dtype=np.intp))
     )
     match boundary:
@@ -64,7 +64,7 @@ def create_mesh_for_cl_node[F: np.floating, I: np.integer](
     **kwargs: Unpack[CLTopologyKwargs],
 ) -> CheartMesh[F, I]:
     search_map = kwargs.get("search_map") or build_element_searchmap(mesh.top.v).unwrap()
-    index = np.flatnonzero((a_z >= domain[0]) & (a_z <= domain[1]))
+    index = np.flatnonzero((a_z >= domain[0]) & (a_z <= domain[2]))
     elements = np.unique([i for n in index for i in search_map[n]], sorted=True)
     connectivity = mesh.top.v[elements]
     perm = create_index_permutation(connectivity)
