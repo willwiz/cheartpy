@@ -12,12 +12,12 @@ example/**/*.P
 # Python-generated files
 __pycache__/
 .pytest_cache/
+.ruff_cache
 *.py[oc]
 **build/
 dist/
 wheels/
 **/*.egg-info
-
 
 # Virtual environments
 .venv
