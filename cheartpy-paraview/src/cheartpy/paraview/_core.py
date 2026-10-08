@@ -183,6 +183,7 @@ def export_mesh_iter[F: np.floating, I: np.integer](
         vtk_xml.write(fout)
     log.debug(
         "Exported file",
+        args=args,
         name=args.path,
         size=f"{args.path.stat().st_size / 1024**2:.2f} MB",
     )
