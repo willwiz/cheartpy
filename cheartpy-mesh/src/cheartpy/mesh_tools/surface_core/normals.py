@@ -227,7 +227,7 @@ def compute_surface_normal[F: np.floating, I: np.integer](
         case Ok(normals): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     if at_center:
-        cell_centered = np.fromiter({np.mean(v.values(), axis=0) for v in normals.values()})
+        cell_centered = np.array([np.mean(list(v.values()), axis=0) for v in normals.values()])
         return normalize_by_row(cell_centered).next()
     match pack_array_to_surface_topology(mesh, in_surf, normals):
         case Ok(normal_array): ...  # fmt: skip
