@@ -65,7 +65,6 @@ class _MPITypeModeArgs(TypedDict, total=False):
 
 
 def _parse_mpi_mode(**kwargs: Unpack[_MPITypeModeArgs]) -> ThreadMethods | None:
-    print(kwargs)
     if not kwargs:
         return None
     if n := kwargs.get("core"):
