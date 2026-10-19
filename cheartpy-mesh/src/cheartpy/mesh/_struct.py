@@ -27,9 +27,12 @@ __all__ = [
 ]
 
 
-@dc.dataclass(slots=True, frozen=True)
+@dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshSpace[F: np.floating = np.floating]:
     v: A2[F]
+
+    def __init__(self, v: A2[F]) -> None:
+        object.__setattr__(self, "v", v)
 
     @property
     def n(self) -> int:
@@ -39,10 +42,14 @@ class CheartMeshSpace[F: np.floating = np.floating]:
         chwrite_d_utf(name, self.v)
 
 
-@dc.dataclass(slots=True, frozen=True)
+@dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]:
     v: A2[I]
     type: T
+
+    def __init__(self, v: A2[I], type: T) -> None:  # noqa: A002
+        object.__setattr__(self, "v", v)
+        object.__setattr__(self, "type", type)
 
     @property
     def n(self) -> int:
@@ -52,7 +59,7 @@ class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]
         chwrite_t_utf(name, self.v + 1, self.v.max() + 1)
 
 
-@dc.dataclass(slots=True, frozen=True)
+@dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     """Cheart Mesh Data for one face.
 
@@ -74,6 +81,12 @@ class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     v: A2[I]
     type: B
 
+    def __init__(self, tag: int, k: A1[I], v: A2[I], type: B) -> None:  # noqa: A002
+        object.__setattr__(self, "tag", tag)
+        object.__setattr__(self, "k", k)
+        object.__setattr__(self, "v", v)
+        object.__setattr__(self, "type", type)
+
     @property
     def n(self) -> int:
         return len(self.v)
@@ -85,9 +98,12 @@ class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
         return res
 
 
-@dc.dataclass(slots=True, frozen=True)
+@dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     v: Mapping[int, CheartMeshPatch[I, B]]
+
+    def __init__(self, v: Mapping[int, CheartMeshPatch[I, B]]) -> None:
+        object.__setattr__(self, "v", v)
 
     def __bool__(self) -> bool:
         return bool(self.v)
@@ -187,7 +203,7 @@ class CheartMesh[
             self.bnd.save(f"{prefix}B")
 
 
-class CheartMeshCompressed[F: np.floating, I: np.integer](TypedDict, total=False):
+class CheartMeshCompressed[F: np.floating, I: np.integer](TypedDict, total=False, closed=True):
     """Compressed representation of a CheartMesh instance.
 
     Attributes
@@ -222,7 +238,7 @@ def archive_cheartmesh[F: np.floating, I: np.integer](
         A dictionary containing the archived mesh data.
 
     """
-    compressed_mesh = {"x": mesh.space.v, "t": mesh.top.v}
+    compressed_mesh: CheartMeshCompressed[F, I] = {"x": mesh.space.v, "t": mesh.top.v}
     if mesh.bnd:
         compressed_mesh["b"] = np.concatenate([v.to_array() for v in mesh.bnd.values()], axis=0)
     return compressed_mesh
@@ -231,7 +247,7 @@ def archive_cheartmesh[F: np.floating, I: np.integer](
 def export_cheartmesh_compressed[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], prefix: Path | str, *, forced: bool = False
 ) -> None:
-    mesh_archive = archive_cheartmesh(mesh)
     if Path(prefix).exists() and not forced:
         return
+    mesh_archive = archive_cheartmesh(mesh)
     np.savez_compressed(prefix, **mesh_archive)

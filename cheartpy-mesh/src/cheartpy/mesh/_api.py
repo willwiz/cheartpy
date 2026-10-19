@@ -64,9 +64,9 @@ def import_cheart_mesh_compressed[F: np.floating, I: np.integer](
 ) -> Ok[CheartMesh[F, I]] | Err:
     with np.load(name) as mesh_archive:
         if "x" not in mesh_archive:
-            return Err("File x field not in Cheart mesh archive. Incorrect file format.")
+            return Err(ValueError("Field 'x' not found. Incorrect file format."))
         if "t" not in mesh_archive:
-            return Err("File t field not in Cheart mesh archive. Incorrect file format.")
+            return Err(ValueError("Field 't' not found. Incorrect file format."))
         raw_space = mesh_archive["X"].astype(ftype)
         raw_top = mesh_archive["T"].astype(itype)
         raw_bnd = mesh_archive["B"].astype(itype) if "B" in mesh_archive else None
