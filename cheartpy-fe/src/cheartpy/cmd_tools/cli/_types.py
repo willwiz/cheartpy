@@ -30,6 +30,7 @@ class SolverKwargs(TypedDict, total=False):
     dump_intermediate: bool
     clear: bool
     macros: Mapping[str, str]
+    opt: Literal["mpich", "openmpi", "none"]
     verbosity: Verbosity
     logger: ILogger
 

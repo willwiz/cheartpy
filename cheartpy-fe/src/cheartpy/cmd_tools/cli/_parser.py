@@ -1,7 +1,7 @@
 import argparse
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel
 from pytools.logging import BColors
@@ -13,15 +13,19 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-solver_parser = argparse.ArgumentParser("chsolve")
+solver_parser = argparse.ArgumentParser(
+    "chsolve", formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
 solver_parser.add_argument("pfile", nargs="+", type=Path)
-solver_parser.add_argument("--cores", "--mpi", "-n", type=int, default=1, metavar="MPI_CORES(int)")
+solver_parser.add_argument("--cores", "--mpi", "-n", type=int, default=1)
 solver_parser.add_argument("--log", action="store_true")
 solver_parser.add_argument("--dump-matrix", action="store_true")
 solver_parser.add_argument("--dump-residual", action="store_true")
 solver_parser.add_argument("--dump-intermediate", action="store_true")
 solver_parser.add_argument("--clear", "--clean", "-c", action="store_true")
-solver_parser.add_argument("--parallel", type=int, default=1, metavar="PARALLEL_RUNS(int)")
+solver_parser.add_argument(
+    "--parallel", type=int, default=1, help="run P Files simultaneously in parallel using a queue."
+)
 solver_parser.add_argument(
     "--macro",
     "-m",
@@ -30,6 +34,13 @@ solver_parser.add_argument(
     type=str,
     metavar="KEY(str)=VALUE(str)",
     help="REPEATABLE",
+)
+solver_parser.add_argument(
+    "--opt",
+    type=str,
+    choices=["mpich", "openmpi", "none"],
+    default=None,
+    help="Add mpiexec optimization options",
 )
 solver_parser.set_defaults(verbosity="DEFAULT")
 verbosity = solver_parser.add_mutually_exclusive_group()
@@ -65,6 +76,7 @@ class SolverModel(BaseModel):
     dump_residual: bool = False
     dump_intermediate: bool = False
     macro: list[str] | None = None
+    opt: Literal["mpich", "openmpi", "none"] | None = None
     parallel: int = 1
     verbosity: Verbosity
     clear: bool = False
@@ -107,6 +119,7 @@ def parse_solver_cmdline_args(args: Sequence[str] | None = None) -> tuple[Solver
             dump_residual=parsed_args.dump_residual,
             dump_intermediate=parsed_args.dump_intermediate,
             macros=macros,
+            opt=parsed_args.opt,
             verbosity=parsed_args.verbosity,
             clear=parsed_args.clear,
         ),

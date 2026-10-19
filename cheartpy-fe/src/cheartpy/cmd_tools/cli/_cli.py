@@ -1,6 +1,8 @@
+import enum
+import shutil
 import subprocess as sp
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, Literal, Unpack
 
 from cheartpy.cheart_parsing.pfile.find import find_output_dir
 from pytools.logging import get_logger
@@ -11,6 +13,12 @@ from ._types import CheartErrorCode, PrepKwargs, SolverKwargs
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+
+class MPIImplementation(enum.Enum):
+    none = enum.auto()
+    mpich = enum.auto()
+    openmpi = enum.auto()
 
 
 def run_prep(pfile: Path | str, **kwargs: Unpack[PrepKwargs]) -> int:
@@ -29,6 +37,36 @@ def run_prep(pfile: Path | str, **kwargs: Unpack[PrepKwargs]) -> int:
     return sp.run(cmd, check=False).returncode
 
 
+def _check_mpiexec_version() -> Literal["mpich", "openmpi", "none"]:
+    mpiexec_path = shutil.which("mpiexec")
+    if not mpiexec_path:
+        return "none"
+    result = ";".join(
+        [
+            r.stdout.decode("utf-8", errors="ignore").lower()
+            for v in ["--version", "-version"]
+            if ((r := sp.run(["mpiexec", v], capture_output=True, check=False)).returncode == 0)
+        ]
+    )
+    if "open mpi" in result or "open-mpi" in result:
+        return "openmpi"
+
+    if "mpich" in result or "hydra build" in result:
+        return "mpich"
+
+    return "none"
+
+
+def _parse_mpi_keys(**kwargs: object) -> list[str]:
+    match kwargs.get("opt", _check_mpiexec_version()):
+        case "mpich":
+            return ["-bind-to", "core", "-map-by", "core"]
+        case "openmpi":
+            return ["--bind-to", "core", "--map-by", "core"]
+        case _:
+            return []
+
+
 def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
     pfile = Path(pfile)
     output_path = find_output_dir(pfile)
@@ -38,8 +76,9 @@ def run_problem(pfile: Path | str, **kwargs: Unpack[SolverKwargs]) -> int:
         for f in Path(output_path).glob("*"):
             f.unlink()
     cmd = ["cheartsolver.out", str(pfile)]
+    mpi_keys = _parse_mpi_keys(**kwargs)
     if (cores := kwargs.get("cores", 1)) > 1:
-        cmd = ["mpiexec", "-n", f"{cores}", *cmd]
+        cmd = ["mpiexec", "-n", f"{cores}", *mpi_keys, *cmd]
     match kwargs.get("verbosity") or "DEFAULT":
         case "PEDANTIC":
             cmd = [*cmd, "--pedantic-printing"]
@@ -96,6 +135,12 @@ def solver_cli(args: Sequence[str] | None = None) -> None:
     _args, _kwargs = parse_solver_cmdline_args(args)
     logger = get_logger()
     _kwargs: SolverKwargs = {"logger": logger, **_kwargs}
+    if len(_args["pfile"]) > 1:
+        logger.info(
+            "Queuing problems for parallel execution...",
+            nthreads=_args["parallel"],
+            pfiles=_args["pfile"],
+        )
     if _args["parallel"] > 1:
         solver_cli_parallel(*_args["pfile"], nthreads=_args["parallel"], **_kwargs)
     else:
