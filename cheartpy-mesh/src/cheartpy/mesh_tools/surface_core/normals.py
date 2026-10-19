@@ -179,8 +179,31 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
 
 
 def compute_surface_normal[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], in_surf: int
+    mesh: CheartMesh[F, I], in_surf: int, *, at_center: bool = False
 ) -> Result[A2[F]]:
+    """Return the surface normal of the boundary surface `in_surf` of the mesh.
+
+    If at_center is True, the normal is computed at the center of the surface elements. Otherwise,
+    it is computed at the nodes of the surface elements.
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The mesh to compute the surface normal for.
+    in_surf : int
+        The index of the boundary surface to compute the normal for.
+    at_center : bool, optional
+        Whether to compute the normal at the center of the surface elements or at the nodes.
+
+    Returns
+    -------
+    Result[A2[F]]
+        The surface normal of the boundary surface `in_surf` of the mesh, or an error if the mesh
+        has no boundary or the surface is not found. If at_center = True, the normal is computed at
+        the center of the surface elements. Otherwise, it is computed at the nodes.
+
+
+    """
     if not mesh.bnd:
         msg = "Mesh has no boundary"
         return Err(ValueError(msg))
@@ -203,6 +226,9 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     match orient_normals_as_outward(mesh, in_surf, normals):
         case Ok(normals): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
+    if at_center:
+        cell_centered = np.fromiter({np.mean(v.values(), axis=0) for v in normals.values()})
+        return normalize_by_row(cell_centered).next()
     match pack_array_to_surface_topology(mesh, in_surf, normals):
         case Ok(normal_array): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
