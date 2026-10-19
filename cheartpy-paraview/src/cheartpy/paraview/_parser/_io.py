@@ -1,5 +1,23 @@
 import argparse
 from pathlib import Path
+from typing import TYPE_CHECKING, override
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+class SetBothAction(argparse.Action):
+    @override
+    def __call__(
+        self,
+        parser: argparse.ArgumentParser,
+        namespace: argparse.Namespace,
+        values: str | Sequence[str] | None,
+        option_string: str | None = None,
+    ) -> None:
+        namespace.input_dir = values
+        namespace.output_dir = values
+
 
 io_parser = argparse.ArgumentParser(add_help=False)
 _iogroup = io_parser.add_argument_group(title="IO")
@@ -36,4 +54,7 @@ _iogroup.add_argument(
         "OPTIONAL: supply the path to the folder where the vtu outputs should be saved to."
         " Output folder fallback is .output_dir > .input_dir > current working directory."
     ),
+)
+_iogroup.add_argument(
+    "-fo", "-of", dest="input_dir", action=SetBothAction, type=Path, help=argparse.SUPPRESS
 )

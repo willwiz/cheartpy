@@ -102,16 +102,16 @@ def get_api_args_find(**kwargs: Unpack[APIKwargsFind]) -> VTUProgArgs:
     mesh = _parse_findmode_mesh(**kwargs)
     index = _index_mode_parser("index", SearchMode.auto, **kwargs)
     subindex = _index_mode_parser("subindex", SearchMode.none, **kwargs)
-    input_dir = Path(kwargs.get("input_dir") or Path.cwd())
-    output_dir = _to_path(kwargs.get("output_dir")) or input_dir
+    input_dir = Path(kwargs.get("input_dir") or Path())
+    output_dir = Path(kwargs.get("output_dir") or Path())
     prefix = kwargs.get("prefix") or output_dir.name.replace("_vtu", "") or "paraview"
     return VTUProgArgs(
         cmd="find",
         index=index,
         subindex=subindex,
         prefix=prefix,
-        input_dir=input_dir,
-        output_dir=output_dir,
+        input_dir=input_dir.resolve(),
+        output_dir=output_dir.resolve(),
         top=mesh.t,
         space=mesh.x,
         disp=mesh.u,
@@ -132,16 +132,16 @@ def get_api_args_index(**kwargs: Unpack[APIKwargsIndex]) -> VTUProgArgs:
     mesh = _parse_indexmode_mesh(**kwargs)
     index = _index_mode_parser("index", SearchMode.none, **kwargs)
     subindex = _index_mode_parser("subindex", SearchMode.none, **kwargs)
-    input_dir = Path(kwargs.get("input_dir") or Path.cwd())
-    output_dir = _to_path(kwargs.get("output_dir")) or input_dir
+    input_dir = Path(kwargs.get("input_dir") or Path())
+    output_dir = Path(kwargs.get("output_dir") or Path())
     prefix = kwargs.get("prefix") or output_dir.name.replace("_vtu", "") or "paraview"
     return VTUProgArgs(
         cmd="index",
         index=index,
         subindex=subindex,
         prefix=prefix,
-        input_dir=input_dir,
-        output_dir=output_dir,
+        input_dir=input_dir.resolve(),
+        output_dir=output_dir.resolve(),
         top=mesh.t,
         space=mesh.x,
         disp=mesh.u,
