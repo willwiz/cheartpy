@@ -56,6 +56,23 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
     return Ok(CheartMesh(CheartMeshSpace(space), topology, boundary))
 
 
+def import_cheart_mesh_compressed[F: np.floating, I: np.integer](
+    name: Path | str,
+    *,
+    ftype: DType[F] = np.float64,
+    itype: DType[I] = np.intp,
+) -> Ok[CheartMesh[F, I]] | Err:
+    with np.load(name) as mesh_archive:
+        if "x" not in mesh_archive:
+            return Err("File x field not in Cheart mesh archive. Incorrect file format.")
+        if "t" not in mesh_archive:
+            return Err("File t field not in Cheart mesh archive. Incorrect file format.")
+        raw_space = mesh_archive["X"].astype(ftype)
+        raw_top = mesh_archive["T"].astype(itype)
+        raw_bnd = mesh_archive["B"].astype(itype) if "B" in mesh_archive else None
+    return cheart_mesh_from_arrays(raw_space, raw_top, raw_bnd).next()
+
+
 def import_cheart_mesh[F: np.floating, I: np.integer](
     name: Path | str,
     forced_type: CheartEnum | None = None,
@@ -63,6 +80,8 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     ftype: DType[F] = np.float64,
     itype: DType[I] = np.intp,
 ) -> Ok[CheartMesh[F, I]] | Err:
+    if Path(name).suffix == ".npz":
+        return import_cheart_mesh_compressed(name, ftype=ftype, itype=itype)
     prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)
     raw_top = np.loadtxt(f"{prefix}T", dtype=itype, skiprows=1)

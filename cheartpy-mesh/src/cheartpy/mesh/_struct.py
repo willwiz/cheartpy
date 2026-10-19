@@ -1,5 +1,6 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Never
+from pathlib import Path
+from typing import TYPE_CHECKING, Never, Required, TypedDict
 
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum
@@ -13,7 +14,6 @@ from cheartpy.io import (
 
 if TYPE_CHECKING:
     from collections.abc import ItemsView, Mapping, ValuesView
-    from pathlib import Path
 
     from pytools.arrays import A1, A2
 
@@ -174,6 +174,10 @@ class CheartMesh[
             If True, overwrite existing files. Default is False.
 
         """
+        prefix = Path(prefix)
+        if prefix.suffix == ".npz":
+            export_cheartmesh_compressed(self, prefix, forced=forced)
+            return
         if check_for_meshes("prefix") and not forced:
             return
         prefix = fix_ch_sfx(prefix)
@@ -181,3 +185,53 @@ class CheartMesh[
         self.top.save(f"{prefix}T")
         if self.bnd:
             self.bnd.save(f"{prefix}B")
+
+
+class CheartMeshCompressed[F: np.floating, I: np.integer](TypedDict, total=False):
+    """Compressed representation of a CheartMesh instance.
+
+    Attributes
+    ----------
+    x : Required[A2[F]]
+        The spatial data of the mesh.
+    t : Required[A2[I]]
+        The topological data of the mesh.
+    b : A2[I]
+        The boundary data of the mesh, if it exists.
+
+    """
+
+    x: Required[A2[F]]
+    t: Required[A2[I]]
+    b: A2[I]
+
+
+def archive_cheartmesh[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I],
+) -> CheartMeshCompressed[F, I]:
+    """Archive a CheartMesh instance into a CheartMeshCompressed dictionary.
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The CheartMesh instance to archive.
+
+    Returns
+    -------
+    CheartMeshCompressed[F, I]
+        A dictionary containing the archived mesh data.
+
+    """
+    compressed_mesh = {"x": mesh.space.v, "t": mesh.top.v}
+    if mesh.bnd:
+        compressed_mesh["b"] = np.concatenate([v.to_array() for v in mesh.bnd.values()], axis=0)
+    return compressed_mesh
+
+
+def export_cheartmesh_compressed[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], prefix: Path | str, *, forced: bool = False
+) -> None:
+    mesh_archive = archive_cheartmesh(mesh)
+    if Path(prefix).exists() and not forced:
+        return
+    np.savez_compressed(prefix, **mesh_archive)
