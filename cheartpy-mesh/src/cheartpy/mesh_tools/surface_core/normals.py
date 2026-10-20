@@ -145,6 +145,14 @@ def pack_array_to_surface_topology[F: np.floating, I: np.integer](
     return Ok(optimized_add_at(indicies, normals))
 
 
+def cell_average[F: np.floating](arr: A3[F]) -> Result[A2[F]]:
+    cell_centered = np.mean(arr, axis=1)
+    if not is_nonzero(cell_centered):
+        msg = "Mean normals on surface has zero norm. Degenerate cell likely."
+        return Err(ValueError(msg))
+    return normalize_by_row(cell_centered).next()
+
+
 def compute_surface_normal[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], in_surf: int, *, at_center: bool = False
 ) -> Result[A2[F]]:
@@ -178,10 +186,14 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     interp_basis_at_refnodes = tuple(vtkelement.shape_dfunc(v) for v in vtkelement.ref)
     x_deriv = np.asarray([i[0, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)
     y_deriv = np.asarray([i[1, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)
-    normals = compute_normals(x_deriv, y_deriv, mesh.space.v, mesh.bnd.v[in_surf].v).and_then(
-        lambda n: orient_normals_as_outward(mesh, in_surf, n)
-    )
+    normals = (
+        compute_normals(x_deriv, y_deriv, mesh.space.v, mesh.bnd.v[in_surf].v)
+        .and_then(lambda n: orient_normals_as_outward(mesh, in_surf, n))
+    )  # fmt: skip
     if at_center:
-        cell_centered = np.mean(normals, axis=1)
-        return normalize_by_row(cell_centered).next()
-    return pack_array_to_surface_topology(mesh, in_surf, normals).and_then(normalize_by_row)
+        return normals.and_then(cell_average)
+    return (
+        normals
+        .and_then(lambda x: pack_array_to_surface_topology(mesh, in_surf, x))
+        .and_then(normalize_by_row)
+    )  # fmt: skip
