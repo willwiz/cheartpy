@@ -1,10 +1,15 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import get_boundary_element
+from cheartpy.vtk import get_vtk_elem
+from pytools.math import optimized_add_at
 from pytools.result import Err, Ok, Result
 
+from cheartpy.mesh_tools import create_index_permutation
+
 if TYPE_CHECKING:
-    from pytools.arrays import A1, A2, A3, Arr, SAny
+    from pytools.arrays import A2, A3, Arr
 
     from cheartpy.mesh import CheartMesh
 
@@ -34,6 +39,10 @@ def compute_normals[F: np.floating, I: np.integer](
     dbasis_y (basis function derivatives): [G, J]
     normals: [E, G, D]
 
+    derivative in x -> nodes [E, J, D] @ dbasis_x [G, J] -> [E, G, D]
+    derivative in y -> nodes [E, J, D] @ dbasis_y [G, J] -> [E, G, D]
+    normals = cross(derivative in x, derivative in y) -> [E, G, D]
+
     Parameters
     ----------
     dbasis_x : A2[np.floating]
@@ -61,13 +70,42 @@ def compute_cell_outer[F: np.floating, I: np.integer](mesh: CheartMesh[F, I], su
     """Compute the outer vector for each element on the surface.
 
     Let:
-        N = number of nodes in mesh
-        E = number of elements in the surface
+        N = number of nodes in the element
+        E = number of elements
+        J = number of basis functions
+        D = Dimension of the space (3 for 3D)
+
+    space: [N, D]
+    elem: [E, J]
+    nodes: space[elem] -> [E, J, D]
+    centroids: nodes [E, J, D] -> [E, D]
+    outer: nodes [E, J, D] - centroids [E, D] -> [E, J, D]
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The mesh object containing the surface information.
+    surf : int
+        The surface index for which to compute the outer vectors.
+
+    Returns
+    -------
+    A3[F]
+        The outer vectors for each element on the specified surface.
+
     """
     centroids = np.mean(mesh.space.v[mesh.top.v[mesh.bnd.v[surf].k]], axis=1)  # [E, 3]
     return np.asarray(
         mesh.space.v[mesh.bnd.v[surf].v] - centroids[:, None, :], dtype=mesh.space.v.dtype
     )
+
+
+_NORMAL_TOL = 1.0e-6
+
+
+def is_nonzero[F: np.floating](vec: Arr[..., F]) -> bool:
+    norm = (vec * vec).sum(axis=-1)
+    return bool(np.all(norm > _NORMAL_TOL))
 
 
 def orient_normals_as_outward[F: np.floating, I: np.integer](
@@ -79,34 +117,70 @@ def orient_normals_as_outward[F: np.floating, I: np.integer](
         N = number of nodes in mesh
         E = number of elements in the surface
     """
-    if surf not in mesh.bnd.v:
-        msg = f"Surface {surf} not found"
+    if not is_nonzero(normals):
+        msg = f"Surface {surf} has zero normals. Degenerate surface."
         return Err(ValueError(msg))
     outer = compute_cell_outer(mesh, surf)  # [E, 3]
+    if not is_nonzero(outer):
+        msg = f"Surface {surf} has zero outer vector. Degenerate surface."
+        return Err(ValueError(msg))
     orientation = np.einsum("eji,eji->ej", normals, outer)  # [E, J]
+    if not is_nonzero(orientation):
+        msg = f"Surface {surf} outer vector is not aligned with normals. Degenerate surface."
+        return Err(ValueError(msg))
     normals = normals * np.sign(orientation)[:, :, None]  # [E, J, 3]
     return Ok(normals)
 
 
-def optimized_add_at[F: np.floating](index: Arr[SAny, np.integer], weights: Arr[SAny, F]) -> A1[F]:
-    """Optimized version of np.add.at for 1D arrays.
+def pack_array_to_surface_topology[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], surf: int, normals: A3[F]
+) -> Result[A2[F]]:
+    perm = create_index_permutation(mesh.bnd.v[surf].v)
+    indicies = perm.fwd[mesh.bnd.v[surf].v]
+    return Ok(optimized_add_at(indicies, normals))
+
+
+def compute_surface_normal[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], in_surf: int, *, at_center: bool = False
+) -> Result[A2[F]]:
+    """Return the surface normal of the boundary surface `in_surf` of the mesh.
+
+    If at_center is True, the normal is computed at the center of the surface elements. Otherwise,
+    it is computed at the nodes of the surface elements.
 
     Parameters
     ----------
-    index : Arr[SAny, np.integer]
-        The indices at which to add the weights.
-    weights : Arr[SAny, T]
-        The weights to be added.
+    mesh : CheartMesh[F, I]
+        The mesh to compute the surface normal for.
+    in_surf : int
+        The index of the boundary surface to compute the normal for.
+    at_center : bool, optional
+        Whether to compute the normal at the center of the surface elements or at the nodes.
 
     Returns
     -------
-    A1[T]
-        The resulting array after adding the weights at the specified indices.
+    Result[A2[F]]
+        The surface normal of the boundary surface `in_surf` of the mesh, or an error if the mesh
+        has no boundary or the surface is not found. If at_center = True, the normal is computed at
+        the center of the surface elements. Otherwise, it is computed at the nodes.
 
     """
-    size = int(index.max() + 1)
-    columns = [
-        np.bincount(index.ravel(), weights=weights[:, i].ravel(), minlength=size)
-        for i in range(weights.shape[-1])
-    ]
-    return np.asarray(np.column_stack(columns), dtype=weights.dtype)
+    if in_surf not in mesh.bnd.v:
+        msg = f"Surface {in_surf} not found"
+        return Err(ValueError(msg))
+    surface_element = get_boundary_element(mesh.top.type)
+    vtkelement = get_vtk_elem(surface_element)
+    interp_basis_at_refnodes = tuple(vtkelement.shape_dfunc(v) for v in vtkelement.ref)
+    x_deriv = np.asarray([i[0, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)
+    y_deriv = np.asarray([i[1, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)
+    normals = compute_normals(x_deriv, y_deriv, mesh.space.v, mesh.bnd.v[in_surf].v)
+    match orient_normals_as_outward(mesh, in_surf, normals):
+        case Ok(normals): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    if at_center:
+        cell_centered = np.mean(normals, axis=1)
+        return Ok(cell_centered)
+    match pack_array_to_surface_topology(mesh, in_surf, normals):
+        case Ok(normal_array): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    return Ok(normal_array)
