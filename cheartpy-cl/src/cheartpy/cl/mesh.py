@@ -12,7 +12,7 @@ from cheartpy.mesh import (
 )
 from cheartpy.mesh_tools.surface_core.normals import (
     compute_mesh_outer_normal_at_nodes,
-    compute_surface_normal_at_center,
+    compute_surface_normal,
 )
 from cheartpy.vtk import get_vtk_elem
 from pytools.logging import ILogger, get_logger
@@ -60,7 +60,7 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
         msg = "Attempting to compute normal from a 1D mesh, not possible"
         return Err(ValueError(msg))
     surf_type = get_vtk_elem(top_body_elem.surf)
-    match compute_surface_normal_at_center(surf_type, mesh.space.v, elems):
+    match compute_surface_normal(surf_type, mesh.space.v, elems, at_center=True):
         case Ok(normals): ...  # fmt: skip
         case Err(e): return Err(e)  # fmt: skip
     new_elems = np.array(

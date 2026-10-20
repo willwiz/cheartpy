@@ -1,181 +1,148 @@
-from collections import defaultdict
 from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import get_boundary_element
 from cheartpy.vtk import get_vtk_elem
-from numpy.linalg import lstsq
-from pytools.logging import get_logger
-from pytools.result import Err, Ok, Result, all_ok
+from pytools.math import optimized_add_at
+from pytools.result import Err, Ok, Result
 
-from cheartpy.mesh_tools.tools import normalize_by_row
-
-from .meshing import create_mesh_from_surface
+from cheartpy.mesh_tools import create_index_permutation, normalize_by_row
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from cheartpy.vtk import VtkElem
-    from pytools.arrays import A1, A2
+    from pytools.arrays import A2, A3, Arr
 
     from cheartpy.mesh import CheartMesh
 
-__all__ = [
-    "compute_mesh_outer_normal_at_nodes",
-    "compute_surface_normal_at_nodes",
-]
 
 _REGRESS_TOL = 0.01
 _DBL_TOL = 1.0e-14
 
 
-def compute_patch_normal[F: np.floating, I: np.integer](
-    basis: A2[np.floating],
-    space: A2[F],
-    elem: A1[I],
-    _ref_space: A2[np.floating],
-) -> A1[F]:
-    v1 = np.asarray([space[elem][:, i] @ basis[0] for i in range(3)])
-    v2 = np.asarray([space[elem][:, i] @ basis[1] for i in range(3)])
-    return np.asarray(np.cross(v1, v2), space.dtype)
-
-
-def compute_normal_patch[F: np.floating, I: np.integer](
-    basis: A2[np.floating],
-    space: A2[F],
-    elem: A1[I],
-    ref_space: A2[np.floating],
-) -> A1[F]:
-    # Grab the nodes of the element
-    nodes = space[elem] - ref_space
-    u = np.array([[nodes[:, i] @ b for b in basis] for i in range(3)])
-    f = u + np.identity(3)
-    if np.linalg.det(f) < _REGRESS_TOL:
-        _g_log = get_logger()
-        _g_log.debug("Element node order is inverted.")
-        f = u - np.identity(3)
-    res, *_ = lstsq(f.T, np.array([0, 0, 1], dtype=basis.dtype))
-    return np.asarray(res, space.dtype)
-
-
-def compute_surface_normal_at_center[F: np.floating, I: np.integer](
-    kind: VtkElem,
+def compute_normals[F: np.floating, I: np.integer](
+    dbasis_x: A2[np.floating],
+    dbasis_y: A2[np.floating],
     space: A2[F],
     elem: A2[I],
-) -> Result[A2[F]]:
-    centroid = np.mean(kind.ref, axis=0)
-    interp_basis = kind.shape_dfunc(centroid)
-    normals = np.array(
-        [compute_normal_patch(interp_basis, space, i, kind.ref) for i in elem],
-        dtype=space.dtype,
+) -> Result[A3[F]]:
+    """Vectorized computation of normals for at nodes for surface elements.
+
+    Let:
+        N = number of nodes in the element
+        E = number of elements
+        J = number of basis functions
+        G = Points in element being evaluated at
+        D = Dimension of the space (3 for 3D)
+
+    space: [N, D]
+    elem: [E, J]
+    dbasis_x (basis function derivatives): [G, J]
+    dbasis_y (basis function derivatives): [G, J]
+    normals: [E, G, D]
+
+    derivative in x -> nodes [E, J, D] @ dbasis_x [G, J] -> [E, G, D]
+    derivative in y -> nodes [E, J, D] @ dbasis_y [G, J] -> [E, G, D]
+    normals = cross(derivative in x, derivative in y) -> [E, G, D]
+
+    Parameters
+    ----------
+    dbasis_x : A2[np.floating]
+        The derivative of the basis functions with respect to x.
+    dbasis_y : A2[np.floating]
+        The derivative of the basis functions with respect to y.
+    space : A2[F]
+        The coordinates of the nodes in 3D space.
+    elem : A2[I]
+        The element connectivity.
+
+    Returns
+    -------
+    A3[F]
+        The computed normals for each node in each element.
+
+    """
+    nodes = space[elem]
+    v1: A3[F] = np.einsum("ejd,gj->egd", nodes, dbasis_x)
+    v2: A3[F] = np.einsum("ejd,gj->egd", nodes, dbasis_y)
+    normals = np.cross(v1, v2)
+    if not is_nonzero(normals):
+        msg = "Surface has zero normals. Degenerate surface."
+        return Err(ValueError(msg))
+    return Ok(normals)
+
+
+def compute_cell_outer[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], surf: int
+) -> Result[A3[F]]:
+    """Compute the outer vector for each element on the surface.
+
+    Let:
+        N = number of nodes in the element
+        E = number of elements
+        J = number of basis functions
+        D = Dimension of the space (3 for 3D)
+
+    space: [N, D]
+    elem: [E, J]
+    nodes: space[elem] -> [E, J, D]
+    centroids: nodes [E, J, D] -> [E, D]
+    outer: nodes [E, J, D] - centroids [E, D] -> [E, J, D]
+
+    Parameters
+    ----------
+    mesh : CheartMesh[F, I]
+        The mesh object containing the surface information.
+    surf : int
+        The surface index for which to compute the outer vectors.
+
+    Returns
+    -------
+    A3[F]
+        The outer vectors for each element on the specified surface.
+
+    """
+    centroids = np.mean(mesh.space.v[mesh.top.v[mesh.bnd.v[surf].k]], axis=1)  # [E, 3]
+    outer = np.asarray(
+        mesh.space.v[mesh.bnd.v[surf].v] - centroids[:, None, :], dtype=mesh.space.v.dtype
     )
-    return normalize_by_row(normals).next()
+    if not is_nonzero(outer):
+        msg = f"Surface {surf} has zero outer vector. Degenerate surface."
+        return Err(ValueError(msg))
+    return Ok(outer)
 
 
-def compute_surface_normal_at_nodes[F: np.floating, I: np.integer](
-    kind: VtkElem,
-    space: A2[F],
-    elem: A2[I],
-) -> Result[Mapping[int, A2[F]]]:
-    interp_basis = {k: kind.shape_dfunc(v) for k, v in enumerate(kind.ref)}
-    normals = {
-        k: np.array(
-            [compute_normal_patch(v, space, i, kind.ref) for i in elem],
-            dtype=space.dtype,
-        )
-        for k, v in interp_basis.items()
-    }
-    return all_ok({k: normalize_by_row(v) for k, v in normals.items()}).next()
+_NORMAL_TOL = 1.0e-6
 
 
-def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I],
-) -> Result[A2[F]]:
-    vtkelem = get_vtk_elem(mesh.top.type)
-    interp_basis = {k: vtkelem.shape_dfunc(v) for k, v in enumerate(vtkelem.ref)}
-    node_normal: dict[int, list[A1[F]]] = defaultdict(list)
-    for elem in mesh.top.v:
-        for i in range(len(interp_basis)):
-            node_normal[elem[i]].append(
-                compute_normal_patch(
-                    interp_basis[i],
-                    mesh.space.v,
-                    elem,
-                    vtkelem.ref,
-                ),
-            )
-    center = mesh.space.v.mean(axis=0)
-    match normalize_by_row(mesh.space.v - center[None, :]):
-        case Ok(disp): ...  # fmt: skip
-        case Err(e): return Err(e)  # fmt: skip
-    normals = np.zeros_like(mesh.space.v)
-    for k, node in node_normal.items():
-        vals = [np.sign(v @ disp[k]) * v for v in node]
-        normals[k] = sum(vals) / len(vals)
-    outer = np.einsum("...i,...i", normals, disp)
-    normals = normals * np.sign(outer)[:, None]
-    return normalize_by_row(normals).next()
-
-
-def is_nonzero[F: np.floating](vec: A1[F]) -> bool:
-    return bool(np.linalg.norm(vec) > 0.0)
+def is_nonzero[F: np.floating](vec: Arr[..., F]) -> bool:
+    norm = (vec * vec).sum(axis=-1)
+    return bool(np.all(norm > _NORMAL_TOL))
 
 
 def orient_normals_as_outward[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], in_surf: int, normals: Mapping[I, Mapping[I, A1[F]]]
-) -> Result[Mapping[I, Mapping[I, A1[F]]]]:
-    if not mesh.bnd:
-        msg = "Mesh has no boundary"
+    mesh: CheartMesh[F, I], surf: int, normals: A3[F]
+) -> Result[A3[F]]:
+    """Orient the normals to point outward from the mesh.
+
+    Let:
+        N = number of nodes in mesh
+        E = number of elements in the surface
+    """
+    match compute_cell_outer(mesh, surf):  # [E, 3]
+        case Ok(outer): ...  # fmt: skip
+        case Err(e): return Err(e)  # fmt: skip
+    orientation: A2[F] = np.einsum("eji,eji->ej", normals, outer)  # [E, J]
+    if not is_nonzero(orientation):
+        msg = f"Surface {surf} outer vector is not aligned with normals. Degenerate surface."
         return Err(ValueError(msg))
-    if in_surf not in mesh.bnd.v:
-        msg = f"Surface {in_surf} not found"
-        return Err(ValueError(msg))
-    bnd_elem = {k: mesh.top.v[k] for k in mesh.bnd.v[in_surf].k}
-    bnd_elem_centroids = {k: mesh.space.v[elem].mean(axis=0) for k, elem in bnd_elem.items()}
-    bnd_patch_outer = {
-        k: {b: mesh.space.v[b] - bnd_elem_centroids[k] for b in bnd}
-        for k, bnd in zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
-    }
-    for k, v in bnd_patch_outer.items():
-        for b, n in v.items():
-            if not is_nonzero(n):
-                msg_0 = f"Boundary patch {k} {b} = {n} is degenerate."
-                return Err(ValueError(msg_0))
-    degenerate_normals = {
-        k: {b: n for b, n in v.items() if not is_nonzero(n)} for k, v in bnd_patch_outer.items()
-    }
-    if any(degenerate_normals.values()):
-        log = get_logger()
-        log.error(degenerate_normals)
-        msg_1 = f"Boundary patches have {len(degenerate_normals)} degenerate normals"
-        return Err(ValueError(msg_1))
-    fix_direction = {
-        k: {b: np.sign(n.dot(bnd_patch_outer[k][b])) * n for b, n in surf.items()}
-        for k, surf in normals.items()
-    }
-    return Ok(fix_direction)
+    return Ok(normals * np.sign(orientation)[:, :, None])  # [E, J, 3]
 
 
 def pack_array_to_surface_topology[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], in_surf: int, dct_values: Mapping[I, Mapping[I, A1[F]]]
+    mesh: CheartMesh[F, I], surf: int, normals: A3[F]
 ) -> Result[A2[F]]:
-    match create_mesh_from_surface(mesh, in_surf):
-        case Ok(surf_mesh): ...  # fmt: skip
-        case Err(e): return Err(e)  # fmt: skip
-    mesh_bnd = mesh.bnd
-    if not mesh_bnd:
-        msg = "Mesh has no boundary"
-        return Err(ValueError(msg))
-    node_map = {
-        i: j
-        for old, new in zip(mesh_bnd.v[in_surf].v, surf_mesh.top.v, strict=True)
-        for i, j in zip(old, new, strict=True)
-    }
-    normal_array = np.zeros_like(surf_mesh.space.v)
-    for ns in dct_values.values():
-        for b, n in ns.items():
-            normal_array[node_map[b]] += n
-    return normalize_by_row(normal_array).next()
+    perm = create_index_permutation(mesh.bnd.v[surf].v)
+    indicies = perm.fwd[mesh.bnd.v[surf].v]
+    return Ok(optimized_add_at(indicies, normals))
 
 
 def compute_surface_normal[F: np.floating, I: np.integer](
@@ -202,34 +169,19 @@ def compute_surface_normal[F: np.floating, I: np.integer](
         has no boundary or the surface is not found. If at_center = True, the normal is computed at
         the center of the surface elements. Otherwise, it is computed at the nodes.
 
-
     """
-    if not mesh.bnd:
-        msg = "Mesh has no boundary"
-        return Err(ValueError(msg))
     if in_surf not in mesh.bnd.v:
         msg = f"Surface {in_surf} not found"
         return Err(ValueError(msg))
-    surf_elem = get_boundary_element(mesh.top.type)
-    vtkelem = get_vtk_elem(surf_elem)
-    interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
-    bnd_patches: dict[I, A1[I]] = dict(
-        zip(mesh.bnd.v[in_surf].k, mesh.bnd.v[in_surf].v, strict=True)
+    surface_element = get_boundary_element(mesh.top.type)
+    vtkelement = get_vtk_elem(surface_element)
+    interp_basis_at_refnodes = tuple(vtkelement.shape_dfunc(v) for v in vtkelement.ref)
+    x_deriv = np.asarray([i[0, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)
+    y_deriv = np.asarray([i[1, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)
+    normals = compute_normals(x_deriv, y_deriv, mesh.space.v, mesh.bnd.v[in_surf].v).and_then(
+        lambda n: orient_normals_as_outward(mesh, in_surf, n)
     )
-    normals = {
-        k: {
-            b: compute_patch_normal(basis, mesh.space.v, patch, vtkelem.ref)
-            for b, basis in zip(patch, interp_basis_at_refnodes, strict=True)
-        }
-        for k, patch in bnd_patches.items()
-    }
-    match orient_normals_as_outward(mesh, in_surf, normals):
-        case Ok(normals): ...  # fmt: skip
-        case Err(e): return Err(e)  # fmt: skip
     if at_center:
-        cell_centered = np.array([np.mean(list(v.values()), axis=0) for v in normals.values()])
+        cell_centered = np.mean(normals, axis=1)
         return normalize_by_row(cell_centered).next()
-    match pack_array_to_surface_topology(mesh, in_surf, normals):
-        case Ok(normal_array): ...  # fmt: skip
-        case Err(e): return Err(e)  # fmt: skip
-    return normalize_by_row(normal_array).next()
+    return pack_array_to_surface_topology(mesh, in_surf, normals).and_then(normalize_by_row)

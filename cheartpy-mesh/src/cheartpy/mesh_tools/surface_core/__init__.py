@@ -1,16 +1,12 @@
 from ._relabel import relabel_cheart_surfaces
 from .cutplanes import make_cutplane_topology
-from .normals import (
-    compute_mesh_outer_normal_at_nodes,
-    compute_surface_normal,
-    compute_surface_normal_at_center,
-)
+from .deprecated_normals import compute_mesh_outer_normal_at_nodes
+from .normals import compute_surface_normal
 from .surfacing import create_new_surface_in_mesh, create_new_surface_in_surf
 
 __all__ = [
     "compute_mesh_outer_normal_at_nodes",
     "compute_surface_normal",
-    "compute_surface_normal_at_center",
     "create_new_surface_in_mesh",
     "create_new_surface_in_surf",
     "make_cutplane_topology",
