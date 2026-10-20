@@ -1,7 +1,5 @@
 from .surface_core import (
-    compute_mesh_outer_normal_at_nodes,
     compute_surface_normal,
-    compute_surface_normal_at_center,
     make_cutplane_topology,
 )
 from .tools import (
@@ -32,9 +30,7 @@ __all__ = [
     "calculate_volume_tetrahedron_mesh",
     "check_duplicate_elements",
     "check_duplicate_nodes",
-    "compute_mesh_outer_normal_at_nodes",
     "compute_surface_normal",
-    "compute_surface_normal_at_center",
     "create_index_permutation",
     "create_mesh_from_region",
     "create_mesh_from_surface",

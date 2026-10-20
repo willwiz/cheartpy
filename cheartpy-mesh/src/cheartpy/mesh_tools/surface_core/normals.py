@@ -6,7 +6,7 @@ from cheartpy.vtk import get_vtk_elem
 from pytools.math import optimized_add_at
 from pytools.result import Err, Ok, Result
 
-from cheartpy.mesh_tools import create_index_permutation, normalize_by_row
+from cheartpy.mesh_tools.tools import create_index_permutation, normalize_by_row
 
 if TYPE_CHECKING:
     from pytools.arrays import A2, A3, Arr
