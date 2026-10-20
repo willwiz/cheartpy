@@ -1,3 +1,6 @@
+import bz2
+import gzip
+import lzma
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -19,6 +22,8 @@ from ._struct import (
 )
 
 if TYPE_CHECKING:
+    from io import BytesIO
+
     from pytools.arrays import A2, DType, ToInt
 
 
@@ -56,8 +61,8 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
     return Ok(CheartMesh(CheartMeshSpace(space), topology, boundary))
 
 
-def import_cheart_mesh_compressed[F: np.floating, I: np.integer](
-    name: Path | str,
+def _load_from_stream[F: np.floating, I: np.integer](
+    name: BytesIO,
     *,
     ftype: DType[F] = np.float64,
     itype: DType[I] = np.intp,
@@ -67,10 +72,31 @@ def import_cheart_mesh_compressed[F: np.floating, I: np.integer](
             return Err(ValueError("Field 'x' not found. Incorrect file format."))
         if "t" not in mesh_archive:
             return Err(ValueError("Field 't' not found. Incorrect file format."))
-        raw_space = mesh_archive["X"].astype(ftype)
-        raw_top = mesh_archive["T"].astype(itype)
-        raw_bnd = mesh_archive["B"].astype(itype) if "B" in mesh_archive else None
+        raw_space = mesh_archive["x"].astype(ftype)
+        raw_top = mesh_archive["t"].astype(itype)
+        raw_bnd = mesh_archive["b"].astype(itype) if "b" in mesh_archive else None
     return cheart_mesh_from_arrays(raw_space, raw_top, raw_bnd).next()
+
+
+def import_cheart_mesh_compressed[F: np.floating, I: np.integer](
+    name: Path | str,
+    *,
+    ftype: DType[F] = np.float64,
+    itype: DType[I] = np.intp,
+) -> Ok[CheartMesh[F, I]] | Err:
+    name = Path(name)
+    if name.suffix == ".xz":
+        with lzma.open(name, "rb") as f:
+            return _load_from_stream(f, ftype=ftype, itype=itype)
+    elif name.suffix == ".gz":
+        with gzip.open(name, "rb") as f:
+            return _load_from_stream(f, ftype=ftype, itype=itype)
+    elif name.suffix == ".bz2":
+        with bz2.open(name, "rb") as f:
+            return _load_from_stream(f, ftype=ftype, itype=itype)
+    else:
+        with name.open("rb") as f:
+            return _load_from_stream(f, ftype=ftype, itype=itype)
 
 
 def import_cheart_mesh[F: np.floating, I: np.integer](
@@ -80,7 +106,7 @@ def import_cheart_mesh[F: np.floating, I: np.integer](
     ftype: DType[F] = np.float64,
     itype: DType[I] = np.intp,
 ) -> Ok[CheartMesh[F, I]] | Err:
-    if Path(name).suffix == ".npz":
+    if Path(name).name.endswith((".npz", ".npz.xz", ".npz.gz", ".npz.bz2")):
         return import_cheart_mesh_compressed(name, ftype=ftype, itype=itype)
     prefix = fix_ch_sfx(str(name))
     raw_space = np.loadtxt(f"{prefix}X", dtype=ftype, skiprows=1)

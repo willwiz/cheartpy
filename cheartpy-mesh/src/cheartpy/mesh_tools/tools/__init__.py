@@ -1,3 +1,4 @@
+from ._boundary import classify_boundary_patch
 from ._masks import change_mask
 from ._math import normalize_by_row, orthonormalize_by_row
 from ._merge import merge_cell_variables, merge_cheart_meshes, merge_point_variables
@@ -12,6 +13,7 @@ __all__ = [
     "MergedMesh",
     "build_element_searchmap",
     "change_mask",
+    "classify_boundary_patch",
     "create_index_permutation",
     "create_mesh_from_region",
     "create_mesh_from_surface",

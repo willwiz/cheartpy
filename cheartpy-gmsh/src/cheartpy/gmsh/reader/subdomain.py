@@ -45,8 +45,8 @@ def classify_boundary_to_region[F: np.floating, I: np.integer](
     found = np.array([r is not GmshBoundaryType.NONE for r in search_results])
     kind = set(search_results)
     if len(kind) > 1:
-        msg = "Boundary patch has mixed association with the region: " + " + ".join(
-            str(k) for k in kind
+        msg = f"Boundary patch {patch.tag} has mixed association: " + " + ".join(
+            f"{k!r}" for k in kind
         )
         raise ValueError(msg)
     if np.all(found):

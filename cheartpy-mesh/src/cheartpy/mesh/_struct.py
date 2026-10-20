@@ -1,4 +1,7 @@
+import bz2
+import contextlib
 import dataclasses as dc
+import lzma
 from pathlib import Path
 from typing import TYPE_CHECKING, Never, Required, TypedDict
 
@@ -55,8 +58,11 @@ class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]
     def n(self) -> int:
         return len(self.v)
 
+    def to_array(self) -> A2[I]:
+        return self.v + 1
+
     def save(self, name: Path | str) -> None:
-        chwrite_t_utf(name, self.v + 1, self.v.max() + 1)
+        chwrite_t_utf(name, self.to_array(), self.v.max() + 1)
 
 
 @dc.dataclass(slots=True, frozen=True, init=False)
@@ -191,16 +197,22 @@ class CheartMesh[
 
         """
         prefix = Path(prefix)
-        if prefix.suffix == ".npz":
-            export_cheartmesh_compressed(self, prefix, forced=forced)
+        if prefix.name.endswith((".npz", ".npz.xz", ".npz.bz2")):
+            _export_cheartmesh_compressed(self, prefix, forced=forced)
             return
-        if check_for_meshes("prefix") and not forced:
-            return
-        prefix = fix_ch_sfx(prefix)
-        self.space.save(f"{prefix}X")
-        self.top.save(f"{prefix}T")
-        if self.bnd:
-            self.bnd.save(f"{prefix}B")
+        _export_cheartmesh_cheart(self, prefix, forced=forced)
+
+
+def _export_cheartmesh_cheart[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], prefix: Path | str, *, forced: bool = False
+) -> None:
+    if check_for_meshes(prefix) and not forced:
+        return
+    prefix = fix_ch_sfx(prefix)
+    mesh.space.save(f"{prefix}X")
+    mesh.top.save(f"{prefix}T")
+    if mesh.bnd:
+        mesh.bnd.save(f"{prefix}B")
 
 
 class CheartMeshCompressed[F: np.floating, I: np.integer](TypedDict, total=False, closed=True):
@@ -238,16 +250,30 @@ def archive_cheartmesh[F: np.floating, I: np.integer](
         A dictionary containing the archived mesh data.
 
     """
-    compressed_mesh: CheartMeshCompressed[F, I] = {"x": mesh.space.v, "t": mesh.top.v}
+    compressed_mesh: CheartMeshCompressed[F, I] = {"x": mesh.space.v, "t": mesh.top.to_array()}
     if mesh.bnd:
         compressed_mesh["b"] = np.concatenate([v.to_array() for v in mesh.bnd.values()], axis=0)
     return compressed_mesh
 
 
-def export_cheartmesh_compressed[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], prefix: Path | str, *, forced: bool = False
+_ARCHIVE_LIB = {
+    ".xz": lzma,
+    ".bz2": bz2,
+    ".npz": contextlib,
+}
+
+
+def _export_cheartmesh_compressed[F: np.floating, I: np.integer](
+    mesh: CheartMesh[F, I], prefix: Path, *, forced: bool = False
 ) -> None:
-    if Path(prefix).exists() and not forced:
+    if prefix.exists() and not forced:
         return
     mesh_archive = archive_cheartmesh(mesh)
-    np.savez_compressed(prefix, **mesh_archive)
+    if prefix.name.endswith(".npz.xz"):
+        with lzma.open(prefix, "wb") as f:
+            np.savez(f, **mesh_archive)
+    elif prefix.name.endswith(".npz.bz2"):
+        with bz2.open(prefix, "wb") as f:
+            np.savez(f, **mesh_archive)
+    else:
+        np.savez_compressed(prefix, **mesh_archive)

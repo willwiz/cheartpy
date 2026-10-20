@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+from cheartpy.elem_interfaces import CheartEnum
 from pytools.result import Err, Ok, Result
 
 from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshPatch
@@ -9,9 +10,14 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
-def relabel_cheart_surfaces[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], swap: Mapping[int, int], *, closed: bool = False
-) -> Result[CheartMesh[F, I]]:
+def relabel_cheart_surfaces[
+    F: np.floating,
+    I: np.integer,
+    T: CheartEnum = CheartEnum,
+    B: CheartEnum = CheartEnum,
+](
+    mesh: CheartMesh[F, I, T, B], swap: Mapping[int, int], *, closed: bool = False
+) -> Result[CheartMesh[F, I, T, B]]:
     """Swap the label integer from new to old.
 
     Parameters
