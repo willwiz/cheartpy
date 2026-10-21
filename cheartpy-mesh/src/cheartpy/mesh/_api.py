@@ -22,7 +22,7 @@ from ._struct import (
 )
 
 if TYPE_CHECKING:
-    from io import BytesIO
+    from io import BufferedIOBase
 
     from pytools.arrays import A2, DType, ToInt
 
@@ -62,7 +62,7 @@ def cheart_mesh_from_arrays[F: np.floating, I: np.integer](
 
 
 def _load_from_stream[F: np.floating, I: np.integer](
-    name: BytesIO,
+    name: BufferedIOBase,
     *,
     ftype: DType[F] = np.float64,
     itype: DType[I] = np.intp,

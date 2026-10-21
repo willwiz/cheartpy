@@ -47,7 +47,7 @@ def fix_ch_sfx[T: (Path | str)](prefix: T, suffix: str = "_FE.") -> T:
 def check_for_meshes(*names: str, home: Path | None = None, bc: bool = True) -> bool:
     home = home or Path()
     sfx = ["X", "T", "B"] if bc else ["X", "T"]
-    meshes = [w for name in names for w in [f"{name}_FE.{s}" for s in sfx]]
+    meshes = [w for name in names for w in [f"{fix_ch_sfx(name)}{s}" for s in sfx]]
     return all((home / s).is_file() for s in meshes)
 
 

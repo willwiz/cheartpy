@@ -206,7 +206,7 @@ class CheartMesh[
 def _export_cheartmesh_cheart[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I], prefix: Path | str, *, forced: bool = False
 ) -> None:
-    if check_for_meshes(prefix) and not forced:
+    if check_for_meshes(str(prefix)) and not forced:
         return
     prefix = fix_ch_sfx(prefix)
     mesh.space.save(f"{prefix}X")
