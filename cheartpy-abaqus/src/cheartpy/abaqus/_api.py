@@ -6,7 +6,7 @@ from cheartpy.mesh import CheartMesh
 from pytools.logging import get_logger
 from pytools.result import Err, Ok, Result
 
-from .conversion import (
+from ._conversion import (
     ElemIntermediate,
     IndexUpdateMap,
     compile_abaqus_elements,
@@ -18,7 +18,7 @@ from .conversion import (
     create_mesh_space,
     create_mesh_topology,
 )
-from .reader import AbaqusMesh, import_abaqus_files
+from ._reader import AbaqusMesh, import_abaqus_files
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -50,7 +50,7 @@ def _import_abaqus_data[F: np.floating, I: np.integer](
     log.info(
         f"Imported {len(abaqus.nodes.v)} nodes.",
         f"Found {len(abaqus.elements)} element with types:",
-        {k: elem.type for k, elem in abaqus.elements.items()},
+        {k: elem.kind for k, elem in abaqus.elements.items()},
         f"{len(abaqus.elsets)} were specified (name: nelem):",
         {k: len(elset.v) for k, elset in abaqus.elsets.items()},
         f"{len(abaqus.nset)} node sets were specified (name: nnodes):",

@@ -12,12 +12,13 @@ from ._search import (
     get_var_index_all,
     get_var_subindex,
 )
+from ._trait import AUTO, FileType, IIndexIterator, ProgramMode, SearchMode
 from ._validation import check_for_var_files
-from .trait import AUTO, IIndexIterator, ProgramMode, SearchMode
 
 __all__ = [
     "AUTO",
     "DynamicFile",
+    "FileType",
     "FileVariable",
     "IIndexIterator",
     "ProgramMode",

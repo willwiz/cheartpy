@@ -34,11 +34,20 @@ class ResidualStrainI(TypedDict, total=True):
 ResidualStrainII = TypedDict(
     "ResidualStrainII", {"ResidualF-weights": IVariable, "ResidualF-vectors": IVariable}
 )
+ResidualStrainII.__doc__ = """
+:key ResidualF-weights: IVariable
+"""
 
 ResidualStrainIII = TypedDict(
     "ResidualStrainIII",
     {"ResidualF-weights": IVariable, "ResidualF-deformedvectors": IVariable},
 )
+ResidualStrainIII.__doc__ = """
+:key ResidualF-weights: IVariable
+:key ResidualF-deformedvectors: TIVariable
+"""
+
+
 type ResidualStrainArgs = ResidualStrainI | ResidualStrainII | ResidualStrainIII
 
 

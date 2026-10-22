@@ -38,7 +38,7 @@ def merge_abaqus_meshes[F: np.floating, I: np.integer](
             elif elements[name] != elem:
                 msg = (
                     f"Element '{name}' is defined multiple times but is not the same: "
-                    f"{elements[name].type} and {elem.type}."
+                    f"{elements[name].kind} and {elem.kind}."
                     f"Please check the Abaqus mesh files for consistency."
                 )
                 return Err(ValueError(msg))

@@ -38,7 +38,7 @@ def _check_mesh_information[F: np.floating, I: np.integer](
     if len(itypes) != 1:
         msg = f"Meshes have different integer types: {itypes}"
         return Err(ValueError(msg))
-    top_elems = {m.top.type for m in meshes.values()}
+    top_elems = {m.top.kind for m in meshes.values()}
     if len(top_elems) != 1:
         msg = f"Meshes have different topological element types: {top_elems}"
         return Err(ValueError(msg))
@@ -106,7 +106,7 @@ def _create_new_mesh[F: np.floating, I: np.integer](
         new_t[p.new] = perms.node[k].fwd[meshes[k].top.v[p.old]]
     new_patches = {
         tag: CheartMeshPatch(
-            tag=tag, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], type=b.type
+            tag=tag, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], type=b.kind
         )
         for k, m in meshes.items()
         for tag, b in m.bnd.v.items()

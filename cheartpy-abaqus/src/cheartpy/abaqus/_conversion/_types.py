@@ -19,7 +19,7 @@ class SpaceIntermediate[F: np.floating]:
 
 @dc.dataclass(slots=True)
 class ElemIntermediate[I: np.integer]:
-    type: AbaqusEnum
+    kind: AbaqusEnum
     v: MutableMapping[ToInt, A1[I]]
 
 

@@ -91,7 +91,7 @@ def compute_surface_normal_at_nodes[F: np.floating, I: np.integer](
 def compute_mesh_outer_normal_at_nodes[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
 ) -> Result[A2[F]]:
-    vtkelem = get_vtk_elem(mesh.top.type)
+    vtkelem = get_vtk_elem(mesh.top.kind)
     interp_basis = {k: vtkelem.shape_dfunc(v) for k, v in enumerate(vtkelem.ref)}
     node_normal: dict[int, list[A1[F]]] = defaultdict(list)
     for elem in mesh.top.v:
@@ -210,7 +210,7 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     if in_surf not in mesh.bnd.v:
         msg = f"Surface {in_surf} not found"
         return Err(ValueError(msg))
-    surf_elem = get_boundary_element(mesh.top.type)
+    surf_elem = get_boundary_element(mesh.top.kind)
     vtkelem = get_vtk_elem(surf_elem)
     interp_basis_at_refnodes = tuple(vtkelem.shape_dfunc(v) for v in vtkelem.ref)
     bnd_patches: dict[I, A1[I]] = dict(

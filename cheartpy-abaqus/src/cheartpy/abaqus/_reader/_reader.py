@@ -205,7 +205,7 @@ def read_next[F: np.floating, I: np.integer](
     ftype: DType[F] = np.float64,
     dtype: DType[I] = np.intc,
 ) -> Result[tuple[_AbaqusItem[F, I], Content | None]]:
-    match content.type:
+    match content.kind:
         case AbaqusHeader.COMMENTS:
             return read_comments(f, content.next).next()
         case AbaqusHeader.HEADINGS:

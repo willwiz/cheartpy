@@ -20,7 +20,7 @@ class AbaqusHeader(enum.StrEnum):
 
 @dc.dataclass(slots=True)
 class Content:
-    type: AbaqusHeader
+    kind: AbaqusHeader
     next: str
 
 
@@ -63,16 +63,16 @@ class Nodes[F: np.floating]:
 @dc.dataclass(slots=True)
 class Element[I: np.integer]:
     name: str
-    type: AbaqusEnum
+    kind: AbaqusEnum
     v: dict[ToInt, A1[I]]
 
     def __hash__(self) -> int:
-        return hash((self.name, self.type, len(self.v)))
+        return hash((self.name, self.kind, len(self.v)))
 
     def __eq__(self, value: object) -> bool:
         if not _is_mesh_elements(value):
             return False
-        if self.name != value.name or self.type != value.type:
+        if self.name != value.name or self.kind != value.kind:
             return False
         if len(self.v) != len(value.v):
             return False

@@ -35,7 +35,7 @@ def _create_new_bnd[T: np.integer, B: CheartEnum](
     node_map: Mapping[T, ToInt],
 ) -> CheartMeshPatch[T, B]:
     new_v = np.array([[node_map[i] for i in patch] for patch in p.v], dtype=int)
-    return CheartMeshPatch(p.tag, p.k, new_v, p.type)
+    return CheartMeshPatch(p.tag, p.k, new_v, p.kind)
 
 
 @deprecated("Use cheartpy.mesh_tools.recompile_cheartmesh instead.")
@@ -50,6 +50,6 @@ def remove_dangling_nodes[F: np.floating, I: np.integer, T: CheartEnum, B: Chear
     )
     return CheartMesh(
         CheartMeshSpace(new_x),
-        CheartMeshTopology(new_t, g.top.type),
+        CheartMeshTopology(new_t, g.top.kind),
         boundary,
     )

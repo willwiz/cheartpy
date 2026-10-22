@@ -6,14 +6,14 @@ from pytools.arrays import T3
 from pytools.logging import ILogger
 from pytools.result import Err, Ok, Result
 
-from .trait import AUTO as AUTO
-from .trait import DynamicFile as DynamicFile
-from .trait import FileType as FileType
-from .trait import FileVariable as FileVariable
-from .trait import IIndexIterator as IIndexIterator
-from .trait import ProgramMode as ProgramMode
-from .trait import SearchMode as SearchMode
-from .trait import StaticFile as StaticFile
+from ._trait import AUTO as AUTO
+from ._trait import DynamicFile as DynamicFile
+from ._trait import FileType as FileType
+from ._trait import FileVariable as FileVariable
+from ._trait import IIndexIterator as IIndexIterator
+from ._trait import ProgramMode as ProgramMode
+from ._trait import SearchMode as SearchMode
+from ._trait import StaticFile as StaticFile
 
 def check_for_var_files(
     idx: IIndexIterator,

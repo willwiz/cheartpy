@@ -1,9 +1,11 @@
+# ruff: noqa: INP001
 from collections import defaultdict
 from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict, Unpack
 
 import numpy as np
+from cheartpy.cl._types import CLNodalData, CLPartition, PatchNode2ElemMap
 from cheartpy.mesh import (
     CheartMesh,
     CheartMeshPatch,
@@ -17,8 +19,6 @@ from cheartpy.mesh_tools.surface_core.deprecated_normals import (
 from cheartpy.vtk import get_vtk_elem
 from pytools.logging import ILogger, get_logger
 from pytools.result import Err, Ok, all_ok
-
-from ._types import CLNodalData, CLPartition, PatchNode2ElemMap
 
 if TYPE_CHECKING:
     from pytools.arrays import A1, A2, DType
@@ -55,7 +55,7 @@ def filter_mesh_normals[F: np.floating, I: np.integer](
 ) -> Ok[A2[I]] | Err:
     if normal_check is None:
         return Ok(elems)
-    top_body_elem = get_vtk_elem(mesh.top.type)
+    top_body_elem = get_vtk_elem(mesh.top.kind)
     if top_body_elem.surf is None:
         msg = "Attempting to compute normal from a 1D mesh, not possible"
         return Err(ValueError(msg))
@@ -148,7 +148,7 @@ def create_cheartmesh_in_clrange[F: np.floating, I: np.integer](
     log = kwargs.get("log", get_logger())
     normal_check = kwargs.get("normal_check")
     # Main logic
-    body_elem = get_vtk_elem(mesh.top.type)
+    body_elem = get_vtk_elem(mesh.top.kind)
     if body_elem.surf is None:
         return Err(ValueError("Mesh is 1D, normal not defined"))
     log.debug(f"{domain=}")
@@ -229,7 +229,7 @@ def assemble_linear_cl_mesh[F: np.floating, I: np.integer](
     )
     return CheartMesh(
         CheartMeshSpace(cl_1_x),
-        CheartMeshTopology(cl_1_t, nodal_meshes[0]["mesh"].top.type),
+        CheartMeshTopology(cl_1_t, nodal_meshes[0]["mesh"].top.kind),
         {},
     )
 
@@ -246,7 +246,7 @@ def assemble_const_cl_mesh[F: np.floating, I: np.integer](
     cl_0_t = np.arange(0, linear_mesh.top.v.shape[0], dtype=itype).reshape(-1, 1)
     return CheartMesh(
         CheartMeshSpace(cl_0_x),
-        CheartMeshTopology(cl_0_t, linear_mesh.top.type),
+        CheartMeshTopology(cl_0_t, linear_mesh.top.kind),
         {},
     )
 
@@ -266,7 +266,7 @@ def assemble_interface_cl_mesh[F: np.floating, I: np.integer](
     )
     return CheartMesh(
         CheartMeshSpace(cl_i_x),
-        CheartMeshTopology(cl_i_t, const_mesh.top.type),
+        CheartMeshTopology(cl_i_t, const_mesh.top.kind),
         {},
     )
 

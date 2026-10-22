@@ -13,7 +13,7 @@ from pytools.result import Err, Ok, Result, all_ok
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.abaqus.reader import AbaqusMesh
+    from cheartpy.abaqus._reader import AbaqusMesh
     from pytools.arrays import A1
 
     from ._types import ElemIntermediate, IndexUpdateMap
@@ -34,8 +34,8 @@ def create_mesh_topology[I: np.integer](
     nmap: IndexUpdateMap,
 ) -> Result[CheartMeshTopology[I]]:
     dtype = next(iter(top.v.values())).dtype
-    kind = convert_element_type(top.type, "Cheart")
-    perm = get_node_permutation(top.type, "Cheart")
+    kind = convert_element_type(top.kind, "Cheart")
+    perm = get_node_permutation(top.kind, "Cheart")
     data = np.ascontiguousarray([[nmap[i] for i in e] for e in top.v.values()], dtype=dtype)
     return Ok(CheartMeshTopology(v=data[:, perm], type=kind))
 
@@ -48,8 +48,8 @@ def create_mesh_boundary_patch[I: np.integer](
 ) -> Result[CheartMeshPatch[I]]:
     dtype = next(iter(top.v.values())).dtype
     elems = np.ascontiguousarray(list(bc_patch.v.keys()), dtype=dtype)
-    kind = convert_element_type(bc_patch.type, "Cheart")
-    perm = get_node_permutation(bc_patch.type, "Cheart")
+    kind = convert_element_type(bc_patch.kind, "Cheart")
+    perm = get_node_permutation(bc_patch.kind, "Cheart")
     data = np.array([[nmap[i] for i in p] for p in bc_patch.v.values()], dtype=dtype)
     return Ok(CheartMeshPatch(tag=tag, k=elems, v=data[:, perm], type=kind))
 
@@ -65,7 +65,7 @@ def create_mesh_boundary[I: np.integer](
         case Ok(patches): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    types = {p.type for p in patches.values()}
+    types = {p.kind for p in patches.values()}
     if len(types) != 1:
         msg = f"Boundary patches have different types, cannot merge them: {types}"
         return Err(ValueError(msg))

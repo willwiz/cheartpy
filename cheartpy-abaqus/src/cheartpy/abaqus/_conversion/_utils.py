@@ -11,7 +11,7 @@ from ._types import ElemIntermediate, ElemSearchMap, IndexUpdateMap
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping
 
-    from cheartpy.abaqus.reader import AbaqusMesh
+    from cheartpy.abaqus._reader import AbaqusMesh
     from cheartpy.elem_interfaces import AbaqusEnum
     from pytools.arrays import A1
 
@@ -51,7 +51,7 @@ def merge_abaques_elements[F: np.floating, I: np.integer](
     mesh: AbaqusMesh[F, I],
 ) -> tuple[Mapping[ToInt, A1[I]], Mapping[ToInt, AbaqusEnum]]:
     elements = ChainMap(*[m.v for m in mesh.elements.values()])
-    types = ChainMap(*[dict.fromkeys(m.v, m.type) for m in mesh.elements.values()])
+    types = ChainMap(*[dict.fromkeys(m.v, m.kind) for m in mesh.elements.values()])
     return elements, types
 
 
@@ -80,7 +80,7 @@ def find_elements[F: np.floating, I: np.integer](
         return find_element_from_elset(mesh, selection).next()
     if selection in mesh.elements:
         elem = mesh.elements[selection]
-        return Ok(ElemIntermediate(type=elem.type, v=elem.v))
+        return Ok(ElemIntermediate(kind=elem.kind, v=elem.v))
     msg = f"Topology '{selection}' is not defined in the elements or elsets."
     return Err(ValueError(msg))
 
@@ -93,11 +93,11 @@ def compile_abaqus_elements[F: np.floating, I: np.integer](
         case Ok(elements): ...  # fmt: skip
         case Err(e):
             return Err(e)
-    element_type = {e.type for e in elements}
+    element_type = {e.kind for e in elements}
     if len(element_type) != 1:
         msg = (
             f"Selected topologies contain elements of multiple types: {element_type}.\n"
             f"Please check the Abaqus mesh file for consistency."
         )
         return Err(ValueError(msg))
-    return Ok(ElemIntermediate(type=element_type.pop(), v=ChainMap(*[e.v for e in elements])))
+    return Ok(ElemIntermediate(kind=element_type.pop(), v=ChainMap(*[e.v for e in elements])))

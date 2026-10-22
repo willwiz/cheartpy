@@ -10,7 +10,7 @@ from ._utils import build_element_searchmap, compile_abaqus_elements, search_ele
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
 
-    from cheartpy.abaqus.reader import AbaqusMesh
+    from cheartpy.abaqus._reader import AbaqusMesh
     from pytools.arrays import A1
 
 
@@ -30,7 +30,7 @@ def _compile_boundary_patch[F: np.floating, I: np.integer](
             return Err(e)
     return Ok(
         ElemIntermediate(
-            type=get_boundary_element(top.type),
+            kind=get_boundary_element(top.kind),
             v=dict(zip(top_id, elements.v.values(), strict=True)),
         )
     )

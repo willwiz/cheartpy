@@ -6,7 +6,7 @@ from pytools.arrays import A1
 from pytools.result import Result
 
 from cheartpy.mesh import CheartMesh
-from cheartpy.mesh_tools import IndexPermutation
+from cheartpy.mesh_tools.tools import IndexPermutation
 
 from ._split import SubdomainPermutation as SubdomainPermutation
 

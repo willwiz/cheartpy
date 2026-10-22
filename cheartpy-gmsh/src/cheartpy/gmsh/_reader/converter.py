@@ -55,8 +55,8 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
     gmsh.model.mesh.add_nodes(
         dim=dim, tag=tag, nodeTags=node_tags, coord=mesh.volume.space.v.flatten()
     )
-    vol_elem = convert_element_type(mesh.volume.top.type, "Gmsh")
-    perm = get_node_permutation(mesh.volume.top.type, "Gmsh")
+    vol_elem = convert_element_type(mesh.volume.top.kind, "Gmsh")
+    perm = get_node_permutation(mesh.volume.top.kind, "Gmsh")
     print("Reordering element nodes for Gmsh compatibility with : ", perm)
     connectivity = np.ascontiguousarray(mesh.volume.top.v[:, perm] + 1)
     return GmshTopInfo(tag, node_tags, elem_tags, connectivity, vol_elem.value, dim)
@@ -65,8 +65,8 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
 def add_boundary_to_gmsh[F: np.floating, I: np.integer](
     top: GmshTopInfo, bnd: CheartMeshPatch[I], current_elem: int = 1
 ) -> tuple[int, Entity]:
-    bnd_type_id = convert_element_type(bnd.type, "Gmsh").value
-    perm = get_node_permutation(bnd.type, "Gmsh")
+    bnd_type_id = convert_element_type(bnd.kind, "Gmsh").value
+    perm = get_node_permutation(bnd.kind, "Gmsh")
     bnd_data = bnd.v[:, perm] + 1
     num_bnd_elems = len(bnd_data)
     bnd_tags = np.arange(current_elem, current_elem + num_bnd_elems)
@@ -308,7 +308,7 @@ def reverse_find_domain_for_boundary[F: np.floating, I: np.integer](
 
 @dc.dataclass(slots=True)
 class GmshElements[I: np.integer]:
-    type: GmshEnum
+    kind: GmshEnum
     e: A1[I]
     conn: A2[I]
 
@@ -318,7 +318,7 @@ def get_element[I: np.integer = np.intp](
 ) -> GmshElements[I]:
     _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
     return GmshElements(
-        type=GmshEnum(el_type),
+        kind=GmshEnum(el_type),
         e=np.ascontiguousarray(tags, dtype=dtype),
         conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size),
     )
@@ -331,13 +331,13 @@ def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshEl
     if not elements:
         msg = "No elements to merge."
         raise ValueError(msg)
-    el_types = {el.type for el in elements}
+    el_types = {el.kind for el in elements}
     if len(el_types) != 1:
         msg = f"Cannot merge elements of different types: {el_types}."
         raise ValueError(msg)
     tags = np.concatenate([el.e for el in elements])
     conn = np.concatenate([el.conn for el in elements])
-    return GmshElements(type=el_types.pop(), e=tags, conn=conn)
+    return GmshElements(kind=el_types.pop(), e=tags, conn=conn)
 
 
 def get_gmsh_entity[I: np.integer = np.intp](
@@ -369,6 +369,11 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
         Whether to optimize the mesh using Gmsh's built-in optimization algorithms.
     angle_deg : float, default=40.0
         The angle threshold in degrees for classifying surfaces during optimization.
+
+    Returns
+    -------
+    GmshMeshTags
+        A dataclass containing the Gmsh mesh tags for the converted mesh.
 
     """
     regions = (

@@ -7,7 +7,7 @@ from pytools.result import Err, Ok
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from cheartpy.abaqus.reader import AbaqusMesh
+    from cheartpy.abaqus._reader import AbaqusMesh
 
 
 def get_abaqus_element(tag: str, dim: int) -> Ok[AbaqusEnum] | Err:

@@ -40,13 +40,13 @@ def relabel_cheart_surfaces[
         return Err(ValueError(msg))
     if closed:
         new_v = {
-            new: CheartMeshPatch(tag=new, k=b.k, v=b.v, type=b.type)
+            new: CheartMeshPatch(tag=new, k=b.k, v=b.v, type=b.kind)
             for old, new in swap.items()
             if (b := mesh.bnd.v[old])
         }
     else:
         new_v = {
-            new: CheartMeshPatch(tag=new, k=v.k, v=v.v, type=v.type)
+            new: CheartMeshPatch(tag=new, k=v.k, v=v.v, type=v.kind)
             for k, v in mesh.bnd.v.items()
             if (new := swap.get(k, k))
         }

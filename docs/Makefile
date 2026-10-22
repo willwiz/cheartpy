@@ -21,7 +21,7 @@ api-blueprints:
 	@for dir in ../cheartpy-*/src/cheartpy/; do \
 		if [ -d "$$dir" ]; then \
 			echo "-> Scanning: $$dir"; \
-			sphinx-apidoc --implicit-namespaces -o "$(SOURCEDIR)" "$$dir" "**/_*"; \
+			sphinx-apidoc --implicit-namespaces -o "$(SOURCEDIR)" "$$dir"; \
 		fi \
 	done
 

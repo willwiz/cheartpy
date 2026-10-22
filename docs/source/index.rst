@@ -13,20 +13,6 @@ documentation for details.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Modules
+   :caption: Contents
 
-   cheartpy.abaqus
-   cheartpy.cl
-   cheartpy.cmd_tools
-   cheartpy.fe
-   cheartpy.time_stepping
-   cheartpy.gmsh
-   cheartpy.io
-   cheartpy.search
-   cheartpy.mesh
-   cheartpy.mesh_tools
-   cheartpy.meshing
-   cheartpy.paraview
-   cheartpy.elem_interfaces
-   cheartpy.vtk
-   cheartpy.xml
+   modules

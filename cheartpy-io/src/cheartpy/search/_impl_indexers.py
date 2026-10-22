@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Final
 
 from pytools.logging import BColors, get_logger
 
-from .trait import IIndexIterator, ProgramMode
+from ._trait import IIndexIterator, ProgramMode
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping, Sequence

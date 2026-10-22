@@ -26,31 +26,12 @@ class ShapeParameters(TypedDict, total=True):
 
 @dc.dataclass(slots=True, frozen=True)
 class UCC[F: np.floating = np.floating]:
-    """Universal Cylindrical Coordinates (UCC) for a cylindrical mesh.
-
-    Attributes
-    ----------
-    a_r : A1[F]
-        Radial coordinates.
-    a_c : A1[F]
-        Circumferential coordinates.
-    a_z : A1[F]
-        Axial coordinates.
-    v_r : A2[F]
-        Radial vector components.
-    v_c : A2[F]
-        Circumferential vector components.
-    v_z : A2[F]
-        Axial vector components.
-
-    """
-
-    a_r: A1[F]
-    a_c: A1[F]
-    a_z: A1[F]
-    v_r: A2[F]
-    v_c: A2[F]
-    v_z: A2[F]
+    a_r: A1[F]  # Radial coordinates.
+    a_c: A1[F]  # Circumferential coordinates.
+    a_z: A1[F]  # Axial coordinates.
+    v_r: A2[F]  # Radial vector components.
+    v_c: A2[F]  # Circumferential vector components.
+    v_z: A2[F]  # Axial vector components.
 
 
 def generate_ucc_for_cylindrical_mesh[F: np.floating, I: np.integer](

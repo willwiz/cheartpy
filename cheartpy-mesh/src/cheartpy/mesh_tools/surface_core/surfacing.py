@@ -147,7 +147,7 @@ def find_surface_in_mesh[F: np.floating, I: np.integer](
         The Cheart Boundary Patch with the given label if it exists, otherwise None.
 
     """
-    if not bnd.type:
+    if not bnd.kind:
         return None
     nodes_set = set(node_map.idx)
     surf_patches_index = find_unique_surf_patches(bnd)
@@ -157,7 +157,7 @@ def find_surface_in_mesh[F: np.floating, I: np.integer](
         return None
     k = np.array(list(patchs.keys()), dtype=dtype)
     v = np.array(list(patchs.values()), dtype=dtype)
-    return CheartMeshPatch(tag=label, k=k, v=v, type=bnd.type)
+    return CheartMeshPatch(tag=label, k=k, v=v, type=bnd.kind)
 
 
 def create_new_surface_in_mesh[F: np.floating, I: np.integer](

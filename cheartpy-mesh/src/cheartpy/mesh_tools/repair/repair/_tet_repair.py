@@ -123,7 +123,7 @@ def reorient_tetra_boundary[F: np.floating, I: np.integer, B: CheartEnum](
         k: fix_boundary_orientation(nodes, connectivity, (v.k, v.v)) for k, v in bnd.v.items()
     }
     return CheartMeshBoundary(
-        {k: CheartMeshPatch(v.tag, v.k, new_patches[k], v.type) for k, v in bnd.v.items()},
+        {k: CheartMeshPatch(v.tag, v.k, new_patches[k], v.kind) for k, v in bnd.v.items()},
     )
 
 
@@ -144,10 +144,10 @@ def fix_tetra_mesh[F: np.floating, I: np.integer](
 
     """
     print("Trying to fix tetrahedral mesh.")
-    if mesh.top.type is not CheartEnum.TETRAHEDRON1:
-        msg = f"Unsupported element type: {mesh.top.type}. Only TETRAHEDRON1 is supported."
+    if mesh.top.kind is not CheartEnum.TETRAHEDRON1:
+        msg = f"Unsupported element type: {mesh.top.kind}. Only TETRAHEDRON1 is supported."
         return Err(ValueError(msg))
     new_connectivity = fix_negative_volume(mesh.space.v, mesh.top.v)
-    new_top = CheartMeshTopology(new_connectivity, mesh.top.type)
+    new_top = CheartMeshTopology(new_connectivity, mesh.top.kind)
     new_bnd = reorient_tetra_boundary(mesh.space.v, new_connectivity, mesh.bnd)
     return Ok(CheartMesh(mesh.space, new_top, new_bnd))

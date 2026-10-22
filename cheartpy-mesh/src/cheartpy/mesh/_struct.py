@@ -48,7 +48,7 @@ class CheartMeshSpace[F: np.floating = np.floating]:
 @dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]:
     v: A2[I]
-    type: T
+    kind: T
 
     def __init__(self, v: A2[I], type: T) -> None:  # noqa: A002
         object.__setattr__(self, "v", v)
@@ -85,7 +85,7 @@ class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     tag: int
     k: A1[I]
     v: A2[I]
-    type: B
+    kind: B
 
     def __init__(self, tag: int, k: A1[I], v: A2[I], type: B) -> None:  # noqa: A002
         object.__setattr__(self, "tag", tag)
@@ -118,10 +118,10 @@ class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]
         return key in self.v
 
     @property
-    def type(self) -> B | None:
+    def kind(self) -> B | None:
         if not self.v:
             return None
-        return next(iter(self.v.values())).type
+        return next(iter(self.v.values())).kind
 
     @property
     def n(self) -> int:
@@ -145,19 +145,6 @@ class CheartMesh[
     T: CheartEnum = CheartEnum,
     B: CheartEnum = CheartEnum,
 ]:
-    """Cheart Mesh Data.
-
-    Attributes
-    ----------
-    space : CheartMeshSpace[F]
-        The spatial data of the mesh.
-    top : CheartMeshTopology[I]
-        The topological data of the mesh.
-    bnd : CheartMeshBoundary[I] | None
-        The boundary data of the mesh, if it exists.
-
-    """
-
     space: CheartMeshSpace[F]
     top: CheartMeshTopology[I, T]
     bnd: CheartMeshBoundary[I, B]

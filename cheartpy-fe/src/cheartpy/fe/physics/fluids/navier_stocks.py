@@ -44,7 +44,7 @@ _SettingValues = float | str | tuple[float | str, ...]
 @dc.dataclass(slots=True, init=False)
 class TransientALENonConvNavierStokesFlow(IProblem):
     name: str
-    type: Literal["TRANSIENT_ALE_NONCON_NAVIER_STOKES_FLOW"]
+    kind: Literal["TRANSIENT_ALE_NONCON_NAVIER_STOKES_FLOW"]
     variables: dict[TransientALENonConvNavierStokesFlowVariables, IVariable]
     state_vars: dict[str, IVariable]
     root_topology: ICheartTopology | None
@@ -63,7 +63,7 @@ class TransientALENonConvNavierStokesFlow(IProblem):
     def __init__(self, name: str, **kwargs: Unpack[TransientALENonConvNavierStokesKwargs]) -> None:
         vel = kwargs["vel"]
         self.name = name
-        self.type = "TRANSIENT_ALE_NONCON_NAVIER_STOKES_FLOW"
+        self.kind = "TRANSIENT_ALE_NONCON_NAVIER_STOKES_FLOW"
         self.variables = {
             "Space": kwargs["space"],
             "Velocity": vel,
@@ -161,7 +161,7 @@ class ALEElementDependentStiffnessKwargs(TypedDict, total=False):
 @dc.dataclass(slots=True, init=False)
 class ALEElementDependentStiffness(IProblem):
     name: str
-    type: Literal["ale_element_dependent_stiffness"]
+    kind: Literal["ale_element_dependent_stiffness"]
     variables: dict[ALEElementDependentStiffnessVariables, IVariable]
     root_topology: ICheartTopology
     flags: dict[str, bool]
@@ -180,7 +180,7 @@ class ALEElementDependentStiffness(IProblem):
     def __init__(self, name: str, **kwargs: Unpack[ALEElementDependentStiffnessKwargs]) -> None:
         dom_vel = kwargs["dom_vel"]
         self.name = name
-        self.type = "ale_element_dependent_stiffness"
+        self.kind = "ale_element_dependent_stiffness"
         self.variables = {
             "Space": kwargs["space"],
             "DomainVelocity": dom_vel,
@@ -262,7 +262,7 @@ class ALEElementDependentStiffness(IProblem):
 def _write_transient_navier_stokes(
     f: TextIO, problem: TransientALENonConvNavierStokesFlow | ALEElementDependentStiffness
 ) -> None:
-    f.write(f"!DefProblem={{{problem.name}|{problem.type}}}\n")
+    f.write(f"!DefProblem={{{problem.name}|{problem.kind}}}\n")
     f.writelines(
         f"  !UseVariablePointer={{{join_fields(k, v)}}}\n" for k, v in problem.variables.items()
     )

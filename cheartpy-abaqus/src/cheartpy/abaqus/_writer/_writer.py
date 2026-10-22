@@ -67,7 +67,7 @@ def write_nodes[F: np.floating, I: np.integer](f: TextIO, mesh: CheartMesh[F, I]
 
 
 def write_volume[F: np.floating, I: np.integer](f: TextIO, mesh: CheartMesh[F, I]) -> Result[int]:
-    element_type = convert_element_type(mesh.top.type, "Abaqus")
+    element_type = convert_element_type(mesh.top.kind, "Abaqus")
     header = f"*ELEMENT, TYPE={element_type!s}, ELSET=Volume1\n"
     nelem, nnode = mesh.top.v.shape
     dtype = [("index", np.intp), *[(f"i_{i}", np.intp) for i in range(nnode)]]
@@ -84,7 +84,7 @@ def write_volume[F: np.floating, I: np.integer](f: TextIO, mesh: CheartMesh[F, I
 def write_surface[F: np.floating, I: np.integer](
     f: TextIO, idx: int, patch: CheartMeshPatch[I], current_elem: int
 ) -> Result[int]:
-    element_type = convert_element_type(patch.type, "Abaqus")
+    element_type = convert_element_type(patch.kind, "Abaqus")
     header = f"*ELEMENT, TYPE={element_type!s}, ELSET=Surface{idx}\n"
     nelem, nnode = patch.v.shape
     dtype = [("index", np.intp), *[(f"i_{i}", np.intp) for i in range(nnode)]]

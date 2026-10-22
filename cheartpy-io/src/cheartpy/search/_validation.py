@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Literal
 if TYPE_CHECKING:
     from pytools.logging import ILogger
 
-    from .trait import IIndexIterator
+    from ._trait import IIndexIterator
 
 __all__ = ["check_for_var_files"]
 

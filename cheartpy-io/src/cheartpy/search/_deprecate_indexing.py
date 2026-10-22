@@ -12,7 +12,7 @@ from ._impl_indexers import (
     ZeroIndexer,
 )
 from ._search import find_var_index, find_var_subindex
-from .trait import IIndexIterator, SearchMode
+from ._trait import IIndexIterator, SearchMode
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence

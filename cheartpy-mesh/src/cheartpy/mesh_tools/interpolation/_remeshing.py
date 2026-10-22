@@ -29,13 +29,13 @@ def create_quad_top_and_map[I: np.integer](
     t: CheartMeshTopology[I],
     nn: ToInt,
 ) -> tuple[CheartMeshTopology[I], Mapping[frozenset[int], int]]:
-    l2qmap = L2QMAPDICT.get(t.type)
+    l2qmap = L2QMAPDICT.get(t.kind)
     if l2qmap is None:
-        msg = f"No map found for {t.type}. Topology to be interpolated must be linear"
+        msg = f"No map found for {t.kind}. Topology to be interpolated must be linear"
         raise ValueError(msg)
-    quad_elem = L2QTYPEDICT.get(t.type)
+    quad_elem = L2QTYPEDICT.get(t.kind)
     if quad_elem is None:
-        msg = f"No quad topology found for {t.type}.Topology to be interpolated must be linear"
+        msg = f"No quad topology found for {t.kind}.Topology to be interpolated must be linear"
         raise ValueError(msg)
     # quad_map: Mapping[frozenset[int], int] = dict()
     # nn = 0
@@ -62,9 +62,9 @@ def create_quad_surf[I: np.integer](
                 msg = f"Boundary node {v} not found in map from topology"
                 raise ValueError(msg)
             new_bnd[i, j] = quad_map[v]
-    quad_elem = L2QTYPEDICT.get(b.type)
+    quad_elem = L2QTYPEDICT.get(b.kind)
     if quad_elem is None:
-        msg = f"No quad type found for {b.type}. Boundary to be interpolated must be linear"
+        msg = f"No quad type found for {b.kind}. Boundary to be interpolated must be linear"
         raise ValueError(msg)
     return CheartMeshPatch(b.tag, b.k, new_bnd, quad_elem.body)
 
@@ -73,16 +73,16 @@ def create_quad_boundary[I: np.integer](
     quad_map: Mapping[frozenset[int], int],
     b: CheartMeshBoundary[I],
 ) -> CheartMeshBoundary[I]:
-    if b.type is None:
+    if b.kind is None:
         msg = "No boundary patch found."
         raise ValueError(msg)
-    l2qmap = L2QMAPDICT.get(b.type)
+    l2qmap = L2QMAPDICT.get(b.kind)
     if l2qmap is None:
-        msg = f"No L2Q map found for {b.type}. Boundary to be interpolated must be linear"
+        msg = f"No L2Q map found for {b.kind}. Boundary to be interpolated must be linear"
         raise ValueError(msg)
-    quad_elem = L2QTYPEDICT.get(b.type)
+    quad_elem = L2QTYPEDICT.get(b.kind)
     if quad_elem is None:
-        msg = f"No quad type found for {b.type}. Boundary to be interpolated must be linear"
+        msg = f"No quad type found for {b.kind}. Boundary to be interpolated must be linear"
         raise ValueError(msg)
     surfs = {k: create_quad_surf(l2qmap, quad_map, v) for k, v in b.v.items()}
     return CheartMeshBoundary(surfs)

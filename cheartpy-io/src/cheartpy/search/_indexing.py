@@ -14,7 +14,7 @@ from ._impl_indexers import (
     TupleSubIndexer,
     ZeroIndexer,
 )
-from .trait import DynamicFile, FileVariable, IIndexIterator, SearchMode, StaticFile
+from ._trait import DynamicFile, FileVariable, IIndexIterator, SearchMode, StaticFile
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

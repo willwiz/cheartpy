@@ -25,7 +25,7 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         A new mesh containing only the surface defined by the boundary.
 
     """
-    body_elem = get_vtk_elem(body.top.type)
+    body_elem = get_vtk_elem(body.top.kind)
     if body_elem.surf is None:
         msg = "Mesh is 1D, normal not defined"
         return Err(ValueError(msg))

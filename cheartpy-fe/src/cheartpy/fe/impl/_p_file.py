@@ -37,8 +37,8 @@ class PFile(IPFile):
     matrices: dict[str, ISolverMatrix] = dc.field(default_factory=dict[str, ISolverMatrix])
     solver_groups: dict[str, ISolverGroup] = dc.field(default_factory=dict[str, ISolverGroup])
 
-    def set_outputpath(self, path: Path | str) -> None:
-        self.output_dir = Path(path)
+    def set_outputpath(self, output_dir: Path | str) -> None:
+        self.output_dir = Path(output_dir)
 
     # Add Time Scheme
     def add_timescheme(self, *time: ITimeScheme) -> None:

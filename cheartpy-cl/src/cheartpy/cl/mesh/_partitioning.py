@@ -69,7 +69,7 @@ def create_mesh_for_cl_node[F: np.floating, I: np.integer](
     connectivity = mesh.top.v[elements]
     perm = create_index_permutation(connectivity)
     new_x = CheartMeshSpace(mesh.space.v[perm.old])
-    new_top = CheartMeshTopology(v=perm.fwd[connectivity], type=mesh.top.type)
+    new_top = CheartMeshTopology(v=perm.fwd[connectivity], type=mesh.top.kind)
     return CheartMesh(space=new_x, top=new_top, bnd=CheartMeshBoundary[I]({}))
 
 

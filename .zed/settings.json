@@ -59,5 +59,16 @@
         },
       },
     },
+    "esbonio": {
+      "binary": {
+        "path": "esbonio",
+        "arguments": ["server"],
+      },
+      "initialization_options": {
+        "sphinx": {
+          "pythonCommand": ["uv", "run", "python"],
+        },
+      },
+    },
   },
 }

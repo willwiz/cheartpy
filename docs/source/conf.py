@@ -17,10 +17,13 @@ release = "1.3.0a"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon"]
-autodoc_typehints = "none"
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_autodoc_typehints"]
+autodoc_typehints = "both"
+autodoc_type_aliases = {
+    "Path": "pathlib.Path",
+}
 templates_path = ["_templates"]
-exclude_patterns = []
+exclude_patterns = ["**/_*"]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

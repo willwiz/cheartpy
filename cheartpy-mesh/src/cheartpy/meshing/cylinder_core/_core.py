@@ -9,8 +9,8 @@ from cheartpy.mesh import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.mesh_tools import IndexPermutation, recompile_cheart_mesh
 from cheartpy.mesh_tools.surface_core import relabel_cheart_surfaces
+from cheartpy.mesh_tools.tools import IndexPermutation, recompile_cheart_mesh
 
 from ._types import CartesianDirection
 
@@ -96,7 +96,7 @@ def update_boundary[I: np.integer](
         for j, v in enumerate(row):
             if v in end_map:
                 surf[i, j] = end_map[int(v)]
-    return CheartMeshPatch(tag, patch.k, surf, patch.type)
+    return CheartMeshPatch(tag, patch.k, surf, patch.kind)
 
 
 def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> CheartMesh[F, I]:
@@ -107,10 +107,10 @@ def merge_circ_ends[F: np.floating, I: np.integer](cube: CheartMesh[F, I]) -> Ch
     cube = relabel_cheart_surfaces(cube, {1: 3, 2: 4, 5: 1, 6: 2}, closed=True).unwrap()
     mesh = CheartMesh(
         cube.space,
-        CheartMeshTopology(perm.fwd[cube.top.v], cube.top.type),
+        CheartMeshTopology(perm.fwd[cube.top.v], cube.top.kind),
         CheartMeshBoundary(
             {
-                tag: CheartMeshPatch(tag, b.k, perm.fwd[b.v], b.type)
+                tag: CheartMeshPatch(tag, b.k, perm.fwd[b.v], b.kind)
                 for tag, b in cube.bnd.v.items()
             },
         ),

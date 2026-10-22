@@ -66,8 +66,8 @@ def reorder_cheartmesh[F: np.floating, I: np.integer, T: CheartEnum, B: CheartEn
     perm_fwd = np.empty_like(perm_rev)
     perm_fwd[perm_rev] = np.arange(len(perm_rev), dtype=perm_rev.dtype)
     new_space = CheartMeshSpace(mesh.space.v[perm_rev])
-    new_top = CheartMeshTopology(perm_fwd[mesh.top.v], mesh.top.type)
+    new_top = CheartMeshTopology(perm_fwd[mesh.top.v], mesh.top.kind)
     new_bnd = CheartMeshBoundary(
-        {k: CheartMeshPatch(v.tag, v.k, perm_fwd[v.v], v.type) for k, v in mesh.bnd.v.items()},
+        {k: CheartMeshPatch(v.tag, v.k, perm_fwd[v.v], v.kind) for k, v in mesh.bnd.v.items()},
     )
     return CheartMesh(new_space, new_top, new_bnd)

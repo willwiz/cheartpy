@@ -39,7 +39,7 @@ class GmshNodes[F: np.floating, I: np.integer]:
 
 @dc.dataclass(slots=True)
 class GmshElements[I: np.integer]:
-    type: GmshEnum
+    kind: GmshEnum
     e: A1[I]
     conn: A2[I]
 
@@ -59,7 +59,7 @@ def get_element[I: np.integer = np.intp](
 ) -> GmshElements[I]:
     _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
     return GmshElements(
-        type=GmshEnum(el_type),
+        kind=GmshEnum(el_type),
         e=np.ascontiguousarray(tags, dtype=dtype),
         conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size),
     )
@@ -72,13 +72,13 @@ def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshEl
     if not elements:
         msg = "No elements to merge."
         raise ValueError(msg)
-    el_types = {el.type for el in elements}
+    el_types = {el.kind for el in elements}
     if len(el_types) != 1:
         msg = f"Cannot merge elements of different types: {el_types}."
         raise ValueError(msg)
     tags = np.concatenate([el.e for el in elements])
     conn = np.concatenate([el.conn for el in elements])
-    return GmshElements(type=el_types.pop(), e=tags, conn=conn)
+    return GmshElements(kind=el_types.pop(), e=tags, conn=conn)
 
 
 def get_gmsh_entity[I: np.integer = np.intp](
@@ -116,7 +116,7 @@ def get_gmsh_space[F: np.floating, I: np.integer](
 class GmshBoundaries[I: np.integer = np.intp]:
     dim: int
     entity: Entity
-    type: GmshEnum
+    kind: GmshEnum
     e: A1[I]
     conn: A2[I]
 
@@ -133,11 +133,11 @@ def get_gmsh_boundaries[I: np.integer](
         case Ok(top_id): ...  # fmt: skip
         case Err(e):
             raise e
-    el_type = GmshEnum(bnd.type)
+    el_type = GmshEnum(bnd.kind)
     return GmshBoundaries(
         dim=dim,
         entity=entity,
-        type=el_type,
+        kind=el_type,
         e=np.array(top_id, dtype=domain.e.dtype),
         conn=bnd.conn,
     )
@@ -152,8 +152,8 @@ def convert_gmsh_space_to_cheart[F: np.floating = np.float64, I: np.integer = np
 def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
     top: GmshElements[I], *, dtype: DType[I] = np.intp
 ) -> CheartMeshTopology[I]:
-    vtk_type = convert_element_type(top.type, "Cheart")
-    perm = get_node_permutation(top.type, "Cheart")
+    vtk_type = convert_element_type(top.kind, "Cheart")
+    perm = get_node_permutation(top.kind, "Cheart")
     print(f"Vtk type: {vtk_type}, reorder: {perm}")
     return CheartMeshTopology(
         v=np.ascontiguousarray(top.conn[:, perm] - 1, dtype=dtype),
@@ -164,7 +164,7 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
 def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
     bnd: GmshBoundaries[I], tag: int, vtk_type: CheartEnum, *, dtype: DType[I] = np.intp
 ) -> CheartMeshPatch[I]:
-    perm = get_node_permutation(bnd.type, "Cheart")
+    perm = get_node_permutation(bnd.kind, "Cheart")
     return CheartMeshPatch(
         tag=tag,
         k=bnd.e - 1,
@@ -176,7 +176,7 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
 def convert_gmsh_bnd_to_cheart[I: np.integer = np.intp](
     boundary: Mapping[int, GmshBoundaries[I]], dtype: DType[I] = np.intp
 ) -> CheartMeshBoundary[I]:
-    vtk_types = {convert_element_type(b.type, "Cheart") for b in boundary.values()}
+    vtk_types = {convert_element_type(b.kind, "Cheart") for b in boundary.values()}
     if len(vtk_types) != 1:
         msg = f"All boundaries must have the same type, found: {vtk_types}."
         raise ValueError(msg)
@@ -283,7 +283,7 @@ def reset_node_index[F: np.floating, I: np.integer](
         coord=space.coord,
     )
     top = GmshElements(
-        type=top.type,
+        kind=top.kind,
         e=top.e,
         conn=perm.fwd[top.conn],
     )
@@ -291,7 +291,7 @@ def reset_node_index[F: np.floating, I: np.integer](
         k: GmshBoundaries(
             dim=v.dim,
             entity=v.entity,
-            type=v.type,
+            kind=v.kind,
             e=v.e,
             conn=perm.fwd[v.conn],
         )
@@ -313,7 +313,7 @@ def reset_index_elem[I: np.integer](
 ):
     if isinstance(item, GmshElements):
         return GmshElements(
-            type=item.type,
+            kind=item.kind,
             e=perm.fwd[item.e],
             conn=item.conn,
         )
@@ -335,7 +335,7 @@ def reset_index_boundary[I: np.integer](
         return GmshBoundaries(
             dim=item.dim,
             entity=item.entity,
-            type=item.type,
+            kind=item.kind,
             e=perm.fwd[item.e],
             conn=item.conn,
         )
@@ -350,7 +350,7 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
     ftype: DType[F] = np.float64,
     dtype: DType[I] = np.intp,
 ) -> tuple[CheartMesh[F, I], A1[I] | None]:
-    """Return a CheartMesh and a mask from GMSH entities if given.\
+    """Return a CheartMesh and a mask from GMSH entities if given.
 
     Parameters
     ----------

@@ -1,12 +1,12 @@
-from .basis import Basis, CheartBasis, Quadrature
-from .expressions import Expression
-from .p_file import PFile
-from .problems import BCPatch, BoundaryCondition
-from .solver_groups import SolverGroup, SolverSubGroup
-from .solver_matrix import MumpsMatrix, SolverMatrix
-from .time_schemes import TimeScheme
-from .topologies import CheartTopology, ManyToOneTopInterface, NullTopology, OneToOneTopInterface
-from .variables import Variable
+from ._basis import Basis, CheartBasis, Quadrature
+from ._expressions import Expression
+from ._p_file import PFile
+from ._problems import BCPatch, BoundaryCondition
+from ._solver_groups import SolverGroup, SolverSubGroup
+from ._solver_matrix import MumpsMatrix, SolverMatrix
+from ._time_schemes import TimeScheme
+from ._topologies import CheartTopology, ManyToOneTopInterface, NullTopology, OneToOneTopInterface
+from ._variables import Variable
 
 __all__ = [
     "BCPatch",

@@ -28,9 +28,9 @@ def create_index_permutation[I: np.integer](
     If the input is a 1D array, it is assumed to be built from node index.
     If the input is a 2D array, it is assumed to be built from topological connectivity.
     If 2D, the inv field should be used to update the nodes, i.e.,
-        `new_nodes = old_nodes[perm.inv]`.
+    `new_nodes = old_nodes[perm.inv]`.
     The fwd field should be used to update the topological connectivity, i.e.,
-        `new_top = perm.fwd[old_top]`.
+    `new_top = perm.fwd[old_top]`.
 
     Parameters
     ----------
@@ -72,8 +72,8 @@ def recompile_cheart_mesh[F: np.floating, I: np.integer](
     """
     perm = create_index_permutation(mesh.top.v)
     new_x = CheartMeshSpace(mesh.space.v[perm.old])
-    new_t = CheartMeshTopology(perm.fwd[mesh.top.v], mesh.top.type)
+    new_t = CheartMeshTopology(perm.fwd[mesh.top.v], mesh.top.kind)
     boundary = CheartMeshBoundary(
-        {k: CheartMeshPatch(v.tag, v.k, perm.fwd[v.v], v.type) for k, v in mesh.bnd.v.items()},
+        {k: CheartMeshPatch(v.tag, v.k, perm.fwd[v.v], v.kind) for k, v in mesh.bnd.v.items()},
     )
     return CheartMesh(new_x, new_t, boundary)

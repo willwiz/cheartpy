@@ -10,28 +10,23 @@ description = "Python module for creating Cheart pfiles and executing them."
 readme = "README.md"
 requires-python = ">=3.15"
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "Operating System :: Linux",
-  "Development Status :: 0 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Operating System :: Linux",
+    "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = [
-    "pytools>=1.2.2b",
-    "numpy",
-    "meshio",
-    "cheartpy-io",
-]
+dependencies = ["pytools>=1.2.2b", "numpy", "meshio", "cheartpy-io"]
 
 [project.optional-dependencies]
 all = [
-  "cheartpy-abaqus",
-  "cheartpy-cl",
-  "cheartpy-fe",
-  "cheartpy-io",
-  "cheartpy-mesh",
-  "cheartpy-paraview",
-  "cheartpy-vtk",
-  "cheartpy-gmsh",
+    "cheartpy-abaqus",
+    "cheartpy-cl",
+    "cheartpy-fe",
+    "cheartpy-io",
+    "cheartpy-mesh",
+    "cheartpy-paraview",
+    "cheartpy-vtk",
+    "cheartpy-gmsh",
 ]
 mesh = ["cheartpy-mesh"]
 vtu = ["cheartpy-mesh", "cheartpy-paraview"]
@@ -39,7 +34,7 @@ abaqus = ["cheartpy-abaqus"]
 fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
 
 [tool.uv]
-package=false
+package = false
 
 [tool.uv.sources]
 cheartpy = { path = ".", package = false }
@@ -52,25 +47,30 @@ cheartpy-mesh = { path = "cheartpy-mesh", editable = true }
 cheartpy-paraview = { path = "cheartpy-paraview", editable = true }
 cheartpy-vtk = { path = "cheartpy-vtk", editable = true }
 cheartpy-symbolic = { path = "cheartpy-symbolic", editable = true }
-pytools = { git = "https://github.com/willwiz/pytools"}
+pytools = { git = "https://github.com/willwiz/pytools" }
 
 [tool.uv.build-backend]
 module-name = []
 namespace = true
 
+[tool.esbonio.sphinx]
+pythonCommand = ["uv", "run", "python"]
+
 [dependency-groups]
 dev = [
-  "cheartpy-abaqus",
-  "cheartpy-gmsh",
-  "cheartpy-cl",
-  "cheartpy-fe",
-  "cheartpy-io",
-  "cheartpy-mesh",
-  "cheartpy-paraview",
-  "cheartpy-symbolic",
-  "cheartpy-vtk",
-  "pytest",
-  "sphinx>=9.2.0",
-  "sphinx-rtd-theme>=3.1.0",
-  "myst-parser>=5.1.0",
+    "cheartpy-abaqus",
+    "cheartpy-gmsh",
+    "cheartpy-cl",
+    "cheartpy-fe",
+    "cheartpy-io",
+    "cheartpy-mesh",
+    "cheartpy-paraview",
+    "cheartpy-symbolic",
+    "cheartpy-vtk",
+    "pytest",
+    "sphinx>=9.2.0",
+    "sphinx-rtd-theme>=3.1.0",
+    "myst-parser>=5.1.0",
+    "attrs>=26.1.0",
+    "sphinx-autodoc-typehints>=3.17.2",
 ]

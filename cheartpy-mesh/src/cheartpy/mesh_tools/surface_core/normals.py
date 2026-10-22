@@ -181,7 +181,7 @@ def compute_surface_normal[F: np.floating, I: np.integer](
     if in_surf not in mesh.bnd.v:
         msg = f"Surface {in_surf} not found"
         return Err(ValueError(msg))
-    surface_element = get_boundary_element(mesh.top.type)
+    surface_element = get_boundary_element(mesh.top.kind)
     vtkelement = get_vtk_elem(surface_element)
     interp_basis_at_refnodes = tuple(vtkelement.shape_dfunc(v) for v in vtkelement.ref)
     x_deriv = np.asarray([i[0, :] for i in interp_basis_at_refnodes], dtype=mesh.space.v.dtype)

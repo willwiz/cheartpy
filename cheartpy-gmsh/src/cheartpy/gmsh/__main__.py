@@ -8,8 +8,8 @@ from cheartpy.mesh import import_cheart_mesh
 
 import gmsh
 
-from .reader import read_cheartmesh_into_gmsh_api
-from .writter import build_cheart_mesh_from_gmsh
+from ._reader import read_cheartmesh_into_gmsh_api
+from ._writer import build_cheart_mesh_from_gmsh
 
 if TYPE_CHECKING:
     from cheartpy.gmsh.types import GmshMeshTags
