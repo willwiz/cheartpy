@@ -137,14 +137,14 @@ def get_file_type(name: Path | str, roots: Sequence[Path] | None = None) -> Resu
     name = Path(name)
     if name.is_file():
         return Ok(FileVariable(StaticFile(name), set(), set()))
-    if res := _filter_indices_by_template(name.parent, name.stem, [".D", ".D.gz", ".res2"]):
-        return Ok(res)
     if not roots:
         msg = f"{name} not found."
         return Err(ValueError(msg))
     for root in roots:
         if res := _get_file_type_from_parent(name, root):
             return Ok(res)
+    if res := _filter_indices_by_template(name.parent, name.stem, [".D", ".D.gz", ".res2"]):
+        return Ok(res)
     msg = (
         f"{name} not found as:\n"
         f"    {name}\n"
