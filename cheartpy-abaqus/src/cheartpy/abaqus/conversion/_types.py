@@ -3,10 +3,10 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from typing import TYPE_CHECKING
 
 import numpy as np
+from pytools.arrays import A1, ToInt
 
 if TYPE_CHECKING:
     from cheartpy.elem_interfaces import AbaqusEnum
-    from pytools.arrays import A1, ToInt
 
 type ElemSearchMap = Mapping[ToInt, set[ToInt]]
 type IndexUpdateMap = Mapping[ToInt, ToInt]

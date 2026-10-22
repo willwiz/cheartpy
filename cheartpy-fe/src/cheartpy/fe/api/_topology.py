@@ -1,3 +1,4 @@
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, TypeIs
 
@@ -8,15 +9,13 @@ from cheartpy.fe.impl import (
     NullTopology,
     OneToOneTopInterface,
 )
+from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 from cheartpy.fe.utils import get_enum
 
 from ._basis import create_basis, create_boundary_basis
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
-
     from cheartpy.fe.aliases import EmbbededTopologyDef, TopologyDef, VolumeTopologyDef
-    from cheartpy.fe.trait import ICheartBasis, ICheartTopology, ITopInterface
 
 
 def _hash_tops(tops: list[ICheartTopology] | list[str]) -> str:

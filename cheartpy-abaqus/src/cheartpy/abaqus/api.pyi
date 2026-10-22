@@ -8,7 +8,7 @@ from cheartpy.mesh import CheartMesh
 from pytools.arrays import DType
 from pytools.result import Result
 
-from .parsing import AbaqusAPIKwargs
+from ._parsing import AbaqusAPIKwargs
 
 def create_cheartmesh_from_abaqus_api[F: np.floating, I: np.integer](
     files: Sequence[Path | str],

@@ -5,7 +5,7 @@ from pytools.logging import get_logger
 
 from .__logging__ import compose_header, format_input_kwargs, header_guard
 from ._api import create_cheartmesh_from_abaqus_api
-from .parsing import parse_cmdline_args
+from ._parsing import parse_cmdline_args
 from .writer import AbaqusWriterKwargs, import_region_mask, write_inp_from_cheart
 from .writer import get_cmdline_args as get_writer_cmdline_args
 

@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from .parsing import AbaqusAPIKwargs
+    from ._parsing import AbaqusAPIKwargs
 
 
 class _Printable(Protocol):

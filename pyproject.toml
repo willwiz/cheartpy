@@ -70,4 +70,7 @@ dev = [
   "cheartpy-symbolic",
   "cheartpy-vtk",
   "pytest",
+  "sphinx>=9.2.0",
+  "sphinx-rtd-theme>=3.1.0",
+  "myst-parser>=5.1.0",
 ]

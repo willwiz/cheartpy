@@ -204,6 +204,34 @@ def chread(
     dtype: DType[np.number] | None = None,
     ftype: DType[np.number] | None = None,
 ) -> A1[np.number] | A2[np.number] | A2[np.void]:
+    """Read data from a file in Cheart related formats.
+
+    Parameters
+    ----------
+    file : Path | str
+        The file path to read the data from.
+    fmt : ReadFormat, optional
+        The format of the data in the file. Options are:
+        - "D": Cheart data format (default)
+        - "X": Cheart extended data format
+        - "T": Cheart topology format
+        - "B": Cheart boundary format
+        - "Time": Cheart time format
+        - "Raw": Raw text format
+    dtype : DType[np.number] | None, optional
+        The data type to use for reading the numbers. If None, defaults to np.float64 for "D" and
+        "X", np.intp for "T" and "B", and np.float64 for "Time" and "Raw".
+    ftype : DType[np.number] | None, optional
+        The floating-point data type to use for reading the time values in "Time" format. If None,
+        defaults to np.float64.
+
+    Returns
+    -------
+    A1[np.number] | A2[np.number] | A2[np.void]
+        The data read from the file, as a 1D or 2D array of numbers, or a structured array for
+        "Time" format.
+
+    """
     match fmt:
         case "D" | "X":
             return chread_d(file, dtype=dtype or np.float64)

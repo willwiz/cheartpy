@@ -1,13 +1,11 @@
 import dataclasses as dc
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import numpy as np
+from pytools.arrays import A1, ToIndex
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
-    from pytools.arrays import A1, ToIndex
-
     from cheartpy.mesh import CheartMesh
 
 type ElemSearchMap = Mapping[ToIndex, set[int]]

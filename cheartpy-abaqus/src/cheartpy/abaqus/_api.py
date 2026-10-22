@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
     from pytools.arrays import DType
 
-    from .parsing import AbaqusAPIKwargs
+    from ._parsing import AbaqusAPIKwargs
 
 
 class _AbaqusData[F: np.floating, I: np.integer](NamedTuple):
