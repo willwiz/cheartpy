@@ -3,17 +3,26 @@ from ._masks import change_mask
 from ._math import normalize_by_row, orthonormalize_by_row
 from ._merge import merge_cell_variables, merge_cheart_meshes, merge_point_variables
 from ._search import build_element_searchmap, find_elements
+from ._sparse_search import (
+    ElementSearchResult,
+    ElementSparseMap,
+    convert_connectivity_to_sparse_array,
+    sparse_search_elements,
+)
 from ._split import create_mesh_from_region, create_mesh_from_surface, split_subdomains
 from ._types import ElemSearchMap, IndexPermutation, MergedMesh
 from ._validation import create_index_permutation, recompile_cheart_mesh
 
 __all__ = [
     "ElemSearchMap",
+    "ElementSearchResult",
+    "ElementSparseMap",
     "IndexPermutation",
     "MergedMesh",
     "build_element_searchmap",
     "change_mask",
     "classify_boundary_patch",
+    "convert_connectivity_to_sparse_array",
     "create_index_permutation",
     "create_mesh_from_region",
     "create_mesh_from_surface",
@@ -24,5 +33,6 @@ __all__ = [
     "normalize_by_row",
     "orthonormalize_by_row",
     "recompile_cheart_mesh",
+    "sparse_search_elements",
     "split_subdomains",
 ]
