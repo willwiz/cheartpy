@@ -23,15 +23,26 @@ class SolverArgs(TypedDict, total=True):
 
 
 class SolverKwargs(TypedDict, total=False):
+    #: The number of mpi processes to use. If 1 if not given.
     cores: int
+    #: Log the cheart solver output to a file with the same name as the pfile but with a .log
+    #: extension. If False, the output will be printed to stdout.
     log: bool
+    #: Dump the matrix to a file. Name and location is determined by Cheart.
     dump_matrix: bool
+    #: Dump the residual to a file. Name and location is determined by Cheart.
     dump_residual: bool
+    #: Dump the intermediate results to a file. Name and location is determined by Cheart.
     dump_intermediate: bool
+    #: Clear the output directory before running.
     clear: bool
+    #: Macro values to be used by the pfile
     macros: Mapping[str, str]
+    #: The MPI implementation to use. If None, no optimization for mpi will be used.
     opt: Literal["mpich", "openmpi", "none"] | None
+    #: The verbosity level for Cheart
     verbosity: Verbosity
+    #: Use a logger to intercept the output of Cheart.
     logger: ILogger
 
 

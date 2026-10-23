@@ -5,6 +5,10 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from sphinx.application import Sphinx
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -22,20 +26,36 @@ autodoc_typehints = "both"
 autodoc_type_aliases = {
     "Path": "pathlib.Path",
 }
+autodoc_typehints_ignore_names = ["Path", "pathlib.Path"]
 templates_path = ["_templates"]
 exclude_patterns = ["**/_*"]
-
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
-sys.path.insert(0, str(Path("../../cheartpy-abaqus/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-cl/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-fe/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-gmsh/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-io/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-mesh/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-paraview/src").resolve()))
-sys.path.insert(0, str(Path("../../cheartpy-vtk/src").resolve()))
+for f in Path(__file__).resolve().parent.parent.parent.glob("cheartpy-*/src"):
+    if not f.is_dir():
+        continue
+    sys.path.insert(0, str(f.resolve()))
+
+
+# ruff: ignore[ARG001, ANN401, FBT001, PLR0913, PLR0917]
+def skip_hyphenated_typeddict_keys(
+    app: Sphinx,
+    what: Literal["module", "class", "exception", "function", "method", "attribute", "data"],
+    name: str,
+    obj: Any,
+    skip: bool,
+    options: Any,
+) -> bool | None:
+    """Filter out hyphenated dictionary keys to prevent signature parsing errors."""
+    if "-" in name:
+        return True  # Instruct autodoc to skip generating an autoattribute signature
+    return None  # Fall back to Sphinx default behavior for other items
+
+
+def setup(app: Sphinx) -> None:
+    """Connect custom event handlers to the Sphinx application instance."""
+    app.connect("autodoc-skip-member", skip_hyphenated_typeddict_keys)
