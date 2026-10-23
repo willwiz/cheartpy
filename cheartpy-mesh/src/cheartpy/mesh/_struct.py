@@ -50,9 +50,9 @@ class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]
     v: A2[I]
     kind: T
 
-    def __init__(self, v: A2[I], type: T) -> None:  # noqa: A002
+    def __init__(self, v: A2[I], kind: T) -> None:
         object.__setattr__(self, "v", v)
-        object.__setattr__(self, "type", type)
+        object.__setattr__(self, "kind", kind)
 
     @property
     def n(self) -> int:
@@ -87,11 +87,11 @@ class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     v: A2[I]
     kind: B
 
-    def __init__(self, tag: int, k: A1[I], v: A2[I], type: B) -> None:  # noqa: A002
+    def __init__(self, tag: int, k: A1[I], v: A2[I], kind: B) -> None:
         object.__setattr__(self, "tag", tag)
         object.__setattr__(self, "k", k)
         object.__setattr__(self, "v", v)
-        object.__setattr__(self, "type", type)
+        object.__setattr__(self, "kind", kind)
 
     @property
     def n(self) -> int:

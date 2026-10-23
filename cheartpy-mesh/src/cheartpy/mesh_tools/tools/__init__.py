@@ -1,4 +1,4 @@
-from ._boundary import classify_boundary_patch
+from ._boundary import classify_boundary_patch, classify_boundary_patch_sparse
 from ._masks import change_mask
 from ._math import normalize_by_row, orthonormalize_by_row
 from ._merge import merge_cell_variables, merge_cheart_meshes, merge_point_variables
@@ -22,6 +22,7 @@ __all__ = [
     "build_element_searchmap",
     "change_mask",
     "classify_boundary_patch",
+    "classify_boundary_patch_sparse",
     "convert_connectivity_to_sparse_array",
     "create_index_permutation",
     "create_mesh_from_region",

@@ -6,11 +6,11 @@ from pytools.result import Err, Ok, Result
 from scipy.sparse import csc_array, csr_array
 
 if TYPE_CHECKING:
-    from pytools.arrays import A1, A2
+    from pytools.arrays import A1, A2, DType
 
 
 @dc.dataclass(slots=True, frozen=True, init=False)
-class ElementSparseMap[I: np.integer]:
+class ElementSparseMap:
     """Holds a transposed sparse matrix representation of the element connectivity.
 
     let:
@@ -28,18 +28,18 @@ class ElementSparseMap[I: np.integer]:
     """
 
     #: dimensions: [N, E]
-    v: csc_array[I]
+    v: csc_array[np.int8]
     #: number of nodes per element
     n_shape: int
 
     @overload
-    def __init__(self, v: ElementSparseMap[I]) -> None: ...
+    def __init__(self, v: ElementSparseMap) -> None: ...
     @overload
-    def __init__(self, v: csc_array[I], n_shape: int) -> None: ...
+    def __init__(self, v: csc_array[np.int8], n_shape: int) -> None: ...
     @overload
-    def __init__(self, v: A2[I]) -> None: ...
+    def __init__(self, v: A2[np.integer]) -> None: ...
     def __init__(
-        self, v: ElementSparseMap[I] | csc_array[I] | A2[I], n_shape: int | None = None
+        self, v: ElementSparseMap | csc_array[np.int8] | A2[np.integer], n_shape: int | None = None
     ) -> None:
         """Initialize the ElementSparseMap.
 
@@ -73,11 +73,7 @@ class ElementSparseMap[I: np.integer]:
                 msg = "Invalid input combination. Please respect overloads"
                 raise ValueError(msg)
 
-    @overload
-    def search_elements(self, elems: csr_array[I]) -> ElementSearchResult[I]: ...
-    @overload
-    def search_elements(self, elems: A2[I]) -> ElementSearchResult[I]: ...
-    def search_elements(self, elems: csr_array[I] | A2[I]) -> ElementSearchResult[I]:
+    def search_elements(self, elems: A2[np.integer]) -> ElementSearchResult:
         """Search for elements in the sparse map that contain the given elements.
 
         Parameters
@@ -94,17 +90,22 @@ class ElementSparseMap[I: np.integer]:
             of nodes shared between the two elements.
 
         """
-        elems = (
-            elems if isinstance(elems, csr_array) else convert_connectivity_to_sparse_array(elems)
+        csr = convert_connectivity_to_sparse_array(elems, nnodes=self.v.shape[0])
+        intersections = csr @ self.v
+        res = csr_array(
+            (
+                np.asarray(intersections.data == elems.shape[-1], np.int8),
+                intersections.indices,
+                intersections.indptr,
+            ),
+            shape=intersections.shape,
         )
-        res = elems @ self.v
-        res.data = (res.data == self.n_shape).astype(res.dtype)
         res.eliminate_zeros()
         return ElementSearchResult(res)
 
 
 @dc.dataclass(slots=True, frozen=True, init=False)
-class ElementSearchResult[I: np.integer]:
+class ElementSearchResult:
     """Holds the result of searching for elements in a sparse map.
 
     The non-zero entries indicate that element of subtopology (row) is contained in element of
@@ -112,21 +113,23 @@ class ElementSearchResult[I: np.integer]:
 
     """
 
-    v: csr_array[I]
+    v: csr_array[np.int8]
 
-    def __init__(self, result: csr_array[I]) -> None:
+    def __init__(self, v: csr_array[np.int8]) -> None:
         """Initialize the ElementSearchResult.
 
         Parameters
         ----------
-        result : csr_array[I]
+        v : csr_array[I]
             A sparse matrix of search results.
 
 
         """
-        object.__setattr__(self, "result", result)
+        object.__setattr__(self, "v", v)
 
-    def classify_element_relation(self, mask: A1[np.bool_] | None = None) -> A1[I]:
+    def classify_element_relation[I: np.integer](
+        self, *, mask: A1[np.bool_] | None = None, dtype: DType[I] = np.intc
+    ) -> A1[I]:
         """Return an array of integers.
 
         Value indicate the number of time the element of the subtopology can be found in the main
@@ -143,11 +146,13 @@ class ElementSearchResult[I: np.integer]:
 
         """
         if mask is None:
-            return np.asarray(np.diff(self.v.indptr), dtype=self.v.dtype)
+            return np.asarray(np.diff(self.v.indptr), dtype=dtype)
         masked_csr = _filter_csr_array_columns_by_mask(self.v, mask)
-        return np.asarray(np.diff(masked_csr.indptr), dtype=masked_csr.dtype)
+        return np.asarray(np.diff(masked_csr.indptr), dtype=dtype)
 
-    def get_master_elements(self, mask: A1[np.bool_] | None = None) -> Result[A1[I]]:
+    def get_master_elements[I: np.integer](
+        self, mask: A1[np.bool_] | None = None, *, fast: bool = False, dtype: DType[I] = np.intc
+    ) -> Result[A1[I]]:
         """Return the indices of the master elements in the main topology.
 
         Returns
@@ -158,11 +163,13 @@ class ElementSearchResult[I: np.integer]:
 
         """
         if mask is None:
-            return _find_master_element_from_search_result(self)
-        return _find_master_element_in_masked_region(self, mask)
+            return _find_master_element_from_search_result(self, fast=fast, dtype=dtype)
+        return _find_master_element_in_masked_region(self, mask, fast=fast, dtype=dtype)
 
 
-def convert_connectivity_to_sparse_array[I: np.integer](elem: A2[I]) -> csr_array[I]:
+def convert_connectivity_to_sparse_array[I: np.integer](
+    elem: A2[np.integer], nnodes: int | None = None
+) -> csr_array[np.int8]:
     """Create a sparse matrix representation of the element connectivity.
 
     Parameters
@@ -171,6 +178,13 @@ def convert_connectivity_to_sparse_array[I: np.integer](elem: A2[I]) -> csr_arra
         An array of shape (ne, n_nodes_per_elem) representing the element connectivity.
         Each row corresponds to an element and contains the global node indices for that element.
 
+    nnodes : int | None
+        The total number of nodes in the mesh. If not provided, it will be inferred from the maximum
+        node index in `elem`.
+
+    dtype : DType[I]
+        The data type of the sparse matrix. Defaults to np.int8.
+
     Returns
     -------
     ElementSparseMap[F]
@@ -178,16 +192,16 @@ def convert_connectivity_to_sparse_array[I: np.integer](elem: A2[I]) -> csr_arra
 
     """
     n_elem, n_basis = elem.shape
-    n_node = elem.max() + 1
-    row_ptr = np.arange(n_elem + 1, dtype=elem.dtype) * n_basis
+    n_node = nnodes or elem.max() + 1
+    row_ptr = np.arange(n_elem + 1) * n_basis
     col_idx = elem.ravel()
-    data = np.ones_like(col_idx, dtype=elem.dtype)
-    return csr_array((data, col_idx, row_ptr), shape=(n_elem, n_node), dtype=elem.dtype)
+    data = np.ones_like(col_idx, dtype=np.int8)
+    return csr_array((data, col_idx, row_ptr), shape=(n_elem, n_node), dtype=np.int8)
 
 
-def sparse_search_elements[I: np.integer](
-    sparse_map: ElementSparseMap[I] | A2[I], elems: A2[I]
-) -> ElementSearchResult[I]:
+def sparse_search_elements(
+    sparse_map: ElementSparseMap | A2[np.integer], elems: A2[np.integer]
+) -> ElementSearchResult:
     sparse_map = (
         sparse_map if isinstance(sparse_map, ElementSparseMap) else ElementSparseMap(sparse_map)
     )
@@ -195,7 +209,7 @@ def sparse_search_elements[I: np.integer](
 
 
 def _find_master_element_from_search_result[I: np.integer](
-    result: ElementSearchResult[I],
+    result: ElementSearchResult, *, fast: bool = False, dtype: DType[I] = np.intc
 ) -> Result[A1[I]]:
     """Return the indices of the master elements in the main topology.
 
@@ -203,6 +217,10 @@ def _find_master_element_from_search_result[I: np.integer](
     ----------
     result : ElementSearchResult[I]
         The result of searching for elements in a sparse map.
+    fast: bool
+        Skip checks.
+    dtype : DType[I]
+        The data type of the output array. Defaults to np.intc.
 
     Returns
     -------
@@ -211,15 +229,15 @@ def _find_master_element_from_search_result[I: np.integer](
         Each entry is the index of the master element in the main topology.
 
     """
-    if not np.all(result.classify_element_relation() == 1):
+    if not (fast and np.all(result.classify_element_relation() == 1)):
         msg = "Some of the elements are ambiguous. Please check with `classify_element_relation`."
         return Err(ValueError(msg))
-    return Ok(np.asarray(result.v.indices[result.v.indptr[:-1]], dtype=result.v.dtype))
+    return Ok(np.asarray(result.v.indices[result.v.indptr[:-1]], dtype=dtype))
 
 
 def _filter_csr_array_columns_by_mask[I: np.integer](
-    csr: csr_array[I], mask: A1[np.bool_]
-) -> csr_array[I]:
+    csr: csr_array[np.int8], mask: A1[np.bool_]
+) -> csr_array[np.int8]:
     """Filter the columns of a CSR array based on a boolean mask.
 
     Parameters
@@ -242,7 +260,11 @@ def _filter_csr_array_columns_by_mask[I: np.integer](
 
 
 def _find_master_element_in_masked_region[I: np.integer](
-    result: ElementSearchResult[I], mask: A1[np.bool_]
+    result: ElementSearchResult,
+    mask: A1[np.bool_],
+    *,
+    fast: bool = False,
+    dtype: DType[I] = np.intc,
 ) -> Result[A1[I]]:
     """Return the indices of the master elements in the main topology for a masked region.
 
@@ -253,6 +275,11 @@ def _find_master_element_in_masked_region[I: np.integer](
     mask : A1[np.bool_]
         A boolean array of shape (M,) where M is the number of elements in the subtopology.
         Each entry indicates whether the corresponding element is in the masked region.
+    fast : bool, optional
+        If True, assumes that all elements in the masked region are unambiguous and returns the
+        master elements directly. If False, checks for ambiguity and returns an error if any
+    dtype : DType[I], optional
+        The data type of the output array. Defaults to np.intc.
 
     Returns
     -------
@@ -263,4 +290,4 @@ def _find_master_element_in_masked_region[I: np.integer](
     """
     masked_csr = _filter_csr_array_columns_by_mask(result.v, mask)
     masked_result = ElementSearchResult(masked_csr)
-    return _find_master_element_from_search_result(masked_result).next()
+    return _find_master_element_from_search_result(masked_result, fast=fast, dtype=dtype).next()
