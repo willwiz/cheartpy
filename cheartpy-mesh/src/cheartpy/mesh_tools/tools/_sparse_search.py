@@ -127,7 +127,7 @@ class ElementSearchResult:
         """
         object.__setattr__(self, "v", v)
 
-    def classify_element_relation[I: np.integer](
+    def classify_element_relation[I: np.integer = np.intc](
         self, *, mask: A1[np.bool_] | None = None, dtype: DType[I] = np.intc
     ) -> A1[I]:
         """Return an array of integers.
@@ -150,7 +150,7 @@ class ElementSearchResult:
         masked_csr = _filter_csr_array_columns_by_mask(self.v, mask)
         return np.asarray(np.diff(masked_csr.indptr), dtype=dtype)
 
-    def get_master_elements[I: np.integer](
+    def get_master_elements[I: np.integer = np.intc](
         self, mask: A1[np.bool_] | None = None, *, fast: bool = False, dtype: DType[I] = np.intc
     ) -> Result[A1[I]]:
         """Return the indices of the master elements in the main topology.
