@@ -79,7 +79,7 @@ def split_subdomains[F: np.floating, I: np.integer](
         for k, ix in domain_emap.items()
     }
     x = np.concatenate([mesh.space.v[v.old] for v in domain_nmap.values()], axis=0)
-    top = CheartMeshTopology(v=np.full_like(mesh.top.v, -1), type=mesh.top.kind)
+    top = CheartMeshTopology(v=np.full_like(mesh.top.v, -1), kind=mesh.top.kind)
     for k, ix in domain_emap.items():
         top.v[ix] = domain_nmap[k].fwd[mesh.top.v[ix]]
     if np.any(top.v == -1):
@@ -123,7 +123,7 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         return Err(ValueError(f"Boundary {surf_id} not found in mesh"))
     perm = create_index_permutation(surface.v)
     space = CheartMeshSpace(mesh.space.v[perm.old])
-    top = CheartMeshTopology(v=perm.fwd[surface.v], type=surface.kind)
+    top = CheartMeshTopology(v=perm.fwd[surface.v], kind=surface.kind)
     if return_perm:
         return Ok((CheartMesh(space=space, top=top, bnd={}), perm))
     return Ok(CheartMesh(space=space, top=top, bnd={}))
@@ -156,7 +156,7 @@ def _filter_boundary_by_elements[F: np.floating, I: np.integer](
         tag=patch.tag,
         k=perm.fwd[patch.k[subset]],
         v=patch.v[subset],
-        type=patch.kind,
+        kind=patch.kind,
     )
 
 
@@ -187,7 +187,7 @@ def _filter_boundary_by_nodes[F: np.floating, I: np.integer](
         tag=patch.tag,
         k=np.array(list(patches.keys()), dtype=patch.k.dtype),
         v=np.array(list(patches.values()), dtype=patch.v.dtype),
-        type=patch.kind,
+        kind=patch.kind,
     )
 
 
@@ -240,7 +240,7 @@ def create_mesh_from_region[F: np.floating, I: np.integer](
     elements = mesh.top.v[e_index]
     perm = create_index_permutation(elements)
     space = CheartMeshSpace(v=mesh.space.v[perm.old])
-    top = CheartMeshTopology(v=perm.fwd[elements], type=mesh.top.kind)
+    top = CheartMeshTopology(v=perm.fwd[elements], kind=mesh.top.kind)
     if not mesh.bnd:
         return Ok(CheartMesh(space=space, top=top, bnd={}))
     if recalc:
@@ -248,7 +248,7 @@ def create_mesh_from_region[F: np.floating, I: np.integer](
     else:
         bnd_patches = {k: _filter_boundary_by_elements(v, e_index) for k, v in mesh.bnd.v.items()}
     bnd_patches = {
-        k: CheartMeshPatch(tag=v.tag, k=v.k, v=perm.fwd[v.v], type=v.kind)
+        k: CheartMeshPatch(tag=v.tag, k=v.k, v=perm.fwd[v.v], kind=v.kind)
         for k, v in bnd_patches.items()
         if v is not None
     }

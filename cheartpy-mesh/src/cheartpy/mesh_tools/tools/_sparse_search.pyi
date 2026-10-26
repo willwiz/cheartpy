@@ -24,10 +24,17 @@ class ElementSearchResult:
 
     def __init__(self, result: csr_array[np.int8]) -> None: ...
     def classify_element_relation[I: np.integer = np.intc](
-        self, *, mask: A1[np.bool_] | None = None, dtype: DType[I] = ...
+        self,
+        *,
+        mask: A1[np.bool_] | None = None,
+        dtype: DType[I] = np.intc,  # noqa: PYI011
     ) -> A1[I]: ...
     def get_master_elements[I: np.integer = np.intc](
-        self, mask: A1[np.bool_] | None = None, *, fast: bool = False, dtype: DType[I] = ...
+        self,
+        mask: A1[np.bool_] | None = None,
+        *,
+        fast: bool = False,
+        dtype: DType[I] = np.intc,  # noqa: PYI011
     ) -> Result[A1[I]]: ...
 
 def convert_connectivity_to_sparse_array[I: np.integer](

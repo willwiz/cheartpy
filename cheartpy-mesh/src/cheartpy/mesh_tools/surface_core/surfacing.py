@@ -157,7 +157,7 @@ def find_surface_in_mesh[F: np.floating, I: np.integer](
         return None
     k = np.array(list(patchs.keys()), dtype=dtype)
     v = np.array(list(patchs.values()), dtype=dtype)
-    return CheartMeshPatch(tag=label, k=k, v=v, type=bnd.kind)
+    return CheartMeshPatch(tag=label, k=k, v=v, kind=bnd.kind)
 
 
 def create_new_surface_in_mesh[F: np.floating, I: np.integer](

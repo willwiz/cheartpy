@@ -94,11 +94,12 @@ class ElementSparseMap:
         intersections = csr @ self.v
         res = csr_array(
             (
-                np.asarray(intersections.data == elems.shape[-1], np.int8),
+                intersections.data == elems.shape[-1],
                 intersections.indices,
                 intersections.indptr,
             ),
             shape=intersections.shape,
+            dtype=np.int8,
         )
         res.eliminate_zeros()
         return ElementSearchResult(res)

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, cast
 
 import numpy as np
 from cheartpy.io import chwrite
-from cheartpy.mesh import CheartMesh, CheartMeshBoundary, CheartMeshSpace, CheartMeshTopology
+from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools import create_index_permutation
 from cheartpy.mesh_tools.tools import (
     ElemSearchMap,
@@ -69,8 +69,8 @@ def create_mesh_for_cl_node[F: np.floating, I: np.integer](
     connectivity = mesh.top.v[elements]
     perm = create_index_permutation(connectivity)
     new_x = CheartMeshSpace(mesh.space.v[perm.old])
-    new_top = CheartMeshTopology(v=perm.fwd[connectivity], type=mesh.top.kind)
-    return CheartMesh(space=new_x, top=new_top, bnd=CheartMeshBoundary[I]({}))
+    new_top = CheartMeshTopology(v=perm.fwd[connectivity], kind=mesh.top.kind)
+    return CheartMesh(space=new_x, top=new_top, bnd={})
 
 
 def create_centerline_nodal_meshes[F: np.floating, I: np.integer](

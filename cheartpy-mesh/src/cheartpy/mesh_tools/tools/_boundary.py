@@ -44,7 +44,7 @@ def classify_boundary_patch[I: np.integer](
 
 
 def classify_boundary_patch_sparse[I: np.integer](
-    search_map: ElementSparseMap[I], patch: CheartMeshPatch[I]
+    search_map: ElementSparseMap, patch: CheartMeshPatch[I]
 ) -> A1[I]:
     t0 = perf_counter()
     matchs = search_map.search_elements(patch.v).classify_element_relation()
@@ -58,4 +58,4 @@ def classify_boundary_patch_sparse[I: np.integer](
         types=kinds.tolist(),
         time=t1 - t0,
     )
-    return matchs
+    return np.asarray(matchs, dtype=patch.v.dtype)

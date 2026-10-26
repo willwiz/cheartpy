@@ -157,7 +157,7 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
     print(f"Vtk type: {vtk_type}, reorder: {perm}")
     return CheartMeshTopology(
         v=np.ascontiguousarray(top.conn[:, perm] - 1, dtype=dtype),
-        type=vtk_type,
+        kind=vtk_type,
     )
 
 
@@ -169,7 +169,7 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
         tag=tag,
         k=bnd.e - 1,
         v=np.ascontiguousarray(bnd.conn[:, perm] - 1, dtype=dtype),
-        type=vtk_type,
+        kind=vtk_type,
     )
 
 

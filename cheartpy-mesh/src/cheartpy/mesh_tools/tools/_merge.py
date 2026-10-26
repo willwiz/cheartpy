@@ -89,8 +89,8 @@ def _create_interface_mesh[F: np.floating, I: np.integer](
         msg = "Logic error: element missing from mask. Check with developer"
         return Err(ValueError(msg))
     interface_x = CheartMeshSpace(v=np.array(list(perms.elem.keys()), dtype=ftype))
-    interface_t = CheartMeshTopology(v=mask, type=CheartEnum.VERTEX)
-    return Ok(CheartMesh(space=interface_x, top=interface_t, bnd=CheartMeshBoundary[I]({})))
+    interface_t = CheartMeshTopology(v=mask, kind=CheartEnum.VERTEX)
+    return Ok(CheartMesh(space=interface_x, top=interface_t, bnd={}))
 
 
 def _create_new_mesh[F: np.floating, I: np.integer](
@@ -106,14 +106,14 @@ def _create_new_mesh[F: np.floating, I: np.integer](
         new_t[p.new] = perms.node[k].fwd[meshes[k].top.v[p.old]]
     new_patches = {
         tag: CheartMeshPatch(
-            tag=tag, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], type=b.kind
+            tag=tag, k=perms.elem[k].fwd[b.k], v=perms.node[k].fwd[b.v], kind=b.kind
         )
         for k, m in meshes.items()
         for tag, b in m.bnd.v.items()
     }
     return CheartMesh(
         space=CheartMeshSpace(v=new_x),
-        top=CheartMeshTopology(v=new_t, type=data.elem),
+        top=CheartMeshTopology(v=new_t, kind=data.elem),
         bnd=CheartMeshBoundary(v=new_patches),
     )
 
