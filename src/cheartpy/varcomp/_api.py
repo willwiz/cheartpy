@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Unpack
 
-from cheartpy.io import chread_d
 from pytools.logging import get_logger
+
+from cheartpy.io import chread_d
 
 from ._stats import compute_stats, table_row
 from ._var_getters import create_argument_list, parse_variable_input

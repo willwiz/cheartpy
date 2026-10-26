@@ -17,7 +17,6 @@ license = "MIT"
 dependencies = [
     "pytools>=1.2.0a",
     "numpy",
-    "cheartpy-io",
     "cheartpy-vtk",
     "pydantic",
     "scipy-stubs[scipy]",

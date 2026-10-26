@@ -107,9 +107,8 @@ wheels = [
 [[package]]
 name = "cheartpy"
 version = "1.3.0a0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
-    { name = "cheartpy-io" },
     { name = "meshio" },
     { name = "numpy" },
     { name = "pytools" },
@@ -124,7 +123,6 @@ all = [
     { name = "cheartpy-cl" },
     { name = "cheartpy-fe" },
     { name = "cheartpy-gmsh" },
-    { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-paraview" },
     { name = "cheartpy-vtk" },
@@ -146,11 +144,11 @@ paraview = [
 [package.dev-dependencies]
 dev = [
     { name = "attrs" },
+    { name = "cheartpy" },
     { name = "cheartpy-abaqus" },
     { name = "cheartpy-cl" },
     { name = "cheartpy-fe" },
     { name = "cheartpy-gmsh" },
-    { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-paraview" },
     { name = "cheartpy-symbolic" },
@@ -170,8 +168,6 @@ requires-dist = [
     { name = "cheartpy-fe", marker = "extra == 'all'", editable = "cheartpy-fe" },
     { name = "cheartpy-fe", marker = "extra == 'fe'", editable = "cheartpy-fe" },
     { name = "cheartpy-gmsh", marker = "extra == 'all'", editable = "cheartpy-gmsh" },
-    { name = "cheartpy-io", editable = "cheartpy-io" },
-    { name = "cheartpy-io", marker = "extra == 'all'", editable = "cheartpy-io" },
     { name = "cheartpy-mesh", marker = "extra == 'all'", editable = "cheartpy-mesh" },
     { name = "cheartpy-mesh", marker = "extra == 'fe'", editable = "cheartpy-mesh" },
     { name = "cheartpy-mesh", marker = "extra == 'mesh'", editable = "cheartpy-mesh" },
@@ -190,11 +186,11 @@ provides-extras = ["all", "mesh", "paraview", "abaqus", "fe"]
 [package.metadata.requires-dev]
 dev = [
     { name = "attrs", specifier = ">=26.1.0" },
+    { name = "cheartpy", editable = "." },
     { name = "cheartpy-abaqus", editable = "cheartpy-abaqus" },
     { name = "cheartpy-cl", editable = "cheartpy-cl" },
     { name = "cheartpy-fe", editable = "cheartpy-fe" },
     { name = "cheartpy-gmsh", editable = "cheartpy-gmsh" },
-    { name = "cheartpy-io", editable = "cheartpy-io" },
     { name = "cheartpy-mesh", editable = "cheartpy-mesh" },
     { name = "cheartpy-paraview", editable = "cheartpy-paraview" },
     { name = "cheartpy-symbolic", editable = "cheartpy-symbolic" },
@@ -211,7 +207,6 @@ name = "cheartpy-abaqus"
 version = "0.0.1"
 source = { editable = "cheartpy-abaqus" }
 dependencies = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
     { name = "optype", extra = ["numpy"] },
@@ -221,7 +216,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
     { name = "optype", extras = ["numpy"] },
@@ -255,7 +249,6 @@ name = "cheartpy-fe"
 version = "0.0.1"
 source = { editable = "cheartpy-fe" }
 dependencies = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -265,7 +258,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -278,7 +270,6 @@ name = "cheartpy-gmsh"
 version = "0.0.1"
 source = { editable = "cheartpy-gmsh" }
 dependencies = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
     { name = "gmsh-stubs", extra = ["gmsh"] },
@@ -289,7 +280,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-mesh" },
     { name = "cheartpy-vtk" },
     { name = "gmsh-stubs", extras = ["gmsh"], git = "https://github.com/willwiz/gmsh-stubs.git" },
@@ -299,26 +289,10 @@ requires-dist = [
 ]
 
 [[package]]
-name = "cheartpy-io"
-version = "0.0.1"
-source = { editable = "cheartpy-io" }
-dependencies = [
-    { name = "numpy" },
-    { name = "pytools" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "numpy" },
-    { name = "pytools", specifier = ">=1.2.0a0" },
-]
-
-[[package]]
 name = "cheartpy-mesh"
 version = "0.0.1"
 source = { editable = "cheartpy-mesh" }
 dependencies = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "meshio" },
     { name = "numpy" },
@@ -329,7 +303,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "meshio" },
     { name = "numpy" },
@@ -343,7 +316,6 @@ name = "cheartpy-paraview"
 version = "1.2.1a0"
 source = { editable = "cheartpy-paraview" }
 dependencies = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
     { name = "pydantic" },
@@ -352,7 +324,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cheartpy-io" },
     { name = "cheartpy-vtk" },
     { name = "numpy" },
     { name = "pydantic" },

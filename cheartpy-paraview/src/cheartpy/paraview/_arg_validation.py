@@ -1,5 +1,9 @@
 from typing import TYPE_CHECKING, NamedTuple, TypedDict, Unpack
 
+from pytools.logging import LogEnum
+from pytools.parallel import ThreadMethods
+from pytools.result import Err, Ok, Result, all_ok
+
 from cheartpy.search import (
     DynamicFile,
     FileVariable,
@@ -7,9 +11,6 @@ from cheartpy.search import (
     create_indexer,
     get_file_type,
 )
-from pytools.logging import LogEnum
-from pytools.parallel import ThreadMethods
-from pytools.result import Err, Ok, Result, all_ok
 
 from ._headers import compose_index_info, format_input_info
 from ._struct import ProgramArgs

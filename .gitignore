@@ -24,3 +24,9 @@ wheels/
 
 #temporory files
 temp_*.py
+/*.X
+/*.T
+/*.B
+/*.vtu
+/*.D
+/*.inp
