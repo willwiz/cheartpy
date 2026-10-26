@@ -6,9 +6,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import numpy as np
-    from cheartpy.search import SearchMode
     from pytools.arrays import DType
     from pytools.logging import LogEnum, LogLevel
+
+    from cheartpy.search import SearchMode
 
 SubparserModes = Literal["index", "find"]
 

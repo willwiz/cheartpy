@@ -23,10 +23,10 @@ release = "1.3.0a"
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_autodoc_typehints"]
 autodoc_typehints = "both"
-autodoc_type_aliases = {
-    "Path": "pathlib.Path",
-}
-autodoc_typehints_ignore_names = ["Path", "pathlib.Path"]
+# autodoc_type_aliases = {
+#     "Path": "pathlib.Path",
+# }
+# autodoc_typehints_ignore_names = ["Path", "pathlib.Path"]
 templates_path = ["_templates"]
 exclude_patterns = ["**/_*"]
 # -- Options for HTML output -------------------------------------------------
@@ -35,9 +35,12 @@ exclude_patterns = ["**/_*"]
 html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
+print("Adding ...", str(Path(__file__).resolve().parent.parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 for f in Path(__file__).resolve().parent.parent.parent.glob("cheartpy-*/src"):
     if not f.is_dir():
         continue
+    print("Adding ...", str(f.resolve()))
     sys.path.insert(0, str(f.resolve()))
 
 

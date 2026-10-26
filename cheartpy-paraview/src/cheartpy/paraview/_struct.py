@@ -10,9 +10,10 @@ from cheartpy.elem_interfaces import CheartEnum, get_boundary_element, guess_ele
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.search import FileType
     from pytools.arrays import A2, DType
     from pytools.parallel import ThreadMethods
+
+    from cheartpy.search import FileType
 
 
 @dc.dataclass(slots=True, frozen=True)

@@ -135,10 +135,20 @@ class ElementSearchResult:
 
         Value indicate the number of time the element of the subtopology can be found in the main
         topology:
-            0: element of subtopology is not found in main topology
-            1: element of subtopology is likely a boundary element of main topology
-            2: element of subtopology is likely an interior element of main topology
-            >2: element of subtopology is likely a duplicate element of main topology
+
+            - 0: element of subtopology is not found in main topology
+            - 1: element of subtopology is likely a boundary element of main topology
+            - 2: element of subtopology is likely an interior element of main topology
+            - >2: element of subtopology is likely a duplicate element of main topology
+
+        Parameters
+        ----------
+        mask : A1[np.bool_] | None
+            A boolean array of shape (M,) where M is the number of elements in the subtopology.
+            Each entry indicates whether the corresponding element is in the masked region.
+            If None, all elements are considered. Defaults to None.
+        dtype : DType[I]
+            The data type of the output array. Defaults to np.intc.
 
         Returns
         -------

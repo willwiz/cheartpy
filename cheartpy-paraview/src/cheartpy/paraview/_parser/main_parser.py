@@ -2,9 +2,10 @@ import argparse
 from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, Unpack
 
+from pytools.logging import LogEnum
+
 from cheartpy.io import fix_ch_sfx
 from cheartpy.search import SearchMode
-from pytools.logging import LogEnum
 
 from ._find import find_subparser
 from ._index import index_subparser

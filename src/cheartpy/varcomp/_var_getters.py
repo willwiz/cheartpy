@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import TYPE_CHECKING, Final, NamedTuple
 
-from cheartpy.search import get_var_index
 from pytools.result import Err, Ok, Result
+
+from cheartpy.search import get_var_index
 
 from ._traits import IVariableGenerator
 

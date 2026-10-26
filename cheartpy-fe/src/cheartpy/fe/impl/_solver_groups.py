@@ -23,7 +23,7 @@ from cheartpy.fe.trait import (
 from cheartpy.fe.utils import get_enum, join_fields, splicegen
 from pytools.result import Err, Ok
 
-from .tools import recurse_get_var_list_expr, recurse_get_var_list_var
+from ._tools import recurse_get_var_list_expr, recurse_get_var_list_var
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence, ValuesView

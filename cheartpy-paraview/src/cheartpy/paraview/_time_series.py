@@ -3,10 +3,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Final, cast
 
 import numpy as np
-from cheartpy.io import chread_time_utf
-from cheartpy.search import get_var_index
 from pytools.logging import get_logger
 from pytools.result import Err, Ok
+
+from cheartpy.io import chread_time_utf
+from cheartpy.search import get_var_index
 
 from ._headers import header_guard
 

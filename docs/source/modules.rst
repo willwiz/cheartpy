@@ -11,13 +11,14 @@ cheartpy
    cheartpy.symbolic
    cheartpy.abaqus
    cheartpy.cl
+   cheartpy.varcomp
    cheartpy.cmd_tools
    cheartpy.fe
    cheartpy.time_stepping
    cheartpy.gmsh
-   cheartpy.io
    cheartpy.cheart_parsing
    cheartpy.search
+   cheartpy.io
    cheartpy.mesh
    cheartpy.mesh_tools
    cheartpy.meshing

@@ -3,10 +3,8 @@ from typing import TYPE_CHECKING, Protocol, Unpack
 from cheartpy.io import fix_ch_sfx
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from pathlib import Path
-if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
+    from pathlib import Path
 
     from ._parsing import AbaqusAPIKwargs
 

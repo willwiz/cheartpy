@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
+
 from cheartpy.io import chread_d
 
 if TYPE_CHECKING:

@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
-from cheartpy.io import chread_d, chwrite_d_utf
 from cheartpy.mesh import import_cheart_mesh
 
 import gmsh
+from cheartpy.io import chread_d, chwrite_d_utf
 
 from ._reader import read_cheartmesh_into_gmsh_api
 from ._writer import build_cheart_mesh_from_gmsh

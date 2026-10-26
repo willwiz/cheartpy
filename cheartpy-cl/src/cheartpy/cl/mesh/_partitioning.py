@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Literal, TypedDict, Unpack, cast
 
 import numpy as np
-from cheartpy.io import chwrite
 from cheartpy.mesh import CheartMesh, CheartMeshSpace, CheartMeshTopology
 from cheartpy.mesh_tools import create_index_permutation
 from cheartpy.mesh_tools.tools import (
@@ -12,6 +11,8 @@ from cheartpy.mesh_tools.tools import (
     merge_cheart_meshes,
 )
 from pytools.result import Err, Ok
+
+from cheartpy.io import chwrite
 
 from ._types import CLPartition
 

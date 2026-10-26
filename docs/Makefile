@@ -17,7 +17,8 @@ help:
 # New recipe to automate the blueprint generation step across all subfolders
 api-blueprints:
 	@echo "Generating API blueprints for cheartpy namespace components..."
-	@rm -f $(SOURCEDIR)/cheartpy.*.rst
+	@rm -f $(SOURCEDIR)/cheartpy*.rst
+	@sphinx-apidoc --implicit-namespaces -o "$(SOURCEDIR)" ../src/cheartpy;
 	@for dir in ../cheartpy-*/src/cheartpy/; do \
 		if [ -d "$$dir" ]; then \
 			echo "-> Scanning: $$dir"; \
