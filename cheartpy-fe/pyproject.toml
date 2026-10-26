@@ -36,5 +36,4 @@ namespace = true
 [project.scripts]
 chsolve = "cheartpy.cmd_tools.cli:solver_cli"
 chprep = "cheartpy.cmd_tools.cli:prep_cli"
-varcomp = "cheartpy.cmd_tools.varcomp:varcomp_cli"
 parse_pfile = "cheartpy.cheart_parsing.pfile:parse_pfile_cli"

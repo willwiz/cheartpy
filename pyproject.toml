@@ -74,3 +74,6 @@ dev = [
     "attrs>=26.1.0",
     "sphinx-autodoc-typehints>=3.17.2",
 ]
+
+[project.scripts]
+chvcmp = "cheartpy.varcomp:varcomp_cli"
