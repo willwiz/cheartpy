@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.10.9,<0.11"]
+requires = ["uv_build>=0.10.9,<0.13.1"]
 build-backend = "uv_build"
 
 [project]
@@ -9,15 +9,28 @@ authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 requires-python = ">=3.12"
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "Operating System :: Linux",
-  "Development Status :: 0 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Operating System :: Linux",
+    "Development Status :: 0 - Alpha",
 ]
 license = "MIT"
-dependencies = ["pytools>=1.2.0a", "numpy", "cheartpy-io", "cheartpy-vtk", "pydantic", "scipy-stubs[scipy]"]
+dependencies = [
+    "pytools>=1.2.0a",
+    "numpy",
+    "cheartpy-io",
+    "cheartpy-vtk",
+    "pydantic",
+    "scipy-stubs[scipy]",
+]
 
 [tool.uv.build-backend]
-module-name = ["cheartpy.fe", "cheartpy.cmd_tools", "cheartpy.time_stepping", "cheartpy.cheart_parsing", "cheartpy.examples"]
+module-name = [
+    "cheartpy.fe",
+    "cheartpy.cmd_tools",
+    "cheartpy.time_stepping",
+    "cheartpy.cheart_parsing",
+    "cheartpy.examples",
+]
 namespace = true
 
 [project.scripts]

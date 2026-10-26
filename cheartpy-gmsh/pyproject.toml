@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.10.9,<0.11.0"]
+requires = ["uv_build>=0.10.9,<0.13.1"]
 build-backend = "uv_build"
 
 [project]
@@ -9,19 +9,19 @@ authors = [{ name = "Will Zhang", email = "willwz@gmail.com" }]
 description = "Python module for creating Cheart pfiles and executing them."
 requires-python = ">=3.12"
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: MIT License",
-  "Operating System :: Linux",
-  "Development Status :: 0 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Linux",
+    "Development Status :: 0 - Alpha",
 ]
 dependencies = [
-  "pytools >= 1.2.0a",
-  "optype[numpy]",
-  "cheartpy-mesh",
-  "cheartpy-io",
-  "cheartpy-vtk",
-  "pydantic",
-  "gmsh-stubs[gmsh]",
+    "pytools >= 1.2.0a",
+    "optype[numpy]",
+    "cheartpy-mesh",
+    "cheartpy-io",
+    "cheartpy-vtk",
+    "pydantic",
+    "gmsh-stubs[gmsh]",
 ]
 [tool.uv.build-backend]
 module-name = "cheartpy.gmsh"

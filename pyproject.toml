@@ -29,7 +29,7 @@ all = [
     "cheartpy-gmsh",
 ]
 mesh = ["cheartpy-mesh"]
-vtu = ["cheartpy-mesh", "cheartpy-paraview"]
+paraview = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-vtk"]
 abaqus = ["cheartpy-abaqus"]
 fe = ["cheartpy-mesh", "cheartpy-paraview", "cheartpy-fe"]
 
