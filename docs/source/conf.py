@@ -23,16 +23,25 @@ release = "1.3.0a"
 
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.napoleon",
 ]
-autodoc_typehints = "both"
-# autodoc_type_aliases = {
-#     "Path": "pathlib.Path",
-# }
+autodoc_typehints = "description"
+autodoc_typehints_format = "short"
+autodoc_type_aliases = {
+    "Result": "pytools.result.Result",
+    # Add any other ambiguous generic types here if needed
+}
 # autodoc_typehints_ignore_names = ["Path", "pathlib.Path"]
+autodoc_default_options = {
+    # "members": True,
+    # "undoc-members": True,
+    # "show-inheritance": True,
+    # "imported-members": True,
+}
 templates_path = ["_templates"]
 exclude_patterns = ["**/_*"]
+always_document_param_types = True
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -49,20 +58,19 @@ for f in Path(__file__).resolve().parent.parent.parent.glob("cheartpy-*/src"):
 
 
 # ruff: ignore[ARG001, ANN401, FBT001, PLR0913, PLR0917]
-def skip_hyphenated_typeddict_keys(
+def custom_autodoc_skip_member(
     app: Sphinx,
     what: Literal["module", "class", "exception", "function", "method", "attribute", "data"],
     name: str,
     obj: Any,
     skip: bool,
     options: Any,
-) -> bool | None:
+) -> bool:
     """Filter out hyphenated dictionary keys to prevent signature parsing errors."""
     if "-" in name:
         return True  # Instruct autodoc to skip generating an autoattribute signature
-    return None  # Fall back to Sphinx default behavior for other items
+    return skip  # Fall back to default behavior for all other items
 
 
 def setup(app: Sphinx) -> None:
-    """Connect custom event handlers to the Sphinx application instance."""
-    app.connect("autodoc-skip-member", skip_hyphenated_typeddict_keys)
+    app.connect("autodoc-skip-member", custom_autodoc_skip_member)

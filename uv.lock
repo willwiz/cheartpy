@@ -185,7 +185,7 @@ provides-extras = ["all", "mesh", "paraview", "abaqus", "fe"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "attrs", specifier = ">=26.1.0" },
+    { name = "attrs" },
     { name = "cheartpy", editable = "." },
     { name = "cheartpy-abaqus", editable = "cheartpy-abaqus" },
     { name = "cheartpy-cl", editable = "cheartpy-cl" },
@@ -195,11 +195,11 @@ dev = [
     { name = "cheartpy-paraview", editable = "cheartpy-paraview" },
     { name = "cheartpy-symbolic", editable = "cheartpy-symbolic" },
     { name = "cheartpy-vtk", editable = "cheartpy-vtk" },
-    { name = "myst-parser", specifier = ">=5.1.0" },
+    { name = "myst-parser" },
     { name = "pytest" },
-    { name = "sphinx", specifier = ">=9.2.0" },
-    { name = "sphinx-autodoc-typehints", specifier = ">=3.17.2" },
-    { name = "sphinx-rtd-theme", specifier = ">=3.1.0" },
+    { name = "sphinx" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-rtd-theme" },
 ]
 
 [[package]]

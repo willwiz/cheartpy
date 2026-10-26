@@ -6,8 +6,6 @@ if TYPE_CHECKING:
 
     from pytools.logging import LogLevel
 
-__all__ = []
-
 
 class AbaqusAPIArgs(TypedDict, total=True):
     """Positional arguments for Abaqus Converter API functions."""
@@ -16,8 +14,6 @@ class AbaqusAPIArgs(TypedDict, total=True):
 
 
 class AbaqusAPIKwargs(TypedDict, total=False):
-    """Keyword arguments for Abaqus Converter API functions."""
-
     topology: Required[Sequence[str]]
     boundary: Mapping[int, Sequence[str]] | None
     masks: Mapping[str, tuple[str, Sequence[str]]] | None

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Unpack
+from typing import TYPE_CHECKING, Unpack, overload
 
 from pytools.logging import get_logger
 
@@ -20,7 +20,40 @@ def table_header() -> str:
     return header + "\n" + ("─" * len(header))
 
 
+@overload
+def varcomp_api(var1: str, **kwargs: Unpack[VarCompAPIKwargs]) -> None: ...
+@overload
+def varcomp_api(var1: str, var2: str, **kwargs: Unpack[VarCompAPIKwargs]) -> None: ...
 def varcomp_api(var1: str, var2: str | None = None, **kwargs: Unpack[VarCompAPIKwargs]) -> None:
+    """Compare two variables and print the results to the console.
+
+    Parameters
+    ----------
+    var1 : str
+        The first variable to compare.
+    var2 : str, optional
+        The second variable to compare. Default to var1 if not provided.
+    **kwargs : Unpack[VarCompAPIKwargs]
+        Additional keyword arguments for configuration.
+
+    Kwargs
+    ------
+    root_1 : Path
+        The root directory for the first variable. Defaults to the current working directory.
+    root_2 : Path
+        The root directory for the second variable. Optional. Defaults to root_1.
+    log_level : LogLevel
+        The logging level for the output. Defaults to "INFO". Choices:
+
+        - "DEBUG"
+        - "INFO"
+        - "BRIEF"
+        - "WARN"
+        - "ERROR"
+        - "FATAL"
+        - "NULL"
+
+    """
     log = get_logger(level=(kwargs.get("log_level") or "INFO"))
     var2 = var2 or var1
     root_1 = kwargs.get("root_1") or kwargs.get("root_2") or Path.cwd()

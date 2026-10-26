@@ -18,11 +18,12 @@ def mean_cylindrical_position[F: np.floating](
     """Return the cylindrical coordinates mapped from the cartesian coordinates.
 
     Difference in Angle between two vectors is more robustly given by:
-    arctan( |a x b|, a . b )
+    arctan( |a cross b|, a . b )
     This is also equation have the angular dimension of the element
     For C1 continuity, the center node for elements are not place at the radius but rather
     r(q/2) = r(0|q) * (3 + cos(2 * dq))/ (4 * cos(dq))
     this converges to r with element refinement.
+
     """
     cq = cosine.mean()
     sq = sine.mean()

@@ -50,6 +50,7 @@ def _double_up_ramp[F: np.floating](
         /
       /
     /
+
     """
     if (
         compute_total_expected_ramp_time(
@@ -137,6 +138,7 @@ def _trapazoid_up[F: np.floating](
     /         \
                \
                 \
+
     """
     left_duration = compute_total_expected_ramp_time(step_sizes["left"], step_sizes["desired"], ddt)
     right_duration = compute_total_expected_ramp_time(
