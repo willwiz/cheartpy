@@ -21,7 +21,11 @@ release = "1.3.0a"
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon", "sphinx_autodoc_typehints"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+    "sphinx_autodoc_typehints",
+]
 autodoc_typehints = "both"
 # autodoc_type_aliases = {
 #     "Path": "pathlib.Path",
