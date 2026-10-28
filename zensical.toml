@@ -37,7 +37,6 @@ modules = [
 # Use module_options with a ".*" wildcard regex string key to force the parameters
 # down into the auto-generated code pages.
 [project.plugins.api-autonav.module_options.".*"]
-members = true
 inherited_members = true
 show_root_heading = true
 show_root_toc_entry = true
