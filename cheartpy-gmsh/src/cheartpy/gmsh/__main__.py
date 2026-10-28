@@ -6,7 +6,7 @@ import numpy as np
 from cheartpy.mesh import import_cheart_mesh
 
 import gmsh
-from cheartpy.io import chread_d, chwrite_d_utf
+from cheartpy.io import chread, chwrite
 
 from ._reader import read_cheartmesh_into_gmsh_api
 from ._writer import build_cheart_mesh_from_gmsh
@@ -41,7 +41,7 @@ def export_mesh(tags: GmshMeshTags, filename: Path) -> None:
             # mesh = fix_tetra_mesh(mesh).unwrap()
             mesh.save(filename.stem)
             if mask is not None:
-                chwrite_d_utf(filename.parent / f"{filename.stem}_mask-0.D", mask)
+                chwrite(filename.parent / f"{filename.stem}_mask-0.D", mask)
         case _:
             msg = f"Unsupported file format: {filename.suffix}"
             raise ValueError(msg)
@@ -52,7 +52,7 @@ def import_to_gmsh[I: np.integer](
 ) -> None:
     mesh = import_cheart_mesh(file).unwrap()
     # mesh = fix_tetra_mesh(mesh).unwrap()
-    mask = chread_d(domains, dtype=mesh.top.v.dtype).flatten() if domains else None
+    mask = chread(domains, dtype=mesh.top.v.dtype).flatten() if domains else None
     gmsh.initialize()
     tags = read_cheartmesh_into_gmsh_api(mesh, mask=mask, optimize=optimize)
     if save:

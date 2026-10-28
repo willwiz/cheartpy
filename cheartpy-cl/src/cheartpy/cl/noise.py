@@ -2,9 +2,10 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from cheartpy.io import chread_d, chwrite_d_utf
 from pytools.result import Err, Ok
 from scipy.interpolate import interpn
+
+from cheartpy.io import chread, chwrite
 
 if TYPE_CHECKING:
     from cheartpy.mesh import CheartMesh
@@ -57,9 +58,9 @@ def update_disp_w_noise[F: np.floating](
     bc_w: A1[F] | None = None,
 ) -> None:
     noise = create_noise(mag, cl, normal, bc_w=bc_w)
-    disp = chread_d(f"{prefix}") + noise
-    chwrite_d_utf(f"{prefix}", disp)
-    chwrite_d_utf(f"{prefix}", disp)
+    disp = chread(f"{prefix}") + noise
+    chwrite(f"{prefix}", disp)
+    chwrite(f"{prefix}", disp)
 
 
 def find_neighbours[F: np.floating, I: np.integer](

@@ -213,3 +213,8 @@
     padding-bottom: 0;
     line-height: 1.2;
 }
+
+/* Keep the right-hand TOC focused on top-level sections */
+.md-sidebar--secondary .md-nav__item .md-nav__item {
+    display: none;
+}

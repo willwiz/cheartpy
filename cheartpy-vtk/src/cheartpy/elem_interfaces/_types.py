@@ -3,10 +3,22 @@ from collections.abc import Mapping
 from typing import Literal, NamedTuple
 
 type NodeOrder = Mapping[int, tuple[int, int, int]]
+"""Mapping of the i-th node to its reference coordinate tuple.
+
+This is useful for determining node ordering of different standards, such as VTK, Cheart, Abaqus,
+and Gmsh. The absolute reference position must be the same, i.e., for a linear triangle, the
+coordinates are (0,0,0), (1,0,0), and (0,1,0) for the three nodes. We can used this ordering to
+map between different standards
+
+"""
 type VtkShape = Literal["Vertex", "Line", "Triangle", "Quadrilateral", "Tetrahedron", "Hexahedron"]
 
 type ElemType = Literal["Cheart", "Vtk", "Abaqus", "Gmsh"]
 type ElemEnum = CheartEnum | VtkEnum | AbaqusEnum | GmshEnum
+"""SumType for Any Element Type Enum.
+Currently can be one of CheartEnum, VtkEnum, AbaqusEnum, or GmshEnum.
+
+"""
 
 
 class _VtkElem(NamedTuple):

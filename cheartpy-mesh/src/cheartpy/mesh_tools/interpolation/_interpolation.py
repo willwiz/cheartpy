@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 
 import numpy as np
-from cheartpy.io import chread_d, chwrite_d_utf
+from cheartpy.io import chread, chwrite
 from pytools.logging import ILogger, get_logger
 
 from ._maps import L2QMAPDICT, L2QTYPEDICT
@@ -67,7 +67,7 @@ def export_quad_var_from_lin[I: np.integer](
     quad_var: Path,
     **kwargs: Unpack[InterpolatKwargs],
 ) -> None:
-    lin = chread_d(lin_var)
+    lin = chread(lin_var)
     log = kwargs.get("log", get_logger())
     overwrite = kwargs.get("overwrite", False)
     if len(lin) == len(l2qmap):
@@ -77,4 +77,4 @@ def export_quad_var_from_lin[I: np.integer](
         log.debug(f"Variable {lin_var} already interpolated")
         return
     quad = interp_var_l2q(l2qmap, lin)
-    chwrite_d_utf(quad_var, quad)
+    chwrite(quad_var, quad, fmt="D")

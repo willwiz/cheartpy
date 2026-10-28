@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from cheartpy.io import chread_d
+from cheartpy.io import chread
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -28,5 +28,5 @@ def import_region_mask[I: np.integer](file: Path, dtype: DType[I] = np.intp) -> 
 
     """
     # Implementation goes here
-    mask = chread_d(file, dtype=dtype).flatten()
+    mask = chread(file, dtype=dtype).flatten()
     return {k: np.nonzero(mask == k)[0].astype(dtype, copy=False) for k in np.unique(mask)}

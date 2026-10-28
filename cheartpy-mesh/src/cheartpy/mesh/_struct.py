@@ -9,9 +9,7 @@ import numpy as np
 from cheartpy.elem_interfaces import CheartEnum
 from cheartpy.io import (
     check_for_meshes,
-    chwrite_d_utf,
-    chwrite_iarr_utf,
-    chwrite_t_utf,
+    chwrite,
     fix_ch_sfx,
 )
 
@@ -45,6 +43,11 @@ class CheartMeshSpace[F: np.floating = np.floating]:
     n : int
         Number of nodes in the mesh.
 
+    Methods
+    -------
+    save(name: Path | str)
+        Saves the spatial coordinates to a file with the given name.
+
     """
 
     v: A2[F]
@@ -58,7 +61,7 @@ class CheartMeshSpace[F: np.floating = np.floating]:
         return len(self.v)
 
     def save(self, name: Path | str) -> None:
-        chwrite_d_utf(name, self.v)
+        chwrite(name, self.v, fmt="X")
 
 
 @dc.dataclass(slots=True, frozen=True, init=False)
@@ -105,12 +108,12 @@ class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]
         return self.v + 1
 
     def save(self, name: Path | str) -> None:
-        chwrite_t_utf(name, self.to_array(), self.v.max() + 1)
+        chwrite(name, self.to_array(), fmt="T")
 
 
 @dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
-    """Cheart Mesh Data for one face.
+    """Cheart Mesh data for one surface patch.
 
     Type Parameters
     ---------------
@@ -162,6 +165,38 @@ class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
 
 @dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
+    """Cheart Mesh Boundary Data Structure.
+
+    Hold all boundary surface data of the mesh.
+
+    Type Parameters
+    ---------------
+    I : np.integer
+    B : CheartEnum
+        Boundary element type.
+
+    Attributes
+    ----------
+    v : Mapping[int, CheartMeshPatch[I, B]]
+        A mapping from surface index to CheartMeshPatch instances for the surface.
+    n : int
+        Number of boundary surfaces in the mesh.
+    kind : B | None
+        The type of boundary elements in the mesh, represented as a CheartEnum. Returns None if
+        there are no boundary surfaces.
+
+    Methods
+    -------
+    items() -> ItemsView[int, CheartMeshPatch[I, B]]
+        Returns a view of the items in the boundary mapping.
+    values() -> ValuesView[CheartMeshPatch[I, B]]
+        Returns a view of the values in the boundary mapping.
+    save(name: Path | str)
+        Saves the boundary data to a file with the given name, concatenating all patches into a
+        single array and using 1-based indexing.
+
+    """
+
     v: Mapping[int, CheartMeshPatch[I, B]]
 
     def __init__(self, v: Mapping[int, CheartMeshPatch[I, B]]) -> None:
@@ -191,7 +226,7 @@ class CheartMeshBoundary[I: np.integer = np.integer, B: CheartEnum = CheartEnum]
 
     def save(self, name: Path | str) -> None:
         data = np.concatenate([v.to_array() for v in self.v.values()], axis=0)
-        chwrite_iarr_utf(name, data)
+        chwrite(name, data, fmt="B")
 
 
 @dc.dataclass(slots=True, frozen=True, init=False)

@@ -3,11 +3,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 from cheartpy.elem_interfaces import CheartEnum, convert_element_type, get_node_permutation
-from cheartpy.io import chread_b_utf
 from cheartpy.xml import XMLElement
 from pytools.logging import ILogger, get_logger
 from pytools.parallel import ThreadedRunner, ThreadMethods
 from pytools.progress import ProgressBar
+
+from cheartpy.io import chread
 
 from ._caching import get_arguments, get_xml_variables
 from ._third_party import compress_vtu
@@ -15,8 +16,9 @@ from ._third_party import compress_vtu
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    from cheartpy.search import IIndexIterator
     from pytools.arrays import A1, A2
+
+    from cheartpy.search import IIndexIterator
 
     from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
 
@@ -91,7 +93,7 @@ def export_boundary[F: np.floating, I: np.integer](
     if inp.bfile is None or top.surfacetype is None:
         log.info("NOTICE: No boundary file given, export is skipped")
         return
-    raw = chread_b_utf(inp.bfile)
+    raw = chread(inp.bfile, fmt="B")
     db = raw[:, 1:-1] - 1
     dbid = raw[:, -1]
     vtk_xml = create_xml_for_boundary(inp.prefix, top.x, top.surfacetype, db, dbid)

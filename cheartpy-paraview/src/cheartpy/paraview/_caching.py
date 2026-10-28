@@ -2,8 +2,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
-from cheartpy.io import chread_d
 from pytools.result import Err, Ok
+
+from cheartpy.io import chread
 
 from ._struct import ParaviewTopology, ProgramArgs, VariableCache, XMLDataInputs
 from ._variable_getter import CheartVTUFormat
@@ -11,9 +12,10 @@ from ._variable_getter import CheartVTUFormat
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
 
-    from cheartpy.search import FileType, IIndexIterator
     from pytools.arrays import A2, DType
     from pytools.logging import ILogger
+
+    from cheartpy.search import FileType, IIndexIterator
 
 
 __all__ = ["init_variable_cache", "update_variable_cache"]
@@ -33,7 +35,7 @@ def init_variable_cache[F: np.floating, I: np.integer](
 
     """
     i0 = next(iter(indexer))
-    space = chread_d(inp.xfile, dtype=ftype)
+    space = chread(inp.xfile, dtype=ftype)
     top = ParaviewTopology(space, inp.tfile, inp.bfile, dtype=dtype)
     fx = None if inp.space is None else inp.space[i0]
     fd = None if inp.disp is None else inp.disp[i0]
@@ -110,13 +112,13 @@ def get_xml_variables[F: np.floating, I: np.integer](
     xml: XMLDataInputs[F, I],
 ) -> _TExportVariable[F]:
     dtype = xml.ftype
-    fx_data = chread_d(xml.x, dtype=dtype) if isinstance(xml.x, Path) else xml.top.x
+    fx_data = chread(xml.x, dtype=dtype) if isinstance(xml.x, Path) else xml.top.x
     if xml.u is not None:
-        fx_data = np.asarray(fx_data + chread_d(xml.u, dtype=dtype), dtype)
+        fx_data = np.asarray(fx_data + chread(xml.u, dtype=dtype), dtype)
     fv_data = {
-        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v for k, v in xml.point_var.items()
+        k: chread(v, dtype=dtype) if isinstance(v, Path) else v for k, v in xml.point_var.items()
     }
     fc_data = {
-        k: chread_d(v, dtype=dtype) if isinstance(v, Path) else v for k, v in xml.cell_var.items()
+        k: chread(v, dtype=dtype) if isinstance(v, Path) else v for k, v in xml.cell_var.items()
     }
     return _TExportVariable(x=fx_data, v=fv_data, c=fc_data)

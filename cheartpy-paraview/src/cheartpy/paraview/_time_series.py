@@ -6,7 +6,7 @@ import numpy as np
 from pytools.logging import get_logger
 from pytools.result import Err, Ok
 
-from cheartpy.io import chread_time_utf
+from cheartpy.io import chread
 from cheartpy.search import get_var_index
 
 from ._headers import header_guard
@@ -56,7 +56,7 @@ def create_time_series_json(vtus: Iterable[Path | str], times: A1) -> TimeSerie:
 def _create_time_series_file[F: np.floating](
     vtus: Iterable[Path | str], idx: Sequence[int], time: Path, *, dtype: DType[F] = np.float64
 ) -> Ok[tuple[Sequence[int], Iterable[Path | str], A1[F]]] | Err:
-    dt = chread_time_utf(time, ftype=dtype)
+    dt = chread(time, fmt="Time", ftype=dtype)
     time_array = np.add.accumulate(dt)
     match time_array.shape:
         case (int(),):
