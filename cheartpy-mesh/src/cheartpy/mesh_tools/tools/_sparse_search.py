@@ -193,9 +193,6 @@ def convert_connectivity_to_sparse_array[I: np.integer](
         The total number of nodes in the mesh. If not provided, it will be inferred from the maximum
         node index in `elem`.
 
-    dtype : DType[I]
-        The data type of the sparse matrix. Defaults to np.int8.
-
     Returns
     -------
     ElementSparseMap[F]

@@ -1,5 +1,5 @@
 import dataclasses as dc
-from typing import TYPE_CHECKING, Literal, Required, Unpack
+from typing import TYPE_CHECKING, Literal, Unpack
 
 from cheartpy.fe.api import (
     CompiledTopologies,
@@ -37,8 +37,8 @@ class BoundaryValueKwargs(TypedDict, total=True):
 
 
 class APIKwargs[T](TypedDict, total=False):
-    top: Required[TopologyDef[T]]
-    bc: Required[Mapping[int, float]]
+    # top: Required[TopologyDef[T]]
+    # bc: Required[Mapping[int, float]]
     prefix: VariableNameKwargs
     output_dir: Path
 
@@ -50,13 +50,12 @@ class VariableList:
     v: IVariable
 
 
-
-def create_problem_topology[T](**kwargs: Unpack[APIKwargs[T]]) -> CompiledTopologies[TX]:
-    match kwargs["top"]:
+def create_problem_topology[T](top: TopologyDef[T]) -> CompiledTopologies[TX]:
+    match top:
         case {"mesh": mesh, "elem": elem, "order": order}:
             defn: Mapping[TX, TopologyDef[TX]] = {"X": {"mesh": mesh, "elem": elem, "order": order}}
         case _:
-            msg = f"Invalid topology definition: {kwargs['top']!r}."
+            msg = f"Invalid topology definition: {top!r}."
             raise ValueError(msg)
     return create_topologies(defn)
 
@@ -77,11 +76,13 @@ def create_variable_list[T](
     return Ok(vs)
 
 
-def create_bc_patches[T](vlist: VariableList, **kwargs: Unpack[APIKwargs[T]]) -> list[IBCPatch]:
-    return [create_bcpatch(i, vlist.a, "dirichlet", v) for i, v in kwargs["bc"].items()]
+def create_bc_patches[T](vlist: VariableList, bc: Mapping[int, float]) -> list[IBCPatch]:
+    return [create_bcpatch(i, vlist.a, "dirichlet", v) for i, v in bc.items()]
 
 
-def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
+def uac_pfile[T](
+    top: TopologyDef[T], bc: Mapping[int, float], **kwargs: Unpack[APIKwargs[T]]
+) -> IPFile:
     """Create a P-File for generating fiber fields.
 
     Parameters
@@ -90,6 +91,9 @@ def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
         The topology definition for the problem.
     bc : Mapping[int, float]
         The boundary conditions for the problem.
+
+    Other Parameters
+    ----------------
     prefix : VariableNameKwargs, optional
         The prefixes for the variable names. Defaults to {"a": "Field", "v": "Vector"}.
     output_dir : Path, optional
@@ -102,9 +106,9 @@ def uac_pfile[T](**kwargs: Unpack[APIKwargs[T]]) -> IPFile:
 
     """
     time = create_time_scheme("time", 1, 1, 1)
-    top, iface = create_problem_topology(**kwargs)
-    var = create_variable_list(top["X"], **kwargs).unwrap()
-    bcs = create_bc_patches(var, **kwargs)
+    topology, iface = create_problem_topology(top)
+    var = create_variable_list(topology["X"], **kwargs).unwrap()
+    bcs = create_bc_patches(var, bc)
     coord_prob = create_laplace_problem(f"Problem{var.a!s}", var.x, var.a)
     coord_prob.bc.add_patch(*bcs)
     vec_probs = create_l2varprojection_problem(f"Problem{var.v!s}", var.x, var.a, var.v, "gradient")

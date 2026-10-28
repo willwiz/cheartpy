@@ -1,4 +1,3 @@
-# ruff: noqa: INP001
 from collections import defaultdict
 from collections.abc import Mapping
 from pathlib import Path

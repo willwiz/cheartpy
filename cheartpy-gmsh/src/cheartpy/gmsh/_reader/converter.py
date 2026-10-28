@@ -365,6 +365,9 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
         The 3D volumetric mesh to convert.
     mask : A1[np.integer] | None
         Optional array of element indices to include in the conversion.
+
+    Other Parameters
+    ----------------
     optimize : bool, default=False
         Whether to optimize the mesh using Gmsh's built-in optimization algorithms.
     angle_deg : float, default=40.0

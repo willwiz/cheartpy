@@ -32,6 +32,21 @@ __all__ = [
 
 @dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshSpace[F: np.floating = np.floating]:
+    """Spatial coordinate part of Cheart Mesh.
+
+    Type Parameters
+    ---------------
+    F : np.floating
+
+    Attributes
+    ----------
+    v : A2[F]
+        Array of spatial coordinates of the mesh nodes.
+    n : int
+        Number of nodes in the mesh.
+
+    """
+
     v: A2[F]
 
     def __init__(self, v: A2[F]) -> None:
@@ -39,6 +54,7 @@ class CheartMeshSpace[F: np.floating = np.floating]:
 
     @property
     def n(self) -> int:
+        """Number of nodes in the mesh."""
         return len(self.v)
 
     def save(self, name: Path | str) -> None:
@@ -47,6 +63,33 @@ class CheartMeshSpace[F: np.floating = np.floating]:
 
 @dc.dataclass(slots=True, frozen=True, init=False)
 class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]:
+    """Topology nodal connectivity of elements.
+
+    Type Parameters
+    ---------------
+    I : np.integer
+    T : CheartEnum
+
+    Attributes
+    ----------
+    v : A2[I]
+        Array of element connectivity, where each row corresponds to an element and contains the
+        indices of its nodes in order corresponding to `kind`.
+    n : int
+        Number of elements in the mesh.
+    kind : T
+        The type of elements in the mesh, represented as a CheartEnum.
+
+    Methods
+    -------
+    to_array() -> A2[I]
+        Returns the connectivity array with 1-based indexing.
+    save(name: Path | str)
+        Saves the connectivity array to a file with the given name, using 1-based indexing and
+        the maximum node index plus one as the number of nodes.
+
+    """
+
     v: A2[I]
     kind: T
 
@@ -69,16 +112,29 @@ class CheartMeshTopology[I: np.integer = np.integer, T: CheartEnum = CheartEnum]
 class CheartMeshPatch[I: np.integer = np.integer, B: CheartEnum = CheartEnum]:
     """Cheart Mesh Data for one face.
 
-    tag: ToInt
+    Type Parameters
+    ---------------
+    I : np.integer
+    B : CheartEnum
+
+    Attributes
+    ----------
+    tag: int
         Label id for the patch
-    n: ToInt
+    n: int
         No. of face elements in the patch
-    k: A1[T]
+    k: A1[B]
         Array of element ids containing the corresponding face elements
-    v: A2[T]
+    v: A2[B]
         Connectivity array of the face elements
-    TYPE: VtkEnum
+    kind: VtkEnum
         VTK cell type of the face elements
+
+    Methods
+    -------
+    to_array() -> A2[I]
+        Returns the patch data as a 2D array with 1-based indexing, where each row corresponds to a
+        face element and contains the element id, the node indices, and the tag.
 
     """
 
@@ -145,6 +201,36 @@ class CheartMesh[
     T: CheartEnum = CheartEnum,
     B: CheartEnum = CheartEnum,
 ]:
+    """Cheart Mesh Data Structure.
+
+    Type Parameters
+    ---------------
+    F : np.floating
+        Floating point type.
+    I : np.integer
+        Integer type.
+    T : CheartEnum
+        Enum type for mesh element.
+    B : CheartEnum
+        Enum type for boundary element.
+
+    Attributes
+    ----------
+    space : CheartMeshSpace[F]
+        The spatial data of the mesh.
+    top : CheartMeshTopology[I, T]
+        The topological data of the mesh.
+    bnd : CheartMeshBoundary[I, B]
+        The boundary data of the mesh, if it exists.
+
+    Methods
+    -------
+    save(prefix: Path | str, *, forced: bool = False)
+        Save the Cheart mesh data to files with the given prefix. If `forced` is True, overwrite
+        existing files. If the prefix ends with ".npz", ".npz.xz
+
+    """
+
     space: CheartMeshSpace[F]
     top: CheartMeshTopology[I, T]
     bnd: CheartMeshBoundary[I, B]
@@ -164,7 +250,7 @@ class CheartMesh[
         top : CheartMeshTopology[I, T]
             The topological data of the mesh.
         bnd : CheartMeshBoundary[I, B] | Mapping[Never, Never]
-            The boundary data of the mesh, if it exists. If an empty dict is provided, it will be
+            The boundary data of the mesh. If an empty dict is provided, it will be
             converted to a CheartMeshBoundary instance with no patches.
 
         """

@@ -16,8 +16,6 @@ def create_mesh_from_surface[F: np.floating, I: np.integer](
         The mesh from which to extract the surface.
     surf_id : int
         The ID of the surface in the boundary of the mesh.
-    log : ILogger, optional
-        Logger for debug messages, by default NULL, i.e., don't so anything.
 
     Returns
     -------

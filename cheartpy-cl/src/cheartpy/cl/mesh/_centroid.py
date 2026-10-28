@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Required, Unpack, cast
+from typing import TYPE_CHECKING, Unpack, cast
 
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -11,8 +11,6 @@ if TYPE_CHECKING:
 
 class CentroidAPIKwargs[F: np.floating](TypedDict, total=False):
     width: float
-    a_z: Required[A1[F]]
-    v_z: Required[A2[F]]
 
 
 def _mesh_centroid[F: np.floating, I: np.integer](mesh: CheartMesh[F, I]) -> A1[F]:
@@ -20,9 +18,8 @@ def _mesh_centroid[F: np.floating, I: np.integer](mesh: CheartMesh[F, I]) -> A1[
 
 
 def _construct_basis_at_z[F: np.floating, I: np.integer](
-    z: ToFloat, **kwargs: Unpack[CentroidAPIKwargs[F]]
+    z: ToFloat, a_z: A1[F], **kwargs: Unpack[CentroidAPIKwargs[F]]
 ) -> tuple[A1[np.bool_], A1[F]]:
-    a_z = kwargs["a_z"]
     width = kwargs.get("width") or 0.05
     domain = (a_z > (z - width)) & (a_z < (z + width))
     basis = (a_z[domain] - z + width) / width
@@ -33,9 +30,10 @@ def _compute_centroid_at_z[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     z: ToFloat,
     centroid: A1[F],
+    a_z: A1[F],
     **kwargs: Unpack[CentroidAPIKwargs[F]],
 ) -> A1[F]:
-    domain, basis = _construct_basis_at_z(z, **kwargs)
+    domain, basis = _construct_basis_at_z(z, a_z, **kwargs)
     return np.asarray(
         (mesh.space.v[domain] * basis[:, None]).sum(axis=0) / basis.sum() - centroid, centroid.dtype
     )
@@ -55,7 +53,7 @@ def _compute_a_c_coordinate_at_z[F: np.floating](v_z: A1[F], v_r: A1[F], v_ref: 
 
 
 def compute_a_c_coordinate[F: np.floating, I: np.integer](
-    mesh: CheartMesh[F, I], **kwargs: Unpack[CentroidAPIKwargs[F]]
+    mesh: CheartMesh[F, I], *, a_z: A1[F], v_z: A2[F], **kwargs: Unpack[CentroidAPIKwargs[F]]
 ) -> A1[F]:
     """Compute the a_c coordinate of the volume.
 
@@ -70,6 +68,12 @@ def compute_a_c_coordinate[F: np.floating, I: np.integer](
         The centerline a_z coordinate of the volume.
     v_z : A2[F]
         The local v_z axis.
+
+    **kwargs : Unpack[CentroidAPIKwargs[F]]
+        The keyword arguments for the centroid computation.
+
+    Other Parameters
+    ----------------
     width : float, optional
         The width of the basis function, by default 0.05
 
@@ -79,14 +83,12 @@ def compute_a_c_coordinate[F: np.floating, I: np.integer](
         The a_c coordinate of the volume.
 
     """
-    a_z = kwargs["a_z"]
     centroid = _mesh_centroid(mesh)
-    ar_gen = (_compute_centroid_at_z(mesh, z, centroid, **kwargs) for z in a_z)
+    ar_gen = (_compute_centroid_at_z(mesh, z, centroid, a_z, **kwargs) for z in a_z)
     v_ref = np.fromiter(ar_gen, dtype=np.dtype((a_z.dtype, 3)), count=len(a_z))
     v_ref = cast("A2[F]", v_ref)
     v_p = mesh.space.v - centroid - v_ref
     ac_gen = (
-        _compute_a_c_coordinate_at_z(z, r, c)
-        for z, r, c in zip(kwargs["v_z"], v_p, v_ref, strict=True)
+        _compute_a_c_coordinate_at_z(z, r, c) for z, r, c in zip(v_z, v_p, v_ref, strict=True)
     )
     return np.fromiter(ac_gen, dtype=a_z.dtype, count=len(a_z))
