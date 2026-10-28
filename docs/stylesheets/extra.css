@@ -1,0 +1,210 @@
+/* ==========================================================
+   cheartpy — compact modern documentation
+   ========================================================== */
+
+/* Body text */
+.md-typeset {
+    font-size: 0.74rem;
+    line-height: 1.4;
+}
+
+/* Page title */
+.md-typeset h1 {
+    font-size: 1.25rem;
+    line-height: 1.2;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 0.4rem;
+}
+
+/* Section headings */
+.md-typeset h2 {
+    font-size: 0.98rem;
+    line-height: 1.25;
+    font-weight: 600;
+    margin-top: 0.85rem;
+    margin-bottom: 0.3rem;
+}
+
+.md-typeset h3 {
+    font-size: 0.84rem;
+    line-height: 1.25;
+    font-weight: 600;
+    margin-top: 0.55rem;
+    margin-bottom: 0.2rem;
+}
+
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+    font-size: 0.78rem;
+    line-height: 1.25;
+    font-weight: 600;
+    margin-top: 0.4rem;
+    margin-bottom: 0.15rem;
+}
+
+/* Paragraphs */
+.md-typeset p {
+    margin-top: 0.15rem;
+    margin-bottom: 0.35rem;
+}
+
+/* Lists */
+.md-typeset ul,
+.md-typeset ol {
+    margin-top: 0.15rem;
+    margin-bottom: 0.35rem;
+    padding-left: 1.3rem;
+}
+
+.md-typeset li {
+    margin-bottom: 0.05rem;
+}
+
+.md-typeset li > p {
+    margin-top: 0;
+    margin-bottom: 0.2rem;
+}
+
+/* API objects */
+.md-typeset .doc-object {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+}
+
+/* Nested API members */
+.md-typeset .doc-children {
+    margin-top: 0.1rem;
+}
+
+.md-typeset .doc-children > .doc-object {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+}
+
+/* Function and class signatures */
+.md-typeset .doc-signature {
+    font-size: 0.9em;
+    line-height: 1.3;
+    margin-top: 0.1rem;
+    margin-bottom: 0.15rem;
+}
+
+/* Code blocks */
+.md-typeset pre {
+    line-height: 1.3;
+    margin-top: 0.35rem;
+    margin-bottom: 0.45rem;
+}
+
+/* Inline code */
+.md-typeset code {
+    font-size: 0.88em;
+}
+
+/* API descriptions, parameters and returns */
+.md-typeset .doc-contents {
+    margin-top: 0.1rem;
+}
+
+/* Tables */
+.md-typeset table:not([class]) {
+    font-size: 0.88em;
+}
+
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+    padding: 0.25rem 0.4rem;
+}
+
+/* Reduce excess space around horizontal rules */
+.md-typeset hr {
+    margin-top: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+/* Keep module headings at the original size */
+.md-typeset .doc-object.doc-module > .doc-heading {
+    font-size: 2.25em;
+}
+
+/* Slightly smaller class and function headings */
+.md-typeset .doc-object.doc-class > .doc-heading,
+.md-typeset .doc-object.doc-function > .doc-heading,
+.md-typeset .doc-object.doc-attribute > .doc-heading,
+.md-typeset .doc-object.doc-children > .doc-heading,
+.md-typeset .doc-object.doc-type_alias > .doc-heading,
+.md-typeset .doc-object.doc-contents > .doc-heading {
+    font-size: 1.1em;
+}
+
+/* Class members: attributes, enum values, properties, and methods */
+.md-typeset .doc-object.doc-data > .doc-heading,
+.md-typeset .doc-object.doc-property > .doc-heading,
+.md-typeset .doc-object.doc-method > .doc-heading {
+    font-size: 1em;
+}
+
+/* Keep function and class signatures compact */
+.md-typeset .doc-signature .doc-signature-name {
+    font-size: 1em;
+}
+
+/* Docstring descriptions, including nested content */
+.md-typeset .doc-object .doc-contents,
+.md-typeset .doc-object .doc-contents p,
+.md-typeset .doc-object .doc-contents li {
+    font-size: 1em;
+}
+
+/* Members inside a class: methods, properties, attributes, enum values */
+.md-typeset .doc-object.doc-class .doc-children > .doc-object > .doc-heading {
+    font-size: 1em;
+}
+
+/* Keep signature names consistent with their surrounding signature */
+.md-typeset .doc-signature .doc-signature-name {
+    font-size: 1em;
+}
+
+/* Reduce vertical padding in type-annotation boxes */
+.md-typeset .highlight,
+.md-typeset .doc-signature,
+.md-typeset .doc-signature code {
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+
+/* Compact inline type annotations and code */
+.md-typeset code {
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+}
+/* Compact type-annotation and signature boxes */
+.md-typeset .doc-signature,
+.md-typeset .doc-signature code {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+/* Reduce spacing between API members */
+.md-typeset .doc-children > .doc-object {
+    margin-top: 0.1rem;
+    margin-bottom: 0.1rem;
+}
+
+/* Tighten spacing between wrapped signature lines */
+.md-typeset .doc-signature {
+    white-space: normal;
+}
+
+/* Keep inline type annotations compact */
+.md-typeset code {
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.2;
+}

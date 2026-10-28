@@ -16,6 +16,7 @@ SubparserModes = Literal["index", "find"]
 
 class APIKwargsFind(TypedDict, total=False):
     index: Literal["AUTO", "NONE"] | tuple[int, int, int]
+    """The configuration index step tracker."""
     subindex: Literal["AUTO", "NONE"] | tuple[int, int, int]
     mesh: Required[Path | str]
     space: Path | str

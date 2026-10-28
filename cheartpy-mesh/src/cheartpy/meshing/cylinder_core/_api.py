@@ -51,13 +51,20 @@ def create_cylinder_mesh(
 ):
     """Create a cylindrical mesh for Cheart.
 
-    Args:
-        shape: A tuple containing the inner radius, outer radius, length, and base.
-        dim: Dimensions of the mesh in the form (nx, ny, nz).
-        axis: Axis around which the cylinder is oriented ('x', 'y', or 'z').
-        make_quad: If True, also create a quadrilateral mesh from the cylindrical mesh.
+    Parameters
+    ----------
+    shape : tuple[float, float, float, float]
+        A tuple containing the inner radius, outer radius, length, and base of the cylinder.
+    dim : tuple[int, int, int]
+        A tuple containing the number of radial, quadrilateral, and axial divisions.
+    axis : Literal["x", "y", "z"]
+        The axis along which the cylinder is oriented.
+    make_quad : bool, optional
+        Whether to create a quadrilateral mesh in addition to the cylindrical mesh.
+        Default is False.
 
-    Returns:
+    Returns
+    -------
         A tuple containing the cylindrical mesh and optionally a quadrilateral mesh.
 
     """

@@ -1,0 +1,101 @@
+[project]
+site_name = "cheartpy"
+site_url = "https://github.com/willwiz/cheartpy.git"
+docs_dir = "docs"
+site_dir = "site"
+clean = true
+use_directory_urls = false
+watch = ["src", "cheartpy-*"]
+extra_css = ["stylesheets/extra.css"]
+
+[project.theme]
+variant = "modern"
+font.text = "Inter"
+font.code = "JetBrains Mono"
+
+# Enable Zensical's native Python API auto-discovery engine
+[project.plugins.api-autonav]
+enabled = true
+api_root_uri = "reference"          # This is the directory it builds in memory
+nav_section_title = "API Reference" # The title showing up in your sidebar
+exclude_private = true
+
+# Provide the source directories to inspect
+modules = [
+    "src/cheartpy",                   # Core submodules (io, search, varcomp)
+    "cheartpy-abaqus/src/cheartpy",   # abaqus
+    "cheartpy-cl/src/cheartpy",       # cl
+    "cheartpy-fe/src/cheartpy",
+    "cheartpy-gmsh/src/cheartpy",     # gmsh
+    "cheartpy-mesh/src/cheartpy",     # mesh, meshing, mesh_tools
+    "cheartpy-paraview/src/cheartpy", # paraview
+    "cheartpy-symbolic/src/cheartpy", # symbolic
+    "cheartpy-vtk/src/cheartpy",      # vtk, xml, elem_interfaces
+]
+
+# CORRECT ZENSICAL SCHEMA MATCH:
+# Use module_options with a ".*" wildcard regex string key to force the parameters
+# down into the auto-generated code pages.
+[project.plugins.api-autonav.module_options.".*"]
+members = true
+inherited_members = true
+show_root_heading = true
+show_root_toc_entry = true
+show_source = true
+show_root_members = true
+show_if_no_docstring = true
+show_labels = true
+prefer_stubs = false
+collapse_submodules = false
+show_module_attributes = false
+
+# 🚀 CROSS-REFERENCE LINKING CAPABILITIES:
+separate_signature = true
+show_signature_annotations = true
+signature_crossrefs = true
+show_parameter_types = true
+preload = true                    # Deeply scans type hint strings to match local definitions
+
+# Preload your internal workspace namespaces so cross-references bridge across subpackages cleanly
+preload_modules = [
+    "cheartpy.io",
+    "cheartpy.abaqus",
+    "cheartpy.cl",
+    "cheartpy.fe",
+    "cheartpy.gmsh",
+    "cheartpy.mesh",
+    "cheartpy.paraview",
+    "cheartpy.symbolic",
+    "cheartpy.vtk",
+]
+
+# NumPy document formatting rules
+docstring_style = "numpy"
+show_docstring_description = true
+show_docstring_parameters = true
+show_docstring_returns = true
+show_docstring_attributes = true
+
+[project.markdown_extensions]
+admonition = {}
+toc.permalink = true
+pymdownx.details = {}
+pymdownx.superfences = {}
+
+[project.plugins.mkdocstrings.handlers.python]
+paths = [
+    "src",
+    "cheartpy-abaqus/src",
+    "cheartpy-cl/src",
+    "cheartpy-fe/src",
+    "cheartpy-gmsh/src",
+    "cheartpy-mesh/src",
+    "cheartpy-paraview/src",
+    "cheartpy-symbolic/src",
+    "cheartpy-vtk/src",
+]
+
+[project.plugins.mkdocstrings.handlers.python.options]
+show_signature_annotations = true
+signature_crossrefs = true
+annotations_path = "brief"

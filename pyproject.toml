@@ -64,11 +64,11 @@ dev = [
     "cheartpy-symbolic",
     "cheartpy-vtk",
     "pytest",
-    "sphinx",
-    "sphinx-rtd-theme",
-    "myst-parser",
-    "attrs",
-    "sphinx-autodoc-typehints",
+    "zensical>=0.0.73",
+    "mkdocstrings>=1.0.8",
+    "mkdocstrings-python>=2.0.10",
+    "mkdocs-gen-files>=0.6.1",
+    "mkdocs-literate-nav>=0.6.3",
 ]
 
 [project.scripts]
