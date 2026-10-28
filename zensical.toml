@@ -37,6 +37,8 @@ modules = [
 # Use module_options with a ".*" wildcard regex string key to force the parameters
 # down into the auto-generated code pages.
 [project.plugins.api-autonav.module_options.".*"]
+allow_inspection = true
+modernize_annotations = true
 inherited_members = true
 show_root_heading = true
 show_root_toc_entry = true
@@ -44,16 +46,21 @@ show_source = true
 show_root_members = true
 show_if_no_docstring = true
 show_labels = true
+show_module_attributes = false
+show_signature = true
+show_signature_annotations = true
+show_signature_type_parameters = true
+show_type_annotations = true
+show_parameter_types = true
+type_parameter_headings = true
+
+signature_crossrefs = true
+separate_signature = true
 prefer_stubs = false
 collapse_submodules = false
-show_module_attributes = false
 
 # 🚀 CROSS-REFERENCE LINKING CAPABILITIES:
-separate_signature = true
-show_signature_annotations = true
-signature_crossrefs = true
-show_parameter_types = true
-preload = true                    # Deeply scans type hint strings to match local definitions
+preload = true # Deeply scans type hint strings to match local definitions
 
 # Preload your internal workspace namespaces so cross-references bridge across subpackages cleanly
 preload_modules = [
@@ -72,7 +79,7 @@ preload_modules = [
     "cheartpy.symbolic",
     "cheartpy.vtk",
 ]
-
+extensions = ["dataclasses"]
 # NumPy document formatting rules
 docstring_style = "numpy"
 show_docstring_description = true
