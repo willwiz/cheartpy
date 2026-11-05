@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, NamedTuple, overload
 
 import numpy as np
-from pytools.result import Err, Ok
+from pytools.result import Err, Ok, Result
 
 from cheartpy.io import chread
 
@@ -21,13 +21,35 @@ if TYPE_CHECKING:
 __all__ = ["init_variable_cache", "update_variable_cache"]
 
 
+def _match_variable_size(name: Path, size: int) -> bool:
+    v = chread(name)
+    return len(v) == size
+
+
+def _validate_cache[F: np.floating, I: np.integer](
+    cache: VariableCache[F, I],
+) -> Result[VariableCache[F, I]]:
+    if cache.fx and not _match_variable_size(cache.fx, len(cache.top.x)):
+        msg = f"space variable {cache.fx} does not match topology size {len(cache.top.x)}"
+        return Err(ValueError(msg))
+    for k, name in cache.fv.items():
+        if not _match_variable_size(name, len(cache.top.x)):
+            msg = f"point variable {k}={name} does not match topology size {len(cache.top.x)}"
+            return Err(ValueError(msg))
+    for k, name in cache.fc.items():
+        if not _match_variable_size(name, len(cache.top.t)):
+            msg = f"cell variable {k}={name} does not match topology size {len(cache.top.t)}"
+            return Err(ValueError(msg))
+    return Ok(cache)
+
+
 def init_variable_cache[F: np.floating, I: np.integer](
     inp: ProgramArgs,
     indexer: IIndexIterator,
     *,
     ftype: DType[F] = np.float64,
     dtype: DType[I] = np.intp,
-) -> Ok[VariableCache[F, I]] | Err:
+) -> Result[VariableCache[F, I]]:
     """Initialize the variable cache.
 
     If new variable cannot be found then this is the backup.
@@ -41,7 +63,7 @@ def init_variable_cache[F: np.floating, I: np.integer](
     fd = None if inp.disp is None else inp.disp[i0]
     fv = {k: v[i0] for k, v in inp.point_var.items()}
     fc = {k: v[i0] for k, v in inp.cell_var.items()}
-    return Ok(VariableCache(top, i0, fx, fd, fv, fc, ftype, dtype))
+    return _validate_cache(VariableCache(top, i0, fx, fd, fv, fc, ftype, dtype)).next()
 
 
 @overload
