@@ -224,7 +224,7 @@ def create_auto_indexer(
 
 
 def validate_indexer(
-    var: Mapping[str, FileVariable], indexer: IIndexIterator
+    indexer: IIndexIterator, var: Mapping[str, FileVariable]
 ) -> Result[IIndexIterator]:
     var = {k: v for k, v in var.items() if v.fname.is_dynamic}
     first = next(iter(indexer))
@@ -276,4 +276,4 @@ def create_indexer(
                 variables=list(var.keys()),
             )
             indexer = create_null_indexer(var, sub_index)
-    return indexer.and_then(lambda x: validate_indexer(var, x)).next()
+    return indexer.and_then(validate_indexer, var).next()
