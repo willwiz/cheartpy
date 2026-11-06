@@ -4,7 +4,17 @@ site_url = "https://willwiz.github.io/cheartpy"
 docs_dir = "docs"
 site_dir = "site"
 use_directory_urls = false
-watch = ["src", "cheartpy-*"]
+watch = [
+    "src",
+    "cheartpy-abaqus/src",
+    "cheartpy-cl/src",
+    "cheartpy-fe/src",
+    "cheartpy-gmsh/src",
+    "cheartpy-mesh/src",
+    "cheartpy-paraview/src",
+    "cheartpy-symbolic/src",
+    "cheartpy-vtk/src",
+]
 extra_css = ["stylesheets/extra.css"]
 site_author = "Will Zhang"
 site_description = "Companion Python package for working with Cheart"
