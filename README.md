@@ -4,6 +4,8 @@ Welcome to the documentation for **cheartpy**, a multi-package Python namespace 
 
 ---
 
+## [Documentation](https://willwiz.github.io/cheartpy)
+
 ## 📦 Monorepo Workspace Packages
 
 This project is managed as a unified workspace. Below is an overview of the core libraries and plugins available:

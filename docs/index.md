@@ -1,8 +1,18 @@
++++
+title = "cheartpy"
+description = "Documentation for the Cheart Python Monorepo"
+
+[extra]
+show_sidebar = false
++++
+
 # cheartpy
 
 Welcome to the documentation for **cheartpy**, a multi-package Python namespace monorepo designed for working with Cheart.
 
 ---
+
+## [Source Code](https://github.com/willwiz/cheartpy)
 
 ## 📦 Monorepo Workspace Packages
 
