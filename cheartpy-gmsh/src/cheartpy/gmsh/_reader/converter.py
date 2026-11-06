@@ -150,7 +150,7 @@ class MeshConverterKwargs(TypedDict, total=False):
     angle_deg: float
 
 
-def optimize_mesh(_top: GmshTopInfo) -> None:
+def optimize_mesh() -> None:
     """Optimize the mesh using Gmsh's built-in optimization algorithms.
 
     Parameters
@@ -180,6 +180,7 @@ def optimize_mesh(_top: GmshTopInfo) -> None:
     #     case _:
     #         ...
     gmsh.model.mesh.optimize("Gmsh", force=True, niter=100)
+    gmsh.model.geo.synchronize()
     # gmsh.model.mesh.optimize("Netgen", niter=20)
 
 
@@ -405,9 +406,8 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     # old_boundaries = {k: get_gmsh_entity(top.dim - 1, [v]) for k, v in boundary_map.items()}
     # old_volume = get_gmsh_entity(top.dim, list(domains.values()))
     if kwargs.get("optimize", False):
-        optimize_mesh(top)
+        optimize_mesh()
         after = get_mesh_quality(top, None)
-        gmsh.model.geo.synchronize()
         print_mesh_quality(before, after)
         # if mesh.bnd is not None:
         #     for b in mesh.bnd.v.values():

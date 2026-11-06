@@ -21,6 +21,7 @@ from cheartpy.mesh import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
+from cheartpy.mesh_tools import create_index_permutation
 from pytools.result import Err, Ok, all_ok
 
 import gmsh
@@ -60,13 +61,12 @@ def get_element[I: np.integer = np.intp](
     _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
     return GmshElements(
         kind=GmshEnum(el_type),
-        e=np.ascontiguousarray(tags, dtype=dtype),
-        conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size),
+        e=np.ascontiguousarray(tags, dtype=dtype) - 1,
+        conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size) - 1,
     )
 
 
 def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshElements[I]:
-    print(f"Merging {len(elements)} GmshElements...")
     elements = list(elements)
 
     if not elements:
@@ -84,7 +84,6 @@ def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshEl
 def get_gmsh_entity[I: np.integer = np.intp](
     dim: int, entity_tag: Sequence[Tag], *, dtype: DType[I] = np.intp
 ) -> GmshElements[I]:
-    print(f"Getting GMSH entity for dimension {dim} and entity tags {entity_tag}...")
     res = list(
         itertools.chain.from_iterable(
             zip(*gmsh.model.mesh.get_elements(dim=dim, tag=i), strict=True) for i in entity_tag
@@ -97,17 +96,17 @@ def get_gmsh_entity_by_physical_group[I: np.integer = np.intp](
     name: Sequence[str], dim: int, *, dtype: DType[I] = np.intp
 ) -> GmshElements[I]:
     entity_tags = [i for s in name for i in search_entity_by_physical_name(s, dim)]
-    print(f"Found entity tags for physical groups {name}: {entity_tags}")
+    # print(f"Found entity tags for physical groups {name}: {entity_tags}")
     return get_gmsh_entity(dim, entity_tags, dtype=dtype)
 
 
 def get_gmsh_space[F: np.floating, I: np.integer](
     dim: int, *, ftype: DType[F] = np.float64, dtype: DType[I] = np.intp
 ) -> GmshNodes[F, I]:
-    node_tags, coordinates, _ = gmsh.model.mesh.get_nodes(dim=dim, tag=-1)
+    node_tags, coordinates, _ = gmsh.model.mesh.get_nodes(returnParametricCoord=False)
     return GmshNodes(
         dim=dim,
-        k=np.ascontiguousarray(node_tags, dtype=dtype),
+        k=np.ascontiguousarray(node_tags - 1, dtype=dtype),
         coord=np.ascontiguousarray(coordinates, dtype=ftype).reshape(-1, dim),
     )
 
@@ -122,11 +121,9 @@ class GmshBoundaries[I: np.integer = np.intp]:
 
 
 def get_gmsh_boundaries[I: np.integer](
-    dim: int, entity: Entity, domain: GmshElements[I], k: int
+    dim: int, entity: Entity, domain: GmshElements[I]
 ) -> GmshBoundaries[I]:
-    print(f"Working on Boundary {k} in dimension {dim}...")
-    tags = search_entity_by_physical_name(f"Surface{k}", dim)
-    print(f"Surface{k} found Entities: {tags} expect entity {entity}")
+    # tags = search_entity_by_physical_name(f"Surface{entity}", dim)
     bnd = get_gmsh_entity(dim, [entity], dtype=domain.e.dtype)
     search_map = build_element_searchmap(domain.e, domain.conn)
     match all_ok([find_elem_for_boundary(search_map, nodes, strict=False) for nodes in bnd.conn]):
@@ -155,10 +152,7 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
     vtk_type = convert_element_type(top.kind, "Cheart")
     perm = get_node_permutation(top.kind, "Cheart")
     print(f"Vtk type: {vtk_type}, reorder: {perm}")
-    return CheartMeshTopology(
-        v=np.ascontiguousarray(top.conn[:, perm] - 1, dtype=dtype),
-        kind=vtk_type,
-    )
+    return CheartMeshTopology(v=np.ascontiguousarray(top.conn[:, perm], dtype=dtype), type=vtk_type)
 
 
 def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
@@ -166,10 +160,7 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
 ) -> CheartMeshPatch[I]:
     perm = get_node_permutation(bnd.kind, "Cheart")
     return CheartMeshPatch(
-        tag=tag,
-        k=bnd.e - 1,
-        v=np.ascontiguousarray(bnd.conn[:, perm] - 1, dtype=dtype),
-        kind=vtk_type,
+        tag=tag, k=bnd.e, v=np.ascontiguousarray(bnd.conn[:, perm], dtype=dtype), type=vtk_type
     )
 
 
@@ -257,13 +248,6 @@ class IndexPermutation[I: np.integer]:
     inv: A1[I]
 
 
-def create_index_permutation[I: np.integer](index: A1[I]) -> IndexPermutation[I]:
-    perm_inv = index
-    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
-    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
-    return IndexPermutation(fwd=perm_fwd, inv=perm_inv)
-
-
 def get_index_mapping_permutation[I: np.integer](
     top: GmshElements[I],
 ) -> IndexPermutation[I]:
@@ -276,11 +260,11 @@ def get_index_mapping_permutation[I: np.integer](
 def reset_node_index[F: np.floating, I: np.integer](
     space: GmshNodes[F, I], top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
 ) -> tuple[GmshNodes[F, I], GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
-    perm = create_index_permutation(space.k)
+    perm = create_index_permutation(top.conn)
     space = GmshNodes(
         dim=space.dim,
-        k=np.arange(len(perm.inv), dtype=perm.inv.dtype),
-        coord=space.coord,
+        k=np.arange(len(perm.new), dtype=perm.new.dtype),
+        coord=space.coord[perm.old],
     )
     top = GmshElements(
         kind=top.kind,
@@ -383,7 +367,7 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
     subdomains = {k: get_gmsh_entity(dim, [v], dtype=dtype) for k, v in domains.items()}
     gmsh_top = merge_elements(list(subdomains.values()))
     gmsh_bnd = {
-        k: get_gmsh_boundaries(dim - 1, v, subdomains[d], k) for k, (d, v) in boundaries.items()
+        k: get_gmsh_boundaries(dim - 1, v, subdomains[d]) for k, (d, v) in boundaries.items()
     }
     gmsh_space, gmsh_top, gmsh_bnd = reset_node_index(gmsh_space, gmsh_top, gmsh_bnd)
     elem_perm = create_index_permutation(gmsh_top.e)
