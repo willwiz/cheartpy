@@ -173,9 +173,7 @@ def create_topologies[T](
 
     Parameters
     ----------
-    volumes
-        Mapping of topology name to volume topology.
-    dct
+    dct: Mapping[T, TopologyDef[T]]
         Mapping of topology name to mesh prefix, master topology and boundary tag.
 
     Returns

@@ -216,23 +216,23 @@ def chread(
         case "D" | "X":
             return chread_d(file, dtype=dtype or np.float64)
         case "T":
-            t = dtype or np.intp
+            t = np.dtype(dtype or np.intp)
             if not _is_integer_dtype(t):
                 msg = f"Please follow chread overload signature. Expect integer dtype, got {t}"
                 raise TypeError(msg)
             return chread_t_utf(file, dtype=t)
         case "B":
-            t = dtype or np.intp
+            t = np.dtype(dtype or np.intp)
             if not _is_integer_dtype(t):
                 msg = f"Please follow chread overload signature. Expect integer dtype, got {t}"
                 raise TypeError(msg)
             return chread_b_utf(file, dtype=t)
         case "Time":
-            f = ftype or np.float64
+            f = np.dtype(ftype or np.float64)
             if not _is_floating_dtype(f):
                 msg = f"Please follow chread overload signature. Expect floating dtype, got {f}"
                 raise TypeError(msg)
-            d = dtype or np.intp
+            d = np.dtype(dtype or np.intp)
             if not _is_integer_dtype(d):
                 msg = f"Please follow chread overload signature. Expect integer dtype, got {d}"
                 raise TypeError(msg)

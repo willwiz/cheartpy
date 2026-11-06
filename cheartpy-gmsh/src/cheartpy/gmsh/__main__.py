@@ -35,16 +35,13 @@ def export_mesh(tags: GmshMeshTags, filename: Path) -> None:
     match filename.suffix:
         case ".msh" | ".inp":
             gmsh.write(str(filename))
-        case ".xtb":
+        case _:
             print("exporting in cheart format")
             mesh, mask = build_cheart_mesh_from_gmsh(tags.dim, tags.domains, tags.boundarys)
             # mesh = fix_tetra_mesh(mesh).unwrap()
             mesh.save(filename.stem)
             if mask is not None:
                 chwrite(filename.parent / f"{filename.stem}_mask-0.D", mask)
-        case _:
-            msg = f"Unsupported file format: {filename.suffix}"
-            raise ValueError(msg)
 
 
 def import_to_gmsh[I: np.integer](
