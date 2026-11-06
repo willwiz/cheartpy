@@ -4,6 +4,7 @@ from .surface_core import (
 )
 from .tools import (
     ElemSearchMap,
+    IndexPermutation,
     build_element_searchmap,
     create_index_permutation,
     create_mesh_from_region,
@@ -21,6 +22,7 @@ from .volume import calculate_tetrahedron_volume_by_surface, calculate_volume_te
 
 __all__ = [
     "ElemSearchMap",
+    "IndexPermutation",
     "build_element_searchmap",
     "calculate_tetrahedron_volume_by_surface",
     "calculate_volume_tetrahedron_mesh",

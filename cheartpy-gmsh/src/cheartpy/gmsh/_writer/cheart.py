@@ -1,5 +1,4 @@
 import dataclasses as dc
-import itertools
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, overload
 
@@ -11,8 +10,11 @@ from cheartpy.elem_interfaces import (
     get_node_permutation,
 )
 from cheartpy.gmsh.tools import (
+    GmshElements,
     build_element_searchmap,
     find_elem_for_boundary,
+    get_gmsh_entity,
+    merge_elements,
 )
 from cheartpy.mesh import (
     CheartMesh,
@@ -21,13 +23,13 @@ from cheartpy.mesh import (
     CheartMeshSpace,
     CheartMeshTopology,
 )
-from cheartpy.mesh_tools import create_index_permutation
+from cheartpy.mesh_tools import IndexPermutation, create_index_permutation
 from pytools.result import Err, Ok, all_ok
 
 import gmsh
 
 if TYPE_CHECKING:
-    from cheartpy.gmsh.types import Entity, Tag
+    from cheartpy.gmsh.types import Entity
     from pytools.arrays import A1, A2, DType
 
 
@@ -38,65 +40,18 @@ class GmshNodes[F: np.floating, I: np.integer]:
     coord: A2[F]
 
 
-@dc.dataclass(slots=True)
-class GmshElements[I: np.integer]:
-    kind: GmshEnum
-    e: A1[I]
-    conn: A2[I]
-
-
 def search_entity_by_physical_name(name: str, dim: int) -> list[Entity]:
-    print(f"Searching for physical group '{name}' with dimension {dim}...")
     entities = gmsh.model.get_entities_for_physical_name(name)
-    print(f"Found entities: {entities}")
     if not entities:
         msg = f"No entity found for physical group '{name}'."
         raise ValueError(msg)
     return [i for d, i in entities if d == dim]
 
 
-def get_element[I: np.integer = np.intp](
-    el_type: int, tags: Sequence[int], nodes: Sequence[int], *, dtype: DType[I] = np.intp
-) -> GmshElements[I]:
-    _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
-    return GmshElements(
-        kind=GmshEnum(el_type),
-        e=np.ascontiguousarray(tags, dtype=dtype) - 1,
-        conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size) - 1,
-    )
-
-
-def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshElements[I]:
-    elements = list(elements)
-
-    if not elements:
-        msg = "No elements to merge."
-        raise ValueError(msg)
-    el_types = {el.kind for el in elements}
-    if len(el_types) != 1:
-        msg = f"Cannot merge elements of different types: {el_types}."
-        raise ValueError(msg)
-    tags = np.concatenate([el.e for el in elements])
-    conn = np.concatenate([el.conn for el in elements])
-    return GmshElements(kind=el_types.pop(), e=tags, conn=conn)
-
-
-def get_gmsh_entity[I: np.integer = np.intp](
-    dim: int, entity_tag: Sequence[Tag], *, dtype: DType[I] = np.intp
-) -> GmshElements[I]:
-    res = list(
-        itertools.chain.from_iterable(
-            zip(*gmsh.model.mesh.get_elements(dim=dim, tag=i), strict=True) for i in entity_tag
-        )
-    )
-    return merge_elements([get_element(t, tag, nodes, dtype=dtype) for t, tag, nodes in res])
-
-
 def get_gmsh_entity_by_physical_group[I: np.integer = np.intp](
     name: Sequence[str], dim: int, *, dtype: DType[I] = np.intp
 ) -> GmshElements[I]:
     entity_tags = [i for s in name for i in search_entity_by_physical_name(s, dim)]
-    # print(f"Found entity tags for physical groups {name}: {entity_tags}")
     return get_gmsh_entity(dim, entity_tags, dtype=dtype)
 
 
@@ -151,8 +106,7 @@ def convert_gmsh_top_to_cheart[I: np.integer = np.intp](
 ) -> CheartMeshTopology[I]:
     vtk_type = convert_element_type(top.kind, "Cheart")
     perm = get_node_permutation(top.kind, "Cheart")
-    print(f"Vtk type: {vtk_type}, reorder: {perm}")
-    return CheartMeshTopology(v=np.ascontiguousarray(top.conn[:, perm], dtype=dtype), type=vtk_type)
+    return CheartMeshTopology(v=np.ascontiguousarray(top.conn[:, perm], dtype=dtype), kind=vtk_type)
 
 
 def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
@@ -160,7 +114,7 @@ def convert_gmsh_bnd_to_cheart_patch[I: np.integer = np.intp](
 ) -> CheartMeshPatch[I]:
     perm = get_node_permutation(bnd.kind, "Cheart")
     return CheartMeshPatch(
-        tag=tag, k=bnd.e, v=np.ascontiguousarray(bnd.conn[:, perm], dtype=dtype), type=vtk_type
+        tag=tag, k=bnd.e, v=np.ascontiguousarray(bnd.conn[:, perm], dtype=dtype), kind=vtk_type
     )
 
 
@@ -242,21 +196,6 @@ def create_mask_from_domains[I: np.integer](
     return mask
 
 
-@dc.dataclass(slots=True)
-class IndexPermutation[I: np.integer]:
-    fwd: A1[I]
-    inv: A1[I]
-
-
-def get_index_mapping_permutation[I: np.integer](
-    top: GmshElements[I],
-) -> IndexPermutation[I]:
-    perm_inv = top.e
-    perm_fwd = np.full(np.max(perm_inv) + 1, -1, dtype=perm_inv.dtype)
-    perm_fwd[perm_inv] = np.arange(1, len(perm_inv) + 1, dtype=perm_inv.dtype)
-    return IndexPermutation(perm_fwd, perm_inv)
-
-
 def reset_node_index[F: np.floating, I: np.integer](
     space: GmshNodes[F, I], top: GmshElements[I], bnd: Mapping[int, GmshBoundaries[I]]
 ) -> tuple[GmshNodes[F, I], GmshElements[I], Mapping[int, GmshBoundaries[I]]]:
@@ -336,19 +275,28 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
 ) -> tuple[CheartMesh[F, I], A1[I] | None]:
     """Return a CheartMesh and a mask from GMSH entities if given.
 
+    Type Parameters
+    ---------------
+    F : np.floating = np.float64
+    I : np.integer = np.intp
+
     Parameters
     ----------
     dim : int
         The dimension of the main volume mesh (2 or 3).
     domains: Mapping[int, Entity]
+        **Mapping[Vol_Tag: int, Entity: int]**
+
         A mapping of subdomain IDs to GMSH entity tags for the volume mesh. If only one subdomain
         is present, this can be just {1: Entity}.
     boundaries: Mapping[int, tuple[int, Entity]]
-        A mapping of domain IDs to a mapping of the desired boundary tag(int) to the GMSH entity.
+        **Mapping[Bnd_Tag: int, (Vol_Tag: int, Entity: int)]**
+
+        A mapping of desired surface IDs to a mapping of the domain to the GMSH entity.
         mesh.
-    ftype : DType[F], optional
+    ftype : DType[F], default=np.float64
         The floating point data type for the mesh coordinates, by default np.float64.
-    dtype : DType[I], optional
+    dtype : DType[I], default=np.intp
         The integer data type for the mesh indices, by default np.intp.
 
     Returns
@@ -367,7 +315,7 @@ def build_cheart_mesh_from_gmsh[F: np.floating, I: np.integer](
     subdomains = {k: get_gmsh_entity(dim, [v], dtype=dtype) for k, v in domains.items()}
     gmsh_top = merge_elements(list(subdomains.values()))
     gmsh_bnd = {
-        k: get_gmsh_boundaries(dim - 1, v, subdomains[d]) for k, (d, v) in boundaries.items()
+        b: get_gmsh_boundaries(dim - 1, v, subdomains[d]) for b, (d, v) in boundaries.items()
     }
     gmsh_space, gmsh_top, gmsh_bnd = reset_node_index(gmsh_space, gmsh_top, gmsh_bnd)
     elem_perm = create_index_permutation(gmsh_top.e)

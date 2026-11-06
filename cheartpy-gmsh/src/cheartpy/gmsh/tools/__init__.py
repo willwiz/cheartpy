@@ -1,3 +1,4 @@
+from ._api import GmshElements, get_gmsh_entity, gmsh_finalize, merge_elements
 from ._search import (
     ElemSearchMap,
     GmshBoundaryType,
@@ -9,7 +10,11 @@ from ._search import (
 __all__ = [
     "ElemSearchMap",
     "GmshBoundaryType",
+    "GmshElements",
     "build_element_searchmap",
     "find_elem_for_boundary",
+    "get_gmsh_entity",
+    "gmsh_finalize",
+    "merge_elements",
     "search_element_association",
 ]

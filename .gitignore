@@ -23,6 +23,7 @@ wheels/
 .venv
 
 #temporory files
+/tmp/
 temp_*.py
 /*.X
 /*.T

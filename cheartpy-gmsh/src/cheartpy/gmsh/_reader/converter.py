@@ -1,13 +1,11 @@
 import dataclasses as dc
 import enum
-import itertools
 from collections.abc import Mapping, Sequence
 from pprint import pprint
 from typing import TYPE_CHECKING, Protocol, Unpack
 
 import numpy as np
 from cheartpy.elem_interfaces import (
-    GmshEnum,
     convert_element_type,
     get_node_permutation,
 )
@@ -21,10 +19,8 @@ from ._types import GmshBndClass, GmshTopInfo, MultiDomainMesh
 from .subdomain import split_subdomain
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from cheartpy.mesh import CheartMesh, CheartMeshPatch
-    from pytools.arrays import A1, A2, DType, ToFloat
+    from pytools.arrays import A1, ToFloat
 
 
 class IndexGenerator(Protocol):
@@ -57,7 +53,6 @@ def add_cheart_master_topology[F: np.floating, I: np.integer](
     )
     vol_elem = convert_element_type(mesh.volume.top.kind, "Gmsh")
     perm = get_node_permutation(mesh.volume.top.kind, "Gmsh")
-    print("Reordering element nodes for Gmsh compatibility with : ", perm)
     connectivity = np.ascontiguousarray(mesh.volume.top.v[:, perm] + 1)
     return GmshTopInfo(tag, node_tags, elem_tags, connectivity, vol_elem.value, dim)
 
@@ -153,11 +148,9 @@ class MeshConverterKwargs(TypedDict, total=False):
 def optimize_mesh() -> None:
     """Optimize the mesh using Gmsh's built-in optimization algorithms.
 
-    Parameters
-    ----------
-    top : GmshTopInfo
-        The GmshTopInfo object containing mesh information.
-
+    Runs a series of optimization algorithms to improve the quality of the mesh. This function
+    should be called after the mesh has been generated and before exporting or finalizing the mesh.
+    No parameters are required, as it operates on the current model internal to Gmsh.
     """
     gmsh.model.occ.synchronize()
     # 5. GENERATE THE MESH
@@ -307,52 +300,6 @@ def reverse_find_domain_for_boundary[F: np.floating, I: np.integer](
     raise ValueError(msg)
 
 
-@dc.dataclass(slots=True)
-class GmshElements[I: np.integer]:
-    kind: GmshEnum
-    e: A1[I]
-    conn: A2[I]
-
-
-def get_element[I: np.integer = np.intp](
-    el_type: int, tags: Sequence[int], nodes: Sequence[int], *, dtype: DType[I] = np.intp
-) -> GmshElements[I]:
-    _, _, _, elem_size, _, _ = gmsh.model.mesh.get_element_properties(el_type)
-    return GmshElements(
-        kind=GmshEnum(el_type),
-        e=np.ascontiguousarray(tags, dtype=dtype),
-        conn=np.ascontiguousarray(nodes, dtype=dtype).reshape(-1, elem_size),
-    )
-
-
-def merge_elements[I: np.integer](elements: Sequence[GmshElements[I]]) -> GmshElements[I]:
-    print(f"Merging {len(elements)} GmshElements...")
-    elements = list(elements)
-
-    if not elements:
-        msg = "No elements to merge."
-        raise ValueError(msg)
-    el_types = {el.kind for el in elements}
-    if len(el_types) != 1:
-        msg = f"Cannot merge elements of different types: {el_types}."
-        raise ValueError(msg)
-    tags = np.concatenate([el.e for el in elements])
-    conn = np.concatenate([el.conn for el in elements])
-    return GmshElements(kind=el_types.pop(), e=tags, conn=conn)
-
-
-def get_gmsh_entity[I: np.integer = np.intp](
-    dim: int, entity_tag: Sequence[Tag], *, dtype: DType[I] = np.intp
-) -> GmshElements[I]:
-    print(f"Getting GMSH entity for dimension {dim} and entity tags {entity_tag}...")
-    res = list(
-        itertools.chain.from_iterable(
-            zip(*gmsh.model.mesh.get_elements(dim=dim, tag=i), strict=True) for i in entity_tag
-        )
-    )
-    return merge_elements([get_element(t, tag, nodes, dtype=dtype) for t, tag, nodes in res])
-
-
 def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
     mesh: CheartMesh[F, I],
     mask: A1[np.integer] | None = None,
@@ -443,14 +390,3 @@ def read_cheartmesh_into_gmsh_api[F: np.floating, I: np.integer](
         k: (reverse_find_domain_for_boundary(domain_mesh, k), v) for k, v in boundary_map.items()
     }
     return GmshMeshTags(dim=top.dim, volume=volume_tag, domains=domains, boundarys=boundaries)
-
-
-def gmsh_finalize(filename: Path | None = None) -> None:
-    """Finalize the GMSH API."""
-    if not gmsh.is_initialized():
-        print("GMSH API is not initialized. No need to finalize.")
-    if filename:
-        gmsh.write(str(filename))
-    else:
-        gmsh.fltk.run()
-    gmsh.finalize()
