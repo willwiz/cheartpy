@@ -1,10 +1,9 @@
-+++
-title = "cheartpy"
-description = "Documentation for the Cheart Python Monorepo"
+---
+title: Home
 
-[extra]
-show_sidebar = false
-+++
+hide:
+  - toc
+---
 
 # cheartpy
 
